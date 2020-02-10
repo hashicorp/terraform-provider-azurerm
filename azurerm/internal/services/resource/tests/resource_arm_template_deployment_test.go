@@ -295,7 +295,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {
@@ -324,6 +324,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
+
   deployment_mode = "Complete"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -338,7 +339,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {
@@ -392,6 +393,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
+
   deployment_mode = "Complete"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -403,11 +405,11 @@ func testAccAzureRMTemplateDeployment_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_template_deployment" "import" {
-  name                = "${azurerm_template_deployment.test.name}"
-  resource_group_name = "${azurerm_template_deployment.test.resource_group_name}"
+  name                = azurerm_template_deployment.test.name
+  resource_group_name = azurerm_template_deployment.test.resource_group_name
 
-  template_body   = "${azurerm_template_deployment.test.template_body}"
-  deployment_mode = "${azurerm_template_deployment.test.deployment_mode}"
+  template_body   = azurerm_template_deployment.test.template_body
+  deployment_mode = azurerm_template_deployment.test.deployment_mode
 }
 `, template)
 }
@@ -421,7 +423,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {
@@ -466,6 +468,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
+
   deployment_mode = "Complete"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -479,33 +482,34 @@ resource "azurerm_resource_group" "test" {
 }
 
 output "test" {
-  value = "${azurerm_template_deployment.test.outputs["testOutput"]}"
+  value = azurerm_template_deployment.test.outputs["testOutput"]
 }
 
 resource "azurerm_storage_container" "using-outputs" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_template_deployment.test.outputs["accountName"]}"
+  resource_group_name   = azurerm_resource_group.test.name
+  storage_account_name  = azurerm_template_deployment.test.outputs["accountName"]
   container_access_type = "private"
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_key_vault" "test-kv" {
   location            = "%s"
   name                = "vault%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "standard"
   }
 
-  tenant_id                       = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id                       = data.azurerm_client_config.current.tenant_id
   enabled_for_template_deployment = true
 
   access_policy {
     key_permissions = []
-    object_id       = "${data.azurerm_client_config.current.service_principal_object_id}"
+    object_id       = data.azurerm_client_config.current.service_principal_object_id
 
     secret_permissions = [
       "delete",
@@ -515,14 +519,14 @@ resource "azurerm_key_vault" "test-kv" {
       "purge",
     ]
 
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
   }
 }
 
 resource "azurerm_key_vault_secret" "test-secret" {
   name      = "acctestsecret-%d"
   value     = "terraform-test-%d"
-  vault_uri = "${azurerm_key_vault.test-kv.vault_uri}"
+  vault_uri = azurerm_key_vault.test-kv.vault_uri
 }
 
 locals {
@@ -541,11 +545,12 @@ locals {
   }
 }
 TPL
+
 }
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {
@@ -614,9 +619,10 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters_body = "${local.templated-file}"
+
+  parameters_body = local.templated-file
   deployment_mode = "Incremental"
-  depends_on      = ["azurerm_key_vault_secret.test-secret"]
+  depends_on      = [azurerm_key_vault_secret.test-secret]
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -629,19 +635,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 output "test" {
-  value = "${azurerm_template_deployment.test.outputs["testOutput"]}"
+  value = azurerm_template_deployment.test.outputs["testOutput"]
 }
 
 resource "azurerm_storage_container" "using-outputs" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_template_deployment.test.outputs["accountName"]}"
+  resource_group_name   = azurerm_resource_group.test.name
+  storage_account_name  = azurerm_template_deployment.test.outputs["accountName"]
   container_access_type = "private"
 }
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {
@@ -709,6 +715,7 @@ resource "azurerm_template_deployment" "test" {
   }
 }
 DEPLOY
+
 
   parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
@@ -728,24 +735,24 @@ resource "azurerm_resource_group" "test" {
 }
 
 output "tfStringOutput" {
-  value = "${lookup(azurerm_template_deployment.test.outputs, "stringOutput")}"
+  value = azurerm_template_deployment.test.outputs["stringOutput"]
 }
 
 output "tfIntOutput" {
-  value = "${lookup(azurerm_template_deployment.test.outputs, "intOutput")}"
+  value = azurerm_template_deployment.test.outputs["intOutput"]
 }
 
 output "tfFalseOutput" {
-  value = "${lookup(azurerm_template_deployment.test.outputs, "falseOutput")}"
+  value = azurerm_template_deployment.test.outputs["falseOutput"]
 }
 
 output "tfTrueOutput" {
-  value = "${lookup(azurerm_template_deployment.test.outputs, "trueOutput")}"
+  value = azurerm_template_deployment.test.outputs["trueOutput"]
 }
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {
@@ -834,6 +841,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
+
   parameters = {
     dnsLabelPrefix     = "terraform-test-%d"
     storageAccountType = "Standard_GRS"
@@ -853,12 +861,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 output "test" {
-  value = "${lookup(azurerm_template_deployment.test.outputs, "testOutput")}"
+  value = azurerm_template_deployment.test.outputs["testOutput"]
 }
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {
@@ -902,6 +910,7 @@ resource "azurerm_template_deployment" "test" {
   }
 }
 DEPLOY
+
 
   parameters = {
     storageAccountType = "Standard_GRS"

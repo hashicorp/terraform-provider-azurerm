@@ -157,8 +157,8 @@ func testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data acceptance.Te
 
 resource "azurerm_backup_policy_file_share" "test" {
   name                = "acctest-PFS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
@@ -179,8 +179,8 @@ func testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(data acceptance.T
 
 resource "azurerm_backup_policy_file_share" "test" {
   name                = "acctest-PFS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
@@ -200,9 +200,9 @@ func testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(data acceptanc
 %s
 
 resource "azurerm_backup_policy_file_share" "import" {
-  name                = "${azurerm_backup_policy_file_share.test.name}"
-  resource_group_name = "${azurerm_backup_policy_file_share.test.resource_group_name}"
-  recovery_vault_name = "${azurerm_backup_policy_file_share.test.recovery_vault_name}"
+  name                = azurerm_backup_policy_file_share.test.name
+  resource_group_name = azurerm_backup_policy_file_share.test.resource_group_name
+  recovery_vault_name = azurerm_backup_policy_file_share.test.recovery_vault_name
 
   backup {
     frequency = "Daily"

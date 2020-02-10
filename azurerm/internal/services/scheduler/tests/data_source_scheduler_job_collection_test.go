@@ -44,8 +44,8 @@ func testAccDataSourceSchedulerJobCollection_basic(data acceptance.TestData) str
 %s
 
 data "azurerm_scheduler_job_collection" "test" {
-  name                = "${azurerm_scheduler_job_collection.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_scheduler_job_collection.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }
@@ -56,8 +56,8 @@ func testAccDataSourceSchedulerJobCollection_complete(data acceptance.TestData) 
 %s
 
 data "azurerm_scheduler_job_collection" "test" {
-  name                = "${azurerm_scheduler_job_collection.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_scheduler_job_collection.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

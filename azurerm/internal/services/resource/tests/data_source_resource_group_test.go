@@ -41,7 +41,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 data "azurerm_resource_group" "test" {
-  name = "${azurerm_resource_group.test.name}"
+  name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

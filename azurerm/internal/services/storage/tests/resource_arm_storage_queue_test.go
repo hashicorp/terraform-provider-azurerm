@@ -206,7 +206,7 @@ func testAccAzureRMStorageQueue_basic(data acceptance.TestData) string {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, template, data.RandomInteger)
 }
@@ -217,8 +217,8 @@ func testAccAzureRMStorageQueue_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_storage_queue" "import" {
-  name                 = "${azurerm_storage_queue.test.name}"
-  storage_account_name = "${azurerm_storage_queue.test.storage_account_name}"
+  name                 = azurerm_storage_queue.test.name
+  storage_account_name = azurerm_storage_queue.test.storage_account_name
 }
 `, template)
 }
@@ -230,7 +230,7 @@ func testAccAzureRMStorageQueue_metaData(data acceptance.TestData) string {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello = "world"
@@ -246,7 +246,7 @@ func testAccAzureRMStorageQueue_metaDataUpdated(data acceptance.TestData) string
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello = "world"
@@ -265,8 +265,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -274,6 +274,5 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

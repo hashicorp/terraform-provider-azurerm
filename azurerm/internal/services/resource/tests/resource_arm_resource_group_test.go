@@ -199,8 +199,8 @@ func testAccAzureRMResourceGroup_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_resource_group" "import" {
-  name     = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  name     = azurerm_resource_group.test.name
+  location = azurerm_resource_group.test.location
 }
 `, template)
 }

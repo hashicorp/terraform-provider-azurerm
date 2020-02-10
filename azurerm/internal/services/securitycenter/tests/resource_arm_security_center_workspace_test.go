@@ -161,14 +161,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-%d-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_security_center_workspace" "test" {
   scope        = "%s"
-  workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, scope)
 }
@@ -179,8 +179,8 @@ func testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(data acceptance.Tes
 %s
 
 resource "azurerm_security_center_workspace" "import" {
-  scope        = "${azurerm_security_center_workspace.test.scope}"
-  workspace_id = "${azurerm_security_center_workspace.test.workspace_id}"
+  scope        = azurerm_security_center_workspace.test.scope
+  workspace_id = azurerm_security_center_workspace.test.workspace_id
 }
 `, template)
 }
@@ -198,14 +198,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test2" {
   name                = "acctest-%d-2"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_security_center_workspace" "test" {
   scope        = "%s"
-  workspace_id = "${azurerm_log_analytics_workspace.test2.id}"
+  workspace_id = azurerm_log_analytics_workspace.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, scope)
 }

@@ -239,7 +239,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
 }
@@ -256,7 +256,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=*.example.com"
   product_type        = "WildCard"
 }
@@ -269,11 +269,11 @@ func testAccAzureRMAppServiceCertificateOrder_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_app_service_certificate_order" "import" {
-  name                = "${azurerm_app_service_certificate_order.test.name}"
-  location            = "${azurerm_app_service_certificate_order.test.location}"
-  resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
-  distinguished_name  = "${azurerm_app_service_certificate_order.test.distinguished_name}"
-  product_type        = "${azurerm_app_service_certificate_order.test.product_type}"
+  name                = azurerm_app_service_certificate_order.test.name
+  location            = azurerm_app_service_certificate_order.test.location
+  resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
+  distinguished_name  = azurerm_app_service_certificate_order.test.distinguished_name
+  product_type        = azurerm_app_service_certificate_order.test.product_type
 }
 `, template)
 }
@@ -288,7 +288,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
   auto_renew          = false

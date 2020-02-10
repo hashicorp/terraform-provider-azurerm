@@ -503,8 +503,8 @@ func testAccAzureRMSchedulerJob_web_basic(data acceptance.TestData) string {
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "http://example.com"
@@ -521,9 +521,9 @@ func testAccAzureRMSchedulerJob_web_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_scheduler_job" "import" {
-  name                = "${azurerm_scheduler_job.test.name}"
-  resource_group_name = "${azurerm_scheduler_job.test.resource_group_name}"
-  job_collection_name = "${azurerm_scheduler_job.test.job_collection_name}"
+  name                = azurerm_scheduler_job.test.name
+  resource_group_name = azurerm_scheduler_job.test.resource_group_name
+  job_collection_name = azurerm_scheduler_job.test.job_collection_name
 
   action_web {
     url    = "http://example.com"
@@ -540,8 +540,8 @@ func testAccAzureRMSchedulerJob_web_put(data acceptance.TestData) string {
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "http://example.com"
@@ -563,8 +563,8 @@ func testAccAzureRMSchedulerJob_web_authBasic(data acceptance.TestData) string {
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "https://example.com"
@@ -630,8 +630,8 @@ func testAccAzureRMSchedulerJob_web_retry(data acceptance.TestData) string {
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "https://example.com"
@@ -653,8 +653,8 @@ func testAccAzureRMSchedulerJob_web_recurring(data acceptance.TestData) string {
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "https://example.com"
@@ -677,8 +677,8 @@ func testAccAzureRMSchedulerJob_web_recurringDaily(data acceptance.TestData) str
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "https://example.com"
@@ -702,8 +702,8 @@ func testAccAzureRMSchedulerJob_web_recurringWeekly(data acceptance.TestData) st
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "https://example.com"
@@ -726,8 +726,8 @@ func testAccAzureRMSchedulerJob_web_recurringMonthly(data acceptance.TestData) s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "https://example.com"
@@ -786,8 +786,8 @@ func testAccAzureRMSchedulerJob_web_errorAction(data acceptance.TestData) string
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "https://example.com"
@@ -877,22 +877,22 @@ func testAccAzureRMSchedulerJob_storageQueue_errorAction(data acceptance.TestDat
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctest%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_queue" "test" {
   name                 = "acctest-%d-job"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  job_collection_name = azurerm_scheduler_job_collection.test.name
 
   action_web {
     url    = "http://example.com"
@@ -900,9 +900,9 @@ resource "azurerm_scheduler_job" "test" {
   }
 
   error_action_storage_queue {
-    storage_account_name = "${azurerm_storage_account.test.name}"
-    storage_queue_name   = "${azurerm_storage_queue.test.name}"
-    sas_token            = "${azurerm_storage_account.test.primary_access_key}"
+    storage_account_name = azurerm_storage_account.test.name
+    storage_queue_name   = azurerm_storage_queue.test.name
+    sas_token            = azurerm_storage_account.test.primary_access_key
     message              = "storage message"
   }
 }

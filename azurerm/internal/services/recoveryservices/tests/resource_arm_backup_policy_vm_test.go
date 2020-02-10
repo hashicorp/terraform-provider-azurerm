@@ -375,8 +375,8 @@ func testAccAzureRMBackupProtectionPolicyVM_basicDaily(data acceptance.TestData)
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
@@ -396,9 +396,9 @@ func testAccAzureRMBackupProtectionPolicyVM_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_backup_policy_vm" "import" {
-  name                = "${azurerm_backup_policy_vm.test.name}"
-  resource_group_name = "${azurerm_backup_policy_vm.test.resource_group_name}"
-  recovery_vault_name = "${azurerm_backup_policy_vm.test.recovery_vault_name}"
+  name                = azurerm_backup_policy_vm.test.name
+  resource_group_name = azurerm_backup_policy_vm.test.resource_group_name
+  recovery_vault_name = azurerm_backup_policy_vm.test.recovery_vault_name
 
   backup {
     frequency = "Daily"
@@ -419,8 +419,8 @@ func testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data acceptance.TestData
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Weekly"
@@ -443,8 +443,8 @@ func testAccAzureRMBackupProtectionPolicyVM_completeDaily(data acceptance.TestDa
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
@@ -483,8 +483,8 @@ func testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data acceptance.TestD
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Weekly"
@@ -520,8 +520,8 @@ func testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data acceptanc
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Weekly"

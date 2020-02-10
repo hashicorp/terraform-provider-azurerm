@@ -347,15 +347,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -366,9 +366,9 @@ func testAccAzureRMServiceBusQueue_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_servicebus_queue" "import" {
-  name                = "${azurerm_servicebus_queue.test.name}"
-  resource_group_name = "${azurerm_servicebus_queue.test.resource_group_name}"
-  namespace_name      = "${azurerm_servicebus_queue.test.namespace_name}"
+  name                = azurerm_servicebus_queue.test.name
+  resource_group_name = azurerm_servicebus_queue.test.resource_group_name
+  namespace_name      = azurerm_servicebus_queue.test.namespace_name
 }
 `, template)
 }
@@ -382,16 +382,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "premium"
   capacity            = 1
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   enable_partitioning = false
   enable_express      = false
 }
@@ -407,15 +407,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                  = "acctestservicebusqueue-%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  namespace_name        = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name   = azurerm_resource_group.test.name
+  namespace_name        = azurerm_servicebus_namespace.test.name
   enable_express        = true
   max_size_in_megabytes = 2048
 }
@@ -431,15 +431,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                  = "acctestservicebusqueue-%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  namespace_name        = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name   = azurerm_resource_group.test.name
+  namespace_name        = azurerm_servicebus_namespace.test.name
   enable_partitioning   = true
   max_size_in_megabytes = 5120
 }
@@ -455,15 +455,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                         = "acctestservicebusqueue-%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  namespace_name               = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name          = azurerm_resource_group.test.name
+  namespace_name               = azurerm_servicebus_namespace.test.name
   requires_duplicate_detection = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -478,16 +478,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   requires_session    = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -502,16 +502,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                                 = "acctestservicebusqueue-%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  namespace_name                       = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  namespace_name                       = azurerm_servicebus_namespace.test.name
   dead_lettering_on_message_expiration = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -526,15 +526,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   lock_duration       = "PT40S"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -549,15 +549,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   lock_duration       = "PT2M"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -572,15 +572,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                                    = "acctestservicebusqueue-%d"
-  resource_group_name                     = "${azurerm_resource_group.test.name}"
-  namespace_name                          = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name                     = azurerm_resource_group.test.name
+  namespace_name                          = azurerm_servicebus_namespace.test.name
   auto_delete_on_idle                     = "PT10M"
   default_message_ttl                     = "PT30M"
   requires_duplicate_detection            = true
@@ -598,15 +598,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   max_delivery_count  = 20
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

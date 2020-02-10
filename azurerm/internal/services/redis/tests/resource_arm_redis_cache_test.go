@@ -485,15 +485,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -504,15 +505,16 @@ func testAccAzureRMRedisCache_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_redis_cache" "import" {
-  name                = "${azurerm_redis_cache.test.name}"
-  location            = "${azurerm_redis_cache.test.location}"
-  resource_group_name = "${azurerm_redis_cache.test.resource_group_name}"
-  capacity            = "${azurerm_redis_cache.test.capacity}"
-  family              = "${azurerm_redis_cache.test.family}"
-  sku_name            = "${azurerm_redis_cache.test.sku_name}"
-  enable_non_ssl_port = "${azurerm_redis_cache.test.enable_non_ssl_port}"
+  name                = azurerm_redis_cache.test.name
+  location            = azurerm_redis_cache.test.location
+  resource_group_name = azurerm_redis_cache.test.resource_group_name
+  capacity            = azurerm_redis_cache.test.capacity
+  family              = azurerm_redis_cache.test.family
+  sku_name            = azurerm_redis_cache.test.sku_name
+  enable_non_ssl_port = azurerm_redis_cache.test.enable_non_ssl_port
 
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, template)
 }
@@ -526,13 +528,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
-  redis_configuration {}
+  redis_configuration {
+  }
 
   tags = {
     environment = "production"
@@ -550,8 +553,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -576,8 +579,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -603,8 +606,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 2
   family              = "P"
   sku_name            = "Premium"
@@ -630,13 +633,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "c"
   sku_name            = "basic"
   enable_non_ssl_port = false
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -650,8 +654,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -673,8 +677,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -685,8 +689,8 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -711,8 +715,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -734,8 +738,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -746,8 +750,8 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -771,8 +775,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -801,8 +805,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -813,8 +817,8 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -837,27 +841,28 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
-  subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration {}
+  subnet_id           = azurerm_subnet.test.id
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -872,28 +877,29 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                      = "acctestRedis-%d"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
   capacity                  = 1
   family                    = "P"
   sku_name                  = "Premium"
   enable_non_ssl_port       = false
-  subnet_id                 = "${azurerm_subnet.test.id}"
+  subnet_id                 = azurerm_subnet.test.id
   private_static_ip_address = "10.0.1.20"
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -908,27 +914,28 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
-  subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration {}
+  subnet_id           = azurerm_subnet.test.id
+  redis_configuration {
+  }
   zones = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -944,26 +951,26 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
-  subnet_id           = "${azurerm_subnet.test.id}"
+  subnet_id           = azurerm_subnet.test.id
   redis_configuration {
     enable_authentication = false
   }

@@ -425,7 +425,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -442,8 +442,8 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "acctestpublicip-%d"
 }
@@ -451,10 +451,10 @@ resource "azurerm_public_ip" "test" {
 resource "azurerm_traffic_manager_endpoint" "testAzure" {
   name                = "acctestend-azure%d"
   type                = "azureEndpoints"
-  target_resource_id  = "${azurerm_public_ip.test.id}"
+  target_resource_id  = azurerm_public_ip.test.id
   weight              = 3
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
@@ -462,8 +462,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   type                = "externalEndpoints"
   target              = "terraform.io"
   weight              = 3
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -474,12 +474,12 @@ func testAccAzureRMTrafficManagerEndpoint_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_traffic_manager_endpoint" "import" {
-  name                = "${azurerm_traffic_manager_endpoint.testAzure.name}"
-  type                = "${azurerm_traffic_manager_endpoint.testAzure.type}"
-  target_resource_id  = "${azurerm_traffic_manager_endpoint.testAzure.target_resource_id}"
-  weight              = "${azurerm_traffic_manager_endpoint.testAzure.weight}"
-  profile_name        = "${azurerm_traffic_manager_endpoint.testAzure.profile_name}"
-  resource_group_name = "${azurerm_traffic_manager_endpoint.testAzure.resource_group_name}"
+  name                = azurerm_traffic_manager_endpoint.testAzure.name
+  type                = azurerm_traffic_manager_endpoint.testAzure.type
+  target_resource_id  = azurerm_traffic_manager_endpoint.testAzure.target_resource_id
+  weight              = azurerm_traffic_manager_endpoint.testAzure.weight
+  profile_name        = azurerm_traffic_manager_endpoint.testAzure.profile_name
+  resource_group_name = azurerm_traffic_manager_endpoint.testAzure.resource_group_name
 }
 `, template)
 }
@@ -493,7 +493,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -510,8 +510,8 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "acctestpublicip-%d"
 }
@@ -519,10 +519,10 @@ resource "azurerm_public_ip" "test" {
 resource "azurerm_traffic_manager_endpoint" "testAzure" {
   name                = "acctestend-azure%d"
   type                = "azureEndpoints"
-  target_resource_id  = "${azurerm_public_ip.test.id}"
+  target_resource_id  = azurerm_public_ip.test.id
   weight              = 3
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
@@ -531,8 +531,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   type                = "externalEndpoints"
   target              = "terraform.io"
   weight              = 3
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -546,7 +546,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -566,8 +566,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   type                = "externalEndpoints"
   target              = "terraform.io"
   weight              = 50
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -575,8 +575,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   type                = "externalEndpoints"
   target              = "www.terraform.io"
   weight              = 50
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -590,7 +590,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -610,8 +610,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   type                = "externalEndpoints"
   target              = "terraform.io"
   weight              = 25
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -619,8 +619,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   type                = "externalEndpoints"
   target              = "www.terraform.io"
   weight              = 75
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -633,7 +633,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -653,8 +653,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   type                = "externalEndpoints"
   target              = "terraform.io"
   priority            = 1
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -662,8 +662,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   type                = "externalEndpoints"
   target              = "www.terraform.io"
   priority            = 2
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -677,7 +677,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -697,8 +697,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   type                = "externalEndpoints"
   target              = "terraform.io"
   priority            = 3
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
@@ -706,8 +706,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   type                = "externalEndpoints"
   target              = "www.terraform.io"
   priority            = 2
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -721,7 +721,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Subnet"
 
   dns_config {
@@ -740,8 +740,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
   target              = "terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
   subnet {
     first = "1.2.3.0"
     scope = "24"
@@ -756,8 +756,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
   target              = "www.terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
   subnet {
     first = "21.22.23.24"
     scope = "32"
@@ -775,7 +775,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Subnet"
 
   dns_config {
@@ -794,16 +794,16 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
   target              = "terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
   target              = "www.terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
   subnet {
     first = "12.34.56.78"
     last  = "12.34.56.78"
@@ -821,7 +821,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -840,8 +840,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
   target              = "terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 1
   custom_header {
     name  = "header"
@@ -853,8 +853,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
   target              = "www.terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 2
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -869,7 +869,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -888,8 +888,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
   target              = "terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 1
 }
 
@@ -897,8 +897,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   name                = "acctestend-external%d-2"
   type                = "externalEndpoints"
   target              = "www.terraform.io"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 2
   custom_header {
     name  = "header"
@@ -917,7 +917,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "parent" {
   name                   = "acctesttmpparent%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -934,7 +934,7 @@ resource "azurerm_traffic_manager_profile" "parent" {
 
 resource "azurerm_traffic_manager_profile" "child" {
   name                   = "acctesttmpchild%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -952,10 +952,10 @@ resource "azurerm_traffic_manager_profile" "child" {
 resource "azurerm_traffic_manager_endpoint" "nested" {
   name                = "acctestend-parent%d"
   type                = "nestedEndpoints"
-  target_resource_id  = "${azurerm_traffic_manager_profile.child.id}"
+  target_resource_id  = azurerm_traffic_manager_profile.child.id
   priority            = 1
-  profile_name        = "${azurerm_traffic_manager_profile.parent.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.parent.name
+  resource_group_name = azurerm_resource_group.test.name
   min_child_endpoints = 1
 }
 
@@ -964,8 +964,8 @@ resource "azurerm_traffic_manager_endpoint" "externalChild" {
   type                = "externalEndpoints"
   target              = "terraform.io"
   priority            = 1
-  profile_name        = "${azurerm_traffic_manager_profile.child.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_traffic_manager_profile.child.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -979,7 +979,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctesttmpparent%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Performance"
 
   dns_config {
@@ -998,9 +998,9 @@ resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
   target              = "terraform.io"
-  endpoint_location   = "${azurerm_resource_group.test.location}"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  endpoint_location   = azurerm_resource_group.test.location
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1014,7 +1014,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctesttmpparent%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Performance"
 
   dns_config {
@@ -1033,9 +1033,9 @@ resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "acctestend-external%d"
   type                = "externalEndpoints"
   target              = "terraform.io"
-  endpoint_location   = "${azurerm_resource_group.test.location}"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  endpoint_location   = azurerm_resource_group.test.location
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1049,7 +1049,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Geographic"
 
   dns_config {
@@ -1070,8 +1070,8 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "example.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  profile_name        = azurerm_traffic_manager_profile.test.name
   target              = "example.com"
   type                = "externalEndpoints"
   geo_mappings        = ["GB", "FR"]
@@ -1088,7 +1088,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Geographic"
 
   dns_config {
@@ -1109,8 +1109,8 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "example.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  profile_name        = azurerm_traffic_manager_profile.test.name
   target              = "example.com"
   type                = "externalEndpoints"
   geo_mappings        = ["FR", "DE"]

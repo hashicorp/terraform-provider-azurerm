@@ -170,8 +170,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "standard"
 
   tags = {
@@ -190,10 +190,10 @@ func testAccAzureRMSearchService_requiresImport(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 resource "azurerm_search_service" "import" {
-  name                = "${azurerm_search_service.test.name}"
-  resource_group_name = "${azurerm_search_service.test.resource_group_name}"
-  location            = "${azurerm_search_service.test.location}"
-  sku                 = "${azurerm_search_service.test.sku}"
+  name                = azurerm_search_service.test.name
+  resource_group_name = azurerm_search_service.test.resource_group_name
+  location            = azurerm_search_service.test.location
+  sku                 = azurerm_search_service.test.sku
 
   tags = {
     environment = "staging"
@@ -211,8 +211,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "standard"
   replica_count       = 2
 

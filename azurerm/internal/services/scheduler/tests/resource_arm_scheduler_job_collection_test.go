@@ -160,11 +160,10 @@ func testAccAzureRMSchedulerJobCollection_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_scheduler_job_collection" "import" {
-  name                = "${azurerm_scheduler_job_collection.test.name}"
-  location            = "${azurerm_scheduler_job_collection.test.location}"
-  resource_group_name = "${azurerm_scheduler_job_collection.test.resource_group_name}"
-  sku                 = "${azurerm_scheduler_job_collection.test.sku}"
-
+  name                = azurerm_scheduler_job_collection.test.name
+  location            = azurerm_scheduler_job_collection.test.location
+  resource_group_name = azurerm_scheduler_job_collection.test.resource_group_name
+  sku                 = azurerm_scheduler_job_collection.test.sku
   %s
 }
 `, template, additional)

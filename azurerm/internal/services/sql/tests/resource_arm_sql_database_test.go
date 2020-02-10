@@ -401,8 +401,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -410,9 +410,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -426,14 +426,14 @@ func testAccAzureRMSqlDatabase_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_sql_database" "import" {
-  name                             = "${azurerm_sql_database.test.name}"
-  resource_group_name              = "${azurerm_sql_database.test.resource_group_name}"
-  server_name                      = "${azurerm_sql_database.test.server_name}"
-  location                         = "${azurerm_sql_database.test.location}"
-  edition                          = "${azurerm_sql_database.test.edition}"
-  collation                        = "${azurerm_sql_database.test.collation}"
-  max_size_bytes                   = "${azurerm_sql_database.test.max_size_bytes}"
-  requested_service_objective_name = "${azurerm_sql_database.test.requested_service_objective_name}"
+  name                             = azurerm_sql_database.test.name
+  resource_group_name              = azurerm_sql_database.test.resource_group_name
+  server_name                      = azurerm_sql_database.test.server_name
+  location                         = azurerm_sql_database.test.location
+  edition                          = azurerm_sql_database.test.edition
+  collation                        = azurerm_sql_database.test.collation
+  max_size_bytes                   = azurerm_sql_database.test.max_size_bytes
+  requested_service_objective_name = azurerm_sql_database.test.requested_service_objective_name
 }
 `, testAccAzureRMSqlDatabase_basic(data))
 }
@@ -447,8 +447,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -456,9 +456,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -481,8 +481,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -490,9 +490,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -514,8 +514,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -523,9 +523,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "DataWarehouse"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   requested_service_objective_name = "DW400"
@@ -542,8 +542,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -551,9 +551,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -562,11 +562,11 @@ resource "azurerm_sql_database" "test" {
 
 resource "azurerm_sql_database" "test_restore" {
   name                  = "acctestdb_restore%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  server_name           = "${azurerm_sql_server.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = azurerm_resource_group.test.name
+  server_name           = azurerm_sql_server.test.name
+  location              = azurerm_resource_group.test.location
   create_mode           = "PointInTimeRestore"
-  source_database_id    = "${azurerm_sql_database.test.id}"
+  source_database_id    = azurerm_sql_database.test.id
   restore_point_in_time = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, formattedTime)
@@ -581,8 +581,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -590,9 +590,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_elasticpool" "test" {
   name                = "acctestep%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
   edition             = "Basic"
   dtu                 = 50
   pool_size           = 5000
@@ -600,13 +600,13 @@ resource "azurerm_sql_elasticpool" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
-  edition                          = "${azurerm_sql_elasticpool.test.edition}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
+  edition                          = azurerm_sql_elasticpool.test.edition
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
-  elastic_pool_name                = "${azurerm_sql_elasticpool.test.name}"
+  elastic_pool_name                = azurerm_sql_elasticpool.test.name
   requested_service_objective_name = "ElasticPool"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -621,8 +621,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -630,9 +630,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "Japanese_Bushu_Kakusu_100_CS_AS_KS_WS"
   max_size_bytes                   = "1073741824"
@@ -650,32 +650,32 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "bacpac"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  resource_group_name   = azurerm_resource_group.test.name
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
   name                   = "test.bacpac"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "block"
   source                 = "testdata/sql_import.bacpac"
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -683,28 +683,28 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_firewall_rule" "test" {
   name                = "allowazure"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "0.0.0.0"
 }
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = "S0"
 
   import {
-    storage_uri                  = "${azurerm_storage_blob.test.url}"
-    storage_key                  = "${azurerm_storage_account.test.primary_access_key}"
+    storage_uri                  = azurerm_storage_blob.test.url
+    storage_key                  = azurerm_storage_account.test.primary_access_key
     storage_key_type             = "StorageAccessKey"
-    administrator_login          = "${azurerm_sql_server.test.administrator_login}"
-    administrator_login_password = "${azurerm_sql_server.test.administrator_login_password}"
+    administrator_login          = azurerm_sql_server.test.administrator_login
+    administrator_login_password = azurerm_sql_server.test.administrator_login_password
     authentication_type          = "SQL"
   }
 }
@@ -720,8 +720,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -729,9 +729,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -749,16 +749,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "test%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -766,9 +766,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                = "acctestdb%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
+  location            = azurerm_resource_group.test.location
   edition             = "Standard"
   collation           = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes      = "1073741824"
@@ -778,8 +778,8 @@ resource "azurerm_sql_database" "test" {
     state                      = "%s"
     disabled_alerts            = ["Sql_Injection"]
     email_account_admins       = "Enabled"
-    storage_account_access_key = "${azurerm_storage_account.test.primary_access_key}"
-    storage_endpoint           = "${azurerm_storage_account.test.primary_blob_endpoint}"
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
     use_server_default         = "Disabled"
   }
 }
@@ -795,8 +795,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "readscaletestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -804,9 +804,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                = "readscaletestdb%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
+  location            = azurerm_resource_group.test.location
   edition             = "Premium"
   collation           = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes      = "1073741824"

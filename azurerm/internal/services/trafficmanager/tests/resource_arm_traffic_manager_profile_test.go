@@ -243,7 +243,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%[1]d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "%[3]s"
 
   dns_config {
@@ -266,9 +266,9 @@ func testAccAzureRMTrafficManagerProfile_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_traffic_manager_profile" "import" {
-  name                   = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name    = "${azurerm_traffic_manager_profile.test.resource_group_name}"
-  traffic_routing_method = "${azurerm_traffic_manager_profile.test.traffic_routing_method}"
+  name                   = azurerm_traffic_manager_profile.test.name
+  resource_group_name    = azurerm_traffic_manager_profile.test.resource_group_name
+  traffic_routing_method = azurerm_traffic_manager_profile.test.traffic_routing_method
 
   dns_config {
     relative_name = "acctest-tmp-%d"
@@ -293,7 +293,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Performance"
 
   dns_config {
@@ -332,7 +332,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -370,7 +370,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Performance"
 
   dns_config {

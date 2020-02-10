@@ -380,8 +380,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -396,9 +396,9 @@ func testAccAzureRMSignalRService_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_signalr_service" "import" {
-  name                = "${azurerm_signalr_service.test.name}"
-  location            = "${azurerm_signalr_service.test.location}"
-  resource_group_name = "${azurerm_signalr_service.test.resource_group_name}"
+  name                = azurerm_signalr_service.test.name
+  location            = azurerm_signalr_service.test.location
+  resource_group_name = azurerm_signalr_service.test.resource_group_name
 
   sku {
     name     = "Free_F1"
@@ -417,8 +417,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Standard_S1"
@@ -437,8 +437,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -464,8 +464,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"

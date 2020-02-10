@@ -195,8 +195,8 @@ func testAccDataSourceAppService_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -207,8 +207,8 @@ func testAccDataSourceAppService_tags(data acceptance.TestData) string {
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -219,8 +219,8 @@ func testAccDataSourceAppService_clientAffinityDisabled(data acceptance.TestData
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -231,8 +231,8 @@ func testAccDataSourceAppService_32Bit(data acceptance.TestData) string {
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -243,8 +243,8 @@ func testAccDataSourceAppService_appSettings(data acceptance.TestData) string {
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -255,8 +255,8 @@ func testAccDataSourceAppService_connectionStrings(data acceptance.TestData) str
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -267,8 +267,8 @@ func testAccDataSourceAppService_ipRestriction(data acceptance.TestData) string 
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -279,8 +279,8 @@ func testAccDataSourceAppService_http2Enabled(data acceptance.TestData) string {
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -291,8 +291,8 @@ func testAccDataSourceAppService_minTls(data acceptance.TestData) string {
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }
@@ -303,8 +303,8 @@ func testAccDataSourceAppService_basicWindowsContainer(data acceptance.TestData)
 %s
 
 data "azurerm_app_service" "test" {
-  name                = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
 }
 `, config)
 }

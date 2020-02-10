@@ -43,9 +43,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "acctestsads%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -55,7 +55,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 data "azurerm_storage_account_sas" "test" {
-  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  connection_string = azurerm_storage_account.test.primary_connection_string
   https_only        = true
 
   resource_types {
