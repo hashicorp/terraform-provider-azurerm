@@ -34,10 +34,6 @@ func WorkspaceID(input string) (*WorkspaceId, error) {
 // TODO -- use parse function "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers".ParseAccountID
 // when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 func AccountIDCaseDiffSuppress(input string) (*accountParser.AccountID, error) {
-	accountId, err := accountParser.ParseAccountID(input)
-	if err == nil {
-		return accountId, nil
-	}
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -47,8 +43,10 @@ func AccountIDCaseDiffSuppress(input string) (*accountParser.AccountID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if account.Name, err = id.PopSegment("storageaccounts"); err != nil {
-		return nil, err
+	if account.Name, err = id.PopSegment("storageAccounts"); err != nil {
+		if account.Name, err = id.PopSegment("storageaccounts"); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
