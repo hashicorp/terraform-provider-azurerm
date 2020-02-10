@@ -108,7 +108,6 @@ resource "azurerm_redis_cache" "example" {
 * `notify_keyspace_events` - (Optional) Keyspace notifications allows clients to subscribe to Pub/Sub channels in order to receive events affecting the Redis data set in some way. [Reference](https://redis.io/topics/notifications#configuration)
 
 ```hcl
-# TF-UPGRADE-TODO: Block type was not recognized, so this block and its contents were not automatically upgraded.
 redis_configuration {
   maxmemory_reserved = 10
   maxmemory_delta    = 2
