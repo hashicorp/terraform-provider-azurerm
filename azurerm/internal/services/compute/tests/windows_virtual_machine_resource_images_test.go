@@ -394,11 +394,9 @@ func generalizeWindowsVirtualMachine(resourceName string) func(s *terraform.Stat
 		// TODO: make this for Windows..
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
-		username := rs.Primary.Attributes["admin_username"]
+		user := rs.Primary.Attributes["admin_username"]
 		password := rs.Primary.Attributes["admin_password"]
-		port := "22"
-		location := rs.Primary.Attributes["location"]
 
-		return testGeneralizeVMImage(resourceGroup, name, username, password, name, port, location)(s)
+		return testGeneralizeWindowsVMImage(resourceGroup, name, user, password)(s)
 	}
 }
