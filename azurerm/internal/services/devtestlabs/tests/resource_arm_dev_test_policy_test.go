@@ -149,15 +149,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_policy" "test" {
   name                = "LabVmCount"
   policy_set_name     = "default"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.test.name
+  resource_group_name = azurerm_resource_group.test.name
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"
 }
@@ -170,10 +170,10 @@ func testAccAzureRMDevTestPolicy_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_dev_test_policy" "import" {
-  name                = "${azurerm_dev_test_policy.test.name}"
+  name                = azurerm_dev_test_policy.test.name
   policy_set_name     = "$[azurerm_dev_test_policy.test.policy_set_name}"
-  lab_name            = "${azurerm_dev_test_policy.test.lab_name}"
-  resource_group_name = "${azurerm_dev_test_policy.test.resource_group_name}"
+  lab_name            = azurerm_dev_test_policy.test.lab_name
+  resource_group_name = azurerm_dev_test_policy.test.resource_group_name
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"
 }
@@ -189,15 +189,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_policy" "test" {
   name                = "LabVmCount"
   policy_set_name     = "default"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.test.name
+  resource_group_name = azurerm_resource_group.test.name
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"
   description         = "Aloha this is the max number of VM's'"

@@ -118,7 +118,7 @@ resource "azurerm_azuread_application" "test" {
 }
 
 resource "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_application.test.application_id}"
+  application_id = azurerm_azuread_application.test.application_id
 }
 `, id)
 }
@@ -129,7 +129,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_requiresImport(id string) str
 %s
 
 resource "azurerm_azuread_service_principal" "import" {
-  application_id = "${azurerm_azuread_service_principal.test.application_id}"
+  application_id = azurerm_azuread_service_principal.test.application_id
 }
 `, template)
 }

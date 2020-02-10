@@ -162,11 +162,11 @@ resource "azurerm_azuread_application" "test" {
 }
 
 resource "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_application.test.application_id}"
+  application_id = azurerm_azuread_application.test.application_id
 }
 
 resource "azurerm_azuread_service_principal_password" "test" {
-  service_principal_id = "${azurerm_azuread_service_principal.test.id}"
+  service_principal_id = azurerm_azuread_service_principal.test.id
   value                = "%s"
   end_date             = "2020-01-01T01:02:03Z"
 }
@@ -179,9 +179,9 @@ func testAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(applic
 %s
 
 resource "azurerm_azuread_service_principal_password" "import" {
-  service_principal_id = "${azurerm_azuread_service_principal_password.test.service_principal_id}"
-  value                = "${azurerm_azuread_service_principal_password.test.value}"
-  end_date             = "${azurerm_azuread_service_principal_password.test.end_date}"
+  service_principal_id = azurerm_azuread_service_principal_password.test.service_principal_id
+  value                = azurerm_azuread_service_principal_password.test.value
+  end_date             = azurerm_azuread_service_principal_password.test.end_date
 }
 `, template)
 }
@@ -193,11 +193,11 @@ resource "azurerm_azuread_application" "test" {
 }
 
 resource "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_application.test.application_id}"
+  application_id = azurerm_azuread_application.test.application_id
 }
 
 resource "azurerm_azuread_service_principal_password" "test" {
-  service_principal_id = "${azurerm_azuread_service_principal.test.id}"
+  service_principal_id = azurerm_azuread_service_principal.test.id
   key_id               = "%s"
   value                = "%s"
   end_date             = "2020-01-01T01:02:03Z"

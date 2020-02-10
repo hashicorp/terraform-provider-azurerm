@@ -239,8 +239,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
@@ -251,9 +251,9 @@ func testAccAzureRMDataLakeStore_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_data_lake_store" "import" {
-  name                = "${azurerm_data_lake_store.test.name}"
-  resource_group_name = "${azurerm_data_lake_store.test.resource_group_name}"
-  location            = "${azurerm_data_lake_store.test.location}"
+  name                = azurerm_data_lake_store.test.name
+  resource_group_name = azurerm_data_lake_store.test.resource_group_name
+  location            = azurerm_data_lake_store.test.location
 }
 `, template)
 }
@@ -267,8 +267,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   tier                = "Commitment_1TB"
 }
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
@@ -283,8 +283,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   encryption_state    = "Disabled"
 }
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
@@ -299,8 +299,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                     = "acctest%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   firewall_state           = "%s"
   firewall_allow_azure_ips = "%s"
 }
@@ -316,8 +316,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   tags = {
     environment = "Production"
@@ -336,8 +336,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   tags = {
     environment = "staging"

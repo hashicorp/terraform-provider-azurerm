@@ -98,7 +98,7 @@ func testAccDataSourceAzureRMAzureADApplication_objectId(id string) string {
 %s
 
 data "azurerm_azuread_application" "test" {
-  object_id = "${azurerm_azuread_application.test.id}"
+  object_id = azurerm_azuread_application.test.id
 }
 `, template)
 }
@@ -109,7 +109,7 @@ func testAccDataSourceAzureRMAzureADApplication_objectIdComplete(id string) stri
 %s
 
 data "azurerm_azuread_application" "test" {
-  object_id = "${azurerm_azuread_application.test.id}"
+  object_id = azurerm_azuread_application.test.id
 }
 `, template)
 }
@@ -120,7 +120,7 @@ func testAccDataSourceAzureRMAzureADApplication_name(id string) string {
 %s
 
 data "azurerm_azuread_application" "test" {
-  name = "${azurerm_azuread_application.test.name}"
+  name = azurerm_azuread_application.test.name
 }
 `, template)
 }

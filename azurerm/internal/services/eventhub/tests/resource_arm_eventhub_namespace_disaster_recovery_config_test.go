@@ -142,25 +142,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "testa" {
   name                = "acctest-EHN-%[1]d-a"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace" "testb" {
   name                = "acctest-EHN-%[1]d-b"
   location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   name                 = "acctest-EHN-DRC-%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  namespace_name       = "${azurerm_eventhub_namespace.testa.name}"
-  partner_namespace_id = "${azurerm_eventhub_namespace.testb.id}"
+  resource_group_name  = azurerm_resource_group.test.name
+  namespace_name       = azurerm_eventhub_namespace.testa.name
+  partner_namespace_id = azurerm_eventhub_namespace.testb.id
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
@@ -173,26 +172,25 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "testa" {
   name                = "acctest-EHN-%[1]d-a"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace" "testb" {
   name                = "acctest-EHN-%[1]d-b"
   location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   name                 = "${azurerm_eventhub_namespace.testa.name}-111"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  namespace_name       = "${azurerm_eventhub_namespace.testa.name}"
-  partner_namespace_id = "${azurerm_eventhub_namespace.testb.id}"
+  resource_group_name  = azurerm_resource_group.test.name
+  namespace_name       = azurerm_eventhub_namespace.testa.name
+  partner_namespace_id = azurerm_eventhub_namespace.testb.id
   alternate_name       = "acctest-EHN-DRC-%[1]d-alt"
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
@@ -205,32 +203,31 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "testa" {
   name                = "acctest-EHN-%[1]d-a"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace" "testb" {
   name                = "acctest-EHN-%[1]d-b"
   location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace" "testc" {
   name                = "acctest-EHN-%[1]d-c"
   location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   name                 = "acctest-EHN-DRC-%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  namespace_name       = "${azurerm_eventhub_namespace.testa.name}"
-  partner_namespace_id = "${azurerm_eventhub_namespace.testc.id}"
+  resource_group_name  = azurerm_resource_group.test.name
+  namespace_name       = azurerm_eventhub_namespace.testa.name
+  partner_namespace_id = azurerm_eventhub_namespace.testc.id
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
@@ -243,22 +240,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "testa" {
   name                = "acctest-EHN-%[1]d-a"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace" "testb" {
   name                = "acctest-EHN-%[1]d-b"
   location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace" "testc" {
   name                = "acctest-EHN-%[1]d-c"
   location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)

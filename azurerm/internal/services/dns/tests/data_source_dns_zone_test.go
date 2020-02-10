@@ -73,12 +73,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 data "azurerm_dns_zone" "test" {
-  name                = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
+  name                = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_dns_zone.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -92,7 +92,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     hello = "world"
@@ -100,8 +100,8 @@ resource "azurerm_dns_zone" "test" {
 }
 
 data "azurerm_dns_zone" "test" {
-  name                = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
+  name                = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_dns_zone.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -115,11 +115,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 data "azurerm_dns_zone" "test" {
-  name = "${azurerm_dns_zone.test.name}"
+  name = azurerm_dns_zone.test.name
 }
 `, resourceGroupName, data.Locations.Primary, data.RandomInteger)
 }

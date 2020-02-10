@@ -81,7 +81,7 @@ func testAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(id string) 
 %s
 
 data "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_service_principal.test.application_id}"
+  application_id = azurerm_azuread_service_principal.test.application_id
 }
 `, template)
 }
@@ -92,7 +92,7 @@ func testAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(id string) st
 %s
 
 data "azurerm_azuread_service_principal" "test" {
-  display_name = "${azurerm_azuread_service_principal.test.display_name}"
+  display_name = azurerm_azuread_service_principal.test.display_name
 }
 `, template)
 }
@@ -103,7 +103,7 @@ func testAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(id string) strin
 %s
 
 data "azurerm_azuread_service_principal" "test" {
-  object_id = "${azurerm_azuread_service_principal.test.id}"
+  object_id = azurerm_azuread_service_principal.test.id
 }
 `, template)
 }

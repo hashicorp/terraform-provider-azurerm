@@ -157,8 +157,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks1"
 
   linux_profile {
@@ -183,10 +183,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 resource "azurerm_devspace_controller" "test" {
   name                                     = "acctestdsc%d"
-  location                                 = "${azurerm_resource_group.test.location}"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
-  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  target_container_host_resource_id        = azurerm_kubernetes_cluster.test.id
+  target_container_host_credentials_base64 = base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)
 
   sku_name = "S1"
 }
@@ -202,8 +202,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks1"
 
   linux_profile {
@@ -228,10 +228,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 resource "azurerm_devspace_controller" "test" {
   name                                     = "acctestdsc%d"
-  location                                 = "${azurerm_resource_group.test.location}"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
-  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  target_container_host_resource_id        = azurerm_kubernetes_cluster.test.id
+  target_container_host_credentials_base64 = base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)
 
   sku {
     name = "S1"
@@ -247,12 +247,12 @@ func testAccAzureRMDevSpaceController_requiresImport(data acceptance.TestData, c
 %s
 
 resource "azurerm_devspace_controller" "import" {
-  name                                     = "${azurerm_devspace_controller.test.name}"
-  location                                 = "${azurerm_devspace_controller.test.location}"
-  resource_group_name                      = "${azurerm_devspace_controller.test.resource_group_name}"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
-  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
-  sku_name                                 = "${base64encode(azurerm_kubernetes_cluster.test.sku_name)}"
+  name                                     = azurerm_devspace_controller.test.name
+  location                                 = azurerm_devspace_controller.test.location
+  resource_group_name                      = azurerm_devspace_controller.test.resource_group_name
+  target_container_host_resource_id        = azurerm_kubernetes_cluster.test.id
+  target_container_host_credentials_base64 = base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)
+  sku_name                                 = base64encode(azurerm_kubernetes_cluster.test.sku_name)
 }
 `, template)
 }

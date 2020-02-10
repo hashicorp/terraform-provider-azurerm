@@ -155,8 +155,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -167,9 +167,9 @@ func testAccAzureRMLogicAppWorkflow_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_logic_app_workflow" "import" {
-  name                = "${azurerm_logic_app_workflow.test.name}"
-  location            = "${azurerm_logic_app_workflow.test.location}"
-  resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
+  name                = azurerm_logic_app_workflow.test.name
+  location            = azurerm_logic_app_workflow.test.location
+  resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
 `, template)
 }
@@ -183,8 +183,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "Source" = "AcceptanceTests"

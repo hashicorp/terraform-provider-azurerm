@@ -223,7 +223,7 @@ func testAccAzureRMKeyVaultAccessPolicy_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault_access_policy" "test" {
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
     "get",
@@ -234,8 +234,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "set",
   ]
 
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.service_principal_object_id
 }
 `, template)
 }
@@ -246,8 +246,8 @@ func testAccAzureRMKeyVaultAccessPolicy_basicClassic(data acceptance.TestData) s
 %s
 
 resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+  vault_name          = azurerm_key_vault.test.name
+  resource_group_name = azurerm_key_vault.test.resource_group_name
 
   key_permissions = [
     "get",
@@ -258,8 +258,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "set",
   ]
 
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.service_principal_object_id
 }
 `, template)
 }
@@ -270,9 +270,9 @@ func testAccAzureRMKeyVaultAccessPolicy_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_key_vault_access_policy" "import" {
-  key_vault_id = "${azurerm_key_vault.test.id}"
-  tenant_id    = "${azurerm_key_vault_access_policy.test.tenant_id}"
-  object_id    = "${azurerm_key_vault_access_policy.test.object_id}"
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault_access_policy.test.tenant_id
+  object_id    = azurerm_key_vault_access_policy.test.object_id
 
   key_permissions = [
     "get",
@@ -292,7 +292,7 @@ func testAccAzureRMKeyVaultAccessPolicy_multiple(data acceptance.TestData) strin
 %s
 
 resource "azurerm_key_vault_access_policy" "test_with_application_id" {
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
     "create",
@@ -309,13 +309,13 @@ resource "azurerm_key_vault_access_policy" "test_with_application_id" {
     "delete",
   ]
 
-  application_id = "${data.azurerm_client_config.current.service_principal_application_id}"
-  tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
-  object_id      = "${data.azurerm_client_config.current.service_principal_object_id}"
+  application_id = data.azurerm_client_config.current.service_principal_application_id
+  tenant_id      = data.azurerm_client_config.current.tenant_id
+  object_id      = data.azurerm_client_config.current.service_principal_object_id
 }
 
 resource "azurerm_key_vault_access_policy" "test_no_application_id" {
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
     "list",
@@ -349,8 +349,8 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
     "update",
   ]
 
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.service_principal_object_id
 }
 `, template)
 }
@@ -361,8 +361,8 @@ func testAccAzureRMKeyVaultAccessPolicy_update(data acceptance.TestData) string 
 %s
 
 resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  vault_name          = azurerm_key_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   key_permissions = [
     "list",
@@ -371,15 +371,16 @@ resource "azurerm_key_vault_access_policy" "test" {
 
   secret_permissions = []
 
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.service_principal_object_id
 }
 `, template)
 }
 
 func testAccAzureRMKeyVaultAccessPolicy_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -388,9 +389,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkv-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
@@ -403,7 +404,8 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -412,9 +414,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkv-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -427,8 +429,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   # Must appear to be URL, but not actually exist - appending a string works
   key_vault_id = "${azurerm_key_vault.test.id}NOPE"
 
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.service_principal_object_id
 
   key_permissions = [
     "get",

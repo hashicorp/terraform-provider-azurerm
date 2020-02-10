@@ -221,13 +221,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_logic_app_trigger_recurrence" "test" {
   name         = "frequency-trigger"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
   frequency    = "%s"
   interval     = %d
 }
@@ -243,13 +243,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_logic_app_trigger_recurrence" "test" {
   name         = "frequency-trigger"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
   frequency    = "Month"
   interval     = 1
   start_time   = "%s"
@@ -263,10 +263,10 @@ func testAccAzureRMLogicAppTriggerRecurrence_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_logic_app_trigger_recurrence" "import" {
-  name         = "${azurerm_logic_app_trigger_recurrence.test.name}"
-  logic_app_id = "${azurerm_logic_app_trigger_recurrence.test.logic_app_id}"
-  frequency    = "${azurerm_logic_app_trigger_recurrence.test.frequency}"
-  interval     = "${azurerm_logic_app_trigger_recurrence.test.interval}"
+  name         = azurerm_logic_app_trigger_recurrence.test.name
+  logic_app_id = azurerm_logic_app_trigger_recurrence.test.logic_app_id
+  frequency    = azurerm_logic_app_trigger_recurrence.test.frequency
+  interval     = azurerm_logic_app_trigger_recurrence.test.interval
 }
 `, template)
 }
