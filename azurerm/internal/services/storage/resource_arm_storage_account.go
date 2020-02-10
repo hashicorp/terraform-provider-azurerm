@@ -122,17 +122,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				}, true),
 			},
 
-			"account_encryption_source": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(storage.MicrosoftStorage),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.MicrosoftKeyvault),
-					string(storage.MicrosoftStorage),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
 			"custom_domain": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -151,18 +140,6 @@ func resourceArmStorageAccount() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"enable_blob_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"enable_file_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			"enable_https_traffic_only": {
@@ -672,15 +649,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	accountKind := d.Get("account_kind").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -691,15 +665,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			Encryption: &storage.Encryption{
-				Services: &storage.EncryptionServices{
-					Blob: &storage.EncryptionService{
-						Enabled: utils.Bool(enableBlobEncryption),
-					},
-					File: &storage.EncryptionService{
-						Enabled: utils.Bool(enableFileEncryption),
-					}},
-				KeySource: storage.KeySource(storageAccountEncryptionSource),
-			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
@@ -903,35 +868,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("tags")
 	}
 
-	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-		encryptionSource := d.Get("account_encryption_source").(string)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					Services:  &storage.EncryptionServices{},
-					KeySource: storage.KeySource(encryptionSource),
-				},
-			},
-		}
-
-		if d.HasChange("enable_blob_encryption") {
-			enableEncryption := d.Get("enable_blob_encryption").(bool)
-			opts.Encryption.Services.Blob = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-
-			d.SetPartial("enable_blob_encryption")
-		}
-
-		if d.HasChange("enable_file_encryption") {
-			enableEncryption := d.Get("enable_file_encryption").(bool)
-			opts.Encryption.Services.File = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-			d.SetPartial("enable_file_encryption")
-		}
-
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
@@ -1120,18 +1056,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
-		}
-
-		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if blob := services.Blob; blob != nil {
-					d.Set("enable_blob_encryption", blob.Enabled)
-				}
-				if file := services.File; file != nil {
-					d.Set("enable_file_encryption", file.Enabled)
-				}
-			}
-			d.Set("account_encryption_source", string(encryption.KeySource))
 		}
 
 		// Computed
