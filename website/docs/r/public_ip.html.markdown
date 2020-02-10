@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_public_ip" "example" {
   name                = "acceptanceTestPublicIp1"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 
   tags = {
