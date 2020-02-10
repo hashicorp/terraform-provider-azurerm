@@ -212,8 +212,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "GP_Gen5_2"

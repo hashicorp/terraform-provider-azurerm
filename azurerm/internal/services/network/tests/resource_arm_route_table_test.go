@@ -389,8 +389,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -400,9 +400,9 @@ func testAccAzureRMRouteTable_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_route_table" "import" {
-  name                = "${azurerm_route_table.test.name}"
-  location            = "${azurerm_route_table.test.location}"
-  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+  name                = azurerm_route_table.test.name
+  location            = azurerm_route_table.test.location
+  resource_group_name = azurerm_route_table.test.resource_group_name
 }
 `, testAccAzureRMRouteTable_basic(data))
 }
@@ -416,8 +416,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name                   = "route1"
@@ -438,8 +438,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "acctestRoute"
@@ -461,8 +461,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "route1"
@@ -482,8 +482,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -497,8 +497,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route = []
 }
@@ -514,8 +514,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "route1"
@@ -541,8 +541,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "route1"
@@ -567,8 +567,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "route1"
@@ -596,8 +596,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
 
   tags = {
@@ -607,16 +607,16 @@ resource "azurerm_virtual_network" "test" {
 
 resource "azurerm_subnet" "subnet1" {
   name                 = "subnet1"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
+  route_table_id       = azurerm_route_table.test.id
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "route1"
@@ -645,8 +645,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
 
   tags = {
@@ -657,16 +657,16 @@ resource "azurerm_virtual_network" "test" {
 
 resource "azurerm_subnet" "subnet1" {
   name                 = "subnet1"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
+  route_table_id       = azurerm_route_table.test.id
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name           = "route1"

@@ -318,8 +318,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -346,8 +346,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "GP_Gen5_2"
@@ -379,8 +379,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -407,8 +407,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -431,9 +431,9 @@ func testAccAzureRMMySQLServer_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mysql_server" "import" {
-  name                = "${azurerm_mysql_server.test.name}"
-  location            = "${azurerm_mysql_server.test.location}"
-  resource_group_name = "${azurerm_mysql_server.test.resource_group_name}"
+  name                = azurerm_mysql_server.test.name
+  location            = azurerm_mysql_server.test.location
+  resource_group_name = azurerm_mysql_server.test.resource_group_name
 
   sku_name = "GP_Gen5_2"
 
@@ -460,8 +460,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_4"
 
@@ -488,8 +488,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "GP_Gen5_32"
@@ -521,8 +521,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "MO_Gen5_16"
 
@@ -549,8 +549,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "MO_Gen5_16"
 
@@ -577,8 +577,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 

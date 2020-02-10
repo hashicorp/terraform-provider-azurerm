@@ -163,8 +163,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -182,8 +182,8 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_database" "test" {
   name                = "acctestdb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
@@ -195,11 +195,11 @@ func testAccAzureRMMySQLDatabase_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_mysql_database" "import" {
-  name                = "${azurerm_mysql_database.test.name}"
-  resource_group_name = "${azurerm_mysql_database.test.resource_group_name}"
-  server_name         = "${azurerm_mysql_database.test.server_name}"
-  charset             = "${azurerm_mysql_database.test.charset}"
-  collation           = "${azurerm_mysql_database.test.collation}"
+  name                = azurerm_mysql_database.test.name
+  resource_group_name = azurerm_mysql_database.test.resource_group_name
+  server_name         = azurerm_mysql_database.test.server_name
+  charset             = azurerm_mysql_database.test.charset
+  collation           = azurerm_mysql_database.test.collation
 }
 `, testAccAzureRMMySQLDatabase_basic(data))
 }
@@ -213,8 +213,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -232,8 +232,8 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_database" "test" {
   name                = "acctestdb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
   charset             = "UTF8"
   collation           = "utf8_unicode_ci"
 }
@@ -249,8 +249,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -268,8 +268,8 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_database" "test" {
   name                = "acctestdb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
   charset             = "Utf8"
   collation           = "utf8_unicode_ci"
 }

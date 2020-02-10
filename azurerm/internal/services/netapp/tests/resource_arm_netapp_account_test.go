@@ -189,8 +189,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -199,9 +199,9 @@ func testAccAzureRMNetAppAccount_requiresImportConfig(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %s
 resource "azurerm_netapp_account" "import" {
-  name                = "${azurerm_netapp_account.test.name}"
-  location            = "${azurerm_netapp_account.test.location}"
-  resource_group_name = "${azurerm_netapp_account.test.resource_group_name}"
+  name                = azurerm_netapp_account.test.name
+  location            = azurerm_netapp_account.test.location
+  resource_group_name = azurerm_netapp_account.test.resource_group_name
 }
 `, testAccAzureRMNetAppAccount_basicConfig(data))
 }
@@ -215,8 +215,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   active_directory {
     username            = "aduser"

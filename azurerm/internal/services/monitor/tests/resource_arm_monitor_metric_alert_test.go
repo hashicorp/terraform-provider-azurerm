@@ -213,16 +213,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_monitor_metric_alert" "test" {
   name                = "acctestMetricAlert-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  scopes              = ["${azurerm_storage_account.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
 
   criteria {
     metric_namespace = "Microsoft.Storage/storageAccounts"
@@ -241,9 +241,9 @@ func testAccAzureRMMonitorMetricAlert_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_monitor_metric_alert" "import" {
-  name                = "${azurerm_monitor_metric_alert.test.name}"
-  resource_group_name = "${azurerm_monitor_metric_alert.test.resource_group_name}"
-  scopes              = "${azurerm_monitor_metric_alert.test.scopes}"
+  name                = azurerm_monitor_metric_alert.test.name
+  resource_group_name = azurerm_monitor_metric_alert.test.resource_group_name
+  scopes              = azurerm_monitor_metric_alert.test.scopes
 
   criteria {
     metric_namespace = "Microsoft.Storage/storageAccounts"
@@ -265,28 +265,28 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa1%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_monitor_action_group" "test1" {
   name                = "acctestActionGroup1-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag1"
 }
 
 resource "azurerm_monitor_action_group" "test2" {
   name                = "acctestActionGroup2-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag2"
 }
 
 resource "azurerm_monitor_metric_alert" "test" {
   name                = "acctestMetricAlert-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  scopes              = ["${azurerm_storage_account.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
   enabled             = true
   auto_mitigate       = true
   severity            = 4
@@ -323,11 +323,11 @@ resource "azurerm_monitor_metric_alert" "test" {
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.test1.id}"
+    action_group_id = azurerm_monitor_action_group.test1.id
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.test2.id}"
+    action_group_id = azurerm_monitor_action_group.test2.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

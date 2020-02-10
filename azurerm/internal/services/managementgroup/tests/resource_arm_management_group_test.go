@@ -259,16 +259,18 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 
 func testAzureRMManagementGroup_basic() string {
 	return fmt.Sprintf(`
-resource "azurerm_management_group" "test" {}
+resource "azurerm_management_group" "test" {
+}
 `)
 }
 
 func testAzureRMManagementGroup_requiresImport() string {
 	return fmt.Sprintf(`
-resource "azurerm_management_group" "test" {}
+resource "azurerm_management_group" "test" {
+}
 
 resource "azurerm_management_group" "import" {
-  group_id = "${azurerm_management_group.test.group_id}"
+  group_id = azurerm_management_group.test.group_id
 }
 `)
 }
@@ -279,7 +281,7 @@ resource "azurerm_management_group" "parent" {
 }
 
 resource "azurerm_management_group" "child" {
-  parent_management_group_id = "${azurerm_management_group.parent.id}"
+  parent_management_group_id = azurerm_management_group.parent.id
 }
 `)
 }
@@ -290,11 +292,11 @@ resource "azurerm_management_group" "grandparent" {
 }
 
 resource "azurerm_management_group" "parent" {
-  parent_management_group_id = "${azurerm_management_group.grandparent.id}"
+  parent_management_group_id = azurerm_management_group.grandparent.id
 }
 
 resource "azurerm_management_group" "child" {
-  parent_management_group_id = "${azurerm_management_group.parent.id}"
+  parent_management_group_id = azurerm_management_group.parent.id
 }
 `)
 }

@@ -218,34 +218,34 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -281,14 +281,14 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_metric_alertrule" "test" {
   name                = "${azurerm_virtual_machine.test.name}-cpu"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   description = "An alert rule to watch the metric Percentage CPU"
 
   enabled = %t
 
-  resource_id = "${azurerm_virtual_machine.test.id}"
+  resource_id = azurerm_virtual_machine.test.id
   metric_name = "Percentage CPU"
   operator    = "GreaterThan"
   threshold   = 75
@@ -321,13 +321,13 @@ func testAccAzureRMMetricAlertRule_requiresImport(data acceptance.TestData, enab
 %s
 
 resource "azurerm_metric_alertrule" "import" {
-  name                = "${azurerm_metric_alertrule.test.name}"
-  resource_group_name = "${azurerm_metric_alertrule.test.resource_group_name}"
-  location            = "${azurerm_metric_alertrule.test.location}"
-  description         = "${azurerm_metric_alertrule.test.description}"
-  enabled             = "${azurerm_metric_alertrule.test.enabled}"
+  name                = azurerm_metric_alertrule.test.name
+  resource_group_name = azurerm_metric_alertrule.test.resource_group_name
+  location            = azurerm_metric_alertrule.test.location
+  description         = azurerm_metric_alertrule.test.description
+  enabled             = azurerm_metric_alertrule.test.enabled
 
-  resource_id = "${azurerm_virtual_machine.test.id}"
+  resource_id = azurerm_virtual_machine.test.id
   metric_name = "Percentage CPU"
   operator    = "GreaterThan"
   threshold   = 75
@@ -361,11 +361,10 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -373,9 +372,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%[1]d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -385,34 +384,34 @@ resource "azurerm_sql_database" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%[1]d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -448,14 +447,14 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_metric_alertrule" "test" {
   name                = "${azurerm_sql_database.test.name}-storage"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   description = "An alert rule to watch the metric Storage"
 
   enabled = true
 
-  resource_id = "${azurerm_sql_database.test.id}"
+  resource_id = azurerm_sql_database.test.id
   metric_name = "storage"
   operator    = "GreaterThan"
   threshold   = 1073741824

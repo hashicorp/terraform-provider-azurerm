@@ -289,8 +289,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_watcher" "test" {
   name                = "acctestNW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -301,9 +301,9 @@ func testAccAzureRMNetworkWatcher_requiresImportConfig(data acceptance.TestData)
 %s
 
 resource "azurerm_network_watcher" "import" {
-  name                = "${azurerm_network_watcher.test.name}"
-  location            = "${azurerm_network_watcher.test.location}"
-  resource_group_name = "${azurerm_network_watcher.test.resource_group_name}"
+  name                = azurerm_network_watcher.test.name
+  location            = azurerm_network_watcher.test.location
+  resource_group_name = azurerm_network_watcher.test.resource_group_name
 }
 `, template)
 }
@@ -317,8 +317,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_watcher" "test" {
   name                = "acctestNW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "Source" = "AccTests"

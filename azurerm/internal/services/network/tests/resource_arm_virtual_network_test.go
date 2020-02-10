@@ -278,8 +278,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -299,8 +299,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16", "10.10.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -321,9 +321,9 @@ func testAccAzureRMVirtualNetwork_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_virtual_network" "import" {
-  name                = "${azurerm_virtual_network.test.name}"
-  location            = "${azurerm_virtual_network.test.location}"
-  resource_group_name = "${azurerm_virtual_network.test.resource_group_name}"
+  name                = azurerm_virtual_network.test.name
+  location            = azurerm_virtual_network.test.location
+  resource_group_name = azurerm_virtual_network.test.resource_group_name
   address_space       = ["10.0.0.0/16"]
 
   subnet {
@@ -343,18 +343,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ddos_protection_plan {
-    id     = "${azurerm_ddos_protection_plan.test.id}"
+    id     = azurerm_ddos_protection_plan.test.id
     enable = true
   }
 
@@ -376,8 +376,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -402,8 +402,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -434,35 +434,35 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "${azurerm_resource_group.test.name}-vnet"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["${var.network_cidr}"]
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = [var.network_cidr]
+  location            = azurerm_resource_group.test.location
 
   tags = {
-    environment = "${var.environment}"
+    environment = var.environment
   }
 }
 
 resource "azurerm_subnet" "public" {
   name                      = "${azurerm_resource_group.test.name}-subnet-public"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test.name
   address_prefix            = "10.0.1.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 
 resource "azurerm_subnet" "private" {
   name                      = "${azurerm_resource_group.test.name}-subnet-private"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test.name
   address_prefix            = "10.0.2.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 
 resource "azurerm_network_security_group" "test" {
   name                = "default-network-sg"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "default-allow-all"
@@ -472,12 +472,12 @@ resource "azurerm_network_security_group" "test" {
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "${var.network_cidr}"
+    source_address_prefix      = var.network_cidr
     destination_address_prefix = "*"
   }
 
   tags = {
-    environment = "${var.environment}"
+    environment = var.environment
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

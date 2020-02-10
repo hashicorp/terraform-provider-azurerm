@@ -220,22 +220,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
+  route_table_id       = azurerm_route_table.test.id
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name                   = "acctest-%d"
@@ -246,8 +246,8 @@ resource "azurerm_route_table" "test" {
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  route_table_id = "${azurerm_route_table.test.id}"
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -258,8 +258,8 @@ func testAccAzureRMSubnetRouteTableAssociation_requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_subnet_route_table_association" "import" {
-  subnet_id      = "${azurerm_subnet_route_table_association.test.subnet_id}"
-  route_table_id = "${azurerm_subnet_route_table_association.test.route_table_id}"
+  subnet_id      = azurerm_subnet_route_table_association.test.subnet_id
+  route_table_id = azurerm_subnet_route_table_association.test.route_table_id
 }
 `, template)
 }

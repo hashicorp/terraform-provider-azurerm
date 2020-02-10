@@ -221,22 +221,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                      = "acctestsubnet%d"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test.name
   address_prefix            = "10.0.2.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -252,8 +252,8 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = "${azurerm_subnet.test.id}"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -261,7 +261,5 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 func testAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(data)
 	return fmt.Sprintf(`
-%s
-
-`, template)
+%s`, template)
 }

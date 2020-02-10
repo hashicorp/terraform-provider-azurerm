@@ -38,8 +38,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "B_Gen5_2"
 
@@ -56,8 +56,8 @@ resource "azurerm_mariadb_server" "test" {
 }
 
 data "azurerm_mariadb_server" "test" {
-  name                = "${azurerm_mariadb_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_mariadb_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

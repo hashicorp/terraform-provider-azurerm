@@ -194,40 +194,40 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctestni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                           = "testconfiguration1"
-    subnet_id                      = "${azurerm_subnet.test.id}"
+    subnet_id                      = azurerm_subnet.test.id
     private_ip_address_allocation  = "Dynamic"
-    application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
+    application_security_group_ids = [azurerm_application_security_group.test.id]
   }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "test" {
-  network_interface_id          = "${azurerm_network_interface.test.id}"
+  network_interface_id          = azurerm_network_interface.test.id
   ip_configuration_name         = "testconfiguration1"
-  application_security_group_id = "${azurerm_application_security_group.test.id}"
+  application_security_group_id = azurerm_application_security_group.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -238,9 +238,9 @@ func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresI
 %s
 
 resource "azurerm_network_interface_application_security_group_association" "import" {
-  network_interface_id          = "${azurerm_network_interface_application_security_group_association.test.network_interface_id}"
-  ip_configuration_name         = "${azurerm_network_interface_application_security_group_association.test.ip_configuration_name}"
-  application_security_group_id = "${azurerm_network_interface_application_security_group_association.test.application_security_group_id}"
+  network_interface_id          = azurerm_network_interface_application_security_group_association.test.network_interface_id
+  ip_configuration_name         = azurerm_network_interface_application_security_group_association.test.ip_configuration_name
+  application_security_group_id = azurerm_network_interface_application_security_group_association.test.application_security_group_id
 }
 `, template)
 }

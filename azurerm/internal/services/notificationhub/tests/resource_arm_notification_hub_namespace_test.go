@@ -149,8 +149,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_notification_hub_namespace" "test" {
   name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   namespace_type      = "NotificationHub"
 
   sku_name = "Free"
@@ -167,8 +167,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_notification_hub_namespace" "test" {
   name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   namespace_type      = "NotificationHub"
 
   sku {
@@ -187,8 +187,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_notification_hub_namespace" "test" {
   name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   namespace_type      = "NotificationHub"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -200,10 +200,10 @@ func testAccAzureRMNotificationHubNamespace_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_notification_hub_namespace" "import" {
-  name                = "${azurerm_notification_hub_namespace.test.name}"
-  resource_group_name = "${azurerm_notification_hub_namespace.test.resource_group_name}"
-  location            = "${azurerm_notification_hub_namespace.test.location}"
-  namespace_type      = "${azurerm_notification_hub_namespace.test.namespace_type}"
+  name                = azurerm_notification_hub_namespace.test.name
+  resource_group_name = azurerm_notification_hub_namespace.test.resource_group_name
+  location            = azurerm_notification_hub_namespace.test.location
+  namespace_type      = azurerm_notification_hub_namespace.test.namespace_type
 
   sku_name = "Free"
 }

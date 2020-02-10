@@ -195,8 +195,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  scopes              = ["${azurerm_resource_group.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_resource_group.test.id]
 
   criteria {
     category = "Recommendation"
@@ -211,9 +211,9 @@ func testAccAzureRMMonitorActivityLogAlert_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_monitor_activity_log_alert" "import" {
-  name                = "${azurerm_monitor_activity_log_alert.test.name}"
-  resource_group_name = "${azurerm_monitor_activity_log_alert.test.resource_group_name}"
-  scopes              = ["${azurerm_resource_group.test.id}"]
+  name                = azurerm_monitor_activity_log_alert.test.name
+  resource_group_name = azurerm_monitor_activity_log_alert.test.resource_group_name
+  scopes = [azurerm_resource_group.test.id]
 
   criteria {
     category = "Recommendation"
@@ -231,31 +231,31 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  scopes              = ["${azurerm_resource_group.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_resource_group.test.id]
 
   criteria {
     operation_name = "Microsoft.Storage/storageAccounts/write"
     category       = "Recommendation"
-    resource_id    = "${azurerm_storage_account.test.id}"
+    resource_id    = azurerm_storage_account.test.id
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.test.id}"
+    action_group_id = azurerm_monitor_action_group.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
@@ -270,33 +270,33 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test1" {
   name                = "acctestActionGroup1-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag1"
 }
 
 resource "azurerm_monitor_action_group" "test2" {
   name                = "acctestActionGroup2-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag2"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test resource."
 
   scopes = [
-    "${azurerm_resource_group.test.id}",
-    "${azurerm_storage_account.test.id}",
+    azurerm_resource_group.test.id,
+    azurerm_storage_account.test.id,
   ]
 
   criteria {
@@ -304,19 +304,19 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     category          = "Recommendation"
     resource_provider = "Microsoft.Storage"
     resource_type     = "Microsoft.Storage/storageAccounts"
-    resource_group    = "${azurerm_resource_group.test.name}"
-    resource_id       = "${azurerm_storage_account.test.id}"
+    resource_group    = azurerm_resource_group.test.name
+    resource_id       = azurerm_storage_account.test.id
     caller            = "user@example.com"
     level             = "Error"
     status            = "Failed"
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.test1.id}"
+    action_group_id = azurerm_monitor_action_group.test1.id
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.test2.id}"
+    action_group_id = azurerm_monitor_action_group.test2.id
 
     webhook_properties = {
       from = "terraform test"

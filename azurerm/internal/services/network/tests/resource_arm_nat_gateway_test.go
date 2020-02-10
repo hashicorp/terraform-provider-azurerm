@@ -142,8 +142,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_nat_gateway" "test" {
   name                = "acctestnatGateway-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
@@ -158,8 +158,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicIP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1"]
@@ -167,18 +167,18 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicIPPrefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   prefix_length       = 30
   zones               = ["1"]
 }
 
 resource "azurerm_nat_gateway" "test" {
   name                    = "acctestnatGateway-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  public_ip_address_ids   = ["${azurerm_public_ip.test.id}"]
-  public_ip_prefix_ids    = ["${azurerm_public_ip_prefix.test.id}"]
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  public_ip_address_ids   = [azurerm_public_ip.test.id]
+  public_ip_prefix_ids    = [azurerm_public_ip_prefix.test.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
   zones                   = ["1"]

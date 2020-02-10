@@ -173,8 +173,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -185,9 +185,9 @@ func testAccAzureRMApplicationSecurityGroup_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_application_security_group" "import" {
-  name                = "${azurerm_application_security_group.test.name}"
-  location            = "${azurerm_application_security_group.test.location}"
-  resource_group_name = "${azurerm_application_security_group.test.resource_group_name}"
+  name                = azurerm_application_security_group.test.name
+  location            = azurerm_application_security_group.test.location
+  resource_group_name = azurerm_application_security_group.test.resource_group_name
 }
 `, template)
 }
@@ -201,8 +201,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     Hello = "World"

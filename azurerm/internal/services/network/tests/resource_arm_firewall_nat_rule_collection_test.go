@@ -343,8 +343,8 @@ func testAccAzureRMFirewallNatRuleCollection_basic(data acceptance.TestData) str
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -359,8 +359,16 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "53",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -380,9 +388,9 @@ func testAccAzureRMFirewallNatRuleCollection_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "import" {
-  name                = "${azurerm_firewall_nat_rule_collection.test.name}"
-  azure_firewall_name = "${azurerm_firewall_nat_rule_collection.test.azure_firewall_name}"
-  resource_group_name = "${azurerm_firewall_nat_rule_collection.test.resource_group_name}"
+  name                = azurerm_firewall_nat_rule_collection.test.name
+  azure_firewall_name = azurerm_firewall_nat_rule_collection.test.azure_firewall_name
+  resource_group_name = azurerm_firewall_nat_rule_collection.test.resource_group_name
   priority            = 100
   action              = "Dnat"
 
@@ -397,8 +405,16 @@ resource "azurerm_firewall_nat_rule_collection" "import" {
       "53",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -419,8 +435,8 @@ func testAccAzureRMFirewallNatRuleCollection_updatedName(data acceptance.TestDat
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -435,8 +451,16 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "53",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -457,8 +481,8 @@ func testAccAzureRMFirewallNatRuleCollection_multiple(data acceptance.TestData) 
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -473,8 +497,16 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "53",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -488,8 +520,8 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
 resource "azurerm_firewall_nat_rule_collection" "test_add" {
   name                = "acctestnrc_add-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 200
   action              = "Dnat"
 
@@ -504,8 +536,16 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
       "8080",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -526,8 +566,8 @@ func testAccAzureRMFirewallNatRuleCollection_multipleUpdate(data acceptance.Test
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 300
   action              = "Dnat"
 
@@ -542,8 +582,16 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "53",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -557,8 +605,8 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
 resource "azurerm_firewall_nat_rule_collection" "test_add" {
   name                = "acctestnrc_add-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 400
   action              = "Dnat"
 
@@ -573,8 +621,16 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
       "8080",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -595,8 +651,8 @@ func testAccAzureRMFirewallNatRuleCollection_multipleRules(data acceptance.TestD
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -611,8 +667,16 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "53",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -634,8 +698,16 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "8888",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -656,8 +728,8 @@ func testAccAzureRMFirewallNatRuleCollection_updateFirewallTags(data acceptance.
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -672,8 +744,16 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
       "53",
     ]
 
+    # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+    # force an interpolation expression to be interpreted as a list by wrapping it
+    # in an extra set of list brackets. That form was supported for compatibility in
+    # v0.11, but is no longer supported in Terraform v0.12.
+    #
+    # If the expression in the following list itself returns a list, remove the
+    # brackets to avoid interpretation as a list of lists. If the expression
+    # returns a single list item then leave it as-is and remove this TODO comment.
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [

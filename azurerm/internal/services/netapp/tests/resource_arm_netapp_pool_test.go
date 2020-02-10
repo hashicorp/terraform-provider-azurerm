@@ -168,15 +168,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_netapp_pool" "test" {
   name                = "acctest-NetAppPool-%d"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   service_level       = "Premium"
   size_in_tb          = 4
 }
@@ -187,9 +187,9 @@ func testAccAzureRMNetAppPool_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_netapp_pool" "import" {
-  name                = "${azurerm_netapp_pool.test.name}"
-  location            = "${azurerm_netapp_pool.test.location}"
-  resource_group_name = "${azurerm_netapp_pool.test.resource_group_name}"
+  name                = azurerm_netapp_pool.test.name
+  location            = azurerm_netapp_pool.test.location
+  resource_group_name = azurerm_netapp_pool.test.resource_group_name
 }
 `, testAccAzureRMNetAppPool_basic(data))
 }
@@ -203,15 +203,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_netapp_pool" "test" {
   name                = "acctest-NetAppPool-%d"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   service_level       = "Standard"
   size_in_tb          = 15
 }

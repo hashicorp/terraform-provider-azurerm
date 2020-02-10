@@ -216,26 +216,26 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_nat_gateway" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet_nat_gateway_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  nat_gateway_id = "${azurerm_nat_gateway.test.id}"
+  subnet_id      = azurerm_subnet.test.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -246,8 +246,8 @@ func testAccAzureRMSubnetNatGatewayAssociation_requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_subnet_nat_gateway_association" "import" {
-  subnet_id      = "${azurerm_subnet_nat_gateway_association.test.subnet_id}"
-  nat_gateway_id = "${azurerm_subnet_nat_gateway_association.test.nat_gateway_id}"
+  subnet_id      = azurerm_subnet_nat_gateway_association.test.subnet_id
+  nat_gateway_id = azurerm_subnet_nat_gateway_association.test.nat_gateway_id
 }
 `, template)
 }

@@ -194,58 +194,58 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "test-ip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
     name                 = "primary"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
   name                = "acctestpool"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctestni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "test" {
-  network_interface_id    = "${azurerm_network_interface.test.id}"
+  network_interface_id    = azurerm_network_interface.test.id
   ip_configuration_name   = "testconfiguration1"
-  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -256,9 +256,9 @@ func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(
 %s
 
 resource "azurerm_network_interface_backend_address_pool_association" "import" {
-  network_interface_id    = "${azurerm_network_interface_backend_address_pool_association.test.network_interface_id}"
-  ip_configuration_name   = "${azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name}"
-  backend_address_pool_id = "${azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id}"
+  network_interface_id    = azurerm_network_interface_backend_address_pool_association.test.network_interface_id
+  ip_configuration_name   = azurerm_network_interface_backend_address_pool_association.test.ip_configuration_name
+  backend_address_pool_id = azurerm_network_interface_backend_address_pool_association.test.backend_address_pool_id
 }
 `, template)
 }
