@@ -317,7 +317,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"retention_policy_days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
+										ValidateFunc: validation.IntBetween(0, 365),
 									},
 								},
 							},
@@ -344,7 +344,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"retention_policy_days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
+										ValidateFunc: validation.IntBetween(0, 365),
 									},
 								},
 							},
@@ -371,7 +371,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"retention_policy_days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
+										ValidateFunc: validation.IntBetween(0, 365),
 									},
 								},
 							},
