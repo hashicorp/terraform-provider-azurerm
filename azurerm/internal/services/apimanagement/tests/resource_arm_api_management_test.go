@@ -104,7 +104,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 				Config: testAccAzureRMApiManagement_customProps(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -126,6 +126,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
 				),
 			},
 			{
@@ -427,10 +428,6 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Developer_1"
-
-  protocols {
-    enable_http2 = true
-  }
 
   security {
     enable_frontend_tls10     = true
