@@ -36,7 +36,8 @@ func NewLoadBalancerBackendAddressPoolsClient(subscriptionID string) LoadBalance
 }
 
 // NewLoadBalancerBackendAddressPoolsClientWithBaseURI creates an instance of the LoadBalancerBackendAddressPoolsClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewLoadBalancerBackendAddressPoolsClientWithBaseURI(baseURI string, subscriptionID string) LoadBalancerBackendAddressPoolsClient {
 	return LoadBalancerBackendAddressPoolsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

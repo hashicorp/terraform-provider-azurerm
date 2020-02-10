@@ -36,7 +36,8 @@ func NewLabsClient(subscriptionID string) LabsClient {
 	return NewLabsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLabsClientWithBaseURI creates an instance of the LabsClient client.
+// NewLabsClientWithBaseURI creates an instance of the LabsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLabsClientWithBaseURI(baseURI string, subscriptionID string) LabsClient {
 	return LabsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

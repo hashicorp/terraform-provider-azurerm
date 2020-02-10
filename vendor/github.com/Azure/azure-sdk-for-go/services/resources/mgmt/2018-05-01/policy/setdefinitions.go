@@ -37,7 +37,8 @@ func NewSetDefinitionsClient(subscriptionID string) SetDefinitionsClient {
 	return NewSetDefinitionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSetDefinitionsClientWithBaseURI creates an instance of the SetDefinitionsClient client.
+// NewSetDefinitionsClientWithBaseURI creates an instance of the SetDefinitionsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSetDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) SetDefinitionsClient {
 	return SetDefinitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

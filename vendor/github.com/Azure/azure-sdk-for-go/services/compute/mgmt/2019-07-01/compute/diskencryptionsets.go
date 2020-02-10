@@ -36,7 +36,9 @@ func NewDiskEncryptionSetsClient(subscriptionID string) DiskEncryptionSetsClient
 	return NewDiskEncryptionSetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDiskEncryptionSetsClientWithBaseURI creates an instance of the DiskEncryptionSetsClient client.
+// NewDiskEncryptionSetsClientWithBaseURI creates an instance of the DiskEncryptionSetsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDiskEncryptionSetsClientWithBaseURI(baseURI string, subscriptionID string) DiskEncryptionSetsClient {
 	return DiskEncryptionSetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

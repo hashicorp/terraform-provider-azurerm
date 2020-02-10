@@ -36,7 +36,8 @@ func NewLiveOutputsClient(subscriptionID string) LiveOutputsClient {
 	return NewLiveOutputsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLiveOutputsClientWithBaseURI creates an instance of the LiveOutputsClient client.
+// NewLiveOutputsClientWithBaseURI creates an instance of the LiveOutputsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLiveOutputsClientWithBaseURI(baseURI string, subscriptionID string) LiveOutputsClient {
 	return LiveOutputsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

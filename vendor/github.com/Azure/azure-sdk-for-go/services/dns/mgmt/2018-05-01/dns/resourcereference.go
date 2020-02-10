@@ -35,7 +35,9 @@ func NewResourceReferenceClient(subscriptionID string) ResourceReferenceClient {
 	return NewResourceReferenceClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceReferenceClientWithBaseURI creates an instance of the ResourceReferenceClient client.
+// NewResourceReferenceClientWithBaseURI creates an instance of the ResourceReferenceClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewResourceReferenceClientWithBaseURI(baseURI string, subscriptionID string) ResourceReferenceClient {
 	return ResourceReferenceClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

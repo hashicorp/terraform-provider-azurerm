@@ -35,7 +35,8 @@ func NewRouteFiltersClient(subscriptionID string) RouteFiltersClient {
 	return NewRouteFiltersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRouteFiltersClientWithBaseURI creates an instance of the RouteFiltersClient client.
+// NewRouteFiltersClientWithBaseURI creates an instance of the RouteFiltersClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRouteFiltersClientWithBaseURI(baseURI string, subscriptionID string) RouteFiltersClient {
 	return RouteFiltersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

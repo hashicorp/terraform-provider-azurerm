@@ -38,7 +38,8 @@ func NewElasticPoolDatabaseActivitiesClient(subscriptionID string) ElasticPoolDa
 }
 
 // NewElasticPoolDatabaseActivitiesClientWithBaseURI creates an instance of the ElasticPoolDatabaseActivitiesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewElasticPoolDatabaseActivitiesClientWithBaseURI(baseURI string, subscriptionID string) ElasticPoolDatabaseActivitiesClient {
 	return ElasticPoolDatabaseActivitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

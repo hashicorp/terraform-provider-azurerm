@@ -36,7 +36,8 @@ func NewPricingsClient(subscriptionID string, ascLocation string) PricingsClient
 	return NewPricingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewPricingsClientWithBaseURI creates an instance of the PricingsClient client.
+// NewPricingsClientWithBaseURI creates an instance of the PricingsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPricingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) PricingsClient {
 	return PricingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

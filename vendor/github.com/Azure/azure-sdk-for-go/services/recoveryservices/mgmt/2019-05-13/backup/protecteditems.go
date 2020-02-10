@@ -35,7 +35,8 @@ func NewProtectedItemsClient(subscriptionID string) ProtectedItemsClient {
 	return NewProtectedItemsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProtectedItemsClientWithBaseURI creates an instance of the ProtectedItemsClient client.
+// NewProtectedItemsClientWithBaseURI creates an instance of the ProtectedItemsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProtectedItemsClientWithBaseURI(baseURI string, subscriptionID string) ProtectedItemsClient {
 	return ProtectedItemsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

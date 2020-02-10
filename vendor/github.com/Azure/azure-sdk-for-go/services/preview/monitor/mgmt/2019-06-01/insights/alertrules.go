@@ -36,7 +36,8 @@ func NewAlertRulesClient(subscriptionID string) AlertRulesClient {
 	return NewAlertRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAlertRulesClientWithBaseURI creates an instance of the AlertRulesClient client.
+// NewAlertRulesClientWithBaseURI creates an instance of the AlertRulesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAlertRulesClientWithBaseURI(baseURI string, subscriptionID string) AlertRulesClient {
 	return AlertRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

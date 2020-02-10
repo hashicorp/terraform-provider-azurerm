@@ -39,7 +39,8 @@ func NewExtendedDatabaseBlobAuditingPoliciesClient(subscriptionID string) Extend
 }
 
 // NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI creates an instance of the
-// ExtendedDatabaseBlobAuditingPoliciesClient client.
+// ExtendedDatabaseBlobAuditingPoliciesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ExtendedDatabaseBlobAuditingPoliciesClient {
 	return ExtendedDatabaseBlobAuditingPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

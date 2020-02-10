@@ -36,7 +36,9 @@ func NewReplicationNetworkMappingsClient(subscriptionID string, resourceGroupNam
 	return NewReplicationNetworkMappingsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationNetworkMappingsClientWithBaseURI creates an instance of the ReplicationNetworkMappingsClient client.
+// NewReplicationNetworkMappingsClientWithBaseURI creates an instance of the ReplicationNetworkMappingsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationNetworkMappingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationNetworkMappingsClient {
 	return ReplicationNetworkMappingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

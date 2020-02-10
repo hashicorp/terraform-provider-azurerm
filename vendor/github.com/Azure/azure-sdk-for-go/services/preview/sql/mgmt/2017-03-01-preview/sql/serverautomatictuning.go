@@ -37,7 +37,9 @@ func NewServerAutomaticTuningClient(subscriptionID string) ServerAutomaticTuning
 	return NewServerAutomaticTuningClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerAutomaticTuningClientWithBaseURI creates an instance of the ServerAutomaticTuningClient client.
+// NewServerAutomaticTuningClientWithBaseURI creates an instance of the ServerAutomaticTuningClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewServerAutomaticTuningClientWithBaseURI(baseURI string, subscriptionID string) ServerAutomaticTuningClient {
 	return ServerAutomaticTuningClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

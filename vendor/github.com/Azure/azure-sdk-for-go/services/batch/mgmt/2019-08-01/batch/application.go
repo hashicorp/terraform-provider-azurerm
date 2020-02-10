@@ -36,7 +36,8 @@ func NewApplicationClient(subscriptionID string) ApplicationClient {
 	return NewApplicationClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewApplicationClientWithBaseURI creates an instance of the ApplicationClient client.
+// NewApplicationClientWithBaseURI creates an instance of the ApplicationClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewApplicationClientWithBaseURI(baseURI string, subscriptionID string) ApplicationClient {
 	return ApplicationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

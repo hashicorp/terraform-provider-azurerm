@@ -35,7 +35,8 @@ func NewZonesClient(subscriptionID string) ZonesClient {
 	return NewZonesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewZonesClientWithBaseURI creates an instance of the ZonesClient client.
+// NewZonesClientWithBaseURI creates an instance of the ZonesClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewZonesClientWithBaseURI(baseURI string, subscriptionID string) ZonesClient {
 	return ZonesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

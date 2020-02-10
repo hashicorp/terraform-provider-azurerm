@@ -36,7 +36,9 @@ func NewReplicationRecoveryPlansClient(subscriptionID string, resourceGroupName 
 	return NewReplicationRecoveryPlansClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationRecoveryPlansClientWithBaseURI creates an instance of the ReplicationRecoveryPlansClient client.
+// NewReplicationRecoveryPlansClientWithBaseURI creates an instance of the ReplicationRecoveryPlansClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationRecoveryPlansClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationRecoveryPlansClient {
 	return ReplicationRecoveryPlansClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

@@ -36,7 +36,8 @@ func NewResourceClient(subscriptionID string) ResourceClient {
 	return NewResourceClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceClientWithBaseURI creates an instance of the ResourceClient client.
+// NewResourceClientWithBaseURI creates an instance of the ResourceClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewResourceClientWithBaseURI(baseURI string, subscriptionID string) ResourceClient {
 	return ResourceClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

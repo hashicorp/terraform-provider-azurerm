@@ -35,7 +35,9 @@ func NewServiceAssociationLinkClient(subscriptionID string) ServiceAssociationLi
 	return NewServiceAssociationLinkClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServiceAssociationLinkClientWithBaseURI creates an instance of the ServiceAssociationLinkClient client.
+// NewServiceAssociationLinkClientWithBaseURI creates an instance of the ServiceAssociationLinkClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewServiceAssociationLinkClientWithBaseURI(baseURI string, subscriptionID string) ServiceAssociationLinkClient {
 	return ServiceAssociationLinkClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

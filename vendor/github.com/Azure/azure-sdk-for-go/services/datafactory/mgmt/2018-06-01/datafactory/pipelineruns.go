@@ -37,7 +37,8 @@ func NewPipelineRunsClient(subscriptionID string) PipelineRunsClient {
 	return NewPipelineRunsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPipelineRunsClientWithBaseURI creates an instance of the PipelineRunsClient client.
+// NewPipelineRunsClientWithBaseURI creates an instance of the PipelineRunsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPipelineRunsClientWithBaseURI(baseURI string, subscriptionID string) PipelineRunsClient {
 	return PipelineRunsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

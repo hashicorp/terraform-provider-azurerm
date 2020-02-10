@@ -35,7 +35,9 @@ func NewReplicationAlertSettingsClient(subscriptionID string, resourceGroupName 
 	return NewReplicationAlertSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationAlertSettingsClientWithBaseURI creates an instance of the ReplicationAlertSettingsClient client.
+// NewReplicationAlertSettingsClientWithBaseURI creates an instance of the ReplicationAlertSettingsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationAlertSettingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationAlertSettingsClient {
 	return ReplicationAlertSettingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

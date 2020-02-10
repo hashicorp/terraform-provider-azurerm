@@ -36,7 +36,8 @@ func NewSecretsClient(subscriptionID string) SecretsClient {
 	return NewSecretsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSecretsClientWithBaseURI creates an instance of the SecretsClient client.
+// NewSecretsClientWithBaseURI creates an instance of the SecretsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSecretsClientWithBaseURI(baseURI string, subscriptionID string) SecretsClient {
 	return SecretsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

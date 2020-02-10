@@ -35,7 +35,9 @@ func NewExportJobsOperationResultsClient(subscriptionID string) ExportJobsOperat
 	return NewExportJobsOperationResultsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExportJobsOperationResultsClientWithBaseURI creates an instance of the ExportJobsOperationResultsClient client.
+// NewExportJobsOperationResultsClientWithBaseURI creates an instance of the ExportJobsOperationResultsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewExportJobsOperationResultsClientWithBaseURI(baseURI string, subscriptionID string) ExportJobsOperationResultsClient {
 	return ExportJobsOperationResultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

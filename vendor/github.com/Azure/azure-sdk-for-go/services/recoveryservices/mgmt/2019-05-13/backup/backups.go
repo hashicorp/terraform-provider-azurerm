@@ -35,7 +35,8 @@ func NewBackupsClient(subscriptionID string) BackupsClient {
 	return NewBackupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBackupsClientWithBaseURI creates an instance of the BackupsClient client.
+// NewBackupsClientWithBaseURI creates an instance of the BackupsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBackupsClientWithBaseURI(baseURI string, subscriptionID string) BackupsClient {
 	return BackupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

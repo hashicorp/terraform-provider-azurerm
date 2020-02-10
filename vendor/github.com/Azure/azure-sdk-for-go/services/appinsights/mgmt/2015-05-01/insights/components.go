@@ -36,7 +36,8 @@ func NewComponentsClient(subscriptionID string) ComponentsClient {
 	return NewComponentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewComponentsClientWithBaseURI creates an instance of the ComponentsClient client.
+// NewComponentsClientWithBaseURI creates an instance of the ComponentsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewComponentsClientWithBaseURI(baseURI string, subscriptionID string) ComponentsClient {
 	return ComponentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

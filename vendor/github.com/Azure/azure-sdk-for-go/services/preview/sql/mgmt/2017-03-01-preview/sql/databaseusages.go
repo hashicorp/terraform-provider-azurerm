@@ -37,7 +37,8 @@ func NewDatabaseUsagesClient(subscriptionID string) DatabaseUsagesClient {
 	return NewDatabaseUsagesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabaseUsagesClientWithBaseURI creates an instance of the DatabaseUsagesClient client.
+// NewDatabaseUsagesClientWithBaseURI creates an instance of the DatabaseUsagesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDatabaseUsagesClientWithBaseURI(baseURI string, subscriptionID string) DatabaseUsagesClient {
 	return DatabaseUsagesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

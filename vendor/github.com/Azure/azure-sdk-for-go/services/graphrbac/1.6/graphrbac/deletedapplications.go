@@ -36,7 +36,9 @@ func NewDeletedApplicationsClient(tenantID string) DeletedApplicationsClient {
 	return NewDeletedApplicationsClientWithBaseURI(DefaultBaseURI, tenantID)
 }
 
-// NewDeletedApplicationsClientWithBaseURI creates an instance of the DeletedApplicationsClient client.
+// NewDeletedApplicationsClientWithBaseURI creates an instance of the DeletedApplicationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDeletedApplicationsClientWithBaseURI(baseURI string, tenantID string) DeletedApplicationsClient {
 	return DeletedApplicationsClient{NewWithBaseURI(baseURI, tenantID)}
 }

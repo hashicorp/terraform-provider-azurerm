@@ -35,7 +35,8 @@ func NewWorkloadItemsClient(subscriptionID string) WorkloadItemsClient {
 	return NewWorkloadItemsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkloadItemsClientWithBaseURI creates an instance of the WorkloadItemsClient client.
+// NewWorkloadItemsClientWithBaseURI creates an instance of the WorkloadItemsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWorkloadItemsClientWithBaseURI(baseURI string, subscriptionID string) WorkloadItemsClient {
 	return WorkloadItemsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewGlobalSchedulesClient(subscriptionID string) GlobalSchedulesClient {
 	return NewGlobalSchedulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewGlobalSchedulesClientWithBaseURI creates an instance of the GlobalSchedulesClient client.
+// NewGlobalSchedulesClientWithBaseURI creates an instance of the GlobalSchedulesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewGlobalSchedulesClientWithBaseURI(baseURI string, subscriptionID string) GlobalSchedulesClient {
 	return GlobalSchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewIotDpsResourceClient(subscriptionID string) IotDpsResourceClient {
 	return NewIotDpsResourceClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewIotDpsResourceClientWithBaseURI creates an instance of the IotDpsResourceClient client.
+// NewIotDpsResourceClientWithBaseURI creates an instance of the IotDpsResourceClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewIotDpsResourceClientWithBaseURI(baseURI string, subscriptionID string) IotDpsResourceClient {
 	return IotDpsResourceClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

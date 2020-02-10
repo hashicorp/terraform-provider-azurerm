@@ -36,7 +36,8 @@ func NewAgreementsClient(subscriptionID string) AgreementsClient {
 	return NewAgreementsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAgreementsClientWithBaseURI creates an instance of the AgreementsClient client.
+// NewAgreementsClientWithBaseURI creates an instance of the AgreementsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAgreementsClientWithBaseURI(baseURI string, subscriptionID string) AgreementsClient {
 	return AgreementsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

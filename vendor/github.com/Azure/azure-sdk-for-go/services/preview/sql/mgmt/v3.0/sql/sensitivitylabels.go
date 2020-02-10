@@ -37,7 +37,9 @@ func NewSensitivityLabelsClient(subscriptionID string) SensitivityLabelsClient {
 	return NewSensitivityLabelsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSensitivityLabelsClientWithBaseURI creates an instance of the SensitivityLabelsClient client.
+// NewSensitivityLabelsClientWithBaseURI creates an instance of the SensitivityLabelsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewSensitivityLabelsClientWithBaseURI(baseURI string, subscriptionID string) SensitivityLabelsClient {
 	return SensitivityLabelsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,8 @@ func NewIPGroupsClient(subscriptionID string) IPGroupsClient {
 	return NewIPGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewIPGroupsClientWithBaseURI creates an instance of the IPGroupsClient client.
+// NewIPGroupsClientWithBaseURI creates an instance of the IPGroupsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewIPGroupsClientWithBaseURI(baseURI string, subscriptionID string) IPGroupsClient {
 	return IPGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

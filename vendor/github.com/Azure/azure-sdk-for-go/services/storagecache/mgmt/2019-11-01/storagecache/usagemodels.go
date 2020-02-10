@@ -36,7 +36,8 @@ func NewUsageModelsClient(subscriptionID string) UsageModelsClient {
 	return NewUsageModelsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewUsageModelsClientWithBaseURI creates an instance of the UsageModelsClient client.
+// NewUsageModelsClientWithBaseURI creates an instance of the UsageModelsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewUsageModelsClientWithBaseURI(baseURI string, subscriptionID string) UsageModelsClient {
 	return UsageModelsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

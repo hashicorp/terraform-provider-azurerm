@@ -37,7 +37,9 @@ func NewTransparentDataEncryptionsClient(subscriptionID string) TransparentDataE
 	return NewTransparentDataEncryptionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTransparentDataEncryptionsClientWithBaseURI creates an instance of the TransparentDataEncryptionsClient client.
+// NewTransparentDataEncryptionsClientWithBaseURI creates an instance of the TransparentDataEncryptionsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewTransparentDataEncryptionsClientWithBaseURI(baseURI string, subscriptionID string) TransparentDataEncryptionsClient {
 	return TransparentDataEncryptionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

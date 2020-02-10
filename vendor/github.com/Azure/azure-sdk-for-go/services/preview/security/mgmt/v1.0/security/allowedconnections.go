@@ -36,7 +36,9 @@ func NewAllowedConnectionsClient(subscriptionID string, ascLocation string) Allo
 	return NewAllowedConnectionsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAllowedConnectionsClientWithBaseURI creates an instance of the AllowedConnectionsClient client.
+// NewAllowedConnectionsClientWithBaseURI creates an instance of the AllowedConnectionsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewAllowedConnectionsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AllowedConnectionsClient {
 	return AllowedConnectionsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

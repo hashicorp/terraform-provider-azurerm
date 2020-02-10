@@ -37,7 +37,9 @@ func NewServiceObjectivesClient(subscriptionID string) ServiceObjectivesClient {
 	return NewServiceObjectivesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServiceObjectivesClientWithBaseURI creates an instance of the ServiceObjectivesClient client.
+// NewServiceObjectivesClientWithBaseURI creates an instance of the ServiceObjectivesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewServiceObjectivesClientWithBaseURI(baseURI string, subscriptionID string) ServiceObjectivesClient {
 	return ServiceObjectivesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

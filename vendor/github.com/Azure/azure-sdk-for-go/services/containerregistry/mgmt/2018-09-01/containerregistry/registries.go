@@ -36,7 +36,8 @@ func NewRegistriesClient(subscriptionID string) RegistriesClient {
 	return NewRegistriesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRegistriesClientWithBaseURI creates an instance of the RegistriesClient client.
+// NewRegistriesClientWithBaseURI creates an instance of the RegistriesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRegistriesClientWithBaseURI(baseURI string, subscriptionID string) RegistriesClient {
 	return RegistriesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,8 @@ func NewTagsClient(subscriptionID string) TagsClient {
 	return NewTagsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTagsClientWithBaseURI creates an instance of the TagsClient client.
+// NewTagsClientWithBaseURI creates an instance of the TagsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTagsClientWithBaseURI(baseURI string, subscriptionID string) TagsClient {
 	return TagsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -37,7 +37,9 @@ func NewLongTermRetentionBackupsClient(subscriptionID string) LongTermRetentionB
 	return NewLongTermRetentionBackupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLongTermRetentionBackupsClientWithBaseURI creates an instance of the LongTermRetentionBackupsClient client.
+// NewLongTermRetentionBackupsClientWithBaseURI creates an instance of the LongTermRetentionBackupsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewLongTermRetentionBackupsClientWithBaseURI(baseURI string, subscriptionID string) LongTermRetentionBackupsClient {
 	return LongTermRetentionBackupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

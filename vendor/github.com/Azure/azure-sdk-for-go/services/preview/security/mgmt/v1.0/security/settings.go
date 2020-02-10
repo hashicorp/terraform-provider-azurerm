@@ -36,7 +36,8 @@ func NewSettingsClient(subscriptionID string, ascLocation string) SettingsClient
 	return NewSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewSettingsClientWithBaseURI creates an instance of the SettingsClient client.
+// NewSettingsClientWithBaseURI creates an instance of the SettingsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SettingsClient {
 	return SettingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

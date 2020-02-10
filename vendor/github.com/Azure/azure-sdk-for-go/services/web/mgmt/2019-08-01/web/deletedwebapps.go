@@ -35,7 +35,8 @@ func NewDeletedWebAppsClient(subscriptionID string) DeletedWebAppsClient {
 	return NewDeletedWebAppsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDeletedWebAppsClientWithBaseURI creates an instance of the DeletedWebAppsClient client.
+// NewDeletedWebAppsClientWithBaseURI creates an instance of the DeletedWebAppsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDeletedWebAppsClientWithBaseURI(baseURI string, subscriptionID string) DeletedWebAppsClient {
 	return DeletedWebAppsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

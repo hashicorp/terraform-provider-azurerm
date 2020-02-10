@@ -36,7 +36,9 @@ func NewWorkspaceSettingsClient(subscriptionID string, ascLocation string) Works
 	return NewWorkspaceSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewWorkspaceSettingsClientWithBaseURI creates an instance of the WorkspaceSettingsClient client.
+// NewWorkspaceSettingsClientWithBaseURI creates an instance of the WorkspaceSettingsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewWorkspaceSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) WorkspaceSettingsClient {
 	return WorkspaceSettingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

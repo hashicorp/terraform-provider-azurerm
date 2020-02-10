@@ -36,7 +36,9 @@ func NewAdaptiveNetworkHardeningsClient(subscriptionID string, ascLocation strin
 	return NewAdaptiveNetworkHardeningsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAdaptiveNetworkHardeningsClientWithBaseURI creates an instance of the AdaptiveNetworkHardeningsClient client.
+// NewAdaptiveNetworkHardeningsClientWithBaseURI creates an instance of the AdaptiveNetworkHardeningsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewAdaptiveNetworkHardeningsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AdaptiveNetworkHardeningsClient {
 	return AdaptiveNetworkHardeningsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

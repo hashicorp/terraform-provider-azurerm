@@ -35,7 +35,9 @@ func NewDdosCustomPoliciesClient(subscriptionID string) DdosCustomPoliciesClient
 	return NewDdosCustomPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDdosCustomPoliciesClientWithBaseURI creates an instance of the DdosCustomPoliciesClient client.
+// NewDdosCustomPoliciesClientWithBaseURI creates an instance of the DdosCustomPoliciesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDdosCustomPoliciesClientWithBaseURI(baseURI string, subscriptionID string) DdosCustomPoliciesClient {
 	return DdosCustomPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

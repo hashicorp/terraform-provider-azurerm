@@ -37,7 +37,9 @@ func NewReplicationLinksClient(subscriptionID string) ReplicationLinksClient {
 	return NewReplicationLinksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewReplicationLinksClientWithBaseURI creates an instance of the ReplicationLinksClient client.
+// NewReplicationLinksClientWithBaseURI creates an instance of the ReplicationLinksClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationLinksClientWithBaseURI(baseURI string, subscriptionID string) ReplicationLinksClient {
 	return ReplicationLinksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,8 @@ func NewResourceSkusClient(subscriptionID string) ResourceSkusClient {
 	return NewResourceSkusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceSkusClientWithBaseURI creates an instance of the ResourceSkusClient client.
+// NewResourceSkusClientWithBaseURI creates an instance of the ResourceSkusClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewResourceSkusClientWithBaseURI(baseURI string, subscriptionID string) ResourceSkusClient {
 	return ResourceSkusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

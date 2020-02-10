@@ -35,7 +35,8 @@ func NewFeatureSupportClient(subscriptionID string) FeatureSupportClient {
 	return NewFeatureSupportClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFeatureSupportClientWithBaseURI creates an instance of the FeatureSupportClient client.
+// NewFeatureSupportClientWithBaseURI creates an instance of the FeatureSupportClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFeatureSupportClientWithBaseURI(baseURI string, subscriptionID string) FeatureSupportClient {
 	return FeatureSupportClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewLocationClient(subscriptionID string) LocationClient {
 	return NewLocationClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLocationClientWithBaseURI creates an instance of the LocationClient client.
+// NewLocationClientWithBaseURI creates an instance of the LocationClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLocationClientWithBaseURI(baseURI string, subscriptionID string) LocationClient {
 	return LocationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

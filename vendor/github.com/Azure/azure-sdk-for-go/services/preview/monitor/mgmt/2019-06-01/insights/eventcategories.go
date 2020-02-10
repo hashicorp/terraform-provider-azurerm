@@ -35,7 +35,8 @@ func NewEventCategoriesClient(subscriptionID string) EventCategoriesClient {
 	return NewEventCategoriesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEventCategoriesClientWithBaseURI creates an instance of the EventCategoriesClient client.
+// NewEventCategoriesClientWithBaseURI creates an instance of the EventCategoriesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewEventCategoriesClientWithBaseURI(baseURI string, subscriptionID string) EventCategoriesClient {
 	return EventCategoriesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

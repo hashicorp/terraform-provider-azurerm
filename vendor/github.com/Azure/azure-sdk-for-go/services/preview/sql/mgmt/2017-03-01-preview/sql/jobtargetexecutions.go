@@ -39,7 +39,9 @@ func NewJobTargetExecutionsClient(subscriptionID string) JobTargetExecutionsClie
 	return NewJobTargetExecutionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobTargetExecutionsClientWithBaseURI creates an instance of the JobTargetExecutionsClient client.
+// NewJobTargetExecutionsClientWithBaseURI creates an instance of the JobTargetExecutionsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewJobTargetExecutionsClientWithBaseURI(baseURI string, subscriptionID string) JobTargetExecutionsClient {
 	return JobTargetExecutionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

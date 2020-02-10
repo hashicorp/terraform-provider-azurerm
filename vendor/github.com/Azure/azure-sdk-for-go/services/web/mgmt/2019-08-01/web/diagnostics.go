@@ -37,7 +37,8 @@ func NewDiagnosticsClient(subscriptionID string) DiagnosticsClient {
 	return NewDiagnosticsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDiagnosticsClientWithBaseURI creates an instance of the DiagnosticsClient client.
+// NewDiagnosticsClientWithBaseURI creates an instance of the DiagnosticsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDiagnosticsClientWithBaseURI(baseURI string, subscriptionID string) DiagnosticsClient {
 	return DiagnosticsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

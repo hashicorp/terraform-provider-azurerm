@@ -36,7 +36,9 @@ func NewDeploymentOperationsClient(subscriptionID string) DeploymentOperationsCl
 	return NewDeploymentOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDeploymentOperationsClientWithBaseURI creates an instance of the DeploymentOperationsClient client.
+// NewDeploymentOperationsClientWithBaseURI creates an instance of the DeploymentOperationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDeploymentOperationsClientWithBaseURI(baseURI string, subscriptionID string) DeploymentOperationsClient {
 	return DeploymentOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

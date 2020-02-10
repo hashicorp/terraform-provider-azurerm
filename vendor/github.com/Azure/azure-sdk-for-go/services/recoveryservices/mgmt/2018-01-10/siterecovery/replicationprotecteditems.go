@@ -36,7 +36,9 @@ func NewReplicationProtectedItemsClient(subscriptionID string, resourceGroupName
 	return NewReplicationProtectedItemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationProtectedItemsClientWithBaseURI creates an instance of the ReplicationProtectedItemsClient client.
+// NewReplicationProtectedItemsClientWithBaseURI creates an instance of the ReplicationProtectedItemsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationProtectedItemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationProtectedItemsClient {
 	return ReplicationProtectedItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

@@ -36,7 +36,8 @@ func NewCredentialClient(subscriptionID string) CredentialClient {
 	return NewCredentialClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCredentialClientWithBaseURI creates an instance of the CredentialClient client.
+// NewCredentialClientWithBaseURI creates an instance of the CredentialClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCredentialClientWithBaseURI(baseURI string, subscriptionID string) CredentialClient {
 	return CredentialClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

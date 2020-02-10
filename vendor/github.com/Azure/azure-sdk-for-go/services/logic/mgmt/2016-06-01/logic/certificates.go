@@ -36,7 +36,8 @@ func NewCertificatesClient(subscriptionID string) CertificatesClient {
 	return NewCertificatesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCertificatesClientWithBaseURI creates an instance of the CertificatesClient client.
+// NewCertificatesClientWithBaseURI creates an instance of the CertificatesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCertificatesClientWithBaseURI(baseURI string, subscriptionID string) CertificatesClient {
 	return CertificatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

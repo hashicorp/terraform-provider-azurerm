@@ -37,7 +37,8 @@ func NewWorkflowRunActionScopedRepetitionsClient(subscriptionID string) Workflow
 }
 
 // NewWorkflowRunActionScopedRepetitionsClientWithBaseURI creates an instance of the
-// WorkflowRunActionScopedRepetitionsClient client.
+// WorkflowRunActionScopedRepetitionsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWorkflowRunActionScopedRepetitionsClientWithBaseURI(baseURI string, subscriptionID string) WorkflowRunActionScopedRepetitionsClient {
 	return WorkflowRunActionScopedRepetitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

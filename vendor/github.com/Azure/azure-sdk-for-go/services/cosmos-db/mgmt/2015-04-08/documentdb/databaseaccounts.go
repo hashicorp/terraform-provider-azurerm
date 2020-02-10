@@ -36,7 +36,9 @@ func NewDatabaseAccountsClient(subscriptionID string) DatabaseAccountsClient {
 	return NewDatabaseAccountsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabaseAccountsClientWithBaseURI creates an instance of the DatabaseAccountsClient client.
+// NewDatabaseAccountsClientWithBaseURI creates an instance of the DatabaseAccountsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDatabaseAccountsClientWithBaseURI(baseURI string, subscriptionID string) DatabaseAccountsClient {
 	return DatabaseAccountsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

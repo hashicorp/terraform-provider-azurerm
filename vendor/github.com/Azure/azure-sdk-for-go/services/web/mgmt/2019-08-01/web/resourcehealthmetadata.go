@@ -36,7 +36,9 @@ func NewResourceHealthMetadataClient(subscriptionID string) ResourceHealthMetada
 	return NewResourceHealthMetadataClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceHealthMetadataClientWithBaseURI creates an instance of the ResourceHealthMetadataClient client.
+// NewResourceHealthMetadataClientWithBaseURI creates an instance of the ResourceHealthMetadataClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewResourceHealthMetadataClientWithBaseURI(baseURI string, subscriptionID string) ResourceHealthMetadataClient {
 	return ResourceHealthMetadataClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

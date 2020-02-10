@@ -35,7 +35,9 @@ func NewDefaultSecurityRulesClient(subscriptionID string) DefaultSecurityRulesCl
 	return NewDefaultSecurityRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDefaultSecurityRulesClientWithBaseURI creates an instance of the DefaultSecurityRulesClient client.
+// NewDefaultSecurityRulesClientWithBaseURI creates an instance of the DefaultSecurityRulesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDefaultSecurityRulesClientWithBaseURI(baseURI string, subscriptionID string) DefaultSecurityRulesClient {
 	return DefaultSecurityRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -38,7 +38,8 @@ func NewJobStepsClient(subscriptionID string) JobStepsClient {
 	return NewJobStepsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobStepsClientWithBaseURI creates an instance of the JobStepsClient client.
+// NewJobStepsClientWithBaseURI creates an instance of the JobStepsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewJobStepsClientWithBaseURI(baseURI string, subscriptionID string) JobStepsClient {
 	return JobStepsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

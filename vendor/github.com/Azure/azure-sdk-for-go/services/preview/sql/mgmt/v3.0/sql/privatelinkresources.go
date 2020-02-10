@@ -37,7 +37,9 @@ func NewPrivateLinkResourcesClient(subscriptionID string) PrivateLinkResourcesCl
 	return NewPrivateLinkResourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPrivateLinkResourcesClientWithBaseURI creates an instance of the PrivateLinkResourcesClient client.
+// NewPrivateLinkResourcesClientWithBaseURI creates an instance of the PrivateLinkResourcesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewPrivateLinkResourcesClientWithBaseURI(baseURI string, subscriptionID string) PrivateLinkResourcesClient {
 	return PrivateLinkResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

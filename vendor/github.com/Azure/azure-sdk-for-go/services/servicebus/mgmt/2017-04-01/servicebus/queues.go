@@ -36,7 +36,8 @@ func NewQueuesClient(subscriptionID string) QueuesClient {
 	return NewQueuesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewQueuesClientWithBaseURI creates an instance of the QueuesClient client.
+// NewQueuesClientWithBaseURI creates an instance of the QueuesClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewQueuesClientWithBaseURI(baseURI string, subscriptionID string) QueuesClient {
 	return QueuesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

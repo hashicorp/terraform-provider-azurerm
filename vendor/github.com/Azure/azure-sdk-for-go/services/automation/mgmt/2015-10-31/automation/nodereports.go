@@ -36,7 +36,8 @@ func NewNodeReportsClient(subscriptionID string) NodeReportsClient {
 	return NewNodeReportsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewNodeReportsClientWithBaseURI creates an instance of the NodeReportsClient client.
+// NewNodeReportsClientWithBaseURI creates an instance of the NodeReportsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewNodeReportsClientWithBaseURI(baseURI string, subscriptionID string) NodeReportsClient {
 	return NodeReportsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

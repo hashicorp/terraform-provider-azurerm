@@ -36,7 +36,8 @@ func NewRoleAssignmentsClient(subscriptionID string) RoleAssignmentsClient {
 	return NewRoleAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRoleAssignmentsClientWithBaseURI creates an instance of the RoleAssignmentsClient client.
+// NewRoleAssignmentsClientWithBaseURI creates an instance of the RoleAssignmentsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRoleAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) RoleAssignmentsClient {
 	return RoleAssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

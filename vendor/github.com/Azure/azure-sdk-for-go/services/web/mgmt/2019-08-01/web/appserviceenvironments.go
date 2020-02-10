@@ -36,7 +36,9 @@ func NewAppServiceEnvironmentsClient(subscriptionID string) AppServiceEnvironmen
 	return NewAppServiceEnvironmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAppServiceEnvironmentsClientWithBaseURI creates an instance of the AppServiceEnvironmentsClient client.
+// NewAppServiceEnvironmentsClientWithBaseURI creates an instance of the AppServiceEnvironmentsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewAppServiceEnvironmentsClientWithBaseURI(baseURI string, subscriptionID string) AppServiceEnvironmentsClient {
 	return AppServiceEnvironmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

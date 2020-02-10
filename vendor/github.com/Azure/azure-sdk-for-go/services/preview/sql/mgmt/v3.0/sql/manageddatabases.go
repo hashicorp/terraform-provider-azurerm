@@ -38,7 +38,9 @@ func NewManagedDatabasesClient(subscriptionID string) ManagedDatabasesClient {
 	return NewManagedDatabasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagedDatabasesClientWithBaseURI creates an instance of the ManagedDatabasesClient client.
+// NewManagedDatabasesClientWithBaseURI creates an instance of the ManagedDatabasesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string) ManagedDatabasesClient {
 	return ManagedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

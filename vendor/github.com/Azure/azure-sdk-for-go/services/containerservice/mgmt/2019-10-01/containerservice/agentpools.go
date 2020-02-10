@@ -36,7 +36,8 @@ func NewAgentPoolsClient(subscriptionID string) AgentPoolsClient {
 	return NewAgentPoolsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAgentPoolsClientWithBaseURI creates an instance of the AgentPoolsClient client.
+// NewAgentPoolsClientWithBaseURI creates an instance of the AgentPoolsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAgentPoolsClientWithBaseURI(baseURI string, subscriptionID string) AgentPoolsClient {
 	return AgentPoolsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

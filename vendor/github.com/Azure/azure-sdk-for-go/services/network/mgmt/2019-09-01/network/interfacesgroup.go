@@ -35,7 +35,8 @@ func NewInterfacesClient(subscriptionID string) InterfacesClient {
 	return NewInterfacesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewInterfacesClientWithBaseURI creates an instance of the InterfacesClient client.
+// NewInterfacesClientWithBaseURI creates an instance of the InterfacesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewInterfacesClientWithBaseURI(baseURI string, subscriptionID string) InterfacesClient {
 	return InterfacesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

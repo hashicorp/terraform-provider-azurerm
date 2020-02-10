@@ -45,6 +45,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.Kusto":                {},
 		"microsoft.insights":             {},
 		"Microsoft.Logic":                {},
+		"Microsoft.MachineLearningServices": {},
 		"Microsoft.ManagedIdentity":      {},
 		"Microsoft.Management":           {},
 		"Microsoft.Maps":                 {},

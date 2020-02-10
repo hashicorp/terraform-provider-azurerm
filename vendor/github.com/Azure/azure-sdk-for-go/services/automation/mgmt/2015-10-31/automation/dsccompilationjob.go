@@ -37,7 +37,9 @@ func NewDscCompilationJobClient(subscriptionID string) DscCompilationJobClient {
 	return NewDscCompilationJobClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDscCompilationJobClientWithBaseURI creates an instance of the DscCompilationJobClient client.
+// NewDscCompilationJobClientWithBaseURI creates an instance of the DscCompilationJobClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDscCompilationJobClientWithBaseURI(baseURI string, subscriptionID string) DscCompilationJobClient {
 	return DscCompilationJobClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

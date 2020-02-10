@@ -36,7 +36,8 @@ func NewMapsClient(subscriptionID string) MapsClient {
 	return NewMapsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMapsClientWithBaseURI creates an instance of the MapsClient client.
+// NewMapsClientWithBaseURI creates an instance of the MapsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewMapsClientWithBaseURI(baseURI string, subscriptionID string) MapsClient {
 	return MapsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

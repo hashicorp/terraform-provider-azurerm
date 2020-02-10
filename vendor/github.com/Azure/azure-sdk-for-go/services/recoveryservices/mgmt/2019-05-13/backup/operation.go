@@ -35,7 +35,8 @@ func NewOperationClient(subscriptionID string) OperationClient {
 	return NewOperationClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewOperationClientWithBaseURI creates an instance of the OperationClient client.
+// NewOperationClientWithBaseURI creates an instance of the OperationClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewOperationClientWithBaseURI(baseURI string, subscriptionID string) OperationClient {
 	return OperationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

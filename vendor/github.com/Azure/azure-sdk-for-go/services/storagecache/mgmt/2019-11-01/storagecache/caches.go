@@ -37,7 +37,8 @@ func NewCachesClient(subscriptionID string) CachesClient {
 	return NewCachesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCachesClientWithBaseURI creates an instance of the CachesClient client.
+// NewCachesClientWithBaseURI creates an instance of the CachesClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCachesClientWithBaseURI(baseURI string, subscriptionID string) CachesClient {
 	return CachesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

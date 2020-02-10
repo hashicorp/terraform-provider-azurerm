@@ -35,7 +35,8 @@ func NewEdgeNodesClient(subscriptionID string) EdgeNodesClient {
 	return NewEdgeNodesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEdgeNodesClientWithBaseURI creates an instance of the EdgeNodesClient client.
+// NewEdgeNodesClientWithBaseURI creates an instance of the EdgeNodesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewEdgeNodesClientWithBaseURI(baseURI string, subscriptionID string) EdgeNodesClient {
 	return EdgeNodesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

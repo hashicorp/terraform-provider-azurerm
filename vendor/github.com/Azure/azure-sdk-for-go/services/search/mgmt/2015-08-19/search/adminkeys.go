@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// AdminKeysClient is the client that can be used to manage Azure Search services and API keys.
+// AdminKeysClient is the client that can be used to manage Azure Cognitive Search services and API keys.
 type AdminKeysClient struct {
 	BaseClient
 }
@@ -36,16 +36,18 @@ func NewAdminKeysClient(subscriptionID string) AdminKeysClient {
 	return NewAdminKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAdminKeysClientWithBaseURI creates an instance of the AdminKeysClient client.
+// NewAdminKeysClientWithBaseURI creates an instance of the AdminKeysClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAdminKeysClientWithBaseURI(baseURI string, subscriptionID string) AdminKeysClient {
 	return AdminKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get gets the primary and secondary admin API keys for the specified Azure Search service.
+// Get gets the primary and secondary admin API keys for the specified Azure Cognitive Search service.
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
 func (client AdminKeysClient) Get(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result AdminKeyResult, err error) {
@@ -129,7 +131,8 @@ func (client AdminKeysClient) GetResponder(resp *http.Response) (result AdminKey
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // keyKind - specifies which key to regenerate. Valid values include 'primary' and 'secondary'.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.

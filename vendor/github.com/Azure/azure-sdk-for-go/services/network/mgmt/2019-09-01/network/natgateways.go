@@ -35,7 +35,8 @@ func NewNatGatewaysClient(subscriptionID string) NatGatewaysClient {
 	return NewNatGatewaysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewNatGatewaysClientWithBaseURI creates an instance of the NatGatewaysClient client.
+// NewNatGatewaysClientWithBaseURI creates an instance of the NatGatewaysClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewNatGatewaysClientWithBaseURI(baseURI string, subscriptionID string) NatGatewaysClient {
 	return NatGatewaysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

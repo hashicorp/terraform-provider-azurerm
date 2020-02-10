@@ -35,7 +35,8 @@ func NewStreamingJobsClient(subscriptionID string) StreamingJobsClient {
 	return NewStreamingJobsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingJobsClientWithBaseURI creates an instance of the StreamingJobsClient client.
+// NewStreamingJobsClientWithBaseURI creates an instance of the StreamingJobsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStreamingJobsClientWithBaseURI(baseURI string, subscriptionID string) StreamingJobsClient {
 	return StreamingJobsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

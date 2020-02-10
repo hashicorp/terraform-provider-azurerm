@@ -36,7 +36,8 @@ func NewWatchersClient(subscriptionID string) WatchersClient {
 	return NewWatchersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWatchersClientWithBaseURI creates an instance of the WatchersClient client.
+// NewWatchersClientWithBaseURI creates an instance of the WatchersClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWatchersClientWithBaseURI(baseURI string, subscriptionID string) WatchersClient {
 	return WatchersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

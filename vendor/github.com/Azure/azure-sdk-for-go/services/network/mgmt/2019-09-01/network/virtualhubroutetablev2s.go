@@ -35,7 +35,9 @@ func NewVirtualHubRouteTableV2sClient(subscriptionID string) VirtualHubRouteTabl
 	return NewVirtualHubRouteTableV2sClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVirtualHubRouteTableV2sClientWithBaseURI creates an instance of the VirtualHubRouteTableV2sClient client.
+// NewVirtualHubRouteTableV2sClientWithBaseURI creates an instance of the VirtualHubRouteTableV2sClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewVirtualHubRouteTableV2sClientWithBaseURI(baseURI string, subscriptionID string) VirtualHubRouteTableV2sClient {
 	return VirtualHubRouteTableV2sClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

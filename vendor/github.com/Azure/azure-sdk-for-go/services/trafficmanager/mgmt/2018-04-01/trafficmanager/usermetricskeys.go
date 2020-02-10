@@ -35,7 +35,8 @@ func NewUserMetricsKeysClient(subscriptionID string) UserMetricsKeysClient {
 	return NewUserMetricsKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewUserMetricsKeysClientWithBaseURI creates an instance of the UserMetricsKeysClient client.
+// NewUserMetricsKeysClientWithBaseURI creates an instance of the UserMetricsKeysClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewUserMetricsKeysClientWithBaseURI(baseURI string, subscriptionID string) UserMetricsKeysClient {
 	return UserMetricsKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

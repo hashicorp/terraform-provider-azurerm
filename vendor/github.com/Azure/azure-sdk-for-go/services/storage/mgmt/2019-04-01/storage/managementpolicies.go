@@ -36,7 +36,9 @@ func NewManagementPoliciesClient(subscriptionID string) ManagementPoliciesClient
 	return NewManagementPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagementPoliciesClientWithBaseURI creates an instance of the ManagementPoliciesClient client.
+// NewManagementPoliciesClientWithBaseURI creates an instance of the ManagementPoliciesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewManagementPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ManagementPoliciesClient {
 	return ManagementPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

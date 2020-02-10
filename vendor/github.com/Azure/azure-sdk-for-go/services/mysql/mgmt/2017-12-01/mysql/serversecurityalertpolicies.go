@@ -37,7 +37,9 @@ func NewServerSecurityAlertPoliciesClient(subscriptionID string) ServerSecurityA
 	return NewServerSecurityAlertPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerSecurityAlertPoliciesClientWithBaseURI creates an instance of the ServerSecurityAlertPoliciesClient client.
+// NewServerSecurityAlertPoliciesClientWithBaseURI creates an instance of the ServerSecurityAlertPoliciesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewServerSecurityAlertPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ServerSecurityAlertPoliciesClient {
 	return ServerSecurityAlertPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

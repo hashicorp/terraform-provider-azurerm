@@ -37,7 +37,8 @@ func NewAgentRegistrationInformationClient(subscriptionID string) AgentRegistrat
 }
 
 // NewAgentRegistrationInformationClientWithBaseURI creates an instance of the AgentRegistrationInformationClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewAgentRegistrationInformationClientWithBaseURI(baseURI string, subscriptionID string) AgentRegistrationInformationClient {
 	return AgentRegistrationInformationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

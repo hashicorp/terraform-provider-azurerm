@@ -37,7 +37,8 @@ func NewVirtualMachineScaleSetVMExtensionsClient(subscriptionID string) VirtualM
 }
 
 // NewVirtualMachineScaleSetVMExtensionsClientWithBaseURI creates an instance of the
-// VirtualMachineScaleSetVMExtensionsClient client.
+// VirtualMachineScaleSetVMExtensionsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVirtualMachineScaleSetVMExtensionsClientWithBaseURI(baseURI string, subscriptionID string) VirtualMachineScaleSetVMExtensionsClient {
 	return VirtualMachineScaleSetVMExtensionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

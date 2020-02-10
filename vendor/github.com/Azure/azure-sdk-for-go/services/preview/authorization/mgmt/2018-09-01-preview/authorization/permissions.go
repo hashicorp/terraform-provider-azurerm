@@ -35,7 +35,8 @@ func NewPermissionsClient(subscriptionID string) PermissionsClient {
 	return NewPermissionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPermissionsClientWithBaseURI creates an instance of the PermissionsClient client.
+// NewPermissionsClientWithBaseURI creates an instance of the PermissionsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPermissionsClientWithBaseURI(baseURI string, subscriptionID string) PermissionsClient {
 	return PermissionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

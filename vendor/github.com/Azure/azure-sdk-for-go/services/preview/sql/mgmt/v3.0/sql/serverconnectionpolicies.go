@@ -37,7 +37,9 @@ func NewServerConnectionPoliciesClient(subscriptionID string) ServerConnectionPo
 	return NewServerConnectionPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerConnectionPoliciesClientWithBaseURI creates an instance of the ServerConnectionPoliciesClient client.
+// NewServerConnectionPoliciesClientWithBaseURI creates an instance of the ServerConnectionPoliciesClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewServerConnectionPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ServerConnectionPoliciesClient {
 	return ServerConnectionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

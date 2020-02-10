@@ -35,7 +35,9 @@ func NewPremiumMessagingRegionsClient(subscriptionID string) PremiumMessagingReg
 	return NewPremiumMessagingRegionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPremiumMessagingRegionsClientWithBaseURI creates an instance of the PremiumMessagingRegionsClient client.
+// NewPremiumMessagingRegionsClientWithBaseURI creates an instance of the PremiumMessagingRegionsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewPremiumMessagingRegionsClientWithBaseURI(baseURI string, subscriptionID string) PremiumMessagingRegionsClient {
 	return PremiumMessagingRegionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

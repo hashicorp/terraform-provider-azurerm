@@ -38,7 +38,8 @@ func NewWorkloadGroupsClient(subscriptionID string) WorkloadGroupsClient {
 	return NewWorkloadGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkloadGroupsClientWithBaseURI creates an instance of the WorkloadGroupsClient client.
+// NewWorkloadGroupsClientWithBaseURI creates an instance of the WorkloadGroupsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWorkloadGroupsClientWithBaseURI(baseURI string, subscriptionID string) WorkloadGroupsClient {
 	return WorkloadGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

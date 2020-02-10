@@ -39,7 +39,8 @@ func NewManagedInstanceAdministratorsClient(subscriptionID string) ManagedInstan
 }
 
 // NewManagedInstanceAdministratorsClientWithBaseURI creates an instance of the ManagedInstanceAdministratorsClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewManagedInstanceAdministratorsClientWithBaseURI(baseURI string, subscriptionID string) ManagedInstanceAdministratorsClient {
 	return ManagedInstanceAdministratorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

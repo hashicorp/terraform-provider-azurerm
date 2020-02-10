@@ -37,7 +37,9 @@ func NewServerDNSAliasesClient(subscriptionID string) ServerDNSAliasesClient {
 	return NewServerDNSAliasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerDNSAliasesClientWithBaseURI creates an instance of the ServerDNSAliasesClient client.
+// NewServerDNSAliasesClientWithBaseURI creates an instance of the ServerDNSAliasesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewServerDNSAliasesClientWithBaseURI(baseURI string, subscriptionID string) ServerDNSAliasesClient {
 	return ServerDNSAliasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

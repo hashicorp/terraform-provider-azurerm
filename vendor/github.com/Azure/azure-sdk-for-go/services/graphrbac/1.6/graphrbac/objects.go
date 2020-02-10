@@ -36,7 +36,8 @@ func NewObjectsClient(tenantID string) ObjectsClient {
 	return NewObjectsClientWithBaseURI(DefaultBaseURI, tenantID)
 }
 
-// NewObjectsClientWithBaseURI creates an instance of the ObjectsClient client.
+// NewObjectsClientWithBaseURI creates an instance of the ObjectsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewObjectsClientWithBaseURI(baseURI string, tenantID string) ObjectsClient {
 	return ObjectsClient{NewWithBaseURI(baseURI, tenantID)}
 }

@@ -37,7 +37,8 @@ func NewTriggersClient(subscriptionID string) TriggersClient {
 	return NewTriggersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTriggersClientWithBaseURI creates an instance of the TriggersClient client.
+// NewTriggersClientWithBaseURI creates an instance of the TriggersClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTriggersClientWithBaseURI(baseURI string, subscriptionID string) TriggersClient {
 	return TriggersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,9 @@ func NewGalleryImageVersionsClient(subscriptionID string) GalleryImageVersionsCl
 	return NewGalleryImageVersionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewGalleryImageVersionsClientWithBaseURI creates an instance of the GalleryImageVersionsClient client.
+// NewGalleryImageVersionsClientWithBaseURI creates an instance of the GalleryImageVersionsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewGalleryImageVersionsClientWithBaseURI(baseURI string, subscriptionID string) GalleryImageVersionsClient {
 	return GalleryImageVersionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

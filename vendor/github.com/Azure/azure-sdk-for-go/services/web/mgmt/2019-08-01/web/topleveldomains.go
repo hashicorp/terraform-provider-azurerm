@@ -35,7 +35,8 @@ func NewTopLevelDomainsClient(subscriptionID string) TopLevelDomainsClient {
 	return NewTopLevelDomainsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTopLevelDomainsClientWithBaseURI creates an instance of the TopLevelDomainsClient client.
+// NewTopLevelDomainsClientWithBaseURI creates an instance of the TopLevelDomainsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTopLevelDomainsClientWithBaseURI(baseURI string, subscriptionID string) TopLevelDomainsClient {
 	return TopLevelDomainsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

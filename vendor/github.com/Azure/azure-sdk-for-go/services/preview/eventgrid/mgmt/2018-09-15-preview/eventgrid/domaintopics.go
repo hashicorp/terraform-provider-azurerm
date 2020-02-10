@@ -35,7 +35,8 @@ func NewDomainTopicsClient(subscriptionID string) DomainTopicsClient {
 	return NewDomainTopicsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDomainTopicsClientWithBaseURI creates an instance of the DomainTopicsClient client.
+// NewDomainTopicsClientWithBaseURI creates an instance of the DomainTopicsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDomainTopicsClientWithBaseURI(baseURI string, subscriptionID string) DomainTopicsClient {
 	return DomainTopicsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -37,7 +37,9 @@ func NewRecoverableDatabasesClient(subscriptionID string) RecoverableDatabasesCl
 	return NewRecoverableDatabasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRecoverableDatabasesClientWithBaseURI creates an instance of the RecoverableDatabasesClient client.
+// NewRecoverableDatabasesClientWithBaseURI creates an instance of the RecoverableDatabasesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewRecoverableDatabasesClientWithBaseURI(baseURI string, subscriptionID string) RecoverableDatabasesClient {
 	return RecoverableDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

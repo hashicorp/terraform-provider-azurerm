@@ -36,7 +36,8 @@ func NewProtectedItemOperationResultsClient(subscriptionID string) ProtectedItem
 }
 
 // NewProtectedItemOperationResultsClientWithBaseURI creates an instance of the ProtectedItemOperationResultsClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewProtectedItemOperationResultsClientWithBaseURI(baseURI string, subscriptionID string) ProtectedItemOperationResultsClient {
 	return ProtectedItemOperationResultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

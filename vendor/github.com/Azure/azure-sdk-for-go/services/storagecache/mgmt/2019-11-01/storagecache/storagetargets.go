@@ -38,7 +38,8 @@ func NewStorageTargetsClient(subscriptionID string) StorageTargetsClient {
 	return NewStorageTargetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStorageTargetsClientWithBaseURI creates an instance of the StorageTargetsClient client.
+// NewStorageTargetsClientWithBaseURI creates an instance of the StorageTargetsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStorageTargetsClientWithBaseURI(baseURI string, subscriptionID string) StorageTargetsClient {
 	return StorageTargetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

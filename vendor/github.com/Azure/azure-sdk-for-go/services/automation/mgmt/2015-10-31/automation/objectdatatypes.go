@@ -36,7 +36,8 @@ func NewObjectDataTypesClient(subscriptionID string) ObjectDataTypesClient {
 	return NewObjectDataTypesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewObjectDataTypesClientWithBaseURI creates an instance of the ObjectDataTypesClient client.
+// NewObjectDataTypesClientWithBaseURI creates an instance of the ObjectDataTypesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewObjectDataTypesClientWithBaseURI(baseURI string, subscriptionID string) ObjectDataTypesClient {
 	return ObjectDataTypesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

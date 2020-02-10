@@ -39,7 +39,8 @@ func NewManagedServerSecurityAlertPoliciesClient(subscriptionID string) ManagedS
 }
 
 // NewManagedServerSecurityAlertPoliciesClientWithBaseURI creates an instance of the
-// ManagedServerSecurityAlertPoliciesClient client.
+// ManagedServerSecurityAlertPoliciesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedServerSecurityAlertPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ManagedServerSecurityAlertPoliciesClient {
 	return ManagedServerSecurityAlertPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

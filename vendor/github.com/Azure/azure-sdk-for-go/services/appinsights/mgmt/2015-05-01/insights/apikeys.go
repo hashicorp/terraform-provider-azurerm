@@ -36,7 +36,8 @@ func NewAPIKeysClient(subscriptionID string) APIKeysClient {
 	return NewAPIKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAPIKeysClientWithBaseURI creates an instance of the APIKeysClient client.
+// NewAPIKeysClientWithBaseURI creates an instance of the APIKeysClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAPIKeysClientWithBaseURI(baseURI string, subscriptionID string) APIKeysClient {
 	return APIKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

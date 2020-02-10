@@ -36,7 +36,9 @@ func NewStreamingPoliciesClient(subscriptionID string) StreamingPoliciesClient {
 	return NewStreamingPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingPoliciesClientWithBaseURI creates an instance of the StreamingPoliciesClient client.
+// NewStreamingPoliciesClientWithBaseURI creates an instance of the StreamingPoliciesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewStreamingPoliciesClientWithBaseURI(baseURI string, subscriptionID string) StreamingPoliciesClient {
 	return StreamingPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

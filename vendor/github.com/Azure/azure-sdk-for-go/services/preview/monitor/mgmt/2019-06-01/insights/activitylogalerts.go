@@ -36,7 +36,9 @@ func NewActivityLogAlertsClient(subscriptionID string) ActivityLogAlertsClient {
 	return NewActivityLogAlertsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewActivityLogAlertsClientWithBaseURI creates an instance of the ActivityLogAlertsClient client.
+// NewActivityLogAlertsClientWithBaseURI creates an instance of the ActivityLogAlertsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewActivityLogAlertsClientWithBaseURI(baseURI string, subscriptionID string) ActivityLogAlertsClient {
 	return ActivityLogAlertsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

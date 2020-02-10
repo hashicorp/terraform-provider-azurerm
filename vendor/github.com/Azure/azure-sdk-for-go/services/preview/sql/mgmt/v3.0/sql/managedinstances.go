@@ -38,7 +38,9 @@ func NewManagedInstancesClient(subscriptionID string) ManagedInstancesClient {
 	return NewManagedInstancesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagedInstancesClientWithBaseURI creates an instance of the ManagedInstancesClient client.
+// NewManagedInstancesClientWithBaseURI creates an instance of the ManagedInstancesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewManagedInstancesClientWithBaseURI(baseURI string, subscriptionID string) ManagedInstancesClient {
 	return ManagedInstancesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

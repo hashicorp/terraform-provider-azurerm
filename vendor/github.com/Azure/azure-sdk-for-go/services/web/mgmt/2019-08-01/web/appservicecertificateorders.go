@@ -36,7 +36,9 @@ func NewAppServiceCertificateOrdersClient(subscriptionID string) AppServiceCerti
 	return NewAppServiceCertificateOrdersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAppServiceCertificateOrdersClientWithBaseURI creates an instance of the AppServiceCertificateOrdersClient client.
+// NewAppServiceCertificateOrdersClientWithBaseURI creates an instance of the AppServiceCertificateOrdersClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewAppServiceCertificateOrdersClientWithBaseURI(baseURI string, subscriptionID string) AppServiceCertificateOrdersClient {
 	return AppServiceCertificateOrdersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

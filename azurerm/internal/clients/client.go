@@ -35,6 +35,7 @@ import (
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
+	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
 	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
 	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
@@ -104,6 +105,7 @@ type Client struct {
 	Kusto             *kusto.Client
 	LogAnalytics      *loganalytics.Client
 	Logic             *logic.Client
+	MachineLearning   *machinelearning.Client
 	ManagementGroups  *managementgroup.Client
 	Maps              *maps.Client
 	MariaDB           *mariadb.Client
@@ -172,6 +174,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Kusto = kusto.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
+	client.MachineLearning = machinelearning.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
 	client.Maps = maps.NewClient(o)
 	client.MariaDB = mariadb.NewClient(o)

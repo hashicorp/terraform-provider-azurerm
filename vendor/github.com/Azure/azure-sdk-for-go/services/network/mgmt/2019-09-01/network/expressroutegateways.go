@@ -36,7 +36,9 @@ func NewExpressRouteGatewaysClient(subscriptionID string) ExpressRouteGatewaysCl
 	return NewExpressRouteGatewaysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExpressRouteGatewaysClientWithBaseURI creates an instance of the ExpressRouteGatewaysClient client.
+// NewExpressRouteGatewaysClientWithBaseURI creates an instance of the ExpressRouteGatewaysClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewExpressRouteGatewaysClientWithBaseURI(baseURI string, subscriptionID string) ExpressRouteGatewaysClient {
 	return ExpressRouteGatewaysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

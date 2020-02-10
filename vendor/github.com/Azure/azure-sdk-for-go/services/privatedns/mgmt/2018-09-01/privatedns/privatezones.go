@@ -35,7 +35,8 @@ func NewPrivateZonesClient(subscriptionID string) PrivateZonesClient {
 	return NewPrivateZonesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPrivateZonesClientWithBaseURI creates an instance of the PrivateZonesClient client.
+// NewPrivateZonesClientWithBaseURI creates an instance of the PrivateZonesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPrivateZonesClientWithBaseURI(baseURI string, subscriptionID string) PrivateZonesClient {
 	return PrivateZonesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

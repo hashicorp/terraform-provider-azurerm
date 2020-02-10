@@ -35,7 +35,8 @@ func NewSubAssessmentsClient(subscriptionID string, ascLocation string) SubAsses
 	return NewSubAssessmentsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewSubAssessmentsClientWithBaseURI creates an instance of the SubAssessmentsClient client.
+// NewSubAssessmentsClientWithBaseURI creates an instance of the SubAssessmentsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSubAssessmentsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SubAssessmentsClient {
 	return SubAssessmentsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

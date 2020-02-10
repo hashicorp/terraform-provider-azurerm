@@ -37,7 +37,8 @@ func NewTriggerRunsClient(subscriptionID string) TriggerRunsClient {
 	return NewTriggerRunsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTriggerRunsClientWithBaseURI creates an instance of the TriggerRunsClient client.
+// NewTriggerRunsClientWithBaseURI creates an instance of the TriggerRunsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTriggerRunsClientWithBaseURI(baseURI string, subscriptionID string) TriggerRunsClient {
 	return TriggerRunsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

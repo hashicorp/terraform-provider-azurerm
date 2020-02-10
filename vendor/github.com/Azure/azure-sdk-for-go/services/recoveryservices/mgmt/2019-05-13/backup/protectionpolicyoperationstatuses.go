@@ -37,7 +37,8 @@ func NewProtectionPolicyOperationStatusesClient(subscriptionID string) Protectio
 }
 
 // NewProtectionPolicyOperationStatusesClientWithBaseURI creates an instance of the
-// ProtectionPolicyOperationStatusesClient client.
+// ProtectionPolicyOperationStatusesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProtectionPolicyOperationStatusesClientWithBaseURI(baseURI string, subscriptionID string) ProtectionPolicyOperationStatusesClient {
 	return ProtectionPolicyOperationStatusesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,9 @@ func NewMetricAlertsStatusClient(subscriptionID string) MetricAlertsStatusClient
 	return NewMetricAlertsStatusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMetricAlertsStatusClientWithBaseURI creates an instance of the MetricAlertsStatusClient client.
+// NewMetricAlertsStatusClientWithBaseURI creates an instance of the MetricAlertsStatusClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewMetricAlertsStatusClientWithBaseURI(baseURI string, subscriptionID string) MetricAlertsStatusClient {
 	return MetricAlertsStatusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

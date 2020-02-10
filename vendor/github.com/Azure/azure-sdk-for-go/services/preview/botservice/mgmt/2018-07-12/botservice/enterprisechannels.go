@@ -36,7 +36,9 @@ func NewEnterpriseChannelsClient(subscriptionID string) EnterpriseChannelsClient
 	return NewEnterpriseChannelsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEnterpriseChannelsClientWithBaseURI creates an instance of the EnterpriseChannelsClient client.
+// NewEnterpriseChannelsClientWithBaseURI creates an instance of the EnterpriseChannelsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewEnterpriseChannelsClientWithBaseURI(baseURI string, subscriptionID string) EnterpriseChannelsClient {
 	return EnterpriseChannelsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

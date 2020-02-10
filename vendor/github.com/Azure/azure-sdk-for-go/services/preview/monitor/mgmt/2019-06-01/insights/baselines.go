@@ -35,7 +35,8 @@ func NewBaselinesClient(subscriptionID string) BaselinesClient {
 	return NewBaselinesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBaselinesClientWithBaseURI creates an instance of the BaselinesClient client.
+// NewBaselinesClientWithBaseURI creates an instance of the BaselinesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBaselinesClientWithBaseURI(baseURI string, subscriptionID string) BaselinesClient {
 	return BaselinesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

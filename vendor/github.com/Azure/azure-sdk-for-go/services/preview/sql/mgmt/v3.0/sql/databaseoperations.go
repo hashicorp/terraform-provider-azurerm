@@ -38,7 +38,9 @@ func NewDatabaseOperationsClient(subscriptionID string) DatabaseOperationsClient
 	return NewDatabaseOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabaseOperationsClientWithBaseURI creates an instance of the DatabaseOperationsClient client.
+// NewDatabaseOperationsClientWithBaseURI creates an instance of the DatabaseOperationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDatabaseOperationsClientWithBaseURI(baseURI string, subscriptionID string) DatabaseOperationsClient {
 	return DatabaseOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -39,7 +39,8 @@ func NewManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient(s
 }
 
 // NewManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClientWithBaseURI creates an instance of the
-// ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient client.
+// ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient {
 	return ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,9 @@ func NewProximityPlacementGroupsClient(subscriptionID string) ProximityPlacement
 	return NewProximityPlacementGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProximityPlacementGroupsClientWithBaseURI creates an instance of the ProximityPlacementGroupsClient client.
+// NewProximityPlacementGroupsClientWithBaseURI creates an instance of the ProximityPlacementGroupsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewProximityPlacementGroupsClientWithBaseURI(baseURI string, subscriptionID string) ProximityPlacementGroupsClient {
 	return ProximityPlacementGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
