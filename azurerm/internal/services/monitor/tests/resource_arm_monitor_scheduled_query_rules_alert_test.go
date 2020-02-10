@@ -26,11 +26,7 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 					testCheckAzureRMMonitorScheduledQueryRulesAlertExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -49,11 +45,7 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *tes
 					testCheckAzureRMMonitorScheduledQueryRulesAlertExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

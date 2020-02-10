@@ -1,23 +1,29 @@
 package monitor
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmMonitorScheduledQueryRulesLogCreateUpdate,
-		Read:   resourceArmMonitorScheduledQueryRulesRead,
+		Read:   resourceArmMonitorScheduledQueryRulesLogRead,
 		Update: resourceArmMonitorScheduledQueryRulesLogCreateUpdate,
-		Delete: resourceArmMonitorScheduledQueryRulesDelete,
+		Delete: resourceArmMonitorScheduledQueryRulesLogDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -34,7 +40,7 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringDoesNotContainAny("<>*%&:\\?+/"),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -63,7 +69,7 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"operator": {
 										Type:     schema.TypeString,
@@ -78,7 +84,7 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 										Required: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 								},
@@ -87,7 +93,7 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 						"metric_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -98,21 +104,14 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 4096),
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-			},
-			"last_updated_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"provisioning_state": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -123,17 +122,169 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	action := expandMonitorScheduledQueryRulesLogToMetricAction(d)
 
-	return resourceArmMonitorScheduledQueryRulesCreateUpdate(d, meta, action, nil)
+	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Monitor Scheduled Query Rules %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", *existing.ID)
+		}
+	}
+
+	description := d.Get("description").(string)
+	enabledRaw := d.Get("enabled").(bool)
+
+	enabled := insights.True
+	if !enabledRaw {
+		enabled = insights.False
+	}
+
+	location := azure.NormalizeLocation(d.Get("location"))
+
+	source := expandMonitorScheduledQueryRulesLogSource(d)
+
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
+
+	parameters := insights.LogSearchRuleResource{
+		Location: utils.String(location),
+		LogSearchRule: &insights.LogSearchRule{
+			Description: utils.String(description),
+			Enabled:     enabled,
+			Source:      source,
+			Action:      action,
+		},
+		Tags: expandedTags,
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
+		return fmt.Errorf("Error creating or updating scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Scheduled query rule %q (resource group %q) ID is empty", name, resourceGroup)
+	}
+	d.SetId(*read.ID)
+
+	return resourceArmMonitorScheduledQueryRulesLogRead(d, meta)
+}
+
+func resourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["scheduledqueryrules"]
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error getting scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+	}
+
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if resp.Enabled == insights.True {
+		d.Set("enabled", true)
+	} else {
+		d.Set("enabled", false)
+	}
+
+	d.Set("description", resp.Description)
+
+	action, ok := resp.Action.(insights.LogToMetricAction)
+	if !ok {
+		return fmt.Errorf("Wrong action type in scheduled query rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
+	}
+	if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
+		return fmt.Errorf("Error setting `criteria`: %+v", err)
+	}
+
+	if source := resp.Source; source != nil {
+		if source.AuthorizedResources != nil {
+			d.Set("authorized_resource_ids", utils.FlattenStringSlice(source.AuthorizedResources))
+		}
+		if source.DataSourceID != nil {
+			d.Set("data_source_id", source.DataSourceID)
+		}
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceArmMonitorScheduledQueryRulesLogDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["scheduledqueryrules"]
+
+	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	return nil
 }
 
 func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) *[]insights.Criteria {
 	criteria := make([]insights.Criteria, 0)
+	if len(input) == 0 {
+		return &criteria
+	}
+
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		if item == nil {
+			continue
+		}
+		v, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
 
 		dimensions := make([]insights.Dimension, 0)
 		for _, dimension := range v["dimension"].(*schema.Set).List() {
-			dVal := dimension.(map[string]interface{})
+			if dimension == nil {
+				continue
+			}
+			dVal, ok := dimension.(map[string]interface{})
+			if !ok {
+				continue
+			}
 			dimensions = append(dimensions, insights.Dimension{
 				Name:     utils.String(dVal["name"].(string)),
 				Operator: utils.String(dVal["operator"].(string)),
@@ -159,6 +310,18 @@ func expandMonitorScheduledQueryRulesLogToMetricAction(d *schema.ResourceData) *
 	}
 
 	return &action
+}
+
+func expandMonitorScheduledQueryRulesLogSource(d *schema.ResourceData) *insights.Source {
+	authorizedResourceIDs := d.Get("authorized_resource_ids").(*schema.Set).List()
+	dataSourceID := d.Get("data_source_id").(string)
+	source := insights.Source{
+		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
+		DataSourceID:        utils.String(dataSourceID),
+		QueryType:           insights.ResultCount,
+	}
+
+	return &source
 }
 
 func flattenAzureRmScheduledQueryRulesLogCriteria(input *[]insights.Criteria) []interface{} {

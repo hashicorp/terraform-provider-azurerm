@@ -26,16 +26,16 @@ output "query_rule_id" {
 ## Argument Reference
 
 * `name` - (Required) Specifies the name of the Scheduled Query Rule.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Scheduled Query Rule is located in.
+* `resource_group_name` - (Required) Specifies the name of the resource group where the Scheduled Query Rule is located.
 
 ## Attributes Reference
 
 * `id` - The ID of the Scheduled Query Rule.
 * `criteria` - A `criteria` block as defined below.
-* `data_source_id` - The resource uri over which log search query is to be run.
+* `data_source_id` - The resource URI over which log search query is to be run.
 * `description` - The description of the Scheduled Query Rule.
-* `enabled` - Whether this scheduled query rule is enabled.
-* `throttling` - Time (in minutes) for which Alerts should be throttled or suppressed.
+* `enabled` - Whether this Scheduled Query Rule is enabled.
+* `throttling` - Time for which alerts should be throttled or suppressed. 
 
 ---
 
@@ -49,5 +49,5 @@ output "query_rule_id" {
 `dimension` supports the following:
 
 * `name` - Name of the dimension.
-* `operator` - Operator for dimension values, - 'Include'.
+* `operator` - Operator for dimension values.
 * `values` - List of dimension values.

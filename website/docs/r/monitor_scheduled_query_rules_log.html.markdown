@@ -54,14 +54,15 @@ The following arguments are supported:
 * `data_source_id` - (Required) The resource uri over which log search query is to be run.
 * `description` - (Optional) The description of the Scheduled Query Rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
-* `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.
+* `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (
+inclusive).
 
 ---
 
 `criteria` supports the following:
 
 * `dimension` - (Required) A `dimension` block as defined below.
-* `metric_name` - (Required) Name of the metric.
+* `metric_name` - (Required) Name of the metric.  Supported metrics are listed in the Azure Monitor [Microsoft.OperationalInsights/workspaces](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported#microsoftoperationalinsightsworkspaces) metrics namespace.
 
 ---
 
@@ -76,8 +77,6 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Scheduled Query Rule.
-* `last_updated_time` - Last time the rule was updated in IS08601 format.
-* `provisioning_state` - Provisioning state of the scheduled query rule. Possible values include: 'Succeeded', 'Deploying', 'Canceled', 'Failed'
 
 ## Import
 

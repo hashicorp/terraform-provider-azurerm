@@ -25,11 +25,7 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
 					testCheckAzureRMMonitorScheduledQueryRulesLogExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
