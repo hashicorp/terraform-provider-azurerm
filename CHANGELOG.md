@@ -15,6 +15,7 @@ IMPROVEMENTS:
 BUGS:
 
 * `azurerm_storage_account` - fix hanging destroy caused by multiple network rules [GH-5565]
+* `azurerm_linux_virtual_machine` - fix `shared_image_id` parsing [GH-5640]
 
 ## 1.43.0 (February 04, 2020)
 
