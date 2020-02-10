@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
@@ -30,9 +30,9 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_certificate" "example" {
   name                = "example-cert"
-  api_management_name = "${azurerm_api_management.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  data                = "${filebase64("example.pfx")}"
+  api_management_name = azurerm_api_management.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  data                = filebase64("example.pfx")
 }
 ```
 

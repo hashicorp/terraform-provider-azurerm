@@ -28,7 +28,7 @@ resource "azurerm_azuread_application" "example" {
 }
 
 resource "azurerm_azuread_service_principal" "example" {
-  application_id = "${azurerm_azuread_application.example.application_id}"
+  application_id = azurerm_azuread_application.example.application_id
 }
 ```
 
