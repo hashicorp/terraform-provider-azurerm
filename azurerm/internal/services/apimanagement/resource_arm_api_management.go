@@ -213,7 +213,7 @@ func resourceArmApiManagementService() *schema.Resource {
 						"enable_http2": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
+							Default:  false,
 						},
 					},
 				},

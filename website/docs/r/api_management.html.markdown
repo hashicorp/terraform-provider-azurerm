@@ -167,7 +167,7 @@ A `proxy` block supports the following:
 
 A `protocols` block supports the following:
 
-* `enable_http2` - (Optional) Should HTTP/2 support be enabled on the client-facing side of the gateway?
+* `enable_http2` - (Optional) Should HTTP/2 support be enabled on the client-facing side of the gateway? Defaults to `false`.
 
 ---
 
