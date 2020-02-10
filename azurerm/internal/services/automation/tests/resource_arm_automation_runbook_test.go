@@ -171,8 +171,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "Basic"
@@ -181,10 +181,10 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_automation_runbook" "test" {
   name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  account_name = "${azurerm_automation_account.test.name}"
+  account_name = azurerm_automation_account.test.name
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
@@ -203,11 +203,11 @@ func testAccAzureRMAutomationRunbook_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_automation_runbook" "import" {
-  name                = "${azurerm_automation_runbook.test.name}"
-  location            = "${azurerm_automation_runbook.test.location}"
-  resource_group_name = "${azurerm_automation_runbook.test.resource_group_name}"
+  name                = azurerm_automation_runbook.test.name
+  location            = azurerm_automation_runbook.test.location
+  resource_group_name = azurerm_automation_runbook.test.resource_group_name
 
-  account_name = "${azurerm_automation_runbook.test.account_name}"
+  account_name = azurerm_automation_runbook.test.account_name
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
@@ -229,8 +229,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "Basic"
@@ -239,10 +239,10 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_automation_runbook" "test" {
   name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  account_name = "${azurerm_automation_account.test.name}"
+  account_name = azurerm_automation_account.test.name
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
@@ -270,8 +270,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "Basic"
@@ -280,10 +280,10 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_automation_runbook" "test" {
   name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  account_name = "${azurerm_automation_account.test.name}"
+  account_name = azurerm_automation_account.test.name
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
@@ -297,6 +297,7 @@ resource "azurerm_automation_runbook" "test" {
 # Some test content
 # for Terraform acceptance test
 CONTENT
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

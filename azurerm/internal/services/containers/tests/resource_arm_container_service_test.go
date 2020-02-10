@@ -191,8 +191,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_service" "test" {
   name                   = "acctestcontservice%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
   orchestration_platform = "DCOS"
 
   master_profile {
@@ -228,9 +228,9 @@ func testAccAzureRMContainerService_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_container_service" "import" {
-  name                   = "${azurerm_container_service.test.name}"
-  location               = "${azurerm_container_service.test.location}"
-  resource_group_name    = "${azurerm_container_service.test.resource_group_name}"
+  name                   = azurerm_container_service.test.name
+  location               = azurerm_container_service.test.location
+  resource_group_name    = azurerm_container_service.test.resource_group_name
   orchestration_platform = "DCOS"
 
   master_profile {
@@ -269,8 +269,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_service" "test" {
   name                   = "acctestcontservice%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
   orchestration_platform = "Kubernetes"
 
   master_profile {
@@ -314,8 +314,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_service" "test" {
   name                   = "acctestcontservice%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
   orchestration_platform = "Kubernetes"
 
   master_profile {
@@ -363,8 +363,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_service" "test" {
   name                   = "acctestcontservice%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
   orchestration_platform = "Swarm"
 
   master_profile {

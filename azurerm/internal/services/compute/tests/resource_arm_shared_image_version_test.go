@@ -245,15 +245,15 @@ func testAccAzureRMSharedImageVersion_provision(data acceptance.TestData, userna
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_shared_image" "test" {
   name                = "acctestimg%d"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
   identifier {
@@ -272,14 +272,14 @@ func testAccAzureRMSharedImageVersion_imageVersion(data acceptance.TestData, use
 
 resource "azurerm_shared_image_version" "test" {
   name                = "0.0.1"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  image_name          = "${azurerm_shared_image.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  managed_image_id    = "${azurerm_image.test.id}"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
 
   target_region {
-    name                   = "${azurerm_resource_group.test.location}"
+    name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
   }
 }
@@ -293,14 +293,14 @@ func testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(data accept
 
 resource "azurerm_shared_image_version" "test" {
   name                = "0.0.1"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  image_name          = "${azurerm_shared_image.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  managed_image_id    = "${azurerm_image.test.id}"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
 
   target_region {
-    name                   = "${azurerm_resource_group.test.location}"
+    name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
     storage_account_type   = "%s"
   }
@@ -313,15 +313,15 @@ func testAccAzureRMSharedImageVersion_requiresImport(data acceptance.TestData, u
 %s
 
 resource "azurerm_shared_image_version" "import" {
-  name                = "${azurerm_shared_image_version.test.name}"
-  gallery_name        = "${azurerm_shared_image_version.test.gallery_name}"
-  image_name          = "${azurerm_shared_image_version.test.image_name}"
-  resource_group_name = "${azurerm_shared_image_version.test.resource_group_name}"
-  location            = "${azurerm_shared_image_version.test.location}"
-  managed_image_id    = "${azurerm_shared_image_version.test.managed_image_id}"
+  name                = azurerm_shared_image_version.test.name
+  gallery_name        = azurerm_shared_image_version.test.gallery_name
+  image_name          = azurerm_shared_image_version.test.image_name
+  resource_group_name = azurerm_shared_image_version.test.resource_group_name
+  location            = azurerm_shared_image_version.test.location
+  managed_image_id    = azurerm_shared_image_version.test.managed_image_id
 
   target_region {
-    name                   = "${azurerm_resource_group.test.location}"
+    name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
   }
 }
@@ -335,14 +335,14 @@ func testAccAzureRMSharedImageVersion_imageVersionUpdated(data acceptance.TestDa
 
 resource "azurerm_shared_image_version" "test" {
   name                = "1234567890.1234567890.1234567890"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  image_name          = "${azurerm_shared_image.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  managed_image_id    = "${azurerm_image.test.id}"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
 
   target_region {
-    name                   = "${azurerm_resource_group.test.location}"
+    name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
   }
 

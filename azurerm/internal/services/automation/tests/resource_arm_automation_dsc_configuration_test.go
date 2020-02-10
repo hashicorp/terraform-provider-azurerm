@@ -133,8 +133,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "Basic"
@@ -143,9 +143,9 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_automation_dsc_configuration" "test" {
   name                    = "acctest"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
-  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  location                = azurerm_resource_group.test.location
   content_embedded        = "configuration acctest {}"
   description             = "test"
 }
@@ -158,12 +158,12 @@ func testAccAzureRMAutomationDscConfiguration_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_automation_dsc_configuration" "import" {
-  name                    = "${azurerm_automation_dsc_configuration.test.name}"
-  resource_group_name     = "${azurerm_automation_dsc_configuration.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_dsc_configuration.test.automation_account_name}"
-  location                = "${azurerm_automation_dsc_configuration.test.location}"
-  content_embedded        = "${azurerm_automation_dsc_configuration.test.content_embedded}"
-  description             = "${azurerm_automation_dsc_configuration.test.description}"
+  name                    = azurerm_automation_dsc_configuration.test.name
+  resource_group_name     = azurerm_automation_dsc_configuration.test.resource_group_name
+  automation_account_name = azurerm_automation_dsc_configuration.test.automation_account_name
+  location                = azurerm_automation_dsc_configuration.test.location
+  content_embedded        = azurerm_automation_dsc_configuration.test.content_embedded
+  description             = azurerm_automation_dsc_configuration.test.description
 }
 `, template)
 }

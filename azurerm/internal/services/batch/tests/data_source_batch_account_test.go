@@ -82,14 +82,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
 }
 
 data "azurerm_batch_account" "test" {
-  name                = "${azurerm_batch_account.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_batch_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -103,18 +103,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "testaccsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  storage_account_id   = azurerm_storage_account.test.id
 
   tags = {
     env = "test"
@@ -122,8 +122,8 @@ resource "azurerm_batch_account" "test" {
 }
 
 data "azurerm_batch_account" "test" {
-  name                = "${azurerm_batch_account.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_batch_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
@@ -141,8 +141,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                            = "batchkv%s"
-  location                        = "${azurerm_resource_group.test.location}"
-  resource_group_name             = "${azurerm_resource_group.test.name}"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -154,40 +154,39 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = "%s"
-    object_id = "${data.azurerm_azuread_service_principal.test.object_id}"
+    object_id = data.azurerm_azuread_service_principal.test.object_id
 
     secret_permissions = [
       "get",
       "list",
       "set",
-      "delete"
+      "delete",
     ]
-
   }
 }
 
 resource "azurerm_role_assignment" "contribrole" {
   scope                = "/subscriptions/%s"
   role_definition_name = "Contributor"
-  principal_id         = "${data.azurerm_azuread_service_principal.test.object_id}"
+  principal_id         = data.azurerm_azuread_service_principal.test.object_id
 }
 
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   pool_allocation_mode = "UserSubscription"
 
   key_vault_reference {
-    id  = "${azurerm_key_vault.test.id}"
-    url = "${azurerm_key_vault.test.vault_uri}"
+    id  = azurerm_key_vault.test.id
+    url = azurerm_key_vault.test.vault_uri
   }
 }
 
 data "azurerm_batch_account" "test" {
-  name                = "${azurerm_batch_account.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_batch_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID, tenantID, subscriptionID, data.RandomString)
 }

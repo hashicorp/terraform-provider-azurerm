@@ -192,8 +192,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Basic"
 }
@@ -210,8 +210,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "Basic"
@@ -230,8 +230,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -242,9 +242,9 @@ func testAccAzureRMAutomationAccount_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_automation_account" "import" {
-  name                = "${azurerm_automation_account.test.name}"
-  location            = "${azurerm_automation_account.test.location}"
-  resource_group_name = "${azurerm_automation_account.test.resource_group_name}"
+  name                = azurerm_automation_account.test.name
+  location            = azurerm_automation_account.test.location
+  resource_group_name = azurerm_automation_account.test.resource_group_name
 
   sku_name = "Basic"
 }
@@ -260,8 +260,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Basic"
 

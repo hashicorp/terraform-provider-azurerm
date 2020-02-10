@@ -203,8 +203,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -215,9 +215,9 @@ func testAccProximityPlacementGroup_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_proximity_placement_group" "import" {
-  name                = "${azurerm_proximity_placement_group.test.name}"
-  location            = "${azurerm_proximity_placement_group.test.location}"
-  resource_group_name = "${azurerm_proximity_placement_group.test.resource_group_name}"
+  name                = azurerm_proximity_placement_group.test.name
+  location            = azurerm_proximity_placement_group.test.location
+  resource_group_name = azurerm_proximity_placement_group.test.resource_group_name
 }
 `, template)
 }
@@ -231,8 +231,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -251,8 +251,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"

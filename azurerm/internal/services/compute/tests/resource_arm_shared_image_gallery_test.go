@@ -149,8 +149,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -160,9 +160,9 @@ func testAccAzureRMSharedImageGallery_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_shared_image_gallery" "import" {
-  name                = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_shared_image_gallery.test.resource_group_name}"
-  location            = "${azurerm_shared_image_gallery.test.location}"
+  name                = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_shared_image_gallery.test.resource_group_name
+  location            = azurerm_shared_image_gallery.test.location
 }
 `, testAccAzureRMSharedImageGallery_basic(data))
 }
@@ -176,8 +176,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   description         = "Shared images and things."
 
   tags = {

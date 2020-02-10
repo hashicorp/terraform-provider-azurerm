@@ -31,9 +31,9 @@ func testAccDataSourceAutomationVariableDateTime_basic(data acceptance.TestData)
 %s
 
 data "azurerm_automation_variable_datetime" "test" {
-  name                    = "${azurerm_automation_variable_datetime.test.name}"
-  resource_group_name     = "${azurerm_automation_variable_datetime.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_variable_datetime.test.automation_account_name}"
+  name                    = azurerm_automation_variable_datetime.test.name
+  resource_group_name     = azurerm_automation_variable_datetime.test.resource_group_name
+  automation_account_name = azurerm_automation_variable_datetime.test.automation_account_name
 }
 `, config)
 }

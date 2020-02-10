@@ -118,12 +118,12 @@ func testAccAzureRMApiManagementApiSchema_basic(data acceptance.TestData) string
 %s
 
 resource "azurerm_api_management_api_schema" "test" {
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management_api.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_api.test.resource_group_name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
-  value               = "${file("testdata/api_management_api_schema.xml")}"
+  value               = file("testdata/api_management_api_schema.xml")
 }
 `, template, data.RandomInteger)
 }
@@ -134,12 +134,12 @@ func testAccAzureRMApiManagementApiSchema_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_api_management_api_schema" "test" {
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
-  value               = "${file("testdata/api_management_api_schema.xml")}"
+  value               = file("testdata/api_management_api_schema.xml")
 }
 `, template, data.RandomInteger)
 }
@@ -153,8 +153,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -166,8 +166,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]

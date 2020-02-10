@@ -48,13 +48,13 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 data "azurerm_api_management" "test" {
-  name                = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
+  name                = azurerm_api_management.test.name
+  resource_group_name = azurerm_api_management.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

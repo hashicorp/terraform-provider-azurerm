@@ -63,10 +63,10 @@ func testAccDataSourceApiManagementApi_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_api_management_api" "test" {
-  name                = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management_api.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_api.test.resource_group_name}"
-  revision            = "${azurerm_api_management_api.test.revision}"
+  name                = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  revision            = azurerm_api_management_api.test.revision
 }
 `, template)
 }
@@ -77,10 +77,10 @@ func testAccDataSourceApiManagementApi_complete(data acceptance.TestData) string
 %s
 
 data "azurerm_api_management_api" "test" {
-  name                = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management_api.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_api.test.resource_group_name}"
-  revision            = "${azurerm_api_management_api.test.revision}"
+  name                = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  revision            = azurerm_api_management_api.test.revision
 }
 `, template)
 }

@@ -54,8 +54,8 @@ func testAccDataSourceAzureRMCosmosDBAccount_basic(data acceptance.TestData) str
 %s
 
 data "azurerm_cosmosdb_account" "test" {
-  name                = "${azurerm_cosmosdb_account.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_cosmosdb_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.BoundedStaleness))
 }
@@ -65,8 +65,8 @@ func testAccDataSourceAzureRMCosmosDBAccount_complete(data acceptance.TestData) 
 %s
 
 data "azurerm_cosmosdb_account" "test" {
-  name                = "${azurerm_cosmosdb_account.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_cosmosdb_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, testAccAzureRMCosmosDBAccount_complete(data, documentdb.GlobalDocumentDB, documentdb.BoundedStaleness))
 }

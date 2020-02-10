@@ -321,8 +321,8 @@ func testAccAzureRMApiManagementApi_basic(data acceptance.TestData) string {
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
@@ -339,8 +339,8 @@ func testAccAzureRMApiManagementApi_basicClassic(data acceptance.TestData) strin
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
@@ -356,8 +356,8 @@ func testAccAzureRMApiManagementApi_wordRevision(data acceptance.TestData) strin
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
@@ -373,8 +373,8 @@ func testAccAzureRMApiManagementApi_soapPassthrough(data acceptance.TestData) st
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
@@ -390,13 +390,13 @@ func testAccAzureRMApiManagementApi_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_management_api" "import" {
-  name                = "${azurerm_api_management_api.test.name}"
-  resource_group_name = "${azurerm_api_management_api.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_api.test.api_management_name}"
-  display_name        = "${azurerm_api_management_api.test.display_name}"
-  path                = "${azurerm_api_management_api.test.path}"
-  protocols           = "${azurerm_api_management_api.test.protocols}"
-  revision            = "${azurerm_api_management_api.test.revision}"
+  name                = azurerm_api_management_api.test.name
+  resource_group_name = azurerm_api_management_api.test.resource_group_name
+  api_management_name = azurerm_api_management_api.test.api_management_name
+  display_name        = azurerm_api_management_api.test.display_name
+  path                = azurerm_api_management_api.test.path
+  protocols           = azurerm_api_management_api.test.protocols
+  revision            = azurerm_api_management_api.test.revision
 }
 `, template)
 }
@@ -408,15 +408,15 @@ func testAccAzureRMApiManagementApi_importSwagger(data acceptance.TestData) stri
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
 
   import {
-    content_value  = "${file("testdata/api_management_api_swagger.json")}"
+    content_value  = file("testdata/api_management_api_swagger.json")
     content_format = "swagger-json"
   }
 }
@@ -430,15 +430,15 @@ func testAccAzureRMApiManagementApi_importWsdl(data acceptance.TestData) string 
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
 
   import {
-    content_value  = "${file("testdata/api_management_api_wsdl.xml")}"
+    content_value  = file("testdata/api_management_api_wsdl.xml")
     content_format = "wsdl"
 
     wsdl_selector {
@@ -457,8 +457,8 @@ func testAccAzureRMApiManagementApi_complete(data acceptance.TestData) string {
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "Butter Parser"
   path                = "butter-parser"
   protocols           = ["https", "http"]
@@ -481,22 +481,22 @@ func testAccAzureRMApiManagementApi_versionSet(data acceptance.TestData) string 
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "Butter Parser"
   versioning_scheme   = "Segment"
 }
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
   version             = "v1"
-  version_set_id      = "${azurerm_api_management_api_version_set.test.id}"
+  version_set_id      = azurerm_api_management_api_version_set.test.id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -510,8 +510,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -530,8 +530,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 

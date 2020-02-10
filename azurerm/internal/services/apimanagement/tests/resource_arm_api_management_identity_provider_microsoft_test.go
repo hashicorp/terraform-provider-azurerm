@@ -144,16 +144,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_identity_provider_microsoft" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   client_id           = "00000000-0000-0000-0000-000000000000"
   client_secret       = "00000000000000000000000000000000"
 }
@@ -169,16 +169,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_identity_provider_microsoft" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   client_id           = "11111111-1111-1111-1111-111111111111"
   client_secret       = "11111111111111111111111111111111"
 }
@@ -191,10 +191,10 @@ func testAccAzureRMApiManagementIdentityProviderMicrosoft_requiresImport(data ac
 %s
 
 resource "azurerm_api_management_identity_provider_microsoft" "import" {
-  resource_group_name = "${azurerm_api_management_identity_provider_microsoft.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_identity_provider_microsoft.test.api_management_name}"
-  client_id           = "${azurerm_api_management_identity_provider_microsoft.test.client_id}"
-  client_secret       = "${azurerm_api_management_identity_provider_microsoft.test.client_secret}"
+  resource_group_name = azurerm_api_management_identity_provider_microsoft.test.resource_group_name
+  api_management_name = azurerm_api_management_identity_provider_microsoft.test.api_management_name
+  client_id           = azurerm_api_management_identity_provider_microsoft.test.client_id
+  client_secret       = azurerm_api_management_identity_provider_microsoft.test.client_secret
 }
 `, template)
 }

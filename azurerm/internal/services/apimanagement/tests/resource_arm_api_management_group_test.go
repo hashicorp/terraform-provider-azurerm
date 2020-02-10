@@ -180,8 +180,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -190,8 +190,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_group" "test" {
   name                = "acctestAMGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "Test Group"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -203,10 +203,10 @@ func testAccAzureRMAPIManagementGroup_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_api_management_group" "import" {
-  name                = "${azurerm_api_management_group.test.name}"
-  resource_group_name = "${azurerm_api_management_group.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_group.test.api_management_name}"
-  display_name        = "${azurerm_api_management_group.test.display_name}"
+  name                = azurerm_api_management_group.test.name
+  resource_group_name = azurerm_api_management_group.test.resource_group_name
+  api_management_name = azurerm_api_management_group.test.api_management_name
+  display_name        = azurerm_api_management_group.test.display_name
 }
 `, template)
 }
@@ -220,8 +220,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -230,8 +230,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_group" "test" {
   name                = "acctestAMGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "%s"
   description         = "%s"
   type                = "external"

@@ -181,8 +181,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctestAA-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "Basic"
@@ -191,10 +191,10 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_automation_runbook" "test" {
   name                = "Output-HelloWorld"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  account_name = "${azurerm_automation_account.test.name}"
+  account_name = azurerm_automation_account.test.name
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
@@ -218,12 +218,13 @@ resource "azurerm_automation_runbook" "test" {
   )
   "Hello, " + $Output + "!"
 EOF
+
 }
 
 resource "azurerm_automation_schedule" "test" {
   name                    = "acctestAS-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   frequency               = "OneTime"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -235,10 +236,10 @@ func testAccAzureRMAutomationJobSchedule_basic(data acceptance.TestData) string 
 %s
 
 resource "azurerm_automation_job_schedule" "test" {
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
-  schedule_name           = "${azurerm_automation_schedule.test.name}"
-  runbook_name            = "${azurerm_automation_runbook.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  schedule_name           = azurerm_automation_schedule.test.name
+  runbook_name            = azurerm_automation_runbook.test.name
 }
 `, template)
 }
@@ -260,10 +261,10 @@ func testAccAzureRMAutomationJobSchedule_complete(data acceptance.TestData) stri
 %s
 
 resource "azurerm_automation_job_schedule" "test" {
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
-  schedule_name           = "${azurerm_automation_schedule.test.name}"
-  runbook_name            = "${azurerm_automation_runbook.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  schedule_name           = azurerm_automation_schedule.test.name
+  runbook_name            = azurerm_automation_runbook.test.name
 
   parameters = {
     output     = "Earth"
@@ -299,10 +300,10 @@ func testAccAzureRMAutomationJobSchedule_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_automation_job_schedule" "import" {
-  resource_group_name     = "${azurerm_automation_job_schedule.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_job_schedule.test.automation_account_name}"
-  schedule_name           = "${azurerm_automation_job_schedule.test.schedule_name}"
-  runbook_name            = "${azurerm_automation_job_schedule.test.runbook_name}"
+  resource_group_name     = azurerm_automation_job_schedule.test.resource_group_name
+  automation_account_name = azurerm_automation_job_schedule.test.automation_account_name
+  schedule_name           = azurerm_automation_job_schedule.test.schedule_name
+  runbook_name            = azurerm_automation_job_schedule.test.runbook_name
 }
 `, template)
 }

@@ -409,8 +409,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
 
@@ -419,7 +419,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -431,18 +431,18 @@ func testAccAzureRMCosmosDBAccount_requiresImport(data acceptance.TestData, cons
 %s
 
 resource "azurerm_cosmosdb_account" "import" {
-  name                = "${azurerm_cosmosdb_account.test.name}"
-  location            = "${azurerm_cosmosdb_account.test.location}"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  offer_type          = "${azurerm_cosmosdb_account.test.offer_type}"
+  name                = azurerm_cosmosdb_account.test.name
+  location            = azurerm_cosmosdb_account.test.location
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  offer_type          = azurerm_cosmosdb_account.test.offer_type
 
   consistency_policy {
-    consistency_level = "${azurerm_cosmosdb_account.consistency_policy.0.consistency_level}"
+    consistency_level = azurerm_cosmosdb_account.consistency_policy[0].consistency_level
   }
 
   geo_location {
-    location          = "${azurerm_cosmosdb_account.geo_location.0.location}"
-    failover_priority = "${azurerm_cosmosdb_account.geo_location.0.location}"
+    location          = azurerm_cosmosdb_account.geo_location[0].location
+    failover_priority = azurerm_cosmosdb_account.geo_location[0].location
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, "", consistency))
@@ -457,8 +457,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
 
@@ -469,7 +469,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -478,7 +478,6 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_completePreReqs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%[1]d"
   location = "%[2]s"
@@ -486,24 +485,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VNET-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 }
 
 resource "azurerm_subnet" "subnet1" {
   name                 = "acctest-SN1-%[1]d-1"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
   service_endpoints    = ["Microsoft.AzureCosmosDB"]
 }
 
 resource "azurerm_subnet" "subnet2" {
   name                 = "acctest-SN2-%[1]d-2"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.AzureCosmosDB"]
 }
@@ -512,13 +511,12 @@ resource "azurerm_subnet" "subnet2" {
 
 func testAccAzureRMCosmosDBAccount_complete(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
-
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%[3]s"
 
@@ -530,17 +528,17 @@ resource "azurerm_cosmosdb_account" "test" {
   is_virtual_network_filter_enabled = true
 
   virtual_network_rule {
-    id = "${azurerm_subnet.subnet1.id}"
+    id = azurerm_subnet.subnet1.id
   }
 
   virtual_network_rule {
-    id = "${azurerm_subnet.subnet2.id}"
+    id = azurerm_subnet.subnet2.id
   }
 
   enable_multiple_write_locations = true
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 
@@ -560,13 +558,12 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_completeUpdated(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
-
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%[3]s"
 
@@ -578,13 +575,13 @@ resource "azurerm_cosmosdb_account" "test" {
   is_virtual_network_filter_enabled = true
 
   virtual_network_rule {
-    id = "${azurerm_subnet.subnet2.id}"
+    id = azurerm_subnet.subnet2.id
   }
 
   enable_multiple_write_locations = true
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 
@@ -617,8 +614,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
 
@@ -629,7 +626,7 @@ resource "azurerm_cosmosdb_account" "test" {
   %s
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
