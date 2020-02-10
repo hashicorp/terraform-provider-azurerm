@@ -246,22 +246,12 @@ resource "azurerm_hdinsight_storm_cluster" "import" {
   dynamic "component_version" {
     for_each = azurerm_hdinsight_storm_cluster.test.component_version
     content {
-      # TF-UPGRADE-TODO: The automatic upgrade tool can't predict
-      # which keys might be set in maps assigned here, so it has
-      # produced a comprehensive set here. Consider simplifying
-      # this after confirming which keys can be set in practice.
-
       storm = component_version.value.storm
     }
   }
   dynamic "gateway" {
     for_each = azurerm_hdinsight_storm_cluster.test.gateway
     content {
-      # TF-UPGRADE-TODO: The automatic upgrade tool can't predict
-      # which keys might be set in maps assigned here, so it has
-      # produced a comprehensive set here. Consider simplifying
-      # this after confirming which keys can be set in practice.
-
       enabled  = gateway.value.enabled
       password = gateway.value.password
       username = gateway.value.username
@@ -270,11 +260,6 @@ resource "azurerm_hdinsight_storm_cluster" "import" {
   dynamic "storage_account" {
     for_each = azurerm_hdinsight_storm_cluster.test.storage_account
     content {
-      # TF-UPGRADE-TODO: The automatic upgrade tool can't predict
-      # which keys might be set in maps assigned here, so it has
-      # produced a comprehensive set here. Consider simplifying
-      # this after confirming which keys can be set in practice.
-
       is_default           = storage_account.value.is_default
       storage_account_key  = storage_account.value.storage_account_key
       storage_container_id = storage_account.value.storage_container_id
@@ -283,11 +268,6 @@ resource "azurerm_hdinsight_storm_cluster" "import" {
   dynamic "roles" {
     for_each = azurerm_hdinsight_storm_cluster.test.roles
     content {
-      # TF-UPGRADE-TODO: The automatic upgrade tool can't predict
-      # which keys might be set in maps assigned here, so it has
-      # produced a comprehensive set here. Consider simplifying
-      # this after confirming which keys can be set in practice.
-
       dynamic "head_node" {
         for_each = lookup(roles.value, "head_node", [])
         content {
