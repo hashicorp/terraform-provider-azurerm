@@ -25,8 +25,8 @@ type Client struct {
 	ManagementPoliciesClient storage.ManagementPoliciesClient
 	BlobServicesClient       storage.BlobServicesClient
 
-	environment az.Environment
-	storageAuth *autorest.Authorizer
+	environment   az.Environment
+	storageAdAuth *autorest.Authorizer
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -53,16 +53,16 @@ func NewClient(options *common.ClientOptions) *Client {
 	}
 
 	if options.StorageUseAzureAD {
-		client.storageAuth = &options.StorageAuthorizer
+		client.storageAdAuth = &options.StorageAuthorizer
 	}
 
 	return &client
 }
 
 func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*blobs.Client, error) {
-	if client.storageAuth != nil {
+	if client.storageAdAuth != nil {
 		blobsClient := blobs.NewWithEnvironment(client.environment)
-		blobsClient.Client.Authorizer = *client.storageAuth
+		blobsClient.Client.Authorizer = *client.storageAdAuth
 		return &blobsClient, nil
 	}
 
@@ -82,9 +82,9 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 }
 
 func (client Client) ContainersClient(ctx context.Context, account accountDetails) (*containers.Client, error) {
-	if client.storageAuth != nil {
+	if client.storageAdAuth != nil {
 		containersClient := containers.NewWithEnvironment(client.environment)
-		containersClient.Client.Authorizer = *client.storageAuth
+		containersClient.Client.Authorizer = *client.storageAdAuth
 		return &containersClient, nil
 	}
 
@@ -140,9 +140,9 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 }
 
 func (client Client) QueuesClient(ctx context.Context, account accountDetails) (*queues.Client, error) {
-	if client.storageAuth != nil {
+	if client.storageAdAuth != nil {
 		queueAuth := queues.NewWithEnvironment(client.environment)
-		queueAuth.Client.Authorizer = *client.storageAuth
+		queueAuth.Client.Authorizer = *client.storageAdAuth
 		return &queueAuth, nil
 	}
 
