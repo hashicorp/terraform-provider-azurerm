@@ -2,11 +2,10 @@ package mssql
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 	"time"
-
-	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -17,7 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -29,9 +30,10 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 		Update: resourceArmMsSqlVirtualMachineCreateUpdate,
 		Delete: resourceArmMsSqlVirtualMachineDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.MssqlVmID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -197,11 +199,11 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	defer cancel()
 
 	vmId := d.Get("virtual_machine_id").(string)
-	id, err := azure.ParseAzureResourceID(vmId)
+	id, err := parse.VmID(vmId)
 	if err != nil {
 		return err
 	}
-	name := id.Path["virtualMachines"]
+	name := id.Name
 	resourceGroupName := id.ResourceGroup
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -269,12 +271,12 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MssqlVmID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroupName := id.ResourceGroup
-	name := id.Path["sqlVirtualMachines"]
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroupName, name, "*")
 	if err != nil {
@@ -310,12 +312,12 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MssqlVmID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroupName := id.ResourceGroup
-	name := id.Path["sqlVirtualMachines"]
+	name := id.Name
 
 	future, err := client.Delete(ctx, resourceGroupName, name)
 	if err != nil {

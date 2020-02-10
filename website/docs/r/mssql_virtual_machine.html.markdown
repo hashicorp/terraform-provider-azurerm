@@ -14,8 +14,8 @@ Manages a Microsoft SQL Virtual Machine
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-group"
-  location = "example-location"
+  name     = "example-resgroup"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -132,11 +132,11 @@ resource "azurerm_mssql_virtual_machine" "example" {
 
 The following arguments are supported:
 
-* `virtual_machine_id` - (Required) The ID of the Virtual Machine.
+* `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created.
 
 * `sql_virtual_machine_group_id` - (Optional) The ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of.
 
-* `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit) and `PAYG` (Pay-As-You-Go).
+* `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit) and `PAYG` (Pay-As-You-Go). Changing this forces a new resource to be created.
 
 * `auto_patching` - (Optional) An `auto_patching` block as defined below.
 
@@ -162,11 +162,11 @@ The `key_vault_credential` block supports the following:
 
 * `name` - (Required) The credential name.
 
-* `azure_key_vault_url` - (Required) The azure Key Vault url.
+* `azure_key_vault_url` - (Required) The azure Key Vault url. Changing this forces a new resource to be created.
 
-* `service_principal_name` - (Required) The service principal name to access key vault.
+* `service_principal_name` - (Required) The service principal name to access key vault. Changing this forces a new resource to be created.
 
-* `service_principal_secret` - (Required) The service principal name secret to access key vault.
+* `service_principal_secret` - (Required) The service principal name secret to access key vault. Changing this forces a new resource to be created.
 
 ---
 

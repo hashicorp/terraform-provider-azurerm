@@ -6,14 +6,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-uuid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -163,11 +161,14 @@ func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.Tes
 			return fmt.Errorf("Sql Virtual Machine not found: %s", resourceName)
 		}
 
-		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["virtual_machine_id"])
+		id, err := parse.VmID(rs.Primary.Attributes["virtual_machine_id"])
 		if err != nil {
 			return err
 		}
-		name := id.Path["virtualMachines"]
+		if err != nil {
+			return err
+		}
+		name := id.Name
 		resourceGroupName := id.ResourceGroup
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.SQLVirtualMachinesClient
@@ -193,11 +194,11 @@ func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["virtual_machine_id"])
+		id, err := parse.VmID(rs.Primary.Attributes["virtual_machine_id"])
 		if err != nil {
 			return err
 		}
-		name := id.Path["virtualMachines"]
+		name := id.Name
 		resourceGroupName := id.ResourceGroup
 
 		if resp, err := client.Get(ctx, resourceGroupName, name, ""); err != nil {
