@@ -19,14 +19,14 @@ data "azurerm_virtual_machine" "example" {
 }
 
 output "virtual_machine_id" {
-  value = "${data.azurerm_virtual_machine.example.id}"
+  value = data.azurerm_virtual_machine.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Machine.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Machine is located in.
+* `name` - Specifies the name of the Virtual Machine.
+* `resource_group_name` - Specifies the name of the resource group the Virtual Machine is located in.
 
 ## Attributes Reference
 

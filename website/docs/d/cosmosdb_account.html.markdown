@@ -19,7 +19,7 @@ data "azurerm_cosmosdb_account" "example" {
 }
 
 output "cosmosdb_account_endpoint" {
-  value = "${data.azurerm_cosmosdb_account.jobs.endpoint}"
+  value = data.azurerm_cosmosdb_account.jobs.endpoint
 }
 ```
 
@@ -27,9 +27,9 @@ output "cosmosdb_account_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account.
+* `name` - Specifies the name of the CosmosDB Account.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group in which the CosmosDB Account resides.
+* `resource_group_name` - Specifies the name of the resource group in which the CosmosDB Account resides.
 
 ## Attributes Reference
 

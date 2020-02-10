@@ -20,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "contoso.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
 
   record {

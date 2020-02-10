@@ -26,13 +26,11 @@ func dataSourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"recovery_vault_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
 			},
 

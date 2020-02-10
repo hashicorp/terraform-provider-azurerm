@@ -22,9 +22,9 @@ data "azurerm_api_management_api" "example" {
 
 resource "azurerm_api_management_api_operation" "example" {
   operation_id        = "user-delete"
-  api_name            = "${data.azurerm_api_management_api.example.name}"
-  api_management_name = "${data.azurerm_api_management_api.example.api_management_name}"
-  resource_group_name = "${data.azurerm_api_management_api.example.resource_group_name}"
+  api_name            = data.azurerm_api_management_api.example.name
+  api_management_name = data.azurerm_api_management_api.example.api_management_name
+  resource_group_name = data.azurerm_api_management_api.example.resource_group_name
   display_name        = "Delete User Operation"
   method              = "DELETE"
   url_template        = "/users/{id}/delete"

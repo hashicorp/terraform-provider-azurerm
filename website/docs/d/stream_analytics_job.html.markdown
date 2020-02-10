@@ -20,15 +20,15 @@ data "azurerm_stream_analytics_job" "example" {
 }
 
 output "job_id" {
-  value = "${data.azurerm_stream_analytics_job.example.job_id}"
+  value = data.azurerm_stream_analytics_job.example.job_id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Stream Analytics Job.
+* `name` - Specifies the name of the Stream Analytics Job.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Stream Analytics Job is located in.
+* `resource_group_name` - Specifies the name of the resource group the Stream Analytics Job is located in.
 
 ## Attributes Reference
 

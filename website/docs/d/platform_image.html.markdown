@@ -21,16 +21,16 @@ data "azurerm_platform_image" "example" {
 }
 
 output "version" {
-  value = "${data.azurerm_platform_image.example.version}"
+  value = data.azurerm_platform_image.example.version
 }
 ```
 
 ## Argument Reference
 
-* `location` - (Required) Specifies the Location to pull information about this Platform Image from.
-* `publisher` - (Required) Specifies the Publisher associated with the Platform Image.
-* `offer` - (Required) Specifies the Offer associated with the Platform Image.
-* `sku` - (Required) Specifies the SKU of the Platform Image.
+* `location` - Specifies the Location to pull information about this Platform Image from.
+* `publisher` - Specifies the Publisher associated with the Platform Image.
+* `offer` - Specifies the Offer associated with the Platform Image.
+* `sku` - Specifies the SKU of the Platform Image.
 
 
 ## Attributes Reference

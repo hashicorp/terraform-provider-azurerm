@@ -21,15 +21,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "examplevnet"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "examplesubnet"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.1.0.0/24"
 
   delegation {
@@ -44,15 +44,15 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_network_profile" "example" {
   name                = "examplenetprofile"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   container_network_interface {
     name = "examplecnic"
 
     ip_configuration {
       name      = "exampleipconfig"
-      subnet_id = "${azurerm_subnet.example.id}"
+      subnet_id = azurerm_subnet.example.id
     }
   }
 }

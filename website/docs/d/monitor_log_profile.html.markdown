@@ -18,13 +18,13 @@ data "azurerm_monitor_log_profile" "example" {
 }
 
 output "log_profile_storage_account_id" {
-  value = "${data.azurerm_monitor_log_profile.example.storage_account_id}"
+  value = data.azurerm_monitor_log_profile.example.storage_account_id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Log Profile.
+* `name` - Specifies the Name of the Log Profile.
 
 
 ## Attributes Reference

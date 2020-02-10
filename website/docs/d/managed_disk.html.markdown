@@ -25,9 +25,9 @@ output "id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Managed Disk.
+* `name` - Specifies the name of the Managed Disk.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where this Managed Disk exists.
+* `resource_group_name` - Specifies the name of the Resource Group where this Managed Disk exists.
 
 ## Attributes Reference
 

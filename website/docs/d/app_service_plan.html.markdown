@@ -19,14 +19,14 @@ data "azurerm_app_service_plan" "example" {
 }
 
 output "app_service_plan_id" {
-  value = "${data.azurerm_app_service_plan.example.id}"
+  value = data.azurerm_app_service_plan.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service Plan.
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service Plan exists.
+* `name` - The name of the App Service Plan.
+* `resource_group_name` - The Name of the Resource Group where the App Service Plan exists.
 
 ## Attributes Reference
 

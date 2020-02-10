@@ -20,15 +20,15 @@ data "azurerm_hdinsight_cluster" "example" {
 }
 
 output "https_endpoint" {
-  value = "${data.azurerm_hdinsight_cluster.example.https_endpoint}"
+  value = data.azurerm_hdinsight_cluster.example.https_endpoint
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of this HDInsight Cluster.
+* `name` - Specifies the name of this HDInsight Cluster.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group in which this HDInsight Cluster exists.
+* `resource_group_name` - Specifies the name of the Resource Group in which this HDInsight Cluster exists.
 
 ## Attributes Reference
 

@@ -19,15 +19,15 @@ data "azurerm_postgresql_server" "example" {
 }
 
 output "postgresql_server_id" {
-  value = "${data.azurerm_postgresql_server.example.id}"
+  value = data.azurerm_postgresql_server.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the PostgreSQL Server.
+* `name` - The name of the PostgreSQL Server.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the PostgreSQL Server exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the PostgreSQL Server exists.
 
 ## Attributes Reference
 

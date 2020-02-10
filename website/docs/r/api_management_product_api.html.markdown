@@ -20,22 +20,22 @@ data "azurerm_api_management" "example" {
 
 data "azurerm_api_management_api" "example" {
   name                = "search-api"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
   revision            = "2"
 }
 
 data "azurerm_api_management_product" "example" {
   product_id          = "my-product"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 
 resource "azurerm_api_management_product_api" "example" {
-  api_name            = "${data.azurerm_api_management_api.example.name}"
-  product_id          = "${data.azurerm_api_management_product.example.product_id}"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_name            = data.azurerm_api_management_api.example.name
+  product_id          = data.azurerm_api_management_product.example.product_id
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 ```
 

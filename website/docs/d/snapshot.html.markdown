@@ -21,9 +21,9 @@ data "azurerm_snapshot" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Snapshot.
+* `name` - Specifies the name of the Snapshot.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Snapshot is located in.
+* `resource_group_name` - Specifies the name of the resource group the Snapshot is located in.
 
 ## Attributes Reference
 

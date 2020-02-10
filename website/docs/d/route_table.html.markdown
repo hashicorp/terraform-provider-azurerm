@@ -24,9 +24,9 @@ data "azurerm_route_table" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Route Table.
+* `name` - The name of the Route Table.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Route Table exists.
+* `resource_group_name` - The name of the Resource Group in which the Route Table exists.
 
 ## Attributes Reference
 

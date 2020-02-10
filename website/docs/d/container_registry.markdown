@@ -20,14 +20,14 @@ data "azurerm_container_registry" "example" {
 }
 
 output "login_server" {
-  value = "${data.azurerm_container_registry.example.login_server}"
+  value = data.azurerm_container_registry.example.login_server
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Container Registry.
-* `resource_group_name` - (Required) The Name of the Resource Group where this Container Registry exists.
+* `name` - The name of the Container Registry.
+* `resource_group_name` - The Name of the Resource Group where this Container Registry exists.
 
 ## Attributes Reference
 

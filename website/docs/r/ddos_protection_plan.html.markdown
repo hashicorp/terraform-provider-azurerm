@@ -25,8 +25,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_ddos_protection_plan" "example" {
   name                = "example-protection-plan"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 

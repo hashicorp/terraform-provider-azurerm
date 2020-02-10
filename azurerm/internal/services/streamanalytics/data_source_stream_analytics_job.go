@@ -23,7 +23,6 @@ func dataSourceArmStreamAnalyticsJob() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

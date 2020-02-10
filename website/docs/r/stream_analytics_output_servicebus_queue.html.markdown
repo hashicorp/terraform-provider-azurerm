@@ -19,30 +19,30 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "example-namespace"
-  location            = "${data.azurerm_resource_group.example.location}"
-  resource_group_name = "${data.azurerm_resource_group.example.name}"
+  location            = data.azurerm_resource_group.example.location
+  resource_group_name = data.azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "example" {
   name                = "example-queue"
-  resource_group_name = "${data.azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = data.azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
   enable_partitioning = true
 }
 
 resource "azurerm_stream_analytics_output_servicebus_queue" "example" {
   name                      = "blob-storage-output"
-  stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
-  queue_name                = "${azurerm_servicebus_queue.example.name}"
-  servicebus_namespace      = "${azurerm_servicebus_namespace.example.name}"
-  shared_access_policy_key  = "${azurerm_servicebus_namespace.example.default_primary_key}"
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
+  queue_name                = azurerm_servicebus_queue.example.name
+  servicebus_namespace      = azurerm_servicebus_namespace.example.name
+  shared_access_policy_key  = azurerm_servicebus_namespace.example.default_primary_key
   shared_access_policy_name = "RootManageSharedAccessKey"
 
   serialization {

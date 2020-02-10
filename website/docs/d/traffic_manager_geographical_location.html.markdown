@@ -19,13 +19,13 @@ data "azurerm_traffic_manager_geographical_location" "example" {
 }
 
 output "location_code" {
-  value = "${data.azurerm_traffic_manager_geographical_location.example.id}"
+  value = data.azurerm_traffic_manager_geographical_location.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Location, for example `World`, `Europe` or `Germany`.
+* `name` - Specifies the name of the Location, for example `World`, `Europe` or `Germany`.
 
 ## Attributes Reference
 

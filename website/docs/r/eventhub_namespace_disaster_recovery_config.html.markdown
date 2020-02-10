@@ -20,23 +20,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_eventhub_namespace" "primary" {
   name                = "eventhub-primary"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace" "secondary" {
   name                = "eventhub-secondary"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "example" {
   name                 = "replicate-evenhub"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  namespace_name       = "${azurerm_eventhub_namespace.primary.name}"
-  partner_namespace_id = "${azurerm_eventhub_namespace.secondary.id}"
+  resource_group_name  = azurerm_resource_group.example.name
+  namespace_name       = azurerm_eventhub_namespace.primary.name
+  partner_namespace_id = azurerm_eventhub_namespace.secondary.id
 }
 ```
 

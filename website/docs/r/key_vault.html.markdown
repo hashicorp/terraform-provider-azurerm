@@ -33,8 +33,9 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_key_vault" "example" {
   name                        = "testvault"
   provider                    = azurerm.keyVault
-  location                    = "${azurerm_resource_group.example.location}"
-  resource_group_name         = "${azurerm_resource_group.example.name}"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
+
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
   soft_delete_enabled         = true

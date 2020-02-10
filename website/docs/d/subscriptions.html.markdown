@@ -13,14 +13,15 @@ Use this data source to access information about all the Subscriptions currently
 ## Example Usage
 
 ```hcl
-data "azurerm_subscriptions" "available" {}
+data "azurerm_subscriptions" "available" {
+}
 
 output "available_subscriptions" {
-  value = "${data.azurerm_subscriptions.available.subscriptions}"
+  value = data.azurerm_subscriptions.available.subscriptions
 }
 
 output "first_available_subscription_display_name" {
-  value = "${data.azurerm_subscriptions.available.subscriptions.0.display_name}"
+  value = data.azurerm_subscriptions.available.subscriptions[0].display_name
 }
 ```
 

@@ -17,8 +17,8 @@ Manages a Scheduler Job.
 ```hcl
 resource "azurerm_scheduler_job" "web-once-now" {
   name                = "tfex-web-once-now"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  job_collection_name = azurerm_scheduler_job_collection.example.name
 
   # re-enable it each run
   state = "enabled"
@@ -27,7 +27,6 @@ resource "azurerm_scheduler_job" "web-once-now" {
     # defaults to get
     url = "http://this.url.fails"
   }
-
   # default start time is now
 }
 ```
@@ -37,8 +36,8 @@ resource "azurerm_scheduler_job" "web-once-now" {
 ```hcl
 resource "azurerm_scheduler_job" "web-recurring-daily" {
   name                = "tfex-web-recurring-daily"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  job_collection_name = azurerm_scheduler_job_collection.example.name
 
   action_web {
     url    = "https://this.url.fails"
@@ -79,14 +78,14 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
 ```hcl
 resource "azurerm_scheduler_job" "web-recurring-daily" {
   name                = "tfex-web-recurring-daily"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  job_collection_name = azurerm_scheduler_job_collection.example.name
 
   action_web {
     url = "https://this.url.fails"
 
     authentication_certificate {
-      pfx      = "${filebase64("your_cert.pfx")}"
+      pfx      = filebase64("your_cert.pfx")
       password = "cert_password"
     }
   }
@@ -110,23 +109,21 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
     frequency = "monthly"
     count     = 1000
 
-    monthly_occurrences = [
-      {
-        # first Sunday
-        day        = "Sunday"
-        occurrence = 1
-      },
-      {
-        # third Sunday
-        day        = "Sunday"
-        occurrence = 3
-      },
-      {
-        # last Sunday
-        day        = "Sunday"
-        occurrence = -1
-      },
-    ]
+    monthly_occurrences {
+      # first Sunday
+      day        = "Sunday"
+      occurrence = 1
+    }
+    monthly_occurrences {
+      # third Sunday
+      day        = "Sunday"
+      occurrence = 3
+    }
+    monthly_occurrences {
+      # last Sunday
+      day        = "Sunday"
+      occurrence = -1
+    }
   }
 
   start_time = "2018-07-07T07:07:07-07:00"
@@ -138,27 +135,27 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
 ```hcl
 resource "azurerm_storage_account" "example" {
   name                     = "tfexstorageaccount"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_queue" "example" {
   name                 = "tfex-schedulerjob-storagequeue"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  storage_account_name = "${azurerm_storage_account.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  storage_account_name = azurerm_storage_account.example.name
 }
 
 resource "azurerm_scheduler_job" "storage-once-now" {
   name                = "tfex-storage-once-now"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  job_collection_name = azurerm_scheduler_job_collection.example.name
 
   action_storage_queue {
-    storage_account_name = "${azurerm_storage_account.example.name}"
-    storage_queue_name   = "${azurerm_storage_queue.example.name}"
-    sas_token            = "${azurerm_storage_account.example.primary_access_key}"
+    storage_account_name = azurerm_storage_account.example.name
+    storage_queue_name   = azurerm_storage_queue.example.name
+    sas_token            = azurerm_storage_account.example.primary_access_key
     message              = "storage message"
   }
 }

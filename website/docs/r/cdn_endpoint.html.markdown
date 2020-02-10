@@ -29,16 +29,16 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_cdn_profile" "example" {
   name                = "exampleCdnProfile"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "example" {
-  name                = "${random_id.server.hex}"
-  profile_name        = "${azurerm_cdn_profile.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = random_id.server.hex
+  profile_name        = azurerm_cdn_profile.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   origin {
     name      = "exampleCdnOrigin"

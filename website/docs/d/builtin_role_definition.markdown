@@ -20,13 +20,13 @@ data "azurerm_builtin_role_definition" "contributor" {
 }
 
 output "contributor_role_definition_id" {
-  value = "${data.azurerm_builtin_role_definition.contributor.id}"
+  value = data.azurerm_builtin_role_definition.contributor.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the built-in Role Definition. Possible values are: `Contributor`, `Owner`, `Reader` and `VirtualMachineContributor`.
+* `name` - Specifies the name of the built-in Role Definition. Possible values are: `Contributor`, `Owner`, `Reader` and `VirtualMachineContributor`.
 
 
 ## Attributes Reference

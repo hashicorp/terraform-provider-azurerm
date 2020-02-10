@@ -28,11 +28,11 @@ resource "azurerm_azuread_application" "example" {
 }
 
 resource "azurerm_azuread_service_principal" "example" {
-  application_id = "${azurerm_azuread_application.example.application_id}"
+  application_id = azurerm_azuread_application.example.application_id
 }
 
 resource "azurerm_azuread_service_principal_password" "example" {
-  service_principal_id = "${azurerm_azuread_service_principal.example.id}"
+  service_principal_id = azurerm_azuread_service_principal.example.id
   value                = "VT=uSgbTanZhyz@%nL9Hpd+Tfay_MRV#"
   end_date             = "2020-01-01T01:02:03Z"
 }

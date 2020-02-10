@@ -19,15 +19,15 @@ data "azurerm_network_interface" "example" {
 }
 
 output "network_interface_id" {
-  value = "${data.azurerm_network_interface.example.id}"
+  value = data.azurerm_network_interface.example.id
 }
 ```
 
 ## Argument Reference
 
 
-* `name` - (Required) Specifies the name of the Network Interface.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Network Interface is located in.
+* `name` - Specifies the name of the Network Interface.
+* `resource_group_name` - Specifies the name of the resource group the Network Interface is located in.
 
 ## Attributes Reference
 

@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_shared_image_gallery" "example" {
   name                = "example_image_gallery"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   description         = "Shared images and things."
 
   tags = {
@@ -33,9 +33,9 @@ resource "azurerm_shared_image_gallery" "example" {
 
 resource "azurerm_shared_image" "example" {
   name                = "my-image"
-  gallery_name        = "${azurerm_shared_image_gallery.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  gallery_name        = azurerm_shared_image_gallery.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
 
   identifier {

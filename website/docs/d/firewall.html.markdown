@@ -20,15 +20,15 @@ data "azurerm_firewall" "example" {
 }
 
 output "firewall_private_ip" {
-  value = "${data.azurerm_firewall.example.ip_configuration.0.private_ip_address}"
+  value = data.azurerm_firewall.example.ip_configuration[0].private_ip_address
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Azure Firewall.
+* `name` - The name of the Azure Firewall.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Azure Firewall exists.
+* `resource_group_name` - The name of the Resource Group in which the Azure Firewall exists.
 
 ## Attributes Reference
 

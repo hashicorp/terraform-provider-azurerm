@@ -18,7 +18,7 @@ data "azurerm_management_group" "example" {
 }
 
 output "display_name" {
-  value = "${data.azurerm_management_group.example.display_name}"
+  value = data.azurerm_management_group.example.display_name
 }
 ```
 
@@ -26,7 +26,7 @@ output "display_name" {
 
 The following arguments are supported:
 
-* `group_id` - (Required) Specifies the UUID of this Management Group.
+* `group_id` - Specifies the UUID of this Management Group.
 
 ## Attributes Reference
 

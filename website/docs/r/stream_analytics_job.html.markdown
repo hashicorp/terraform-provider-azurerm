@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_stream_analytics_job" "example" {
   name                                     = "example-job"
-  resource_group_name                      = "${azurerm_resource_group.example.name}"
-  location                                 = "${azurerm_resource_group.example.location}"
+  resource_group_name                      = azurerm_resource_group.example.name
+  location                                 = azurerm_resource_group.example.location
   compatibility_level                      = "1.1"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -39,6 +39,7 @@ resource "azurerm_stream_analytics_job" "example" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 ```
 

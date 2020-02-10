@@ -20,14 +20,14 @@ data "azurerm_public_ip_prefix" "example" {
 }
 
 output "public_ip_prefix" {
-  value = "${data.azurerm_public_ip_prefix.example.ip_prefix}"
+  value = data.azurerm_public_ip_prefix.example.ip_prefix
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the public IP prefix.
-* `resource_group_name` - (Required) Specifies the name of the resource group.
+* `name` - Specifies the name of the public IP prefix.
+* `resource_group_name` - Specifies the name of the resource group.
 
 ## Attributes Reference
 

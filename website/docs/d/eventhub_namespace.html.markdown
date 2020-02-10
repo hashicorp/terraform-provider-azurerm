@@ -19,14 +19,14 @@ data "azurerm_eventhub_namespace" "example" {
 }
 
 output "eventhub_namespace_id" {
-  value = "${data.azurerm_eventhub_namespace.example.id}"
+  value = data.azurerm_eventhub_namespace.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the EventHub Namespace.
-* `resource_group_name` - (Required) The Name of the Resource Group where the EventHub Namespace exists.
+* `name` - The name of the EventHub Namespace.
+* `resource_group_name` - The Name of the Resource Group where the EventHub Namespace exists.
 
 ## Attributes Reference
 

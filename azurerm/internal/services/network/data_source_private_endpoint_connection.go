@@ -24,7 +24,6 @@ func dataSourceArmPrivateEndpointConnection() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: ValidatePrivateLinkName,
 			},
 

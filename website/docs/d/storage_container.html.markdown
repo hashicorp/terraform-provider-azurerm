@@ -23,8 +23,8 @@ data "azurerm_storage_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Container.
-* `storage_account_name` - (Required) The name of the Storage Account where the Container was created.
+* `name` - The name of the Container.
+* `storage_account_name` - The name of the Storage Account where the Container was created.
 
 ## Attributes Reference
 

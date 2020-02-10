@@ -21,7 +21,7 @@ data "azurerm_public_ips" "example" {
 
 ## Argument Reference
 
-* `resource_group_name` - (Required) Specifies the name of the resource group.
+* `resource_group_name` - Specifies the name of the resource group.
 * `attached` - (Optional) Filter to include IP Addresses which are attached to a device, such as a VM/LB (`true`) or unattached (`false`).
 * `name_prefix` - (Optional) A prefix match used for the IP Addresses `name` field, case sensitive.
 * `allocation_type` - (Optional) The Allocation Type for the Public IP Address. Possible values include `Static` or `Dynamic`.
