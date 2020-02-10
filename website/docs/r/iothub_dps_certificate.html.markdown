@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iothub_dps" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -31,10 +31,10 @@ resource "azurerm_iothub_dps" "example" {
 
 resource "azurerm_iothub_dps_certificate" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iot_dps_name        = "${azurerm_iothub_dps.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iot_dps_name        = azurerm_iothub_dps.example.name
 
-  certificate_content = "${filebase64("example.cer")}"
+  certificate_content = filebase64("example.cer")
 }
 ```
 

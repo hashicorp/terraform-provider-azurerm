@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor_firewall_policy" "example" {
   name                              = "example-fdwafpolicy"
-  resource_group_name               = "${azurerm_resource_group.example.name}"
+  resource_group_name               = azurerm_resource_group.example.name
   enabled                           = true
   mode                              = "Prevention"
   redirect_url                      = "https://www.contoso.com"

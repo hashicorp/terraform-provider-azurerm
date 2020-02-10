@@ -22,14 +22,14 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_data_factory_linked_service_postgresql" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  data_factory_name   = "${azurerm_data_factory.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  data_factory_name   = azurerm_data_factory.example.name
   connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 ```

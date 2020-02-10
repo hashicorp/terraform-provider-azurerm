@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -40,8 +40,8 @@ resource "azurerm_express_route_circuit" "example" {
 
 resource "azurerm_express_route_circuit_authorization" "example" {
   name                       = "exampleERCAuth"
-  express_route_circuit_name = "${azurerm_express_route_circuit.example.name}"
-  resource_group_name        = "${azurerm_resource_group.example.name}"
+  express_route_circuit_name = azurerm_express_route_circuit.example.name
+  resource_group_name        = azurerm_resource_group.example.name
 }
 ```
 
