@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_api_management` - Add http2 protocol support for API Management [GH-5593]
 * `azurerm_linux_virtual_machine` - Added SSH Key validation and updated docs on supported SSH Key types [#5610]
 * `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
 * `azurerm_storage_blob` - support for authenticating using Azure AD [GH-5614]
