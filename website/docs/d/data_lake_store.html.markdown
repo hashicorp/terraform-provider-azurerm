@@ -20,7 +20,7 @@ data "azurerm_data_lake_store" "example" {
 }
 
 output "data_lake_store_id" {
-  value = "${data.azurerm_data_lake_store.example.id}"
+  value = data.azurerm_data_lake_store.example.id
 }
 ```
 

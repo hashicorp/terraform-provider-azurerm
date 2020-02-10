@@ -18,7 +18,7 @@ data "azurerm_policy_definition" "example" {
 }
 
 output "id" {
-  value = "${data.azurerm_policy_definition.example.id}"
+  value = data.azurerm_policy_definition.example.id
 }
 ```
 

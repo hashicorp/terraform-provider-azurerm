@@ -20,7 +20,7 @@ data "azurerm_api_management_user" "example" {
 }
 
 output "notes" {
-  value = "${data.azurerm_api_management_user.example.notes}"
+  value = data.azurerm_api_management_user.example.notes
 }
 ```
 

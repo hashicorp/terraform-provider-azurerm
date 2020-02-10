@@ -21,7 +21,7 @@ data "azurerm_automation_variable_datetime" "example" {
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_datetime.example.id}"
+  value = data.azurerm_automation_variable_datetime.example.id
 }
 ```
 

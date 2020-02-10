@@ -22,23 +22,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplestorageaccount"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_iothub" "example" {
   name                = "exampleIothub"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -51,27 +51,26 @@ resource "azurerm_iothub" "example" {
 }
 
 resource "azurerm_iothub_endpoint_storage_container" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iothub_name         = "${azurerm_iothub.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iothub_name         = azurerm_iothub.example.name
   name                = "example"
 
-  connection_string          = "${azurerm_storage_account.example.primary_blob_connection_string}"
+  connection_string          = azurerm_storage_account.example.primary_blob_connection_string
   batch_frequency_in_seconds = 60
   max_chunk_size_in_bytes    = 10485760
-  container_name             = "${azurerm_storage_container.example.name}"
+  container_name             = azurerm_storage_container.example.name
   encoding                   = "Avro"
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
 }
 
 resource "azurerm_iothub_fallback_route" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iothub_name         = "${azurerm_iothub.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iothub_name         = azurerm_iothub.example.name
 
   condition      = "true"
-  endpoint_names = ["${azurerm_iothub_endpoint_storage_container.example.name}"]
+  endpoint_names = [azurerm_iothub_endpoint_storage_container.example.name]
   enabled        = true
 }
-
 ```
 
 ## Argument Reference

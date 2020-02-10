@@ -26,23 +26,23 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_public_ip" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
-  domain_name_label   = "${azurerm_resource_group.example.name}"
+  domain_name_label   = azurerm_resource_group.example.name
 
   tags = {
     environment = "staging"
@@ -51,25 +51,25 @@ resource "azurerm_public_ip" "example" {
 
 resource "azurerm_lb" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.example.id}"
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "bpepool" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  loadbalancer_id     = "${azurerm_lb.example.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  loadbalancer_id     = azurerm_lb.example.id
   name                = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_nat_pool" "lbnatpool" {
-  resource_group_name            = "${azurerm_resource_group.example.name}"
+  resource_group_name            = azurerm_resource_group.example.name
   name                           = "ssh"
-  loadbalancer_id                = "${azurerm_lb.example.id}"
+  loadbalancer_id                = azurerm_lb.example.id
   protocol                       = "Tcp"
   frontend_port_start            = 50000
   frontend_port_end              = 50119
@@ -78,8 +78,8 @@ resource "azurerm_lb_nat_pool" "lbnatpool" {
 }
 
 resource "azurerm_lb_probe" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  loadbalancer_id     = "${azurerm_lb.example.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  loadbalancer_id     = azurerm_lb.example.id
   name                = "http-probe"
   protocol            = "Http"
   request_path        = "/health"
@@ -88,8 +88,8 @@ resource "azurerm_lb_probe" "example" {
 
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "mytestscaleset-1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   # automatic rolling upgrade
   automatic_os_upgrade = true
@@ -103,7 +103,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   }
 
   # required when using rolling upgrade policy
-  health_probe_id = "${azurerm_lb_probe.example.id}"
+  health_probe_id = azurerm_lb_probe.example.id
 
   sku {
     name     = "Standard_F2"
@@ -142,7 +142,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
     ssh_keys {
       path     = "/home/myadmin/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/demo_key.pub")}"
+      key_data = file("~/.ssh/demo_key.pub")
     }
   }
 
@@ -153,9 +153,9 @@ resource "azurerm_virtual_machine_scale_set" "example" {
     ip_configuration {
       name                                   = "TestIPConfiguration"
       primary                                = true
-      subnet_id                              = "${azurerm_subnet.example.id}"
-      load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
-      load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.lbnatpool.id}"]
+      subnet_id                              = azurerm_subnet.example.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.bpepool.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.lbnatpool.id]
     }
   }
 
@@ -177,19 +177,19 @@ resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_storage_account" "example" {
   name                     = "accsa"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
+  resource_group_name      = azurerm_resource_group.example.name
   location                 = "westus"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -201,15 +201,15 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "mytestscaleset-1"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -228,7 +228,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
     ssh_keys {
       path     = "/home/myadmin/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/demo_key.pub")}"
+      key_data = file("~/.ssh/demo_key.pub")
     }
   }
 
@@ -239,7 +239,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
     ip_configuration {
       name      = "TestIPConfiguration"
       primary   = true
-      subnet_id = "${azurerm_subnet.example.id}"
+      subnet_id = azurerm_subnet.example.id
     }
   }
 
@@ -347,13 +347,13 @@ The following arguments are supported:
 ```hcl
 resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "vm-scaleset"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
-    name     = "${var.vm_sku}"
+    name     = var.vm_sku
     tier     = "Standard"
-    capacity = "${var.instance_count}"
+    capacity = var.instance_count
   }
 
   identity {
@@ -367,12 +367,11 @@ resource "azurerm_virtual_machine_scale_set" "example" {
     type_handler_version = "1.0"
     settings             = "{\"port\": 50342}"
   }
-
   # ...
 }
 
 output "principal_id" {
-  value = "${lookup(azurerm_virtual_machine_scale_set.example.identity[0], "principal_id")}"
+  value = azurerm_virtual_machine_scale_set.example.identity[0]["principal_id"]
 }
 ```
 
@@ -514,7 +513,6 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 ```hcl
 resource "azurerm_image" "example" {
   name = "test"
-
   # ...
 }
 
@@ -524,9 +522,8 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 
   storage_profile_image_reference {
-    id = "${azurerm_image.example.id}"
+    id = azurerm_image.example.id
   }
-
   # ...
 }
 ```

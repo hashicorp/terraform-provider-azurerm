@@ -27,33 +27,33 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "example" {
   name                = "acctni"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.example.id}"
+    subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "example" {
   name                     = "accsa"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -64,16 +64,16 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "example" {
   name                  = "acctvm"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  network_interface_ids = ["${azurerm_network_interface.example.id}"]
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  network_interface_ids = [azurerm_network_interface.example.id]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -107,7 +107,7 @@ resource "azurerm_virtual_machine" "example" {
 
 resource "azurerm_virtual_machine_extension" "example" {
   name                 = "hostname"
-  virtual_machine_id   = "${azurerm_virtual_machine.example.id}"
+  virtual_machine_id   = azurerm_virtual_machine.example.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
@@ -117,6 +117,7 @@ resource "azurerm_virtual_machine_extension" "example" {
 		"commandToExecute": "hostname && uptime"
 	}
 SETTINGS
+
 
   tags = {
     environment = "Production"

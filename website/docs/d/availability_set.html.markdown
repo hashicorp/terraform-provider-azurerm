@@ -19,7 +19,7 @@ data "azurerm_availability_set" "example" {
 }
 
 output "availability_set_id" {
-  value = "${data.azurerm_availability_set.example.id}"
+  value = data.azurerm_availability_set.example.id
 }
 ```
 

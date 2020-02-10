@@ -19,7 +19,7 @@ data "azurerm_eventhub_namespace_authorization_rule" "example" {
 }
 
 output "eventhub_authorization_rule_id" {
-  value = "${data.azurem_eventhub_namespace_authorization_rule.example.id}"
+  value = data.azurem_eventhub_namespace_authorization_rule.example.id
 }
 ```
 

@@ -25,8 +25,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_container_service" "example" {
   name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.example.location}"
-  resource_group_name    = "${azurerm_resource_group.example.name}"
+  location               = azurerm_resource_group.example.location
+  resource_group_name    = azurerm_resource_group.example.name
   orchestration_platform = "DCOS"
 
   master_profile {
@@ -69,8 +69,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_container_service" "example" {
   name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.example.location}"
-  resource_group_name    = "${azurerm_resource_group.example.name}"
+  location               = azurerm_resource_group.example.location
+  resource_group_name    = azurerm_resource_group.example.name
   orchestration_platform = "Kubernetes"
 
   master_profile {
@@ -118,8 +118,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_container_service" "example" {
   name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.example.location}"
-  resource_group_name    = "${azurerm_resource_group.example.name}"
+  location               = azurerm_resource_group.example.location
+  resource_group_name    = azurerm_resource_group.example.name
   orchestration_platform = "Swarm"
 
   master_profile {

@@ -20,7 +20,7 @@ data "azurerm_image" "search" {
 }
 
 output "image_id" {
-  value = "${data.azurerm_image.search.id}"
+  value = data.azurerm_image.search.id
 }
 ```
 

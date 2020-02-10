@@ -22,14 +22,14 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "acctestsubnet1"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 
   delegation {
@@ -44,8 +44,8 @@ resource "azurerm_subnet" "test1" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestasp"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -55,14 +55,14 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestas"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = "${azurerm_app_service.test.id}"
-  subnet_id      = "${azurerm_subnet.test1.id}"
+  app_service_id = azurerm_app_service.test.id
+  subnet_id      = azurerm_subnet.test1.id
 }
 ```
 

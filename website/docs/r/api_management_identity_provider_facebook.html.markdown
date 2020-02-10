@@ -20,16 +20,16 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
   sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_identity_provider_facebook" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  api_management_name = "${azurerm_api_management.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
   app_id              = "00000000000000000000000000000000"
   app_secret          = "00000000000000000000000000000000"
 }

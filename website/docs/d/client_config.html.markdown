@@ -13,10 +13,11 @@ Use this data source to access the configuration of the AzureRM provider.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 output "account_id" {
-  value = "${data.azurerm_client_config.current.service_principal_application_id}"
+  value = data.azurerm_client_config.current.service_principal_application_id
 }
 ```
 

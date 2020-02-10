@@ -26,7 +26,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "storageaccountname"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
+  resource_group_name      = azurerm_resource_group.example.name
   location                 = "westus"
   account_tier             = "Standard"
   account_replication_type = "GRS"
@@ -37,7 +37,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 data "azurerm_storage_account_sas" "example" {
-  connection_string = "${azurerm_storage_account.example.primary_connection_string}"
+  connection_string = azurerm_storage_account.example.primary_connection_string
   https_only        = true
 
   resource_types {
@@ -69,7 +69,7 @@ data "azurerm_storage_account_sas" "example" {
 }
 
 output "sas_url_query_string" {
-  value = "${data.azurerm_storage_account_sas.example.sas}"
+  value = data.azurerm_storage_account_sas.example.sas
 }
 ```
 

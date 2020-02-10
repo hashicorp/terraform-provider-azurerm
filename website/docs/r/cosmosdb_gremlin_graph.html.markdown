@@ -20,15 +20,15 @@ data "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_gremlin_database" "example" {
   name                = "tfex-cosmos-gremlin-db"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
 }
 
 resource "azurerm_cosmosdb_gremlin_graph" "example" {
   name                = "tfex-cosmos-gremlin-graph"
-  resource_group_name = "${azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.example.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.example.name}"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+  database_name       = azurerm_cosmosdb_gremlin_database.example.name
   partition_key_path  = "/Example"
   throughput          = 400
 

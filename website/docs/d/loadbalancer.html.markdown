@@ -20,7 +20,7 @@ data "azurerm_lb" "example" {
 }
 
 output "loadbalancer_id" {
-  value = "${data.azurerm_lb.example.id}"
+  value = data.azurerm_lb.example.id
 }
 ```
 

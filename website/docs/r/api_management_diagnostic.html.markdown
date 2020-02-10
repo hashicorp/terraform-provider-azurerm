@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
   sku_name            = "Developer_1"
@@ -29,8 +29,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_diagnostic" "test" {
   identifier          = "applicationinsights"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   enabled             = true
 }
 ```

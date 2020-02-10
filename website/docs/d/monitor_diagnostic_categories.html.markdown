@@ -15,12 +15,12 @@ Use this data source to access information about the Monitor Diagnostics Categor
 
 ```hcl
 data "azurerm_key_vault" "example" {
-  name                = "${azurerm_key_vault.example.name}"
-  resource_group_name = "${azurerm_key_vault.example.resource_group_name}"
+  name                = azurerm_key_vault.example.name
+  resource_group_name = azurerm_key_vault.example.resource_group_name
 }
 
 data "azurerm_monitor_diagnostic_categories" "example" {
-  resource_id = "${data.azurerm_key_vault.example.id}"
+  resource_id = data.azurerm_key_vault.example.id
 }
 ```
 

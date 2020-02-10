@@ -27,8 +27,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
-  location                                     = "${azurerm_resource_group.example.location}"
-  resource_group_name                          = "${azurerm_resource_group.example.name}"
+  location                                     = azurerm_resource_group.example.location
+  resource_group_name                          = azurerm_resource_group.example.name
   enforce_backend_pools_certificate_name_check = false
 
   routing_rule {

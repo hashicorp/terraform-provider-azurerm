@@ -19,7 +19,7 @@ data "azurerm_dev_test_lab" "example" {
 }
 
 output "unique_identifier" {
-  value = "${data.azurerm_dev_test_lab.example.unique_identifier}"
+  value = data.azurerm_dev_test_lab.example.unique_identifier
 }
 ```
 

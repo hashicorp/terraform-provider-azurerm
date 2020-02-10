@@ -19,7 +19,7 @@ data "azurerm_application_insights" "example" {
 }
 
 output "application_insights_instrumentation_key" {
-  value = "${data.azurerm_application_insights.example.instrumentation_key}"
+  value = data.azurerm_application_insights.example.instrumentation_key
 }
 ```
 

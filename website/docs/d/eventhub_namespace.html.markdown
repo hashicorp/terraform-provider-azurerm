@@ -19,7 +19,7 @@ data "azurerm_eventhub_namespace" "example" {
 }
 
 output "eventhub_namespace_id" {
-  value = "${data.azurerm_eventhub_namespace.example.id}"
+  value = data.azurerm_eventhub_namespace.example.id
 }
 ```
 

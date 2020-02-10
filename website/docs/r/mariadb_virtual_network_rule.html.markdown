@@ -23,22 +23,22 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mariadb_server" "example" {
   name                         = "mariadb-server-1"
-  location                     = "${azurerm_resource_group.example.location}"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = azurerm_resource_group.example.location
+  resource_group_name          = azurerm_resource_group.example.name
   administrator_login          = "mariadbadminun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
@@ -55,9 +55,9 @@ resource "azurerm_mariadb_server" "example" {
 
 resource "azurerm_mariadb_virtual_network_rule" "example" {
   name                = "mariadb-vnet-rule"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_mariadb_server.example.name}"
-  subnet_id           = "${azurerm_subnet.internal.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mariadb_server.example.name
+  subnet_id           = azurerm_subnet.internal.id
 }
 ```
 

@@ -20,11 +20,11 @@ data "azurerm_user_assigned_identity" "example" {
 }
 
 output "uai_client_id" {
-  value = "${data.azurerm_user_assigned_identity.example.client_id}"
+  value = data.azurerm_user_assigned_identity.example.client_id
 }
 
 output "uai_principal_id" {
-  value = "${data.azurerm_user_assigned_identity.example.principal_id}"
+  value = data.azurerm_user_assigned_identity.example.principal_id
 }
 ```
 

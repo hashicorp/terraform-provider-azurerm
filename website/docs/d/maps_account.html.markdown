@@ -19,7 +19,7 @@ data "azurerm_maps_account" "example" {
 }
 
 output "maps_account_id" {
-  value = "${data.azurerm_maps_account.example.id}"
+  value = data.azurerm_maps_account.example.id
 }
 ```
 

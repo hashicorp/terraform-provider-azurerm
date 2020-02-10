@@ -12,14 +12,14 @@ Use this data source to access information about an existing Storage Management 
 
 ## Example Usage
 
-```terraform
+```hcl
 data "azurerm_storage_account" "example" {
   name                = "storageaccountname"
   resource_group_name = "resourcegroupname"
 }
 
 data "azurerm_storage_management_policy" "example" {
-  storage_account_id = "${azurerm_storage_account.example.id}"
+  storage_account_id = azurerm_storage_account.example.id
 }
 ```
 

@@ -17,8 +17,9 @@ data "azurerm_automation_account" "example" {
   name                = "example-account"
   resource_group_name = "example-resources"
 }
+
 output "automation_account_id" {
-  value = "${data.azurerm_automation_account.example.id}"
+  value = data.azurerm_automation_account.example.id
 }
 ```
 

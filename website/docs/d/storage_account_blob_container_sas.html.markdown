@@ -23,22 +23,22 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_storage_account" "storage" {
   name                     = "storageaccountname"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
-  location                 = "${azurerm_resource_group.rg.location}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "container" {
   name                  = "mycontainer"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
-  storage_account_name  = "${azurerm_storage_account.storage.name}"
+  resource_group_name   = azurerm_resource_group.rg.name
+  storage_account_name  = azurerm_storage_account.storage.name
   container_access_type = "private"
 }
 
 data "azurerm_storage_account_blob_container_sas" "example" {
-  connection_string = "${azurerm_storage_account.storage.primary_connection_string}"
-  container_name    = "${azurerm_storage_container.container.name}"
+  connection_string = azurerm_storage_account.storage.primary_connection_string
+  container_name    = azurerm_storage_container.container.name
   https_only        = true
 
   ip_address = "168.1.5.65"
@@ -63,7 +63,7 @@ data "azurerm_storage_account_blob_container_sas" "example" {
 }
 
 output "sas_url_query_string" {
-  value = "${data.azurerm_storage_account_blob_container_sas.example.sas}"
+  value = data.azurerm_storage_account_blob_container_sas.example.sas
 }
 ```
 

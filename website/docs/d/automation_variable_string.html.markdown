@@ -21,7 +21,7 @@ data "azurerm_automation_variable_string" "example" {
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_string.example.id}"
+  value = data.azurerm_automation_variable_string.example.id
 }
 ```
 
