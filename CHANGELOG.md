@@ -6,14 +6,16 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azurerm_api_management` - Add http2 protocol support for API Management [GH-5593]
-* `azurerm_cognitive_account` - Add support for ImmersiveReader [GH-5604]
-* `azurerm_databricks_workspace`: Support for Trial SKU [GH-5652]
-* `azurerm_linux_virtual_machine` - Added SSH Key validation and updated docs on supported SSH Key types [#5610]
+* `azurerm_api_management` - support for configuring the HTTP2 protocol [GH-5593]
+* `azurerm_cognitive_account` - support for ImmersiveReader [GH-5604]
+* `azurerm_databricks_workspace` - support for the `Trial` SKU [GH-5652]
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [#5610]
 * `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
+* `azurerm_stream_analytics_job` - support for importing jobs created in the portal [GH-5522]
 * `azurerm_storage_blob` - support for authenticating using Azure AD [GH-5614]
 * `azurerm_storage_container` - support for authenticating using Azure AD [GH-5614]
 * `azurerm_storage_queue` - support for authenticating using Azure AD [GH-5614]
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [#5610]
 
 BUGS:
 
