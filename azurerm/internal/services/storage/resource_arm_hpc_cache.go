@@ -1,4 +1,4 @@
-package storagecache
+package storage
 
 import (
 	"fmt"
