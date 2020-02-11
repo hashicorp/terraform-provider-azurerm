@@ -21,7 +21,7 @@ data "azurerm_batch_certificate" "example" {
 }
 
 output "thumbprint" {
-  value = "${data.azurerm_batch_certificate.example.thumbprint}"
+  value = data.azurerm_batch_certificate.example.thumbprint
 }
 ```
 

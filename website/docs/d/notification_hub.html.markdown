@@ -20,7 +20,7 @@ data "azurerm_notification_hub" "example" {
 }
 
 output "id" {
-  value = "${data.azurerm_notification_hub.example.id}"
+  value = data.azurerm_notification_hub.example.id
 }
 ```
 

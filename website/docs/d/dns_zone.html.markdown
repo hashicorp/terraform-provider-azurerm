@@ -20,7 +20,7 @@ data "azurerm_dns_zone" "example" {
 }
 
 output "dns_zone_id" {
-  value = "${data.azurerm_dns_zone.example.id}"
+  value = data.azurerm_dns_zone.example.id
 }
 ```
 

@@ -18,7 +18,7 @@ data "azurerm_management_group" "example" {
 }
 
 output "display_name" {
-  value = "${data.azurerm_management_group.example.display_name}"
+  value = data.azurerm_management_group.example.display_name
 }
 ```
 

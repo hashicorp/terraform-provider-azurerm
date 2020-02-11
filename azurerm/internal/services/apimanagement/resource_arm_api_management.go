@@ -28,6 +28,7 @@ var apimFrontendProtocolSsl3 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Sec
 var apimFrontendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"
 var apimFrontendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
 var apimTripleDesCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
+var apimHttp2Protocol = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
 
 func resourceArmApiManagementService() *schema.Resource {
 	return &schema.Resource{
@@ -196,6 +197,22 @@ func resourceArmApiManagementService() *schema.Resource {
 								string(apimanagement.CertificateAuthority),
 								string(apimanagement.Root),
 							}, false),
+						},
+					},
+				},
+			},
+
+			"protocols": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true, //  TODO: remove in 2.0
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enable_http2": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -658,8 +675,12 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
 
-		if err := d.Set("security", flattenApiManagementCustomProperties(props.CustomProperties)); err != nil {
+		if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties)); err != nil {
 			return fmt.Errorf("Error setting `security`: %+v", err)
+		}
+
+		if err := d.Set("protocols", flattenApiManagementProtocolsCustomProperties(props.CustomProperties)); err != nil {
+			return fmt.Errorf("Error setting `protocols`: %+v", err)
 		}
 
 		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
@@ -1094,7 +1115,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		backendProtocolSsl3 = c.(bool)
 	}
 
-	return map[string]*string{
+	customProperties := map[string]*string{
 		apimBackendProtocolSsl3:   utils.String(strconv.FormatBool(backendProtocolSsl3)),
 		apimBackendProtocolTls10:  utils.String(strconv.FormatBool(backendProtocolTls10)),
 		apimBackendProtocolTls11:  utils.String(strconv.FormatBool(backendProtocolTls11)),
@@ -1103,9 +1124,17 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
 		apimTripleDesCiphers:      utils.String(strconv.FormatBool(tripleDesCiphers)),
 	}
+
+	if vp := d.Get("protocols").(([]interface{})); len(vp) > 0 {
+		if p, ok := d.GetOkExists("protocols.0.enable_http2"); ok {
+			customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(p.(bool)))
+		}
+	}
+
+	return customProperties
 }
 
-func flattenApiManagementCustomProperties(input map[string]*string) []interface{} {
+func flattenApiManagementSecurityCustomProperties(input map[string]*string) []interface{} {
 	output := make(map[string]interface{})
 
 	output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
@@ -1124,6 +1153,14 @@ func flattenApiManagementCustomProperties(input map[string]*string) []interface{
 	output["disable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11) // TODO: Remove in 2.0
 	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)  // TODO: Remove in 2.0
 	output["disable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)  // TODO: Remove in 2.0
+
+	return []interface{}{output}
+}
+
+func flattenApiManagementProtocolsCustomProperties(input map[string]*string) []interface{} {
+	output := make(map[string]interface{})
+
+	output["enable_http2"] = parseApiManagementNilableDictionary(input, apimHttp2Protocol)
 
 	return []interface{}{output}
 }

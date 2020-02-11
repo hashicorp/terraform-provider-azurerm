@@ -19,7 +19,7 @@ data "azurerm_proximity_placement_group" "example" {
 }
 
 output "proximity_placement_group_id" {
-  value = "${data.azurerm_proximity_placement_group.example.id}"
+  value = data.azurerm_proximity_placement_group.example.id
 }
 ```
 

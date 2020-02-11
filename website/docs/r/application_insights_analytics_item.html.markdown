@@ -12,7 +12,7 @@ Manages an Application Insights Analytics Item component.
 
 ## Example Usage
 
-```terraform
+```hcl
 resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
@@ -21,13 +21,13 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_analytics_item" "example" {
   name                    = "testquery"
-  application_insights_id = "${azurerm_application_insights.example.id}"
+  application_insights_id = azurerm_application_insights.example.id
   content                 = "requests //simple example query"
   scope                   = "shared"
   type                    = "query"

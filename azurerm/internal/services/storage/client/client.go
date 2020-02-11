@@ -26,7 +26,9 @@ type Client struct {
 	ManagementPoliciesClient storage.ManagementPoliciesClient
 	BlobServicesClient       storage.BlobServicesClient
 	BlobAccountsClient       *accounts.Client
-	environment              az.Environment
+
+	environment   az.Environment
+	storageAdAuth *autorest.Authorizer
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -34,7 +36,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
 
 	fileSystemsClient := filesystems.NewWithEnvironment(options.Environment)
-	fileSystemsClient.Authorizer = options.StorageAuthorizer
+	options.ConfigureClient(&fileSystemsClient.Client, options.StorageAuthorizer)
 
 	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&managementPoliciesClient.Client, options.ResourceManagerAuthorizer)
@@ -47,7 +49,7 @@ func NewClient(options *common.ClientOptions) *Client {
 
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
-	return &Client{
+	client := Client{
 		AccountsClient:           &accountsClient,
 		FileSystemsClient:        &fileSystemsClient,
 		ManagementPoliciesClient: managementPoliciesClient,
@@ -55,9 +57,21 @@ func NewClient(options *common.ClientOptions) *Client {
 		BlobAccountsClient:       &blobAccountsClient,
 		environment:              options.Environment,
 	}
+
+	if options.StorageUseAzureAD {
+		client.storageAdAuth = &options.StorageAuthorizer
+	}
+
+	return &client
 }
 
 func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*blobs.Client, error) {
+	if client.storageAdAuth != nil {
+		blobsClient := blobs.NewWithEnvironment(client.environment)
+		blobsClient.Client.Authorizer = *client.storageAdAuth
+		return &blobsClient, nil
+	}
+
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
@@ -74,6 +88,12 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 }
 
 func (client Client) ContainersClient(ctx context.Context, account accountDetails) (*containers.Client, error) {
+	if client.storageAdAuth != nil {
+		containersClient := containers.NewWithEnvironment(client.environment)
+		containersClient.Client.Authorizer = *client.storageAdAuth
+		return &containersClient, nil
+	}
+
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
@@ -90,6 +110,8 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 }
 
 func (client Client) FileShareDirectoriesClient(ctx context.Context, account accountDetails) (*directories.Client, error) {
+	// NOTE: Files do not support AzureAD Authentication
+
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
@@ -106,6 +128,8 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 }
 
 func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (*shares.Client, error) {
+	// NOTE: Files do not support AzureAD Authentication
+
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
@@ -116,12 +140,18 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	directoriesClient := shares.NewWithEnvironment(client.environment)
-	directoriesClient.Client.Authorizer = storageAuth
-	return &directoriesClient, nil
+	sharesClient := shares.NewWithEnvironment(client.environment)
+	sharesClient.Client.Authorizer = storageAuth
+	return &sharesClient, nil
 }
 
 func (client Client) QueuesClient(ctx context.Context, account accountDetails) (*queues.Client, error) {
+	if client.storageAdAuth != nil {
+		queueAuth := queues.NewWithEnvironment(client.environment)
+		queueAuth.Client.Authorizer = *client.storageAdAuth
+		return &queueAuth, nil
+	}
+
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
@@ -138,6 +168,8 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 }
 
 func (client Client) TableEntityClient(ctx context.Context, account accountDetails) (*entities.Client, error) {
+	// NOTE: Table Entity does not support AzureAD Authentication
+
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
@@ -154,6 +186,8 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 }
 
 func (client Client) TablesClient(ctx context.Context, account accountDetails) (*tables.Client, error) {
+	// NOTE: Tables do not support AzureAD Authentication
+
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)

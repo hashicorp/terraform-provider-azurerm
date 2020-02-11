@@ -19,7 +19,7 @@ data "azurerm_cdn_profile" "example" {
 }
 
 output "cdn_profile_id" {
-  value = "${data.azurerm_cdn_profile.example.id}"
+  value = data.azurerm_cdn_profile.example.id
 }
 ```
 

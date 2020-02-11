@@ -19,7 +19,7 @@ data "azurerm_app_service" "example" {
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.example.id}"
+  value = data.azurerm_app_service.example.id
 }
 ```
 

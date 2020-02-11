@@ -20,7 +20,7 @@ data "azurerm_stream_analytics_job" "example" {
 }
 
 output "job_id" {
-  value = "${data.azurerm_stream_analytics_job.example.job_id}"
+  value = data.azurerm_stream_analytics_job.example.job_id
 }
 ```
 

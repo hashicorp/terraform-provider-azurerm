@@ -19,7 +19,7 @@ data "azurerm_monitor_action_group" "example" {
 }
 
 output "action_group_id" {
-  value = "${data.azurerm_monitor_action_group.example.id}"
+  value = data.azurerm_monitor_action_group.example.id
 }
 ```
 

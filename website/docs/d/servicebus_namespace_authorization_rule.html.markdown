@@ -20,7 +20,7 @@ data "azurerm_servicebus_namespace_authorization_rule" "example" {
 }
 
 output "rule_id" {
-  value = "${data.azurerm_servicebus_namespace_authorization_rule.example.id}"
+  value = data.azurerm_servicebus_namespace_authorization_rule.example.id
 }
 ```
 

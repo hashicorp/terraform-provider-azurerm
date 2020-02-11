@@ -20,8 +20,8 @@ data "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_sql_database" "example" {
   name                = "tfex-cosmos-mongo-db"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
   throughput          = 400
 }
 ```

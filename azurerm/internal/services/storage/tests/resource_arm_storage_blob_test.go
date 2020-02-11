@@ -108,6 +108,30 @@ func TestAccAzureRMStorageBlob_blockEmpty(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageBlob_blockEmptyAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blockEmptyAzureADAuth(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageBlob_blockEmptyMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 
@@ -778,6 +802,17 @@ resource "azurerm_storage_blob" "test" {
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
 }
+`, template)
+}
+
+func testAccAzureRMStorageBlob_blockEmptyAzureADAuth(data acceptance.TestData) string {
+	template := testAccAzureRMStorageBlob_blockEmpty(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+}
+
+%s
 `, template)
 }
 

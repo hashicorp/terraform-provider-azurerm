@@ -19,7 +19,7 @@ data "azurerm_traffic_manager_geographical_location" "example" {
 }
 
 output "location_code" {
-  value = "${data.azurerm_traffic_manager_geographical_location.example.id}"
+  value = data.azurerm_traffic_manager_geographical_location.example.id
 }
 ```
 

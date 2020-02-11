@@ -19,7 +19,7 @@ data "azurerm_notification_hub_namespace" "example" {
 }
 
 output "servicebus_endpoint" {
-  value = "${data.azurerm_notification_hub_namespace.example.servicebus_endpoint}"
+  value = data.azurerm_notification_hub_namespace.example.servicebus_endpoint
 }
 ```
 

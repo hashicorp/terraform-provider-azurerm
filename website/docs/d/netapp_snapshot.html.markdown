@@ -22,7 +22,7 @@ data "azurerm_netapp_snapshot" "test" {
 }
 
 output "netapp_snapshot_id" {
-  value = "${data.azurerm_netapp_snapshot.example.id}"
+  value = data.azurerm_netapp_snapshot.example.id
 }
 ```
 

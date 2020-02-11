@@ -14,8 +14,8 @@ Manages a CosmosDB (formally DocumentDB) Account.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.resource_group_name}"
-  location = "${var.resource_group_location}"
+  name     = var.resource_group_name
+  location = var.resource_group_location
 }
 
 resource "random_integer" "ri" {
@@ -25,8 +25,8 @@ resource "random_integer" "ri" {
 
 resource "azurerm_cosmosdb_account" "db" {
   name                = "tfex-cosmos-db-${random_integer.ri.result}"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
@@ -39,13 +39,13 @@ resource "azurerm_cosmosdb_account" "db" {
   }
 
   geo_location {
-    location          = "${var.failover_location}"
+    location          = var.failover_location
     failover_priority = 1
   }
 
   geo_location {
     prefix            = "tfex-cosmos-db-${random_integer.ri.result}-customid"
-    location          = "${azurerm_resource_group.rg.location}"
+    location          = azurerm_resource_group.rg.location
     failover_priority = 0
   }
 }

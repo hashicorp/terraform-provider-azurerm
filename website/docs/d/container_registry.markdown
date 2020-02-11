@@ -20,7 +20,7 @@ data "azurerm_container_registry" "example" {
 }
 
 output "login_server" {
-  value = "${data.azurerm_container_registry.example.login_server}"
+  value = data.azurerm_container_registry.example.login_server
 }
 ```
 

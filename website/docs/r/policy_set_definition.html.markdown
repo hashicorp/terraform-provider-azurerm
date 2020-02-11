@@ -33,6 +33,7 @@ resource "azurerm_policy_set_definition" "example" {
     }
 PARAMETERS
 
+
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -45,6 +46,7 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
+
 }
 ```
 

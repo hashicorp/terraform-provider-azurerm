@@ -19,7 +19,7 @@ data "azurerm_virtual_machine" "example" {
 }
 
 output "virtual_machine_id" {
-  value = "${data.azurerm_virtual_machine.example.id}"
+  value = data.azurerm_virtual_machine.example.id
 }
 ```
 

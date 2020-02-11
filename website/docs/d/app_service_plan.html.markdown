@@ -19,7 +19,7 @@ data "azurerm_app_service_plan" "example" {
 }
 
 output "app_service_plan_id" {
-  value = "${data.azurerm_app_service_plan.example.id}"
+  value = data.azurerm_app_service_plan.example.id
 }
 ```
 

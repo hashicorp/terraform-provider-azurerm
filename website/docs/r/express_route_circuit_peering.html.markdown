@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -40,8 +40,8 @@ resource "azurerm_express_route_circuit" "example" {
 
 resource "azurerm_express_route_circuit_peering" "example" {
   peering_type                  = "MicrosoftPeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.example.name}"
-  resource_group_name           = "${azurerm_resource_group.example.name}"
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  resource_group_name           = azurerm_resource_group.example.name
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
   secondary_peer_address_prefix = "123.0.0.4/30"

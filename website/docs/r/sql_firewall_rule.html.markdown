@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
+  resource_group_name          = azurerm_resource_group.example.name
   location                     = "West US"
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
@@ -29,8 +29,8 @@ resource "azurerm_sql_server" "example" {
 
 resource "azurerm_sql_firewall_rule" "example" {
   name                = "FirewallRule1"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_sql_server.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_sql_server.example.name
   start_ip_address    = "10.0.17.62"
   end_ip_address      = "10.0.17.62"
 }

@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_service_fabric_cluster" "example" {
   name                 = "example-servicefabric"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  location             = "${azurerm_resource_group.example.location}"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
   cluster_code_version = "6.5.639.9590"

@@ -21,7 +21,7 @@ data "azurerm_private_link_service" "example" {
 }
 
 output "private_link_service_id" {
-  value = "${data.azurerm_private_link_service.example.id}"
+  value = data.azurerm_private_link_service.example.id
 }
 ```
 

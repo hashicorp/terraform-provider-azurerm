@@ -19,7 +19,7 @@ data "azurerm_servicebus_namespace" "example" {
 }
 
 output "location" {
-  value = "${data.azurerm_servicebus_namespace.example.location}"
+  value = data.azurerm_servicebus_namespace.example.location
 }
 ```
 

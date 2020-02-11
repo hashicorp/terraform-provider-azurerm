@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_mariadb_server" "example" {
   name                = "mariadb-server-1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "B_Gen5_2"
 
@@ -39,8 +39,8 @@ resource "azurerm_mariadb_server" "example" {
 
 resource "azurerm_mariadb_configuration" "example" {
   name                = "interactive_timeout"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_mariadb_server.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mariadb_server.example.name
   value               = "600"
 }
 ```

@@ -21,7 +21,7 @@ data "azurerm_scheduler_job_collection" "example" {
 }
 
 output "job_collection_state" {
-  value = "${data.azurerm_scheduler_job_collection.jobs.state}"
+  value = data.azurerm_scheduler_job_collection.jobs.state
 }
 ```
 

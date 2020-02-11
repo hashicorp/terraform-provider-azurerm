@@ -20,7 +20,7 @@ data "azurerm_hdinsight_cluster" "example" {
 }
 
 output "https_endpoint" {
-  value = "${data.azurerm_hdinsight_cluster.example.https_endpoint}"
+  value = data.azurerm_hdinsight_cluster.example.https_endpoint
 }
 ```
 

@@ -19,13 +19,13 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_iothub" "example" {
   name                = "example-iothub"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -35,12 +35,12 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_stream_analytics_stream_input_iothub" "example" {
   name                         = "example-iothub-input"
-  stream_analytics_job_name    = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name          = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
+  stream_analytics_job_name    = data.azurerm_stream_analytics_job.example.name
+  resource_group_name          = data.azurerm_stream_analytics_job.example.resource_group_name
   endpoint                     = "messages/events"
   eventhub_consumer_group_name = "$Default"
-  iothub_namespace             = "${azurerm_iothub.example.name}"
-  shared_access_policy_key     = "${azurerm_iothub.example.shared_access_policy.0.primary_key}"
+  iothub_namespace             = azurerm_iothub.example.name
+  shared_access_policy_key     = azurerm_iothub.example.shared_access_policy[0].primary_key
   shared_access_policy_name    = "iothubowner"
 
   serialization {
