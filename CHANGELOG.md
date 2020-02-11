@@ -14,7 +14,8 @@ CHANGES TO BETA RESOURCES:
 IMPROVEMENTS:
 
 * `azurerm_api_management` - support for configuring the HTTP2 protocol [GH-5593]
-* `azurerm_cognitive_account` - support for ImmersiveReader [GH-5604]
+* `azurerm_cognitive_account` - support for the `kind` `FormRecognizer` [GH-5679]
+* `azurerm_cognitive_account` - support for the `kind` `ImmersiveReader` [GH-5604]
 * `azurerm_databricks_workspace` - support for the `Trial` SKU [GH-5652]
 * `azurerm_function_app` - support for configuring `ip_restriction` blocks [GH-5440]
 * `azurerm_function_app` - support for configuring user assigned identities [GH-5676]
