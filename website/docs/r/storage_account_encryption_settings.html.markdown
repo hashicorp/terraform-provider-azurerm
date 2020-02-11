@@ -52,7 +52,7 @@ resource "azurerm_key_vault" "tfex" {
   
   enabled_for_disk_encryption = true
   soft_delete_enabled         = true
-  purge_protection_enabled    = false
+  purge_protection_enabled    = true
 
   sku_name = "standard"
 
@@ -111,10 +111,6 @@ resource "azurerm_storage_account_encryption_settings" "tfex" {
 The following arguments are supported:
 
 * `storage_account_id` - (Required) The id of the storage account to manage the encryption settings for.
-
-* `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
-
-* `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
 
 * `key_vault` - (Optional) A `key_vault` block as documented below.
 

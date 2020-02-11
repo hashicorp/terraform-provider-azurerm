@@ -37,17 +37,6 @@ func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			"enable_blob_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"enable_file_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
 
 			"key_vault": {
 				Type:     schema.TypeList,
@@ -107,9 +96,7 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
-	// set default values for the attributes
-	enableBlobEncryption := true
-	enableFileEncryption := true
+	// TODO: Validate that the key vault has both soft delete and purge protection enabled
 
 	// create the update object with the default values
 	opts := storage.AccountUpdateParameters{
@@ -117,20 +104,15 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 			Encryption: &storage.Encryption{
 				Services: &storage.EncryptionServices{
 					Blob: &storage.EncryptionService{
-						Enabled: utils.Bool(enableBlobEncryption),
+						Enabled: true,
 					},
 					File: &storage.EncryptionService{
-						Enabled: utils.Bool(enableFileEncryption),
+						Enabled: true,
 					}},
 				KeySource:          storage.MicrosoftStorage,
 				KeyVaultProperties: &storage.KeyVaultProperties{},
 			},
 		},
-	}
-
-	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-		opts.Encryption.Services.Blob.Enabled = utils.Bool(d.Get("enable_blob_encryption").(bool))
-		opts.Encryption.Services.File.Enabled = utils.Bool(d.Get("enable_file_encryption").(bool))
 	}
 
 	if keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d); keyVaultProperties.KeyName != utils.String("") {
@@ -270,15 +252,6 @@ func resourceArmStorageAccountEncryptionSettingsImportState(d *schema.ResourceDa
 
 	if props := resp.AccountProperties; props != nil {
 		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if blob := services.Blob; blob != nil {
-					d.Set("enable_blob_encryption", blob.Enabled)
-				}
-				if file := services.File; file != nil {
-					d.Set("enable_file_encryption", file.Enabled)
-				}
-			}
-
 			if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil {
 				if err := d.Set("key_vault", flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties, "", "")); err != nil {
 					return nil, fmt.Errorf("Error flattening `key_vault_properties` on import: %+v", err)
