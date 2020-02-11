@@ -133,32 +133,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ManagedServiceIdentityTypeSystemAssigned),
-							}, true),
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"identity": azure.SchemaAppServiceIdentity(),
 
 			"tags": tags.Schema(),
 
@@ -339,10 +314,10 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v, ok := d.GetOk("identity.0.type"); ok {
-		siteEnvelope.Identity = &web.ManagedServiceIdentity{
-			Type: web.ManagedServiceIdentityType(v.(string)),
-		}
+	if _, ok := d.GetOk("identity"); ok {
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		siteEnvelope.Identity = appServiceIdentity
 	}
 
 	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
@@ -423,19 +398,19 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v, ok := d.GetOk("identity.0.type"); ok {
-		siteEnvelope.Identity = &web.ManagedServiceIdentity{
-			Type: web.ManagedServiceIdentityType(v.(string)),
-		}
+	if _, ok := d.GetOk("identity"); ok {
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		siteEnvelope.Identity = appServiceIdentity
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating Function App %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for update of Function App %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
@@ -560,10 +535,6 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 
-	if err = d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
-		return err
-	}
-
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
 	d.Set("storage_connection_string", appSettings["AzureWebJobsStorage"])
@@ -583,6 +554,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	}
 	if err = d.Set("connection_string", flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
+	}
+
+	identity := azure.FlattenAppServiceIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
 	configResp, err := client.GetConfiguration(ctx, resGroup, name)
@@ -830,24 +806,6 @@ func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTy
 	}
 
 	return results
-}
-
-func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
-	}
-
-	return []interface{}{result}
 }
 
 func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
