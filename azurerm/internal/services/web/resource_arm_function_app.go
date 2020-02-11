@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -225,6 +226,26 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"ip_restriction": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_address": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
 						"min_tls_version": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -323,7 +344,11 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 
-	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig, err := expandFunctionAppSiteConfig(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+	}
+
 	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
@@ -406,7 +431,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
-	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig, err := expandFunctionAppSiteConfig(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resGroup, err)
+	}
 
 	siteConfig.AppSettings = &basicAppSettings
 
@@ -449,7 +477,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("site_config") {
-		siteConfig := expandFunctionAppSiteConfig(d)
+		siteConfig, err := expandFunctionAppSiteConfig(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resGroup, err)
+		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -705,12 +736,12 @@ func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string)
 	return output
 }
 
-func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
+func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
 	configs := d.Get("site_config").([]interface{})
 	siteConfig := web.SiteConfig{}
 
 	if len(configs) == 0 {
-		return siteConfig
+		return siteConfig, nil
 	}
 
 	config := configs[0].(map[string]interface{})
@@ -745,6 +776,15 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["ip_restriction"]; ok {
+		ipSecurityRestrictions := v.(interface{})
+		restrictions, err := expandFunctionAppIpRestriction(ipSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
+		}
+		siteConfig.IPSecurityRestrictions = &restrictions
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -753,7 +793,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	return siteConfig
+	return siteConfig, nil
 }
 
 func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
@@ -789,6 +829,8 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
 
+	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)
+
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
 
@@ -816,6 +858,39 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 	}
 
 	return output
+}
+
+func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
+	ipSecurityRestrictions := input.([]interface{})
+	restrictions := make([]web.IPSecurityRestriction, 0)
+
+	for i, ipSecurityRestriction := range ipSecurityRestrictions {
+		restriction := ipSecurityRestriction.(map[string]interface{})
+
+		ipAddress := restriction["ip_address"].(string)
+		vNetSubnetID := restriction["subnet_id"].(string)
+
+		if vNetSubnetID != "" && ipAddress != "" {
+			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		if vNetSubnetID == "" && ipAddress == "" {
+			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		ipSecurityRestriction := web.IPSecurityRestriction{}
+		if ipAddress != "" {
+			ipSecurityRestriction.IPAddress = &ipAddress
+		}
+
+		if vNetSubnetID != "" {
+			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+		}
+
+		restrictions = append(restrictions, ipSecurityRestriction)
+	}
+
+	return restrictions, nil
 }
 
 func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
@@ -868,4 +943,31 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
+	restrictions := make([]interface{}, 0)
+
+	if input == nil {
+		return restrictions
+	}
+
+	for _, v := range *input {
+		ipAddress := ""
+		if v.IPAddress != nil {
+			ipAddress = *v.IPAddress
+		}
+
+		subnetId := ""
+		if v.VnetSubnetResourceID != nil {
+			subnetId = *v.VnetSubnetResourceID
+		}
+
+		restrictions = append(restrictions, map[string]interface{}{
+			"ip_address": ipAddress,
+			"subnet_id":  subnetId,
+		})
+	}
+
+	return restrictions
 }
