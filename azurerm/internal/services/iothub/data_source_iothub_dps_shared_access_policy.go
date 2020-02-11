@@ -86,10 +86,10 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta inte
 	accessPolicy, err := client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
-			return fmt.Errorf("Error: IotHub DPS Shared Access Policy %q (Resource Group %q) was not found", iothubDpsName, resourceGroup)
+			return fmt.Errorf("Error: Shared Access Policy %q (IotHub DPS %q / Resource Group %q) was not found", keyName, iothubDpsName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading IotHub DPS Shared Access Policy %q (IotHub DPS %q / Resource Group %q): %+v", keyName, iothubDpsName, resourceGroup, err)
+		return fmt.Errorf("Error loading Shared Access Policy %q (IotHub DPS %q / Resource Group %q): %+v", keyName, iothubDpsName, resourceGroup, err)
 	}
 
 	d.Set("name", keyName)
@@ -101,21 +101,19 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta inte
 	d.Set("primary_key", accessPolicy.PrimaryKey)
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
 
-	if props := iothubDps.Properties; props != nil {
-		if host := props.ServiceOperationsHostName; host != nil {
-			if pKey := accessPolicy.PrimaryKey; pKey != nil {
-				if err := d.Set("primary_connection_string", getSAPConnectionString(*host, keyName, *pKey)); err != nil {
-					return fmt.Errorf("error setting `primary_connection_string`: %v", err)
-				}
-			}
-
-			if sKey := accessPolicy.SecondaryKey; sKey != nil {
-				if err := d.Set("secondary_connection_string", getSAPConnectionString(*host, keyName, *sKey)); err != nil {
-					return fmt.Errorf("error setting `secondary_connection_string`: %v", err)
-				}
-			}
+	primaryConnectionString := ""
+	secondaryConnectionString := ""
+	if iothubDps.Properties != nil && iothubDps.Properties.DeviceProvisioningHostName != nil {
+		hostname := iothubDps.Properties.DeviceProvisioningHostName
+		if primary := accessPolicy.PrimaryKey; primary != nil {
+			primaryConnectionString = getSAPConnectionString(*hostname, keyName, *primary)
+		}
+		if secondary := accessPolicy.SecondaryKey; secondary != nil {
+			secondaryConnectionString = getSAPConnectionString(*hostname, keyName, *secondary)
 		}
 	}
+	d.Set("primary_connection_string", primaryConnectionString)
+	d.Set("secondary_connection_string", secondaryConnectionString)
 
 	return nil
 }
