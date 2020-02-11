@@ -33,7 +33,10 @@ resource "azurerm_log_analytics_workspace" "example" {
   retention_in_days   = 30
 }
 
-# Example: Alerting Action
+
+# Example: Alerting Action with result count trigger
+# Alert if more than three HTTP requests returned a >= 500 result code
+# in the past 30 minutes
 resource "azurerm_scheduled_query_rule_alert" "example" {
   name                = format("%s-queryrule", var.prefix)
   location            = azurerm_resource_group.example.location
@@ -45,10 +48,36 @@ resource "azurerm_scheduled_query_rule_alert" "example" {
     custom_webhook_payload = "{}"
   }
   data_source_id = azurerm_application_insights.example.id
-  description    = "Scheduled query rule Alerting Action example"
+  description    = "Result count trigger example - alert when total results cross threshold"
   enabled        = true
   frequency      = 5
-  query          = "requests | where status_code >= 500 | summarize AggregatedValue = count() by bin(timestamp, 5m)"
+  query          = "requests | where tolong(resultCode) >= 500 | summarize AggregatedValue = count() by bin(timestamp, 5m)"
+  severity       = 1
+  time_window    = 30
+  trigger {
+    operator  = "GreaterThan"
+    threshold = 3
+  }
+}
+
+# Example: Alerting Action with metric trigger
+# Alert if more than three HTTP requests returned a >= 500 result code
+# in the past 30 minutes that have the same operation (ie: GET /)
+resource "azurerm_scheduled_query_rule_alert" "example" {
+  name                = format("%s-queryrule", var.prefix)
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  action {
+    action_group           = []
+    email_subject          = "Email Header"
+    custom_webhook_payload = "{}"
+  }
+  data_source_id = azurerm_application_insights.example.id
+  description    = "Metric trigger example - query results grouped by metric; alert when results per metric_column cross threshold"
+  enabled        = true
+  frequency      = 5
+  query          = "requests | where tolong(resultCode) >= 500 | summarize AggregatedValue = count() by operation_Name, bin(timestamp, 5m)"
   severity       = 1
   time_window    = 30
   trigger {
@@ -58,7 +87,7 @@ resource "azurerm_scheduled_query_rule_alert" "example" {
       operator            = "GreaterThan"
       threshold           = 1
       metric_trigger_type = "Total"
-      metric_column       = "timestamp"
+      metric_column       = "operation_Name"
     }
   }
 }

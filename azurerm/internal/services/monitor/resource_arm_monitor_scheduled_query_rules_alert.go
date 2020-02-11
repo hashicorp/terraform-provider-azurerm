@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
@@ -204,8 +205,18 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if *schedule.TimeWindowInMinutes < *schedule.FrequencyInMinutes {
+	frequency := d.Get("frequency").(int)
+	timeWindow := d.Get("time_window").(int)
+	if timeWindow < frequency {
 		return fmt.Errorf("Error in parameter values for Scheduled Query Rules %q (Resource Group %q): time_window must be greater than or equal to frequency", name, resourceGroup)
+	}
+
+	query := d.Get("query").(string)
+	_, ok := d.GetOk("metric_trigger")
+	if ok {
+		if !(strings.Contains(query, "summarize") && strings.Contains(query, "AggregatedValue") && strings.Contains(query, "bin")) {
+			return fmt.Errorf("Error in parameter values for Scheduled Query Rules %q (Resource Group %q): query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", name, resourceGroup)
+		}
 	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
