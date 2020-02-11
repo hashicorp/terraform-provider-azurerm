@@ -42,12 +42,12 @@ func TestBatchCertificateId(t *testing.T) {
 		},
 		{
 			Name:     "Missing Certificates Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/endpoints/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/certificates/",
 			Expected: nil,
 		},
 		{
 			Name:  "Batch Certificate ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/endpoints/Endpoint1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/certificates/Certificate1",
 			Expected: &BatchCertificateId{
 				ResourceGroup: "resGroup1",
 				AccountName:   "acctName1",
@@ -56,7 +56,7 @@ func TestBatchCertificateId(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/profName1/Endpoints/Endpoint1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/Certificates/Certificate1",
 			Expected: nil,
 		},
 	}

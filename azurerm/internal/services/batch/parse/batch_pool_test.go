@@ -37,26 +37,26 @@ func TestBatchPoolId(t *testing.T) {
 		},
 		{
 			Name:     "Batch Account ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/poolName1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1",
 			Expected: nil,
 		},
 		{
 			Name:     "Missing Pools Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/poolName1/pools/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/pools/",
 			Expected: nil,
 		},
 		{
 			Name:  "Batch Pool ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/poolName1/pools/Pool1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/pools/Pool1",
 			Expected: &BatchPoolId{
 				ResourceGroup: "resGroup1",
-				PoolName:      "poolName1",
+				AccountName:   "acctName1",
 				Name:          "Pool1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/poolName1/Pools/Pool1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/Pools/Pool1",
 			Expected: nil,
 		},
 	}
@@ -76,8 +76,8 @@ func TestBatchPoolId(t *testing.T) {
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
-		if actual.PoolName != v.Expected.PoolName {
-			t.Fatalf("Expected %q but got %q for PoolName", v.Expected.PoolName, actual.PoolName)
+		if actual.AccountName != v.Expected.AccountName {
+			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AccountName, actual.AccountName)
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)

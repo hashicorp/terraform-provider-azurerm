@@ -8,7 +8,7 @@ import (
 
 type BatchPoolId struct {
 	ResourceGroup string
-	PoolName      string
+	AccountName   string
 	Name          string
 }
 
@@ -22,7 +22,7 @@ func BatchPoolID(input string) (*BatchPoolId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if pool.PoolName, err = id.PopSegment("batchAccounts"); err != nil {
+	if pool.AccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
 
