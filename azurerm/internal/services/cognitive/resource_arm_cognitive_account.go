@@ -74,6 +74,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"CustomVision.Training",
 					"Emotion",
 					"Face",
+					"ImmersiveReader",
 					"LUIS",
 					"LUIS.Authoring",
 					"QnAMaker",
