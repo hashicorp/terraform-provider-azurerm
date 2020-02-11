@@ -80,7 +80,7 @@ func resourceArmHPCCache() *schema.Resource {
 }
 
 func resourceArmHPCCacheCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.CachesClient
+	client := meta.(*clients.Client).Storage.CachesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -166,7 +166,7 @@ func resourceArmHPCCacheCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.CachesClient
+	client := meta.(*clients.Client).Storage.CachesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -205,7 +205,7 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.CachesClient
+	client := meta.(*clients.Client).Storage.CachesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
