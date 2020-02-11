@@ -954,14 +954,20 @@ func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []inter
 	}
 
 	for _, v := range *input {
-		block := make(map[string]interface{})
-		if ip := v.IPAddress; ip != nil {
-			block["ip_address"] = *ip
+		ipAddress := ""
+		if v.IPAddress != nil {
+			ipAddress = *v.IPAddress
 		}
-		if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
-			block["subnet_id"] = *vNetSubnetID
+
+		subnetId := ""
+		if v.VnetSubnetResourceID != nil {
+			subnetId = *v.VnetSubnetResourceID
 		}
-		restrictions = append(restrictions, block)
+
+		restrictions = append(restrictions, map[string]interface{}{
+			"ip_address": ipAddress,
+			"subnet_id":  subnetId,
+		})
 	}
 
 	return restrictions
