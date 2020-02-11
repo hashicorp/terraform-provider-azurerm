@@ -6,9 +6,9 @@ FEATURES:
 
 CHANGES TO BETA RESOURCES:
 
-* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [#5610]
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
 * `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
-* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [#5610]
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
 * `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
 
 IMPROVEMENTS:
@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_api_management` - support for configuring the HTTP2 protocol [GH-5593]
 * `azurerm_cognitive_account` - support for ImmersiveReader [GH-5604]
 * `azurerm_databricks_workspace` - support for the `Trial` SKU [GH-5652]
+* `azurerm_function_app` - support for configuring `ip_restriction` blocks [GH-5440]
 * `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
 * `azurerm_stream_analytics_job` - support for importing jobs created in the portal [GH-5522]
 * `azurerm_storage_blob` - support for authenticating using Azure AD [GH-5614]
@@ -24,9 +25,9 @@ IMPROVEMENTS:
 
 CHANGES TO BETA RESOURCES:
 
-* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [#5610]
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
 * `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
-* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [#5610]
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
 * `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
 
 BUGS:
