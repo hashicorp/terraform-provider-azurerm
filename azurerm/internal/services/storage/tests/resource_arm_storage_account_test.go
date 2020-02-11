@@ -1399,8 +1399,8 @@ resource "azurerm_storage_account" "test" {
       allowed_headers    = ["x-tempo-*"]
       allowed_methods    = ["GET", "PUT"]
       max_age_in_seconds = "500"
-	}
-	
+    }
+
     delete_retention_policy {
       days = 300
     }
@@ -1431,16 +1431,16 @@ resource "azurerm_storage_account" "test" {
       allowed_headers    = ["*"]
       allowed_methods    = ["GET"]
       max_age_in_seconds = "2000000000"
-	}
-	
+    }
+
     cors_rule {
       allowed_origins    = ["http://www.test.com"]
       exposed_headers    = ["x-tempo-*"]
       allowed_headers    = ["*"]
       allowed_methods    = ["PUT"]
       max_age_in_seconds = "1000"
-	}
-	
+    }
+
     delete_retention_policy {
     }
   }
