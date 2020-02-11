@@ -1,5 +1,11 @@
 ## 1.44.0 (Unreleased)
 
+NOTES
+
+* **Preparation for 2.0:** We intend for v1.44.0 to be the last release in the 1.x line - we'll be turning our focus to 2.0 with the next release. We recommend [consulting the list of changes coming in 2.0](https://www.terraform.io/docs/providers/azurerm/guides/2.0-upgrade-guide.html) to be aware and [trialling the Beta available in 1.x versions](https://www.terraform.io/docs/providers/azurerm/guides/2.0-beta.html) if you're interested.
+
+* **Terraform 0.10/0.11:** The upcoming version 2.0 of the Azure Provider will not support Terraform 0.10.x & Terraform 0.11.x - you will need to upgrade to Terraform 0.12 to use version 2.0 (and above) of the Azure Provider.
+
 FEATURES:
 
 * **New Data Source:** `azurerm_function_app` [GH-5642]
