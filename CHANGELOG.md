@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - support for configuring `ip_restriction` blocks [GH-5440]
 * `azurerm_function_app` - support for configuring user assigned identities [GH-5676]
 * `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
+* `azurerm_lb` - fixing a crash when the HTTP response is dropped [GH-5680]
 * `azurerm_stream_analytics_job` - support for importing jobs created in the portal [GH-5522]
 * `azurerm_storage_blob` - support for authenticating using Azure AD [GH-5614]
 * `azurerm_storage_container` - support for authenticating using Azure AD [GH-5614]
