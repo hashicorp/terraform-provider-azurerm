@@ -1567,10 +1567,10 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  
+
   static_website {
-	index_document     = "index.html"
-	error_404_document = "404.html"
+    index_document     = "index.html"
+    error_404_document = "404.html"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1591,10 +1591,10 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  
+
   static_website {
-	index_document     = "index-2.html"
-	error_404_document = "404-2.html"
+    index_document     = "index-2.html"
+    error_404_document = "404-2.html"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
