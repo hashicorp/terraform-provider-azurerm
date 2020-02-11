@@ -32,11 +32,14 @@ output "latest_version" {
 
 * `version_prefix` - (Optional) A prefix filter for the versions of Kubernetes which should be returned; for example `1.` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.
 
+* `include_preview` - (Optional) Default: `true` Set to `false` to exclude preview
+versions of Kubernetes from the version results.
+
 ## Attributes Reference
 
 * `versions` - The list of all supported versions.
 
-* `latest_version` - The most recent version available.
+* `latest_version` - The most recent version available. If `include_preview == false`, this is the most recent non-preview version available.
 
 ### Timeouts
 
