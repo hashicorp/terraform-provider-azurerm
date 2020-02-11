@@ -298,9 +298,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   rolling_upgrade_policy {
-    max_batch_instance_percent              = 21
-    max_unhealthy_instance_percent          = 22
-    max_unhealthy_upgraded_instance_percent = 23
+    max_batch_instance_percent              = 100
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
     pause_time_between_batches              = "PT30S"
   }
 

@@ -499,6 +499,14 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 	}
 	update := compute.VirtualMachineScaleSetUpdate{}
 
+	// first try and pull this from existing vm, which covers no changes being made to this block
+	automaticOSUpgradeIsEnabled := false
+	if policy := existing.VirtualMachineScaleSetProperties.UpgradePolicy; policy != nil {
+		if policy.AutomaticOSUpgradePolicy != nil && policy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
+			automaticOSUpgradeIsEnabled = *policy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
+		}
+	}
+
 	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
 		upgradePolicy := compute.UpgradePolicy{
 			Mode: compute.UpgradeMode(d.Get("upgrade_mode").(string)),
@@ -507,6 +515,10 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		if d.HasChange("automatic_os_upgrade_policy") {
 			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
 			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
+
+			// however if this block has been changed then we need to pull it
+			// we can guarantee this always has a value since it'll have been expanded and thus is safe to de-ref
+			automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
 		}
 
 		if d.HasChange("rolling_upgrade_policy") {
@@ -611,11 +623,15 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 			return fmt.Errorf("Error expanding `network_interface`: %+v", err)
 		}
 
-		// TODO: setting the health probe on update once https://github.com/Azure/azure-rest-api-specs/pull/7355 has been fixed
-		//healthProbeId := d.Get("health_probe_id").(string)
-
 		updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
 			NetworkInterfaceConfigurations: networkInterfaces,
+		}
+
+		healthProbeId := d.Get("health_probe_id").(string)
+		if healthProbeId != "" {
+			updateProps.VirtualMachineProfile.NetworkProfile.HealthProbe = &compute.APIEntityReference{
+				ID: utils.String(healthProbeId),
+			}
 		}
 	}
 
@@ -665,84 +681,18 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
-	log.Printf("[DEBUG] Updating Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
-	if err != nil {
-		return fmt.Errorf("Error updating Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	metaData := virtualMachineScaleSetUpdateMetaData{
+		AutomaticOSUpgradeIsEnabled:  automaticOSUpgradeIsEnabled,
+		CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
+		UpdateInstances:              updateInstances,
+		Client:                       meta.(*clients.Client).Compute,
+		Existing:                     existing,
+		ID:                           id,
+		OSType:                       compute.Linux,
 	}
 
-	log.Printf("[DEBUG] Waiting for update of Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	log.Printf("[DEBUG] Updated Linux Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
-
-	// if we update the SKU, we also need to subsequently roll the instances using the `UpdateInstances` API
-	if updateInstances {
-		userWantsToRollInstances := meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired
-		if userWantsToRollInstances {
-			log.Printf("[DEBUG] Rolling the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-			instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
-			instances, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")
-			if err != nil {
-				return fmt.Errorf("Error listing VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-
-			log.Printf("[DEBUG] Determining instances to roll..")
-			instanceIdsToRoll := make([]string, 0)
-			for instances.NotDone() {
-				instance := instances.Value()
-				props := instance.VirtualMachineScaleSetVMProperties
-				if props != nil && instance.InstanceID != nil {
-					latestModel := props.LatestModelApplied
-					if latestModel != nil || !*latestModel {
-						instanceIdsToRoll = append(instanceIdsToRoll, *instance.InstanceID)
-					}
-				}
-
-				if err := instances.NextWithContext(ctx); err != nil {
-					return fmt.Errorf("Error enumerating instances: %s", err)
-				}
-			}
-
-			// TODO: there's a performance enhancement to do batches here, but this is fine for a first pass
-			for _, instanceId := range instanceIdsToRoll {
-				instanceIds := []string{instanceId}
-
-				log.Printf("[DEBUG] Updating Instance %q to the Latest Configuration..", instanceId)
-				ids := compute.VirtualMachineScaleSetVMInstanceRequiredIDs{
-					InstanceIds: &instanceIds,
-				}
-				future, err := client.UpdateInstances(ctx, id.ResourceGroup, id.Name, ids)
-				if err != nil {
-					return fmt.Errorf("Error updating Instance %q (Linux VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, id.Name, id.ResourceGroup, err)
-				}
-
-				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("Error waiting for update of Instance %q (Linux VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, id.Name, id.ResourceGroup, err)
-				}
-				log.Printf("[DEBUG] Updated Instance %q to the Latest Configuration.", instanceId)
-
-				// TODO: does this want to be a separate, user-configurable toggle?
-				log.Printf("[DEBUG] Reimaging Instance %q..", instanceId)
-				reimageInput := &compute.VirtualMachineScaleSetReimageParameters{
-					InstanceIds: &instanceIds,
-				}
-				reimageFuture, err := client.Reimage(ctx, id.ResourceGroup, id.Name, reimageInput)
-				if err != nil {
-					return fmt.Errorf("Error reimaging Instance %q (Linux VM Scale Set %q / Resource Group %q): %+v", instanceId, id.Name, id.ResourceGroup, err)
-				}
-
-				if err = reimageFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("Error waiting for reimage of Instance %q (Linux VM Scale Set %q / Resource Group %q): %+v", instanceId, id.Name, id.ResourceGroup, err)
-				}
-				log.Printf("[DEBUG] Reimaged Instance %q..", instanceId)
-			}
-
-			log.Printf("[DEBUG] Rolled the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
-		} else {
-			log.Printf("[DEBUG] Terraform wants to roll the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q) - but user has opted out - skipping..", id.Name, id.ResourceGroup)
-		}
+	if err := metaData.performUpdate(ctx, update); err != nil {
+		return err
 	}
 
 	return resourceArmLinuxVirtualMachineScaleSetRead(d, meta)

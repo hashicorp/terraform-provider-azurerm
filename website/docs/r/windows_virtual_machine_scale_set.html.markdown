@@ -20,8 +20,6 @@ Manages a Windows Virtual Machine Scale Set.
 
 ~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
 
-~> In this Beta release there's a known issue where the `health_probe_id` is not passed to the Azure API during an update for machines using an Automatic or Rolling Upgrade Policy.
-
 ## Example Usage
 
 This example provisions a basic Windows Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/windows` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/vm-scale-set/windows).
