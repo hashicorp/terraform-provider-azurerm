@@ -34,7 +34,7 @@ resource "azurerm_bot_channel_directline" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 
   site {
-    name  = "default"
+    name    = "default"
     enabled = true
   }
 }
