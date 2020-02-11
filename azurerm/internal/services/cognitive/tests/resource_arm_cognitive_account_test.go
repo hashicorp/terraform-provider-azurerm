@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -175,10 +176,12 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.GetProperties(ctx, resourceGroup, name)
+		resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if resp.StatusCode != http.StatusNotFound {
 				return fmt.Errorf("Cognitive Services Account still exists:\n%#v", resp)
@@ -202,13 +205,15 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.GetProperties(ctx, resourceGroup, name)
+		resp, err := conn.GetProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on cognitiveAccountsClient: %+v", err)

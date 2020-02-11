@@ -13,25 +13,23 @@ Use this data source to access information about an existing Azure Data Factory 
 ## Example Usage
 
 ```hcl
-
 data "azurerm_data_factory" "example" {
-  name                = "${azurerm_data_factory.example.name}"
-  resource_group_name = "${azurerm_data_factory.example.resource_group_name}"
+  name                = azurerm_data_factory.example.name
+  resource_group_name = azurerm_data_factory.example.resource_group_name
 }
 
 output "data_factory_id" {
-  value = "${azurerm_data_factory.example.id}"
+  value = azurerm_data_factory.example.id
 }
-
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory to retrieve information about. 
+* `name` - Specifies the name of the Data Factory to retrieve information about. 
 
-* `resource_group_name` - (Required) The name of the resource group where the Data Factory exists.
+* `resource_group_name` - The name of the resource group where the Data Factory exists.
 
 ## Attributes Reference
 

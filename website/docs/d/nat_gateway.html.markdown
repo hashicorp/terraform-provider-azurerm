@@ -16,9 +16,9 @@ Use this data source to access information about an existing NAT Gateway.
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the Name of the NAT Gateway.
+* `name` - Specifies the Name of the NAT Gateway.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the NAT Gateway exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the NAT Gateway exists.
 
 ## Attributes Reference
 

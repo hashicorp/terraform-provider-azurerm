@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -30,8 +30,8 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_api_version_set" "example" {
   name                = "example-apimapi-1.0.0"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  api_management_name = "${azurerm_api_management.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
   display_name        = "ExampleAPIVersionSet"
   versioning_scheme   = "Segment"
 }

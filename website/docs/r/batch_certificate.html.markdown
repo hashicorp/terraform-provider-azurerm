@@ -21,18 +21,18 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "teststorage"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "example" {
   name                 = "testbatchaccount"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  location             = "${azurerm_resource_group.example.location}"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.example.id}"
+  storage_account_id   = azurerm_storage_account.example.id
 
   tags = {
     env = "test"
@@ -40,9 +40,9 @@ resource "azurerm_batch_account" "example" {
 }
 
 resource "azurerm_batch_certificate" "example" {
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  account_name         = "${azurerm_batch_account.example.name}"
-  certificate          = "${filebase64("certificate.pfx")}"
+  resource_group_name  = azurerm_resource_group.example.name
+  account_name         = azurerm_batch_account.example.name
+  certificate          = filebase64("certificate.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"

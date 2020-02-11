@@ -20,21 +20,21 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "example"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  pipeline_name       = "${azurerm_data_factory_pipeline.test.name}"
+  data_factory_name   = azurerm_data_factory.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  pipeline_name       = azurerm_data_factory_pipeline.test.name
 
   interval  = 5
   frequency = "Day"

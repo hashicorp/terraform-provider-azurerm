@@ -19,14 +19,14 @@ data "azurerm_virtual_network_gateway_connection" "example" {
 }
 
 output "virtual_network_gateway_connection_id" {
-  value = "${data.azurerm_virtual_network_gateway_connection.example.id}"
+  value = data.azurerm_virtual_network_gateway_connection.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Network Gateway Connection.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Network Gateway Connection is located in.
+* `name` - Specifies the name of the Virtual Network Gateway Connection.
+* `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway Connection is located in.
 
 ## Attributes Reference
 
@@ -72,7 +72,7 @@ output "virtual_network_gateway_connection_id" {
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags to assign to the resource.
 
 The `ipsec_policy` block supports:
 

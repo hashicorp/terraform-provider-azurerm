@@ -20,14 +20,14 @@ data "azurerm_storage_account" "example" {
 }
 
 output "storage_account_tier" {
-  value = "${data.azurerm_storage_account.example.account_tier}"
+  value = data.azurerm_storage_account.example.account_tier
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Storage Account
-* `resource_group_name` - (Required) Specifies the name of the resource group the Storage Account is located in.
+* `name` - Specifies the name of the Storage Account
+* `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.
 
 ## Attributes Reference
 

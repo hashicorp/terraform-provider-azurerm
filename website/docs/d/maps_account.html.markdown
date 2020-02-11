@@ -19,15 +19,15 @@ data "azurerm_maps_account" "example" {
 }
 
 output "maps_account_id" {
-  value = "${data.azurerm_maps_account.example.id}"
+  value = data.azurerm_maps_account.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Maps Account.
+* `name` - Specifies the name of the Maps Account.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Maps Account is located.
+* `resource_group_name` - Specifies the name of the Resource Group in which the Maps Account is located.
 
 ## Attributes Reference
 

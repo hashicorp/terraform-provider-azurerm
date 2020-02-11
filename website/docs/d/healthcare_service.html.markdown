@@ -26,9 +26,9 @@ output "healthcare_service_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Healthcare Service.
+* `name` - Specifies the name of the Healthcare Service.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Healthcare Service exists.
+* `resource_group_name` - The name of the Resource Group in which the Healthcare Service exists.
 
 ## Attributes Reference
 

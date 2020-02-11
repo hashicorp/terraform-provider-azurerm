@@ -19,7 +19,7 @@ data "azurerm_eventhub_namespace_authorization_rule" "example" {
 }
 
 output "eventhub_authorization_rule_id" {
-  value = "${data.azurem_eventhub_namespace_authorization_rule.example.id}"
+  value = data.azurem_eventhub_namespace_authorization_rule.example.id
 }
 ```
 
@@ -27,9 +27,9 @@ output "eventhub_authorization_rule_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the EventHub Authorization Rule resource. 
+* `name` - The name of the EventHub Authorization Rule resource. 
 
-* `resource_group_name` - (Required) The name of the resource group in which the EventHub Namespace exists.
+* `resource_group_name` - The name of the resource group in which the EventHub Namespace exists.
 
 ## Attributes Reference
 

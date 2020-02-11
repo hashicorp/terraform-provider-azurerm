@@ -19,15 +19,15 @@ data "azurerm_sql_server" "example" {
 }
 
 output "sql_server_id" {
-  value = "${data.azurerm_sql_server.example.id}"
+  value = data.azurerm_sql_server.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the SQL Server.
+* `name` - The name of the SQL Server.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the SQL Server exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the SQL Server exists.
 
 ## Attributes Reference
 

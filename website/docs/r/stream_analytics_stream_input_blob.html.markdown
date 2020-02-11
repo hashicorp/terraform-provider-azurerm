@@ -19,31 +19,31 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplestoracc"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_stream_analytics_stream_input_blob" "example" {
   name                      = "blob-stream-input"
-  stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
-  storage_account_name      = "${azurerm_storage_account.example.name}"
-  storage_account_key       = "${azurerm_storage_account.example.primary_access_key}"
-  storage_container_name    = "${azurerm_storage_container.example.name}"
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
+  storage_account_name      = azurerm_storage_account.example.name
+  storage_account_key       = azurerm_storage_account.example.primary_access_key
+  storage_container_name    = azurerm_storage_container.example.name
   path_pattern              = "some-random-pattern"
   date_format               = "yyyy/MM/dd"
   time_format               = "HH"

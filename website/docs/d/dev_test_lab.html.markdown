@@ -19,15 +19,15 @@ data "azurerm_dev_test_lab" "example" {
 }
 
 output "unique_identifier" {
-  value = "${data.azurerm_dev_test_lab.example.unique_identifier}"
+  value = data.azurerm_dev_test_lab.example.unique_identifier
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Dev Test Lab.
+* `name` - The name of the Dev Test Lab.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the Dev Test Lab exists.
+* `resource_group_name` - The Name of the Resource Group where the Dev Test Lab exists.
 
 ## Attributes Reference
 

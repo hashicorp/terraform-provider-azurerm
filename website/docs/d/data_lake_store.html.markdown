@@ -20,15 +20,15 @@ data "azurerm_data_lake_store" "example" {
 }
 
 output "data_lake_store_id" {
-  value = "${data.azurerm_data_lake_store.example.id}"
+  value = data.azurerm_data_lake_store.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Data Lake Store.
+* `name` - The name of the Data Lake Store.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the Data Lake Store exists.
+* `resource_group_name` - The Name of the Resource Group where the Data Lake Store exists.
 
 ## Attributes Reference
 

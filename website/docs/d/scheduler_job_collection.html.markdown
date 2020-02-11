@@ -21,7 +21,7 @@ data "azurerm_scheduler_job_collection" "example" {
 }
 
 output "job_collection_state" {
-  value = "${data.azurerm_scheduler_job_collection.jobs.state}"
+  value = data.azurerm_scheduler_job_collection.jobs.state
 }
 ```
 
@@ -29,9 +29,9 @@ output "job_collection_state" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Scheduler Job Collection.
+* `name` - Specifies the name of the Scheduler Job Collection.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group in which the Scheduler Job Collection resides.
+* `resource_group_name` - Specifies the name of the resource group in which the Scheduler Job Collection resides.
 
 ## Attributes Reference
 

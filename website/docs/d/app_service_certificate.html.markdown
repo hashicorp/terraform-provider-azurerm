@@ -20,7 +20,7 @@ data "azurerm_app_service_certificate" "example" {
 }
 
 output "app_service_certificate_id" {
-  value = "${data.azurerm_app_service_certificate.example.id}"
+  value = data.azurerm_app_service_certificate.example.id
 }
 ```
 
@@ -28,9 +28,9 @@ output "app_service_certificate_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the certificate.
+* `name` - Specifies the name of the certificate.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the certificate.
+* `resource_group_name` - The name of the resource group in which to create the certificate.
 
 ## Attributes Reference
 

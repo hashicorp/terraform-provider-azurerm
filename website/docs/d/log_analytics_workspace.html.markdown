@@ -19,7 +19,7 @@ data "azurerm_log_analytics_workspace" "example" {
 }
 
 output "log_analytics_workspace_id" {
-  value = "${data.azurerm_log_analytics_workspace.example.workspace_id}"
+  value = data.azurerm_log_analytics_workspace.example.workspace_id
 }
 ```
 
@@ -27,8 +27,8 @@ output "log_analytics_workspace_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Log Analytics Workspace.
-* `resource_group_name` - (Required) The name of the resource group in which the Log Analytics workspace is located in.
+* `name` - Specifies the name of the Log Analytics Workspace.
+* `resource_group_name` - The name of the resource group in which the Log Analytics workspace is located in.
 
 ## Attributes Reference
 

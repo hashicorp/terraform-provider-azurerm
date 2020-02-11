@@ -23,8 +23,8 @@ data "azurerm_api_management_api" "example" {
 
 resource "azurerm_api_management_authorization_server" "example" {
   name                         = "test-server"
-  api_management_name          = "${data.azurerm_api_management.example.name}"
-  resource_group_name          = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name          = data.azurerm_api_management.example.name
+  resource_group_name          = data.azurerm_api_management.example.resource_group_name
   display_name                 = "Test Server"
   authorization_endpoint       = "https://example.mydomain.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"

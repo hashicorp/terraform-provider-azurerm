@@ -22,7 +22,6 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"rule": {
 				Type:     schema.TypeList,
@@ -40,7 +39,6 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 						"filters": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"prefix_match": {
@@ -61,13 +59,11 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 						"actions": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"base_blob": {
 										Type:     schema.TypeList,
 										Computed: true,
-										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
@@ -88,7 +84,6 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 									"snapshot": {
 										Type:     schema.TypeList,
 										Computed: true,
-										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"delete_after_days_since_creation_greater_than": {

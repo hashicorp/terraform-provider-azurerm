@@ -19,13 +19,13 @@ Manages a Key Vault Access Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
-  location = "${azurerm_resource_group.example.location}"
+  location = azurerm_resource_group.example.location
 }
 
 resource "azurerm_key_vault" "example" {
   name                = "testvault"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "standard"
 
@@ -39,7 +39,7 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
-  key_vault_id = "${azurerm_key_vault.example.id}"
+  key_vault_id = azurerm_key_vault.example.id
 
   tenant_id = "00000000-0000-0000-0000-000000000000"
   object_id = "11111111-1111-1111-1111-111111111111"

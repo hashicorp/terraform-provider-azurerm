@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
@@ -36,6 +36,7 @@ resource "azurerm_api_management" "example" {
       <on-error />
     </policies>
 XML
+
   }
 }
 ```
@@ -71,6 +72,8 @@ The following arguments are supported:
 * `notification_sender_email` - (Optional) Email address from which the notification will be sent.
 
 * `policy` - (Optional) A `policy` block as defined below.
+
+* `protocols` - (Optional) A `protocols` block as defined below.
 
 * `security` - (Optional) A `security` block as defined below.
 
@@ -160,6 +163,12 @@ A `proxy` block supports the following:
 -> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
+
+---
+
+A `protocols` block supports the following:
+
+* `enable_http2` - (Optional) Should HTTP/2 be supported by the API Management Service? Defaults to `false`.
 
 ---
 

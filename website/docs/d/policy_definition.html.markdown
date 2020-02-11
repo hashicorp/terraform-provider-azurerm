@@ -18,13 +18,13 @@ data "azurerm_policy_definition" "example" {
 }
 
 output "id" {
-  value = "${data.azurerm_policy_definition.example.id}"
+  value = data.azurerm_policy_definition.example.id
 }
 ```
 
 ## Argument Reference
 
-* `display_name` - (Required) Specifies the name of the Policy Definition.
+* `display_name` - Specifies the name of the Policy Definition.
 * `management_group_id` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
 

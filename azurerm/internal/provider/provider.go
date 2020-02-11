@@ -175,6 +175,13 @@ func AzureProvider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
 				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
 			},
+
+			"storage_use_azuread": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
+				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
+			},
 		},
 
 		DataSourcesMap: dataSources,
@@ -244,6 +251,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
+			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		}
 		client, err := clients.Build(p.StopContext(), clientBuilder)
 		if err != nil {

@@ -80,7 +80,7 @@ func TestAccLinuxVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -99,7 +99,7 @@ func TestAccLinuxVirtualMachine_imageFromSourceImageReference(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -108,9 +108,9 @@ func testLinuxVirtualMachine_imageFromExistingMachineDependencies(data acceptanc
 	return fmt.Sprintf(`
 # note: whilst these aren't used in all tests, it saves us redefining these everywhere
 locals {
-  first_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+  first_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC9ddAwoR0XBoT9kixLX6atgX9dovt9fpR1HO/R9jYwYnuB+SZ845KSqat+U0m6oagZhpsfcEEwjGGjQz6Z1rB6mvffsKq6i74cmm0jO564nBnZQeh31q3sFNs+XdrDtFmnYRqdPHhhr1sw0C/rxbiaE6nYZWRfHW//81nEePKMpjiN8JsrYQNbzEpz8QOBSquwBmXO+LVx//zAbY4jGTa4hjGeNzIgMJZ8Jk/11XbcxSK1PK43BrejHg6kctmEkYvMH/o12RfAeB8okGCRW3scwOozxVrHwxaPgEf03jig+Ag9V+GXNBabL5AWtxcuPN63rUfaAXEIXTHmndwVOxlpLrUf5ox1+ddGyWbLMXzd7akPioof5MNJMq/yuFGC5dY0Z6/+yGRNtShQesVo/czhKEPGIcsIi5gnKdfDB4i9ay2yz8ystnW6jbabcyqejk1Qc61wapaFdhUHL0iD/GW/5ZujDs5C3BT7EIgKLIfAaAx5TBEJyE1KQ/GEOifB8ztDl/gp99o+i2HKABtmYv12y4JVlEUkRckeLrw6luEb3ColHshsQcQGfudGFFgdEdcgBrV4Ch7IkLxVYQl3pegzZiirMPnRKh10r/Hrg6uYxn7sLeTJoD5VOKmqmeK4kFXsZMVtA6/SnxQtUKkKlfLBwBSDrrdgLjBV+KOndiwC7Q=="
   second_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0/NDMj2wG6bSa6jbn6E3LYlUsYiWMp1CQ2sGAijPALW6OrSu30lz7nKpoh8Qdw7/A4nAJgweI5Oiiw5/BOaGENM70Go+VM8LQMSxJ4S7/8MIJEZQp5HcJZ7XDTcEwruknrd8mllEfGyFzPvJOx6QAQocFhXBW6+AlhM3gn/dvV5vdrO8ihjET2GoDUqXPYC57ZuY+/Fz6W3KV8V97BvNUhpY5yQrP5VpnyvvXNFQtzDfClTvZFPuoHQi3/KYPi6O0FSD74vo8JOBZZY09boInPejkm9fvHQqfh0bnN7B6XJoUwC1Qprrx+XIy7ust5AEn5XL7d4lOvcR14MxDDKEp you@me.com"
-  vm_name           = "acctestvm-%s"
+  vm_name           = "acctestsourcevm-%d"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -170,7 +170,7 @@ resource "azurerm_shared_image_gallery" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }
-`, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testLinuxVirtualMachine_imageFromExistingMachinePrep(data acceptance.TestData) string {
@@ -179,11 +179,14 @@ func testLinuxVirtualMachine_imageFromExistingMachinePrep(data acceptance.TestDa
 %s
 
 resource "azurerm_linux_virtual_machine" "source" {
-  name                = "acctestsourceVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
+  name                            = "acctestsourceVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  disable_password_authentication = false
+  admin_password                  = "Eung6ahthane2ied"
+
   network_interface_ids = [
     azurerm_network_interface.public.id,
   ]
@@ -221,12 +224,15 @@ resource "azurerm_image" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  source_image_id     = azurerm_image.test.id
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  disable_password_authentication = false
+  admin_password                  = "Eung6ahthane2ied"
+  source_image_id                 = azurerm_image.test.id
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -241,6 +247,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
+
 `, template, data.RandomInteger)
 }
 
@@ -256,11 +263,14 @@ resource "azurerm_marketplace_agreement" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  disable_password_authentication = false
+  admin_password                  = "Eung6ahthane2ied"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -305,12 +315,6 @@ resource "azurerm_image" "test" {
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
 }
 
-resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctest-gallery-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
 resource "azurerm_shared_image" "test" {
   name                = "acctest-gallery-image"
   gallery_name        = azurerm_shared_image_gallery.test.name
@@ -341,12 +345,15 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  source_image_id     = azurerm_shared_image_version.test.id
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  disable_password_authentication = false
+  admin_password                  = "Eung6ahthane2ied"
+  source_image_id                 = azurerm_shared_image_version.test.id
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -361,7 +368,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func testLinuxVirtualMachine_imageFromSourceImageReference(data acceptance.TestData) string {
@@ -370,11 +377,14 @@ func testLinuxVirtualMachine_imageFromSourceImageReference(data acceptance.TestD
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  disable_password_authentication = false
+  admin_password                  = "Eung6ahthane2ied"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

@@ -22,23 +22,23 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
 }
 
 resource "azurerm_storage_account" "sa" {
   name                     = "examplesa"
-  location                 = "${azurerm_resource_group.rg.location}"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
+  location                 = azurerm_resource_group.rg.location
+  resource_group_name      = azurerm_resource_group.rg.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_backup_container_storage_account" "container" {
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  storage_account_id  = "${azurerm_storage_account.sa.id}"
+  resource_group_name = azurerm_resource_group.rg.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  storage_account_id  = azurerm_storage_account.sa.id
 }
 ```
 

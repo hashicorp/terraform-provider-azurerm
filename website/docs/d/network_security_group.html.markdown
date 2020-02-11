@@ -14,19 +14,19 @@ Use this data source to access information about an existing Network Security Gr
 
 ```hcl
 data "azurerm_network_security_group" "example" {
-  name                = "${azurerm_network_security_group.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = azurerm_network_security_group.example.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 output "location" {
-  value = "${data.azurerm_network_security_group.example.location}"
+  value = data.azurerm_network_security_group.example.location
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Network Security Group.
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Network Security Group exists
+* `name` - Specifies the Name of the Network Security Group.
+* `resource_group_name` - Specifies the Name of the Resource Group within which the Network Security Group exists
 
 
 ## Attributes Reference

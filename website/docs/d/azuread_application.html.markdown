@@ -22,7 +22,7 @@ data "azurerm_azuread_application" "example" {
 }
 
 output "azure_active_directory_object_id" {
-  value = "${data.azurerm_azuread_application.example.id}"
+  value = data.azurerm_azuread_application.example.id
 }
 ```
 

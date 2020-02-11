@@ -23,9 +23,9 @@ data "azurerm_iothub_dps" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Iot Device Provisioning Service resource.
+* `name` - Specifies the name of the Iot Device Provisioning Service resource.
 
-* `resource_group_name` - (Required) The name of the resource group under which the Iot Device Provisioning Service is located in.
+* `resource_group_name` - The name of the resource group under which the Iot Device Provisioning Service is located in.
 
 ## Attributes Reference
 

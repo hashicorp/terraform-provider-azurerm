@@ -21,7 +21,7 @@ data "azurerm_private_link_service" "example" {
 }
 
 output "private_link_service_id" {
-  value = "${data.azurerm_private_link_service.example.id}"
+  value = data.azurerm_private_link_service.example.id
 }
 ```
 
@@ -29,9 +29,9 @@ output "private_link_service_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the private link service.
+* `name` - The name of the private link service.
 
-* `resource_group_name` - (Required) The name of the resource group in which the private link service resides.
+* `resource_group_name` - The name of the resource group in which the private link service resides.
 
 ## Attributes Reference
 

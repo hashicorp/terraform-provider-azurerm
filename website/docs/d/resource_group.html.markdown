@@ -19,8 +19,8 @@ data "azurerm_resource_group" "example" {
 
 resource "azurerm_managed_disk" "example" {
   name                 = "managed_disk_name"
-  location             = "${data.azurerm_resource_group.example.location}"
-  resource_group_name  = "${data.azurerm_resource_group.example.name}"
+  location             = data.azurerm_resource_group.example.location
+  resource_group_name  = data.azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -29,7 +29,7 @@ resource "azurerm_managed_disk" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the resource group.
+* `name` - Specifies the name of the resource group.
 
 ~> **Note:** If the specified location doesn't match the actual resource group location, an error message with the actual location value will be shown.
 

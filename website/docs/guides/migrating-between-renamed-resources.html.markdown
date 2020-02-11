@@ -33,10 +33,9 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 resource "azurerm_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
-
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
   # ...
 }
 ```
@@ -54,10 +53,9 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
-
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
   # ...
 }
 ```

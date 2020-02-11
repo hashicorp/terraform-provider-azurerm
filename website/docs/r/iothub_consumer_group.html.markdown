@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iothub" "example" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -35,9 +35,9 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_consumer_group" "example" {
   name                   = "terraform"
-  iothub_name            = "${azurerm_iothub.example.name}"
+  iothub_name            = azurerm_iothub.example.name
   eventhub_endpoint_name = "events"
-  resource_group_name    = "${azurerm_resource_group.foo.name}"
+  resource_group_name    = azurerm_resource_group.foo.name
 }
 ```
 

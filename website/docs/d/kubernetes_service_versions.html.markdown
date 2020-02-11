@@ -18,17 +18,17 @@ data "azurerm_kubernetes_service_versions" "current" {
 }
 
 output "versions" {
-  value = "${data.azurerm_kubernetes_service_versions.current.versions}"
+  value = data.azurerm_kubernetes_service_versions.current.versions
 }
 
 output "latest_version" {
-  value = "${data.azurerm_kubernetes_service_versions.current.latest_version}"
+  value = data.azurerm_kubernetes_service_versions.current.latest_version
 }
 ```
 
 ## Argument Reference
 
-* `location` - (Required) Specifies the location in which to query for versions.
+* `location` - Specifies the location in which to query for versions.
 
 * `version_prefix` - (Optional) A prefix filter for the versions of Kubernetes which should be returned; for example `1.` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.
 

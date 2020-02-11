@@ -785,7 +785,6 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 				"cors": {
 					Type:     schema.TypeList,
 					Computed: true,
-					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"allowed_origins": {

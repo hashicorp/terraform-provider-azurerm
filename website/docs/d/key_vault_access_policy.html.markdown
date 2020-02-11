@@ -18,18 +18,20 @@ data "azurerm_key_vault_access_policy" "contributor" {
 }
 
 output "access_policy_key_permissions" {
-  value = "${data.azurerm_key_vault_access_policy.key_permissions}"
+  value = data.azurerm_key_vault_access_policy.contributor.key_permissions
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Management Template. Possible values are: `Key Management`,
+* `name` - Specifies the name of the Management Template. Possible values are: `Key Management`,
 `Secret Management`, `Certificate Management`, `Key & Secret Management`, `Key & Certificate Management`,
 `Secret & Certificate Management`,  `Key, Secret, & Certificate Management`
 
 
 ## Attributes Reference
+
+The following attributes are exported:
 
 * `id` - the ID of the Key Vault Access Policy
 

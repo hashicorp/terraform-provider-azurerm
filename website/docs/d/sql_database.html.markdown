@@ -26,11 +26,11 @@ output "sql_database_id" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the SQL Database.
+* `name` - The name of the SQL Database.
 
-* `server_name` - (Required) The name of the SQL Server.
+* `server_name` - The name of the SQL Server.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Azure SQL Database exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the Azure SQL Database exists.
 
 ## Attributes Reference
 

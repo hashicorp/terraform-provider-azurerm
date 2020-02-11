@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "Basic"
 }
@@ -32,7 +32,7 @@ resource "azurerm_automation_certificate" "example" {
   account_name        = "${azurerm_automation_account.example.name}"
 
   description = "This is an example certificate"
-  base64      = "${base64encode(file("certificate.pfx"))}"
+  base64      = base64encode(file("certificate.pfx"))
 }
 ```
 

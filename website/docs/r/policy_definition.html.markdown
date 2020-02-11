@@ -25,7 +25,9 @@ resource "azurerm_policy_definition" "policy" {
     {
     "category": "General"
     }
-  METADATA
+  
+METADATA
+
 
   policy_rule = <<POLICY_RULE
 	{
@@ -41,6 +43,7 @@ resource "azurerm_policy_definition" "policy" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -53,6 +56,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 ```
 

@@ -21,12 +21,12 @@ data "azurerm_api_management_api" "example" {
 }
 
 resource "azurerm_api_management_api_schema" "example" {
-  api_name            = "${data.azurerm_api_management_api.example.name}"
-  api_management_name = "${data.azurerm_api_management_api.example.api_management_name}"
-  resource_group_name = "${data.azurerm_api_management_api.example.resource_group_name}"
+  api_name            = data.azurerm_api_management_api.example.name
+  api_management_name = data.azurerm_api_management_api.example.api_management_name
+  resource_group_name = data.azurerm_api_management_api.example.resource_group_name
   schema_id           = "example-sche,a"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
-  value               = "${file("api_management_api_schema.xml")}"
+  value               = file("api_management_api_schema.xml")
 }
 ```
 
