@@ -453,35 +453,22 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"blob_account_properties": {
+			"static_website": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"static_website": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"index_document": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"error_document_404_path": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
+						"index_document": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"error_404_document": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -857,21 +844,17 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if val, ok := d.GetOk("blob_account_properties"); ok {
+	if val, ok := d.GetOk("static_website"); ok {
 		// static website only supported on Storage V2
-		if accountKind == string(storage.StorageV2) {
-			blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
+		if accountKind != string(storage.StorageV2) {
+			return fmt.Errorf("`static_website` is only supported for Storage V2.")
+		}
+		blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
 
-			blobAccountProperties, err := expandBlobAccountProperties(val.([]interface{}))
-			if err != nil {
-				return fmt.Errorf("Error expanding `blob_account_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
-			}
+		staticWebsiteProps := expandStaticWebsiteProperties(val.([]interface{}))
 
-			if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, blobAccountProperties); err != nil {
-				return fmt.Errorf("Error updating Azure Storage Account `blob_account_properties` %q: %+v", storageAccountName, err)
-			}
-		} else {
-			return fmt.Errorf("`blob_account_properties` are only supported for Storage V2.")
+		if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1099,24 +1082,20 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("queue_properties")
 	}
 
-	if d.HasChange("blob_account_properties") {
+	if d.HasChange("static_website") {
 		// static website only supported on Storage V2
-		if accountKind == string(storage.StorageV2) {
-			blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
+		if accountKind != string(storage.StorageV2) {
+			return fmt.Errorf("`static_website` are only supported for Storage V2.")
+		}
+		blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
 
-			blobAccounProperties, err := expandBlobAccountProperties(d.Get("blob_account_properties").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("Error expanding `blob_account_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
-			}
+		staticWebsiteProps := expandStaticWebsiteProperties(d.Get("static_website").([]interface{}))
 
-			if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, blobAccounProperties); err != nil {
-				return fmt.Errorf("Error updating Azure Storage Account `blob_account_properties` %q: %+v", storageAccountName, err)
-			}
-		} else {
-			return fmt.Errorf("`blob_account_properties` are only supported for Storage V2.")
+		if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
 		}
 
-		d.SetPartial("blob_account_properties")
+		d.SetPartial("static_website")
 	}
 
 	d.Partial(false)
@@ -1333,26 +1312,24 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
+	var staticWebsite []interface{}
+
 	// static website only supported on Storage V2
 	if resp.Kind == storage.StorageV2 {
 		blobAccountClient := storageClient.BlobAccountsClient
 
-		blobAccountProps, err := blobAccountClient.GetServiceProperties(ctx, name)
+		staticWebsiteProps, err := blobAccountClient.GetServiceProperties(ctx, name)
 		if err != nil {
-			if blobAccountProps.Response.Response != nil && !utils.ResponseWasNotFound(blobAccountProps.Response) {
-				return fmt.Errorf("Error reading blob account properties for AzureRM Storage Account %q: %+v", name, err)
+			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
+				return fmt.Errorf("Error reading static website for AzureRM Storage Account %q: %+v", name, err)
 			}
 		}
 
-		if err := d.Set("blob_account_properties", flattenBlobAccountProperties(blobAccountProps)); err != nil {
-			return fmt.Errorf("Error setting `blob_account_properties `for AzureRM Storage Account %q: %+v", name, err)
-		var staticWebsite []interface{}
-		if resp.Kind == storage.StorageV2 {
-			staticWebsite = flattenStaticWebsite(...)
-		}
-		if err := d.Set("static_website", staticWebsite); err != nil {
- 			return fmt.Errorf("Error setting `blob_account_properties `for AzureRM Storage Account %q: %+v", name, err)
- 		}
+		staticWebsite = flattenStaticWebsiteProperties(staticWebsiteProps)
+	}
+
+	if err := d.Set("static_website", staticWebsite); err != nil {
+		return fmt.Errorf("Error setting `static_website `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1648,47 +1625,29 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 	return cors
 }
 
-func expandBlobAccountProperties(input []interface{}) (accounts.StorageServiceProperties, error) {
-	var err error
+func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceProperties {
 	properties := accounts.StorageServiceProperties{
-		StaticWebsite: accounts.StaticWebsite{
+		StaticWebsite: &accounts.StaticWebsite{
 			Enabled: false,
-		}
+		},
 	}
 	if len(input) == 0 {
-		return properties, nil
+		return properties
 	}
 
-	attrs := input[0].(map[string]interface{})
+	attr := input[0].(map[string]interface{})
 
-	properties.StaticWebsite, err = expandBlobAccountPropertiesStaticWebsite(attrs["static_website"].([]interface{}))
-	if err != nil {
-		return properties, fmt.Errorf("Error expanding `static_website`: %+v", err)
+	properties.StaticWebsite.Enabled = true
+
+	if v, ok := attr["index_document"]; ok {
+		properties.StaticWebsite.IndexDocument = v.(string)
 	}
 
-	return properties, nil
-}
-
-func expandBlobAccountPropertiesStaticWebsite(input []interface{}) (*accounts.StaticWebsite, error) {
-	if len(input) == 0 {
-		return &accounts.StaticWebsite{}, nil
+	if v, ok := attr["error_404_document"]; ok {
+		properties.StaticWebsite.ErrorDocument404Path = v.(string)
 	}
 
-	staticWebsiteAttr := input[0].(map[string]interface{})
-
-	staticWebsite := &accounts.StaticWebsite{
-		Enabled: staticWebsiteAttr["enabled"].(bool),
-	}
-
-	if v, ok := staticWebsiteAttr["index_document"]; ok {
-		staticWebsite.IndexDocument = v.(string)
-	}
-
-	if v, ok := staticWebsiteAttr["error_document_404_path"]; ok {
-		staticWebsite.ErrorDocument404Path = v.(string)
-	}
-
-	return staticWebsite, nil
+	return properties
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
@@ -1867,42 +1826,22 @@ func flattenCorsProperty(input string) []interface{} {
 	return results
 }
 
-func flattenBlobAccountProperties(input accounts.GetServicePropertiesResult) []interface{} {
-	if input.Response.Response == nil {
-		return []interface{}{}
-	}
-
-	blobAccountProperties := make(map[string]interface{})
-
+func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {
 	if storageServiceProps := input.StorageServiceProperties; storageServiceProps != nil {
 		if staticWebsite := storageServiceProps.StaticWebsite; staticWebsite != nil {
-			blobAccountProperties["static_website"] = flattenBlobAccountPropertiesStaticWebsite(*staticWebsite)
+			if !staticWebsite.Enabled {
+				return []interface{}{}
+			}
+
+			return []interface{}{
+				map[string]interface{}{
+					"index_document":     staticWebsite.IndexDocument,
+					"error_404_document": staticWebsite.ErrorDocument404Path,
+				},
+			}
 		}
 	}
-
-	if len(blobAccountProperties) == 0 {
-		return []interface{}{}
-	}
-	return []interface{}{blobAccountProperties}
-}
-
-func flattenBlobAccountPropertiesStaticWebsite(input accounts.StaticWebsite) []interface{} {
-	staticWebsite := make(map[string]interface{})
-
-	staticWebsite["enabled"] = input.Enabled
-	staticWebsite["index_document"] = input.IndexDocument
-	staticWebsite["error_document_404_path"] = input.ErrorDocument404Path
-
-	if !input.Enabled {
-		return []interface{}{}
-	}
-	
-	return []interface{}{
-		map[string]interface{}{
-			"index_document": input.IndexDocument,
-			"error_document_404_path": index.ErrorDocument404Path,
-		},
-	}
+	return []interface{}{}
 }
 
 func flattenStorageAccountBypass(input storage.Bypass) []interface{} {

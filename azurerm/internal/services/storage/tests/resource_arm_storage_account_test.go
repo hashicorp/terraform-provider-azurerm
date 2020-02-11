@@ -653,7 +653,7 @@ func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_blobAccountProperties(t *testing.T) {
+func TestAccAzureRMStorageAccount_staticWebsiteProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -662,14 +662,14 @@ func TestAccAzureRMStorageAccount_blobAccountProperties(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccount_blobAccountProperties(data),
+				Config: testAccAzureRMStorageAccount_staticWebsiteProperties(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_blobAccountPropertiesUpdated(data),
+				Config: testAccAzureRMStorageAccount_staticWebsitePropertiesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
@@ -1552,7 +1552,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobAccountProperties(data acceptance.TestData) string {
+func testAccAzureRMStorageAccount_staticWebsiteProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
@@ -1567,19 +1567,16 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  blob_account_properties {
-    static_website {
-      enabled                 = true
-      index_document          = "index.html"
-      error_document_404_path = "404.html"
-    }
+  
+  static_website {
+    index_document     = "index.html"
+    error_404_document = "404.html"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobAccountPropertiesUpdated(data acceptance.TestData) string {
+func testAccAzureRMStorageAccount_staticWebsitePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
@@ -1594,13 +1591,10 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  blob_account_properties {
-    static_website {
-      enabled                 = true
-      index_document          = "index-2.html"
-      error_document_404_path = "404-2.html"
-    }
+  
+  static_website {
+    index_document     = "index-2.html"
+    error_404_document = "404-2.html"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

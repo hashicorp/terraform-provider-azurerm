@@ -45,7 +45,7 @@ func NewClient(options *common.ClientOptions) *Client {
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
 
 	blobAccountsClient := accounts.NewWithEnvironment(options.Environment)
-	blobAccountsClient.Authorizer = options.StorageAuthorizer
+	options.ConfigureClient(&blobAccountsClient.Client, options.StorageAuthorizer)
 
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here

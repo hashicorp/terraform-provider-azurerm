@@ -117,9 +117,9 @@ The following arguments are supported:
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
 
-* `blob_account_properties` - (Optional) A `blob_account_properties` block as defined below.
+* `static_website` - (Optional) A `static_website` block as defined below.
 
-~> **NOTE:** `blob_account_properties` can only be set when the `account_kind` is set to `StorageV2`
+~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2`
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
@@ -235,19 +235,11 @@ A `queue_properties` block supports the following:
 
 ---
 
-A `blob_account_properties` block supports the following:
-
-* `static_website` - (Optional) A `static_website` block as defined below.
-
----
-
 A `static_website` block supports the following:
-
-* `enabled` - (Required) Indicates whether static website support is enabled for the given account. If a blob storage container named $web doesn't already exist in the account, one is created for you. Add the files of your site to this container.
 
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
 
-* `error_document_404_path` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
+* `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
 
 ## Attributes Reference
 
