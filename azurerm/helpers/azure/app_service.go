@@ -1346,14 +1346,14 @@ func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
+	principalId := ""
 	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
+		principalId = *identity.PrincipalID
 	}
+
+	tenantId := ""
 	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
+		tenantId = *identity.TenantID
 	}
 
 	identityIds := make([]string, 0)
@@ -1362,9 +1362,15 @@ func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 			identityIds = append(identityIds, key)
 		}
 	}
-	result["identity_ids"] = identityIds
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"identity_ids": identityIds,
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+		},
+	}
 }
 
 func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {

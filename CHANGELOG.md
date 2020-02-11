@@ -1,17 +1,45 @@
 ## 1.44.0 (Unreleased)
 
+NOTES
+
+* **Preparation for 2.0:** We intend for v1.44.0 to be the last release in the 1.x line - we'll be turning our focus to 2.0 with the next release. We recommend [consulting the list of changes coming in 2.0](https://www.terraform.io/docs/providers/azurerm/guides/2.0-upgrade-guide.html) to be aware and [trialling the Beta available in 1.x versions](https://www.terraform.io/docs/providers/azurerm/guides/2.0-beta.html) if you're interested.
+
+* **Terraform 0.10/0.11:** The upcoming version 2.0 of the Azure Provider will not support Terraform 0.10.x & Terraform 0.11.x - you will need to upgrade to Terraform 0.12 to use version 2.0 (and above) of the Azure Provider.
+
 FEATURES:
 
+* **New Data Source:** `azurerm_eventhub_consumer_group` [GH-5518]
 * **New Data Source:** `azurerm_function_app` [GH-5642]
+* **New Data Source:** `azurerm_iothub_dps_shared_access_policy` [GH-5516]
+
+CHANGES TO BETA RESOURCES:
+
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
 
 IMPROVEMENTS:
 
-* `azurerm_api_management` - Add http2 protocol support for API Management [GH-5593]
-* `azurerm_linux_virtual_machine` - Added SSH Key validation and updated docs on supported SSH Key types [#5610]
+* `azurerm_api_management` - support for configuring the HTTP2 protocol [GH-5593]
+* `azurerm_cognitive_account` - support for the `kind` `FormRecognizer` [GH-5679]
+* `azurerm_cognitive_account` - support for the `kind` `ImmersiveReader` [GH-5604]
+* `azurerm_databricks_workspace` - support for the `Trial` SKU [GH-5652]
+* `azurerm_function_app` - support for configuring `ip_restriction` blocks [GH-5440]
+* `azurerm_function_app` - support for configuring user assigned identities [GH-5676]
 * `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
+* `azurerm_lb` - fixing a crash when the HTTP response is dropped [GH-5680]
+* `azurerm_stream_analytics_job` - support for importing jobs created in the portal [GH-5522]
 * `azurerm_storage_blob` - support for authenticating using Azure AD [GH-5614]
 * `azurerm_storage_container` - support for authenticating using Azure AD [GH-5614]
 * `azurerm_storage_queue` - support for authenticating using Azure AD [GH-5614]
+
+CHANGES TO BETA RESOURCES:
+
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
 
 BUGS:
 

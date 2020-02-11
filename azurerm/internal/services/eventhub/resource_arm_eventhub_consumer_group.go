@@ -147,7 +147,10 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 	d.Set("eventhub_name", eventHubName)
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("user_metadata", resp.ConsumerGroupProperties.UserMetadata)
+
+	if resp.ConsumerGroupProperties != nil {
+		d.Set("user_metadata", resp.ConsumerGroupProperties.UserMetadata)
+	}
 
 	return nil
 }
