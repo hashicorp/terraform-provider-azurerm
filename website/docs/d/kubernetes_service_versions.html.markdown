@@ -32,7 +32,7 @@ output "latest_version" {
 
 * `version_prefix` - (Optional) A prefix filter for the versions of Kubernetes which should be returned; for example `1.` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.
 
-* `include_preview` - (Optional) Default: `true` Set to `false` to exclude preview
+* `include_preview` - (Optional) Should Preview versions of Kubernetes in AKS be included? Defaults to `true`
 versions of Kubernetes from the version results.
 
 ## Attributes Reference
