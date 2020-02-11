@@ -59,6 +59,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"standard",
 					"premium",
+					"trial",
 				}, false),
 			},
 
