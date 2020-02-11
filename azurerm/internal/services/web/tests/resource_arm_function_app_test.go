@@ -437,6 +437,40 @@ func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionApp_userAssignedIdentity(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFunctionApp_userAssignedIdentityUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
@@ -1515,6 +1549,106 @@ resource "azurerm_function_app" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMFunctionApp_userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_user_assigned_identity" "first" {
+  name                = "acctest1%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.first.id}"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMFunctionApp_userAssignedIdentityUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_user_assigned_identity" "first" {
+  name                = "acctest1%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_user_assigned_identity" "second" {
+  name                = "acctest2%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.first.id}", "${azurerm_user_assigned_identity.second.id}"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
