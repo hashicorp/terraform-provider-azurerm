@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: refactor this
@@ -38,7 +38,7 @@ func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId string, met
 
 	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, false, nil
 		}
 		return nil, false, fmt.Errorf("Error making Read request on Azure Load Balancer %s: %s", name, err)
