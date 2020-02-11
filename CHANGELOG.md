@@ -10,6 +10,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_eventhub_consumer_group` [GH-5518]
 * **New Data Source:** `azurerm_function_app` [GH-5642]
+* **New Data Source:** `azurerm_iothub_dps_shared_access_policy` [GH-5516]
 
 CHANGES TO BETA RESOURCES:
 
