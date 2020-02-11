@@ -56,7 +56,7 @@ func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
 
 func testCheckAzureRMHPCCacheExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StorageCache.CachesClient
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.CachesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -82,7 +82,7 @@ func testCheckAzureRMHPCCacheExists(resourceName string) resource.TestCheckFunc 
 }
 
 func testCheckAzureRMHPCCacheDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).StorageCache.CachesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.CachesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
