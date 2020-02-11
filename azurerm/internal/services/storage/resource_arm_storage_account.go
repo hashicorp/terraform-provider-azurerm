@@ -1085,7 +1085,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("static_website") {
 		// static website only supported on Storage V2
 		if accountKind != string(storage.StorageV2) {
-			return fmt.Errorf("`static_website` are only supported for Storage V2.")
+			return fmt.Errorf("`static_website` is only supported for Storage V2.")
 		}
 		blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
 
