@@ -1346,7 +1346,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 		if err := d.Set("blob_account_properties", flattenBlobAccountProperties(blobAccountProps)); err != nil {
 			return fmt.Errorf("Error setting `blob_account_properties `for AzureRM Storage Account %q: %+v", name, err)
+		var staticWebsite []interface{}
+		if resp.Kind == storage.StorageV2 {
+			staticWebsite = flattenStaticWebsite(...)
 		}
+		if err := d.Set("static_website", staticWebsite); err != nil {
+ 			return fmt.Errorf("Error setting `blob_account_properties `for AzureRM Storage Account %q: %+v", name, err)
+ 		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1644,7 +1650,11 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 
 func expandBlobAccountProperties(input []interface{}) (accounts.StorageServiceProperties, error) {
 	var err error
-	properties := accounts.StorageServiceProperties{}
+	properties := accounts.StorageServiceProperties{
+		StaticWebsite: accounts.StaticWebsite{
+			Enabled: false,
+		}
+	}
 	if len(input) == 0 {
 		return properties, nil
 	}
@@ -1883,7 +1893,16 @@ func flattenBlobAccountPropertiesStaticWebsite(input accounts.StaticWebsite) []i
 	staticWebsite["index_document"] = input.IndexDocument
 	staticWebsite["error_document_404_path"] = input.ErrorDocument404Path
 
-	return []interface{}{staticWebsite}
+	if !input.Enabled {
+		return []interface{}{}
+	}
+	
+	return []interface{}{
+		map[string]interface{}{
+			"index_document": input.IndexDocument,
+			"error_document_404_path": index.ErrorDocument404Path,
+		},
+	}
 }
 
 func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
