@@ -94,7 +94,7 @@ data "azurerm_kubernetes_service_versions" "test" {
 func testAccDataSourceAzureRMKubernetesServiceVersions_nopreview(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_kubernetes_service_versions" "test" {
-  location = "%s"
+  location        = "%s"
   include_preview = false
 }
 `, data.Locations.Primary)

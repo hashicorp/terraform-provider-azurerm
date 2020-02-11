@@ -102,7 +102,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 					continue
 				}
 
-				if isPreview && includePreview == false {
+				if isPreview && !includePreview {
 					log.Printf("[DEBUG] Orchestrator %q is a preview release, ignoring", kubeVersion)
 					continue
 				}
