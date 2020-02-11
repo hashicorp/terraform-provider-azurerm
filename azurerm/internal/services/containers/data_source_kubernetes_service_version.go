@@ -41,10 +41,10 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 				Computed: true,
 			},
 
-			"allow_preview": {
+			"include_preview": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 		},
 	}
@@ -72,7 +72,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 
 	var versions []string
 	versionPrefix := d.Get("version_prefix").(string)
-	allowPreview := d.Get("allow_preview").(bool)
+	includePreview := d.Get("include_preview").(bool)
 
 	if props := listResp.OrchestratorVersionProfileProperties; props != nil {
 		if orchestrators := props.Orchestrators; orchestrators != nil {
@@ -102,7 +102,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 					continue
 				}
 
-				if (isPreview) && (allowPreview == false) {
+				if isPreview && includePreview == false {
 					log.Printf("[DEBUG] Orchestrator %q is a preview release, ignoring", kubeVersion)
 					continue
 				}
