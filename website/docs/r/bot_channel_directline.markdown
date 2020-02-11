@@ -66,18 +66,22 @@ A `site` block has the following properties:
 
 - `trusted_origins` - (Optional) This field is required when `is_secure_site_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.
 
-- `key` - (Computed) Primary key for accessing this site
-
-- `key2` - (Computed) Secondary key for accessing this site
-
-- `id` - (Computed) Id for the site
-
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 - `id` - The Bot Channel ID.
+
+---
+
+A `site` block exports the following:
+
+- `key` - Primary key for accessing this site
+
+- `key2` - Secondary key for accessing this site
+
+- `id` - Id for the site
 
 ## Import
 
