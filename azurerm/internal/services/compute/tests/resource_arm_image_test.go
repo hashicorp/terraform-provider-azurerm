@@ -260,16 +260,14 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 	})
 }
 
-func testGeneralizeWindowsVMImage(resourceGroup string, name string, user string, password string) resource.TestCheckFunc {
+func testGeneralizeWindowsVMImage(resourceGroup string, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		//command := []string{"%windir%\\system32\\sysprep\\Sysprep.exe /oobe /generalize /shutdown /mode:vm /quiet"}
 		command := []string{
 			"$cmd = \"$Env:SystemRoot\\system32\\sysprep\\sysprep.exe\"",
-			"$args = \"/generalize /oobe /mode:vm /quiet\"",
-			//"Start-Process -Filepath $cmd -ArgumentList $args -Wait",
+			"$args = \"/generalize /oobe /mode:vm /quit\"",
 			"Start-Process powershell -Argument \"$cmd $args\" -Wait",
 		}
 		runCommand := compute.RunCommandInput{
