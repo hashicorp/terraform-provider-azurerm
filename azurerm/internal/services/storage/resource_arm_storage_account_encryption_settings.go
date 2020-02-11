@@ -1,26 +1,35 @@
-package azurerm
+package storage
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceArmStorageAccountEncryptionSettingsRead,
-		Create: resourceArmStorageAccountEncryptionSettingsCreateUpdate,
-		Update: resourceArmStorageAccountEncryptionSettingsCreateUpdate,
-		Delete: resourceArmStorageAccountEncryptionSettingsDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: resourceArmStorageAccountEncryptionSettingsImportState,
-		},
+		Read:          resourceArmStorageAccountEncryptionSettingsRead,
+		Create:        resourceArmStorageAccountEncryptionSettingsCreateUpdate,
+		Update:        resourceArmStorageAccountEncryptionSettingsCreateUpdate,
+		Delete:        resourceArmStorageAccountEncryptionSettingsDelete,
 		SchemaVersion: 2,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"storage_account_id": {
@@ -83,9 +92,10 @@ func resourceArmStorageAccountEncryptionSettings() *schema.Resource {
 }
 
 func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	vaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).storageServiceClient
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	storageClient := meta.(*clients.Client).Storage.AccountsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	storageAccountId := d.Get("storage_account_id").(string)
 
@@ -139,7 +149,7 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 		}
 	}
 
-	_, err = client.Update(ctx, resourceGroupName, storageAccountName, opts)
+	_, err = storageClient.Update(ctx, resourceGroupName, storageAccountName, opts)
 	if err != nil {
 		return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 	}
@@ -151,19 +161,20 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmStorageAccountEncryptionSettingsRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	storageClient := meta.(*clients.Client).Storage.AccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	storageAccountId := d.Get("storage_account_id").(string)
 
-	id, err := parseAzureResourceID(storageAccountId)
+	id, err := azure.ParseAzureResourceID(storageAccountId)
 	if err != nil {
 		return err
 	}
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.GetProperties(ctx, resGroup, name)
+	resp, err := storageClient.GetProperties(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -198,8 +209,9 @@ func resourceArmStorageAccountEncryptionSettingsRead(d *schema.ResourceData, met
 }
 
 func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	storageClient := meta.(*clients.Client).Storage.AccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	storageAccountId := d.Get("storage_account_id").(string)
 
@@ -223,7 +235,7 @@ func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, m
 		},
 	}
 
-	_, err = client.Update(ctx, resourceGroupName, storageAccountName, opts)
+	_, err = storageClient.Update(ctx, resourceGroupName, storageAccountName, opts)
 	if err != nil {
 		return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 	}
@@ -232,21 +244,22 @@ func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, m
 }
 
 func resourceArmStorageAccountEncryptionSettingsImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	storageClient := meta.(*clients.Client).Storage.AccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 
 	d.Set("storage_account_id", id)
 
-	saId, err := parseAzureResourceID(id)
+	saId, err := azure.ParseAzureResourceID(id)
 	if err != nil {
 		return nil, err
 	}
 	name := saId.Path["storageAccounts"]
 	resGroup := saId.ResourceGroup
 
-	resp, err := client.GetProperties(ctx, resGroup, name)
+	resp, err := storageClient.GetProperties(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
