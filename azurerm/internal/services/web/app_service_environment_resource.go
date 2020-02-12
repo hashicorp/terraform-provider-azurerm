@@ -83,7 +83,6 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			"location": {
 				Type:      schema.TypeString,
 				Computed:  true,
-				StateFunc: azure.NormalizeLocation,
 			},
 
 			"resource_group_name": {
@@ -237,8 +236,7 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 	log.Printf("[DEBUG] Deleting App Service Environment %q (Resource Group %q)", name, resGroup)
 
 	// `true` below deletes any child resources (e.g. App Services / Plans / Certificates etc)
-	// This potentially destroys resources outside of Terraform's state without the user knowing
-	// It is set to true as this is consistent with other instances of this type of functionality in the provider.
+	// TODO: Add this to the provider 'Features' schema?
 	future, err := client.Delete(ctx, resGroup, name, utils.Bool(true))
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
@@ -260,6 +258,7 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
+// Note: These are abstractions and possibly subject to change if Azure changes the underlying SKU for Isolated instances.
 func convertFromIsolatedSKU(isolated string) (vmSKU string) {
 	switch isolated {
 	case "I1":

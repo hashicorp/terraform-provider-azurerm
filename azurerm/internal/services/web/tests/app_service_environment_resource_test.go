@@ -72,6 +72,7 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "15"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAppServiceEnvironment_update(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -79,6 +80,7 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "10"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -119,6 +121,7 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 					testCheckAppServicePlanMemberOfAppServiceEnvironment(data.ResourceName, aspData.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
