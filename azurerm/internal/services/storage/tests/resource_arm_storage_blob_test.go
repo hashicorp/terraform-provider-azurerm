@@ -765,7 +765,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "append"
+  type                   = "Append"
 }
 `, template)
 }
@@ -779,7 +779,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "append"
+  type                   = "Append"
 
   metadata = {
     hello = "world"
@@ -797,7 +797,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
 }
 `, template)
 }
@@ -822,7 +822,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
 
   metadata = {
     hello = "world"
@@ -840,7 +840,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   access_tier            = "%s"
 }
 `, template, string(accessTier))
@@ -855,7 +855,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "rick.morty"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   source_content         = "Wubba Lubba Dub Dub"
 }
 `, template)
@@ -870,7 +870,7 @@ resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
@@ -885,7 +885,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.second.name}"
-  type                   = "block"
+  type                   = "Block"
   source_uri             = "${azurerm_storage_blob.source.id}"
   content_type           = "${azurerm_storage_blob.source.content_type}"
 }
@@ -901,7 +901,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
@@ -917,7 +917,7 @@ resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
@@ -926,7 +926,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   source_uri             = "${azurerm_storage_blob.source.id}"
   content_type           = "${azurerm_storage_blob.source.content_type}"
 }
@@ -942,7 +942,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   source                 = "%s"
 }
 `, template, fileName)
@@ -957,7 +957,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   size                   = 5120
   content_type           = "image/png"
 }
@@ -973,7 +973,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   size                   = 5120
   content_type           = "image/png"
 }
@@ -989,7 +989,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   size                   = 5120
   content_type           = "image/gif"
 }
@@ -1005,7 +1005,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   size                   = 5120
 }
 `, template)
@@ -1020,7 +1020,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   size                   = 5120
 }
 `, template)
@@ -1035,7 +1035,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   size                   = 5120
 
   metadata = {
@@ -1063,7 +1063,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   source_uri             = "${azurerm_storage_blob.source.id}"
   content_type           = "${azurerm_storage_blob.source.content_type}"
 }
@@ -1079,7 +1079,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   source                 = "%s"
 }
 `, template, fileName)
@@ -1160,7 +1160,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   size                   = 5120
   content_type           = "vnd/mountain-mover-3000"
   metadata = {
