@@ -9,6 +9,7 @@ import (
 type BotChannelEmailId struct {
 	ResourceGroup string
 	BotName       string
+	Name             string
 }
 
 func BotChannelEmailID(input string) (*BotChannelEmailId, error) {
