@@ -118,17 +118,26 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 		if v, ok := d.GetOk("key_vault.0.key_vault_id"); ok {
 			// Get the key vault base URL from the key vault
 			keyVaultId := v.(string)
-			pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+
+			kvId, err := azure.ParseAzureResourceID(keyVaultId)
+			if err != nil {
+				return err
+			}
+
+			keyVaultAccountName := kvId.Path["vaults"]
+			keyVaultResourceGroupName := kvId.ResourceGroup
+
+			pKeyVaultBaseURL, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 
 			if err != nil {
 				return fmt.Errorf("Error looking up Key Vault URI from id %q: %+v", keyVaultId, err)
 			}
 
 			if azure.KeyVaultIsSoftDeleteAndPurgeProtected(ctx, vaultClient, keyVaultId) {
-				return fmt.Errorf("Key Vault %q is not configured correctly, please make sure that both 'soft_delete_enabled' and 'purge_protection_enabled' arguments are set to 'true'", keyVaultId)
+				return fmt.Errorf("Key Vault %q (Resource Group %q) is not configured correctly, please make sure that both 'soft_delete_enabled' and 'purge_protection_enabled' arguments are set to 'true'", keyVaultAccountName, keyVaultResourceGroupName)
 			}
 
-			keyVaultProperties.KeyVaultURI = utils.String(pKeyVaultBaseUrl)
+			keyVaultProperties.KeyVaultURI = utils.String(pKeyVaultBaseURL)
 			opts.Encryption.KeyVaultProperties = keyVaultProperties
 			opts.Encryption.KeySource = storage.MicrosoftKeyvault
 		}
