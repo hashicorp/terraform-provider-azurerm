@@ -94,21 +94,63 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
+			"properties": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "These properties have been moved to the top level",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"app_service_environment_id": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ForceNew:      true,
+							Computed:      true,
+							Deprecated:    "This property has been moved to the top level",
+							ConflictsWith: []string{"app_service_environment_id"},
+						},
+
+						"reserved": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true,
+							Deprecated:    "This property has been moved to the top level",
+							ConflictsWith: []string{"reserved"},
+						},
+
+						"per_site_scaling": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Computed:      true,
+							Deprecated:    "This property has been moved to the top level",
+							ConflictsWith: []string{"per_site_scaling"},
+						},
+					},
+				},
+			},
+
 			/// AppServicePlanProperties
 			"app_service_environment_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"properties.0.app_service_environment_id"},
 			},
 
 			"per_site_scaling": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"properties.0.per_site_scaling"},
 			},
 
 			"reserved": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"properties.0.reserved"},
 			},
 
 			"maximum_elastic_worker_count": {
@@ -264,6 +306,10 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
+		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
+			return fmt.Errorf("Error setting `properties`: %+v", err)
+		}
+
 		if profile := props.HostingEnvironmentProfile; profile != nil {
 			d.Set("app_service_environment_id", profile.ID)
 		}
