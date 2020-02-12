@@ -92,11 +92,14 @@ func resourceArmExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta int
 	virtualHubId := d.Get("virtual_hub_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	minScaleUnits := int32(d.Get("scale_units").(int))
 	parameters := network.ExpressRouteGateway{
 		Location: utils.String(location),
 		ExpressRouteGatewayProperties: &network.ExpressRouteGatewayProperties{
 			AutoScaleConfiguration: &network.ExpressRouteGatewayPropertiesAutoScaleConfiguration{
-				Bounds: expandExpressRouteGatewayAutoScaleConfigurationBounds(d),
+				Bounds: &network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
+					Min: &minScaleUnits,
+				},
 			},
 			VirtualHub: &network.VirtualHubID{
 				ID: &virtualHubId,
@@ -154,11 +157,17 @@ func resourceArmExpressRouteGatewayRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if props := resp.ExpressRouteGatewayProperties; props != nil {
-		d.Set("virtual_hub_id", props.VirtualHub.ID)
-
-		if setErr := d.Set("scale_units", props.AutoScaleConfiguration.Bounds.Min); setErr != nil {
-			return fmt.Errorf("Error setting `scale_units`: %+v", setErr)
+		virtualHubId := ""
+		if props.VirtualHub != nil && props.VirtualHub.ID != nil {
+			virtualHubId = *props.VirtualHub.ID
 		}
+		d.Set("virtual_hub_id", virtualHubId)
+
+		scaleUnits := 0
+		if props.AutoScaleConfiguration != nil && props.AutoScaleConfiguration.Bounds != nil && props.AutoScaleConfiguration.Bounds.Min != nil {
+			scaleUnits = int(*props.AutoScaleConfiguration.Bounds.Min)
+		}
+		d.Set("scale_units", scaleUnits)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -193,11 +202,11 @@ func resourceArmExpressRouteGatewayDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandExpressRouteGatewayAutoScaleConfigurationBounds(d *schema.ResourceData) *network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds {
-	minScaleUnits := int32(d.Get("scale_units").(int))
-	configuration := network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
-		Min: &minScaleUnits,
-	}
+// func expandExpressRouteGatewayAutoScaleConfigurationBounds(d *schema.ResourceData) *network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds {
+// 	minScaleUnits := int32(d.Get("scale_units").(int))
+// 	configuration := network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
+// 		Min: &minScaleUnits,
+// 	}
 
-	return &configuration
-}
+// 	return &configuration
+// }

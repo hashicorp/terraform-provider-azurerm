@@ -15,7 +15,7 @@ Manages an ExpressRoute gateway.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West US"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_wan" "example" {
@@ -65,11 +65,26 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the ExpressRoute gateway.
+* `id` - The ID of the ExpressRoute gateway.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the ExpressRoute Gateway.
+
+* `update` - (Defaults to 60 minutes) Used when updating the ExpressRoute Gateway.
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Gateway.
+
+* `delete` - (Defaults to 60 minutes) Used when deleting the ExpressRoute Gateway.
+
 
 ## Import
 
-ExpressRoute gateways can be imported using the `resource id`, e.g.
+ExpressRoute Gateways can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_express_route_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/expressRouteGateways/myExpressRouteGateway

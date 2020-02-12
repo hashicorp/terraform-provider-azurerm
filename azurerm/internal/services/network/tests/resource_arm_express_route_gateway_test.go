@@ -179,7 +179,7 @@ func testAccAzureRMExpressRouteGateway_requiresImport(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_express_route_gateway" "test" {
+resource "azurerm_express_route_gateway" "import" {
   name                = azurerm_express_route_gateway.test.name
   resource_group_name = azurerm_express_route_gateway.test.name
   location            = azurerm_express_route_gateway.test.location
