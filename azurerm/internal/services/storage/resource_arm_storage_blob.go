@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -67,7 +66,7 @@ func resourceArmStorageBlob() *schema.Resource {
 					"Append",
 					"Block",
 					"Page",
-				}, true),
+				}, false),
 			},
 
 			"size": {
@@ -131,18 +130,6 @@ func resourceArmStorageBlob() *schema.Resource {
 			},
 
 			"metadata": MetaDataComputedSchema(),
-
-			// Deprecated fields
-			"attempts": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ForceNew:     true,
-				Deprecated:   "Retries are now handled by the Azure SDK as such this field is no longer necessary and will be removed in v2.0 of the Azure Provider",
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 		},
 	}
 }
@@ -312,7 +299,6 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", id.BlobName)
 	d.Set("storage_container_name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", account.ResourceGroup)
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)

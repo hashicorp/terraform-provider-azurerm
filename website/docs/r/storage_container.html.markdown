@@ -32,7 +32,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = azurerm_resource_group.example.name
   storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
@@ -50,8 +49,6 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of MetaData for this Container.
 
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage container. This field is no longer used and will be removed in 2.0.
-
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
@@ -61,8 +58,6 @@ The following attributes are exported in addition to the arguments listed above:
 * `has_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?
-
-* `properties` - (**Deprecated**) Key-value definition of additional properties associated to the Storage Container
 
 ## Timeouts
 

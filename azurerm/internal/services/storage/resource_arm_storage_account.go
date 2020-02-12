@@ -78,15 +78,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				Default: string(storage.Storage),
 			},
 
-			"account_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
-				ValidateFunc:     ValidateArmStorageAccountType,
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
 			"account_tier": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -1064,7 +1055,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("account_type", sku.Name)
 		d.Set("account_tier", sku.Tier)
 		d.Set("account_replication_type", strings.Split(fmt.Sprintf("%v", sku.Name), "_")[1])
 	}

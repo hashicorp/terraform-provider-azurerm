@@ -18,24 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestValidateArmStorageAccountType(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"standard_lrs", false},
-		{"invalid", true},
-	}
-
-	for _, test := range testCases {
-		_, es := storage.ValidateArmStorageAccountType(test.input, "account_type")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating account_type %q to fail", test.input)
-		}
-	}
-}
-
 func TestValidateArmStorageAccountName(t *testing.T) {
 	testCases := []struct {
 		input       string

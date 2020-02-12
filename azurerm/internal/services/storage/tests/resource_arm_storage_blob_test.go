@@ -54,7 +54,7 @@ func TestAccAzureRMStorageBlob_appendEmpty(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -78,7 +78,7 @@ func TestAccAzureRMStorageBlob_appendEmptyMetaData(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -102,7 +102,7 @@ func TestAccAzureRMStorageBlob_blockEmpty(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -126,7 +126,7 @@ func TestAccAzureRMStorageBlob_blockEmptyAzureADAuth(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -150,7 +150,7 @@ func TestAccAzureRMStorageBlob_blockEmptyMetaData(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -175,7 +175,7 @@ func TestAccAzureRMStorageBlob_blockEmptyAccessTier(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 			{
 				Config: testAccAzureRMStorageBlob_blockEmptyAccessTier(data, blobs.Hot),
@@ -213,7 +213,7 @@ func TestAccAzureRMStorageBlob_blockFromInlineContent(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_content", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source_content", "type"},
 			},
 		},
 	})
@@ -237,7 +237,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicBlob(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -261,7 +261,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicFile(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -285,7 +285,7 @@ func TestAccAzureRMStorageBlob_blockFromExistingBlob(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -318,7 +318,7 @@ func TestAccAzureRMStorageBlob_blockFromLocalFile(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source", "type"},
 			},
 		},
 	})
@@ -342,7 +342,7 @@ func TestAccAzureRMStorageBlob_contentType(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 			{
 				Config: testAccAzureRMStorageBlob_contentTypeUpdated(data),
@@ -354,7 +354,7 @@ func TestAccAzureRMStorageBlob_contentType(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -378,7 +378,7 @@ func TestAccAzureRMStorageBlob_contentTypePremium(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -402,7 +402,7 @@ func TestAccAzureRMStorageBlob_pageEmpty(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -426,7 +426,7 @@ func TestAccAzureRMStorageBlob_pageEmptyPremium(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -450,7 +450,7 @@ func TestAccAzureRMStorageBlob_pageEmptyMetaData(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -474,7 +474,7 @@ func TestAccAzureRMStorageBlob_pageFromExistingBlob(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -507,7 +507,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source", "type"},
 			},
 		},
 	})
@@ -554,7 +554,7 @@ func TestAccAzureRMStorageBlob_update(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 			{
 				Config: testAccAzureRMStorageBlob_updateUpdated(data),
@@ -566,7 +566,7 @@ func TestAccAzureRMStorageBlob_update(t *testing.T) {
 				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
 			},
 		},
 	})
@@ -763,7 +763,6 @@ func testAccAzureRMStorageBlob_appendEmpty(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "append"
@@ -778,7 +777,6 @@ func testAccAzureRMStorageBlob_appendEmptyMetaData(data acceptance.TestData) str
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "append"
@@ -797,7 +795,6 @@ func testAccAzureRMStorageBlob_blockEmpty(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -823,7 +820,6 @@ func testAccAzureRMStorageBlob_blockEmptyMetaData(data acceptance.TestData) stri
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -842,7 +838,6 @@ func testAccAzureRMStorageBlob_blockEmptyAccessTier(data acceptance.TestData, ac
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -858,7 +853,6 @@ func testAccAzureRMStorageBlob_blockFromInlineContent(data acceptance.TestData) 
 
 resource "azurerm_storage_blob" "test" {
   name                   = "rick.morty"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -874,7 +868,6 @@ func testAccAzureRMStorageBlob_blockFromPublicBlob(data acceptance.TestData) str
 
 resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -884,14 +877,12 @@ resource "azurerm_storage_blob" "source" {
 
 resource "azurerm_storage_container" "second" {
   name                  = "second"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.second.name}"
   type                   = "block"
@@ -908,7 +899,6 @@ func testAccAzureRMStorageBlob_blockFromPublicFile(data acceptance.TestData) str
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -925,7 +915,6 @@ func testAccAzureRMStorageBlob_blockFromExistingBlob(data acceptance.TestData) s
 
 resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -935,7 +924,6 @@ resource "azurerm_storage_blob" "source" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -952,7 +940,6 @@ func testAccAzureRMStorageBlob_blockFromLocalBlob(data acceptance.TestData, file
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -968,7 +955,6 @@ func testAccAzureRMStorageBlob_contentType(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -985,7 +971,6 @@ func testAccAzureRMStorageBlob_contentTypePremium(data acceptance.TestData) stri
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1002,7 +987,6 @@ func testAccAzureRMStorageBlob_contentTypeUpdated(data acceptance.TestData) stri
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1019,7 +1003,6 @@ func testAccAzureRMStorageBlob_pageEmpty(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1035,7 +1018,6 @@ func testAccAzureRMStorageBlob_pageEmptyPremium(data acceptance.TestData) string
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1051,7 +1033,6 @@ func testAccAzureRMStorageBlob_pageEmptyMetaData(data acceptance.TestData) strin
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1071,7 +1052,6 @@ func testAccAzureRMStorageBlob_pageFromExistingBlob(data acceptance.TestData) st
 
 resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1081,7 +1061,6 @@ resource "azurerm_storage_blob" "source" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1098,7 +1077,6 @@ func testAccAzureRMStorageBlob_pageFromLocalBlob(data acceptance.TestData, fileN
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "page"
@@ -1146,7 +1124,6 @@ func testAccAzureRMStorageBlob_requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "import" {
   name                   = "${azurerm_storage_blob.test.name}"
-  resource_group_name    = "${azurerm_storage_blob.test.resource_group_name}"
   storage_account_name   = "${azurerm_storage_blob.test.storage_account_name}"
   storage_container_name = "${azurerm_storage_blob.test.storage_container_name}"
   type                   = "${azurerm_storage_blob.test.type}"
@@ -1162,7 +1139,6 @@ func testAccAzureRMStorageBlob_update(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -1182,7 +1158,6 @@ func testAccAzureRMStorageBlob_updateUpdated(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
@@ -1213,7 +1188,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "%s"
 }
@@ -1238,7 +1212,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "%s"
 }
@@ -1262,7 +1235,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "%s"
 }
