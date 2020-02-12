@@ -1,4 +1,4 @@
-## 1.44.0 (Unreleased)
+## 1.44.0 (February 12, 2020)
 
 NOTES
 
@@ -8,36 +8,36 @@ NOTES
 
 FEATURES:
 
-* **New Data Source:** `azurerm_eventhub_consumer_group` [GH-5518]
-* **New Data Source:** `azurerm_function_app` [GH-5642]
-* **New Data Source:** `azurerm_iothub_dps_shared_access_policy` [GH-5516]
+* **New Data Source:** `azurerm_eventhub_consumer_group` ([#5518](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5518))
+* **New Data Source:** `azurerm_function_app` ([#5642](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5642))
+* **New Data Source:** `azurerm_iothub_dps_shared_access_policy` ([#5516](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5516))
 
 CHANGES TO BETA RESOURCES:
 
-* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
-* `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
-* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
-* `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type ([#5610](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5610))
+* `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) ([#5430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5430))
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type ([#5610](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5610))
+* `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) ([#5430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5430))
 
 IMPROVEMENTS:
 
-* `azurerm_api_management` - support for configuring the HTTP2 protocol [GH-5593]
-* `azurerm_cognitive_account` - support for the `kind` `FormRecognizer` [GH-5679]
-* `azurerm_cognitive_account` - support for the `kind` `ImmersiveReader` [GH-5604]
-* `azurerm_databricks_workspace` - support for the `Trial` SKU [GH-5652]
-* `azurerm_function_app` - support for configuring `ip_restriction` blocks [GH-5440]
-* `azurerm_function_app` - support for configuring user assigned identities [GH-5676]
-* `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
-* `azurerm_lb` - fixing a crash when the HTTP response is dropped [GH-5680]
-* `azurerm_stream_analytics_job` - support for importing jobs created in the portal [GH-5522]
-* `azurerm_storage_blob` - support for authenticating using Azure AD [GH-5614]
-* `azurerm_storage_container` - support for authenticating using Azure AD [GH-5614]
-* `azurerm_storage_queue` - support for authenticating using Azure AD [GH-5614]
+* `azurerm_api_management` - support for configuring the HTTP2 protocol ([#5593](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5593))
+* `azurerm_cognitive_account` - support for the `kind` `FormRecognizer` ([#5679](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5679))
+* `azurerm_cognitive_account` - support for the `kind` `ImmersiveReader` ([#5604](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5604))
+* `azurerm_databricks_workspace` - support for the `Trial` SKU ([#5652](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5652))
+* `azurerm_function_app` - support for configuring `ip_restriction` blocks ([#5440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5440))
+* `azurerm_function_app` - support for configuring user assigned identities ([#5676](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5676))
+* `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` ([#5619](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5619))
+* `azurerm_lb` - fixing a crash when the HTTP response is dropped ([#5680](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5680))
+* `azurerm_stream_analytics_job` - support for importing jobs created in the portal ([#5522](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5522))
+* `azurerm_storage_blob` - support for authenticating using Azure AD ([#5614](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5614))
+* `azurerm_storage_container` - support for authenticating using Azure AD ([#5614](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5614))
+* `azurerm_storage_queue` - support for authenticating using Azure AD ([#5614](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5614))
 
 BUGS:
 
-* `azurerm_storage_account` - fix hanging destroy caused by multiple network rules [GH-5565]
-* `azurerm_linux_virtual_machine` - fix `shared_image_id` parsing [GH-5640]
+* `azurerm_storage_account` - fix hanging destroy caused by multiple network rules ([#5565](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5565))
+* `azurerm_linux_virtual_machine` - fix `shared_image_id` parsing ([#5640](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5640))
 
 ## 1.43.0 (February 04, 2020)
 
