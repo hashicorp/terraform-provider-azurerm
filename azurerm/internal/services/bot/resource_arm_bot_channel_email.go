@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,16 +26,17 @@ func resourceArmBotChannelEmail() *schema.Resource {
 		Delete: resourceArmBotChannelEmailDelete,
 		Update: resourceArmBotChannelEmailUpdate,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.BotChannelEmailID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -119,26 +122,25 @@ func resourceArmBotChannelEmailRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotChannelEmailID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	botName := id.Path["botServices"]
-	resp, err := client.Get(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameEmailChannel))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameEmailChannel))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Channel Email for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, botName)
+			log.Printf("[INFO] Channel Email for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, id.BotName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+		return fmt.Errorf("Error reading Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", resp.Location)
-	d.Set("bot_name", botName)
+	d.Set("bot_name", id.BotName)
 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsEmailChannel(); ok {
@@ -156,12 +158,10 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotChannelEmailID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	botName := id.Path["botServices"]
 
 	channel := botservice.BotChannel{
 		Properties: botservice.EmailChannel{
@@ -176,17 +176,17 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, botName, botservice.ChannelNameEmailChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotName, botservice.ChannelNameEmailChannel, channel); err != nil {
+		return fmt.Errorf("Error issuing create request for Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameEmailChannel))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameEmailChannel))
 	if err != nil {
-		return fmt.Errorf("Error making get request for Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+		return fmt.Errorf("Error making get request for Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+		return fmt.Errorf("Cannot read Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -199,17 +199,15 @@ func resourceArmBotChannelEmailDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotChannelEmailID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	botName := id.Path["botServices"]
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameEmailChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameEmailChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+			return fmt.Errorf("Error deleting Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 		}
 	}
 

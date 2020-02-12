@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,16 +27,17 @@ func resourceArmBotChannelMsTeams() *schema.Resource {
 		Delete: resourceArmBotChannelMsTeamsDelete,
 		Update: resourceArmBotChannelMsTeamsUpdate,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.BotChannelMsTeamsID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -118,26 +121,25 @@ func resourceArmBotChannelMsTeamsRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotChannelMsTeamsID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	botName := id.Path["botServices"]
-	resp, err := client.Get(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Channel MsTeams for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, botName)
+			log.Printf("[INFO] Channel MsTeams for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, id.BotName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+		return fmt.Errorf("Error reading Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("bot_name", id.BotName)
 	d.Set("location", resp.Location)
-	d.Set("bot_name", botName)
 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsMsTeamsChannel(); ok {
@@ -156,8 +158,10 @@ func resourceArmBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	botName := d.Get("bot_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := parse.BotChannelMsTeamsID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
@@ -172,17 +176,17 @@ func resourceArmBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {
+		return fmt.Errorf("Error issuing create request for Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
-		return fmt.Errorf("Error making get request for Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Error making get request for Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Cannot read Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -195,17 +199,15 @@ func resourceArmBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotChannelMsTeamsID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	botName := id.Path["botServices"]
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+			return fmt.Errorf("Error deleting Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotName, err)
 		}
 	}
 

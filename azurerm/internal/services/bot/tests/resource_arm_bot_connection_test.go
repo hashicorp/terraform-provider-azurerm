@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -68,20 +69,17 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		botName := rs.Primary.Attributes["bot_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
+		id, err := parse.BotConnectionID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
-
-		resp, err := client.Get(ctx, resourceGroup, botName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on botConnectionClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Bot Connection %q (resource group: %q / bot: %q) does not exist", name, resourceGroup, botName)
+			return fmt.Errorf("Bad: Bot Connection %q (resource group: %q / bot: %q) does not exist", id.Name, id.ResourceGroup, id.BotName)
 		}
 
 		return nil
@@ -97,11 +95,11 @@ func testCheckAzureRMBotConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		botName := rs.Primary.Attributes["bot_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, botName, name)
+		id, err := parse.BotConnectionID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, id.Name)
 
 		if err != nil {
 			return nil

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -126,19 +127,17 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
+		id, err := parse.BotChannelsRegistrationID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on botClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Bot Channels Registration %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Bot Channels Registration %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -154,10 +153,11 @@ func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
+		id, err := parse.BotChannelsRegistrationID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			return nil

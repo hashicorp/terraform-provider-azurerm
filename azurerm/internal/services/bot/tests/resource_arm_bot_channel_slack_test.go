@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -76,19 +77,18 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		botName := rs.Primary.Attributes["bot_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Slack")
+		id, err := parse.BotChannelSlackID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
+		resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameSlackChannel))
 		if err != nil {
 			return fmt.Errorf("Bad: Get on botChannelClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Bot Channel Slack %q (resource group: %q / bot: %q) does not exist", name, resourceGroup, botName)
+			return fmt.Errorf("Bad: Bot Channel Slack %q (resource group: %q / bot: %q) does not exist", name, id.ResourceGroup, id.BotName)
 		}
 
 		return nil
@@ -103,11 +103,12 @@ func testCheckAzureRMBotChannelSlackDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_bot_channel_slack" {
 			continue
 		}
+		id, err := parse.BotChannelSlackID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		botName := rs.Primary.Attributes["bot_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
+		resp, err := client.Get(ctx, id.ResourceGroup, id.BotName, string(botservice.ChannelNameSlackChannel))
 
 		if err != nil {
 			return nil
