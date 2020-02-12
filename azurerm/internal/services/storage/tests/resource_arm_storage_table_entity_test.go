@@ -37,7 +37,7 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "import")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -200,7 +200,7 @@ func testAccAzureRMTableEntity_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_table_entity" "test" {
+resource "azurerm_storage_table_entity" "import" {
   storage_account_name = "${azurerm_storage_account.test.name}"
   table_name           = "${azurerm_storage_table.test.name}"
 

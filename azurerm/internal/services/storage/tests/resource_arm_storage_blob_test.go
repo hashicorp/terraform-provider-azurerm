@@ -1054,7 +1054,7 @@ resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "page"
+  type                   = "Page"
   size                   = 5120
   content_type           = "application/x-iso9660-image"
 }
@@ -1141,7 +1141,7 @@ resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
+  type                   = "Block"
   size                   = 5120
   content_type           = "vnd/panda+pops"
   metadata = {
