@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -10,6 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMachineLearningWorkspace_basic(t *testing.T) {
@@ -21,7 +22,7 @@ func TestAccAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMachineLearningWorkspaceBasic(data),
+				Config: testAccAzureRMMachineLearningWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 				),
@@ -31,7 +32,7 @@ func TestAccAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMachineLearingWorkspace_requiresImport(t *testing.T) {
+func TestAccAzureRMMachineLearningWorkspace_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -45,20 +46,20 @@ func TestAccAzureRMMachineLearingWorkspace_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMachineLearningWorkspaceBasic(data),
+				Config: testAccAzureRMMachineLearningWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMachineLearningWorkspaceRequiresImport(data),
+				Config:      testAccAzureRMMachineLearningWorkspace_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_machine_learning_workspace"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMachineLearningWorkspaceWithTags(t *testing.T) {
+func TestAccAzureRMMachineLearningWorkspace_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +75,7 @@ func TestAccAzureRMMachineLearningWorkspaceWithTags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMMachineLearningWorkspaceWithTagsUpdate(data),
+				Config: testAccAzureRMMachineLearningWorkspace_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -85,7 +86,7 @@ func TestAccAzureRMMachineLearningWorkspaceWithTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMachineLearningWorkspaceWithContainerRegistry(t *testing.T) {
+func TestAccAzureRMMachineLearningWorkspace_withContainerRegistry(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,7 +95,7 @@ func TestAccAzureRMMachineLearningWorkspaceWithContainerRegistry(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMachineLearningWorkspaceWithContainerRegistry(data),
+				Config: testAccAzureRMMachineLearningWorkspace_withContainerRegistry(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 				),
@@ -104,7 +105,7 @@ func TestAccAzureRMMachineLearningWorkspaceWithContainerRegistry(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMachineLearningWorkspaceWithStorageAccount(t *testing.T) {
+func TestAccAzureRMMachineLearningWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -113,64 +114,7 @@ func TestAccAzureRMMachineLearningWorkspaceWithStorageAccount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMachineLearningWorkspaceWithStorageAccount(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMachineLearningWorkspaceWithKeyVault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMachineLearningWorkspaceWithKeyVault(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMachineLearningWorkspaceWithApplicationInsights(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMachineLearningWorkspaceWithApplicationInsights(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMachineLearningWorkspaceFull(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMachineLearningWorkspaceFull(data),
+				Config: testAccAzureRMMachineLearningWorkspace_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 				),
@@ -182,28 +126,24 @@ func TestAccAzureRMMachineLearningWorkspaceFull(t *testing.T) {
 
 func testCheckAzureRMMachineLearningWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Machine Learning Workspace not found: %s", resourceName)
+		}
+
+		id, err := parse.WorkspaceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MachineLearning.WorkspacesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		wsName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Machine Learning Workspace: %s", wsName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, wsName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get Machine Learning Workspace Client: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Machine Learning Workspace %s (resource group: %s) does not exist", wsName, resourceGroup)
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Machine Learning Workspace %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+			}
+			return fmt.Errorf("Bad: Get on machinelearningservices.WorkspacesClient: %+v", err)
 		}
 
 		return nil
@@ -211,7 +151,7 @@ func testCheckAzureRMMachineLearningWorkspaceExists(resourceName string) resourc
 }
 
 func testCheckAzureRMMachineLearningWorkspaceDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).MachineLearning.WorkspacesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MachineLearning.WorkspacesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -219,230 +159,203 @@ func testCheckAzureRMMachineLearningWorkspaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		wsName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, wsName)
+		id, err := parse.WorkspaceID(rs.Primary.ID)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
 			return err
 		}
 
-		return fmt.Errorf("Machine Learning Workspace still exists:\n%#v", resp)
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on machinelearningservices.WorkspacesClient: %+v", err)
+			}
+		}
+
+		return nil
 	}
 
 	return nil
 }
 
-func testAccAzureRMMachineLearningWorkspaceRequiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMachineLearningWorkspaceBasic(data)
+func testAccAzureRMMachineLearningWorkspace_basic(data acceptance.TestData) string {
+	template := testAccAzureRMMachineLearningWorkspace_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctestworkspace-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomIntOfLength(16))
+}
+
+func testAccAzureRMMachineLearningWorkspace_withContainerRegistry(data acceptance.TestData) string {
+	template := testAccAzureRMMachineLearningWorkspace_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_registry" "test" {
+  name                = "acctestacr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  admin_enabled       = true
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctestworkspace%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+  container_registry_id   = azurerm_container_registry.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomIntOfLength(16))
+}
+
+func testAccAzureRMMachineLearningWorkspaceWithTags(data acceptance.TestData) string {
+	template := testAccAzureRMMachineLearningWorkspace_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctestworkspace-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    ENV = "Test"
+	FOO = "bar"
+  }
+}
+`, template, data.RandomIntOfLength(16))
+}
+
+func testAccAzureRMMachineLearningWorkspace_withTagsUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMMachineLearningWorkspace_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctestworkspace-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomIntOfLength(16))
+}
+
+func testAccAzureRMMachineLearningWorkspace_complete(data acceptance.TestData) string {
+	template := testAccAzureRMMachineLearningWorkspace_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_registry" "test" {
+  name                = "acctestacr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  admin_enabled       = true
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctestworkspace-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  friendly_name           = "test-workspace"
+  description             = "Test machine learning workspace"
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+  container_registry_id   = azurerm_container_registry.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomIntOfLength(16))
+}
+
+func testAccAzureRMMachineLearningWorkspace_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMachineLearningWorkspace_basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_machine_learning_workspace" "import" {
-  name                = azurerm_machine_learning_workspace.test.name
-  resource_group_name = azurerm_machine_learning_workspace.test.resource_group_name
+  name                    = azurerm_machine_learning_workspace.test.name
+  location                = azurerm_machine_learning_workspace.test.location
+  resource_group_name     = azurerm_machine_learning_workspace.test.resource_group_name
+  application_insights_id = azurerm_machine_learning_workspace.test.application_insights_id
+  key_vault_id            = azurerm_machine_learning_workspace.test.key_vault_id
+  storage_account_id      = azurerm_machine_learning_workspace.test.storage_account_id
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template)
 }
 
-func testAccAzureRMMachineLearningWorkspaceBasic(data acceptance.TestData) string {
+func testAccAzureRMMachineLearningWorkspace_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-  description = "aml workspace description"
-  friendly_name = "aml workspace friendly name"
+  name     = "acctestRG-ml-%[1]d"
+  location = "%[2]s"
 }
 
-resource "azurerm_machine_learning_workspace" "test" {
-  name                = "acctestworkspace%d"
+resource "azurerm_application_insights" "test" {
+  name                = "acctestai-%[1]d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMMachineLearningWorkspaceWithContainerRegistry(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  application_type    = "web"
 }
 
-resource "azurerm_container_registry" "acrtest" {
-	name                = "acctestacr%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = "%s"
-	sku                 = "Standard"
-	admin_enabled       = true
-}
-
-resource "azurerm_machine_learning_workspace" "test" {
-  name                = "acctestworkspace%d"
-  resource_group_name              = azurerm_resource_group.test.name
-  container_registry               = azurerm_container_registry.acttest.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMMachineLearningWorkspaceWithStorageAccount(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
-}
-
-resource "azurerm_storage_account" "stortest" {
-	name                      = "accteststor%d"
-	resource_group_name       = azurerm_resource_group.test.name
-	location                  = azurerm_resource_group.test.location
-	account_kind              = "StorageV2"
-	account_tier              = "Standard"
-	account_replication_type  = "LRS"
-}
-
-resource "azurerm_machine_learning_workspace" "amltest" {
-	name                = "acctestworkspace%d"
-	resource_group_name = azurerm_resource_group.test.name
-	storage_account     = azurerm_storage_account.stortest.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMMachineLearningWorkspaceWithApplicationInsights(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
-}
-
-resource "azurerm_storage_account" "aitest" {
-	name                 = "acctestai%d"
-	resource_group_name  = azurerm_resource_group.test.name
-	location             = azurerm_resource_group.test.location
-	application_type     = "web"
-}
-
-resource "azurerm_machine_learning_workspace" "amltest" {
-	name                	= "acctestworkspace%d"
-	resource_group_name   = azurerm_resource_group.test.name
-	application_insights  = azurerm_storage_account.aitest.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMMachineLearningWorkspaceWithKeyVault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
-}
-
-resource "azurerm_storage_account" "kvtest" {
-	name                 = "acctestkv%d"
-	resource_group_name  = azurerm_resource_group.test.name
-	location             = azurerm_resource_group.test.location
-	enabled_for_disk_encryption     = true
-    tenant_id                       = "%s"
-    enabled_for_template_deployment = false
-    enabled_for_deployment          = false
-    sku_name                        = "Standard"
-}
-
-resource "azurerm_machine_learning_workspace" "amltest" {
-	name                  = "acctestworkspace%d"
-	resource_group_name   = azurerm_resource_group.test.name
-	application_insights  = azurerm_storage_account.aitest.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID, data.RandomInteger)
-}
-
-func testAccAzureRMMachineLearningWorkspaceWithTags(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
-}
-
-resource "azurerm_machine_learning_workspace" "amltest" {
-  name                = "acctestworkspace%d"
+resource "azurerm_key_vault" "test" {
+  name                = "acctestvault%[3]d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  tags = {
-    environment = "Production"
-    cost_center = "MSFT"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+  sku_name = "premium"
 }
 
-func testAccAzureRMMachineLearningWorkspaceWithTagsUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[4]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
-
-resource "azurerm_machine_learning_workspace" "amltest" {
-  name                = "acctestworkspace%d"
-  resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    environment = "staging"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMMachineLearningWorkspaceFull(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG_%d"
-	location = "%s"
-}
-
-resource "azurerm_container_registry" "acrtest" {
-	name                = "acctestacr%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sku                 = "Standard"
-	admin_enabled       = true
-}
-
-resource "azurerm_application_insights" "aitest" {
-	name                 = "aitest%d"
-	resource_group_name  = azurerm_resource_group.test.name
-	location             = azurerm_resource_group.test.location
-	application_type     = "web"
-}
-
-resource "azurerm_storage_account" "stortest" {
-	name                      = "stortest%d"
-	resource_group_name       = azurerm_resource_group.test.name
-	location                  = azurerm_resource_group.test.location
-	account_kind              = "StorageV2"
-	account_tier              = "Standard"
-	account_replication_type  = "LRS"
-}
-
-resource "azurerm_key_vault" "kvtest" {
-	name                 = "kvtest%d"
-	resource_group_name  = azurerm_resource_group.test.name
-	location             = azurerm_resource_group.test.location
-	enabled_for_disk_encryption     = true
-    tenant_id                       = "%s"
-    enabled_for_template_deployment = false
-    enabled_for_deployment          = false
-    sku_name                        = "Standard"
-}
-
-resource "azurerm_machine_learning_workspace" "amltest" {
-	name                  = "acctestworkspace%d"
-	resource_group_name   = azurerm_resource_group.test.name
-	application_insights  = azurerm_storage_account.aitest.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(15))
 }

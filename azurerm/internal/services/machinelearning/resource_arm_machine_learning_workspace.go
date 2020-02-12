@@ -1,28 +1,39 @@
 package machinelearning
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2019-11-01/machinelearningservices"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMachineLearningWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMachineLearningWorkspaceCreateUpdate,
+		Create: resourceArmMachineLearningWorkspaceCreate,
 		Read:   resourceArmMachineLearningWorkspaceRead,
-		Update: resourceArmMachineLearningWorkspaceCreateUpdate,
+		Update: resourceArmMachineLearningWorkspaceUpdate,
 		Delete: resourceArmMachineLearningWorkspaceDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.WorkspaceID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,62 +44,44 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"description": {
+			"application_insights_id": {
 				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"friendly_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"key_vault": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"application_insights": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"container_registry": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"storage_account": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"tags": tags.Schema(),
-
-			"sku": {
-				Type:     schema.TypeList,
 				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
+				ForceNew: true,
+				// TODO -- use the custom validation function of application insights
+				ValidateFunc: azure.ValidateResourceID,
+				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"key_vault_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				// TODO -- use the custom validation function of key vault
+				ValidateFunc: azure.ValidateResourceID,
+				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"storage_account_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				// TODO -- use the custom validation function of storage account
+				ValidateFunc: azure.ValidateResourceID,
+				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"identity": {
@@ -98,13 +91,11 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(machinelearningservices.SystemAssigned),
-								"systemAssigned",
-							}, true),
+							}, false),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -117,58 +108,124 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 					},
 				},
 			},
+
+			"container_registry_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// TODO -- use the custom validation function of container registry
+				ValidateFunc: azure.ValidateResourceID,
+				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"friendly_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Basic",
+					"Enterprise",
+				}, true),
+				Default: "Basic",
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmMachineLearningWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 
-	existing, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for existing Azure Machine Learning Workspace %q (Resource Group %q): %s", name, resGroup, err)
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for existing AML Workspace %q (Resource Group %q): %s", name, resGroup, err)
+			}
 		}
-
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_machine_learning_workspace", *existing.ID)
 		}
 	}
 
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	storageAccountId := d.Get("storage_account_id").(string)
+	keyVaultId := d.Get("key_vault_id").(string)
+	applicationInsightsId := d.Get("application_insights_id").(string)
+	skuName := d.Get("sku_name").(string)
+
+	identityRaw := d.Get("identity").([]interface{})
+	identity := expandArmMachineLearningWorkspaceIdentity(identityRaw)
+
+	t := d.Get("tags").(map[string]interface{})
+
 	workspace := machinelearningservices.Workspace{
-		Name:                &name,
-		Location:            &location,
-		Tags:                tags.Expand(t),
-		Sku:                 expandArmMachineLearningSku(d),
-		Identity:            expandArmMachineLearningWorkspaceIdentity(d),
-		WorkspaceProperties: expandWorkspaceProperties(d),
+		Name:     &name,
+		Location: &location,
+		Tags:     tags.Expand(t),
+		Sku:      &machinelearningservices.Sku{Name: utils.String(skuName)},
+		Identity: identity,
+		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
+			StorageAccount:      &storageAccountId,
+			ApplicationInsights: &applicationInsightsId,
+			KeyVault:            &keyVaultId,
+		},
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		workspace.Description = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("friendly_name"); ok {
+		workspace.FriendlyName = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("container_registry_id"); ok {
+		workspace.ContainerRegistry = utils.String(v.(string))
+	}
+
+	accountsClient := meta.(*clients.Client).Storage.AccountsClient
+	if err := validateStorageAccount(ctx, accountsClient, storageAccountId); err != nil {
+		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	registriesClient := meta.(*clients.Client).Containers.RegistriesClient
+	if err := validateContainerRegistry(ctx, registriesClient, workspace.ContainerRegistry); err != nil {
+		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, workspace)
 	if err != nil {
-		return fmt.Errorf("Error during Azure Machine Learning Workspace creation %q in resource group (%q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error creating Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Azure Machine Learning Workspace %q (Resource Group %q) to be created..", name, resGroup)
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for create/update of Azure Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for creation of Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
-	log.Printf("[DEBUG] Azure Machine Learning Workspace %q (Resource Group %q) was created", name, resGroup)
 
-	log.Printf("[DEBUG] Retrieving Azure Machine Learning Workspace %q (Resource Group %q)..", name, resGroup)
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Azure Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving Machine Learning Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
+
 	if resp.ID == nil {
-		return fmt.Errorf("Error reading Azure Machine Learning Workspace %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Machine Learning Workspace %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -178,118 +235,198 @@ func resourceArmMachineLearningWorkspaceCreateUpdate(d *schema.ResourceData, met
 
 func resourceArmMachineLearningWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["machineLearningServices"]
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
 	if props := resp.WorkspaceProperties; props != nil {
+		d.Set("application_insights_id", props.ApplicationInsights)
+		d.Set("storage_account_id", props.StorageAccount)
+		d.Set("key_vault_id", props.KeyVault)
+		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
-		d.Set("storage_account", props.StorageAccount)
-		d.Set("discovery_url", props.DiscoveryURL)
-		d.Set("container_registry", props.ContainerRegistry)
-		d.Set("application_insights", props.ApplicationInsights)
-		d.Set("key_vault", props.KeyVault)
+	}
+
+	if err := d.Set("identity", flattenArmMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error flattening identity on Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMachineLearningWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMachineLearningWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["machineLearningServices"]
+	update := machinelearningservices.WorkspaceUpdateParameters{
+		WorkspacePropertiesUpdateParameters: &machinelearningservices.WorkspacePropertiesUpdateParameters{},
+	}
 
-	_, err = client.Delete(ctx, resGroup, name)
+	if d.HasChange("sku_name") {
+		skuName := d.Get("sku_name").(string)
+		update.Sku = &machinelearningservices.Sku{
+			Name: &skuName,
+		}
+	}
+
+	if d.HasChange("description") {
+		description := d.Get("description").(string)
+		update.WorkspacePropertiesUpdateParameters.Description = &description
+	}
+
+	if d.HasChange("friendly_name") {
+		friendlyName := d.Get("friendly_name").(string)
+		update.WorkspacePropertiesUpdateParameters.FriendlyName = &friendlyName
+	}
+
+	if d.HasChange("tags") {
+		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	_, err = client.Update(ctx, id.ResourceGroup, id.Name, update)
 	if err != nil {
-		return fmt.Errorf("Error deleting workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error updating Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return resourceArmMachineLearningWorkspaceRead(d, meta)
+}
+
+func resourceArmMachineLearningWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.WorkspaceID(d.Id())
+	if err != nil {
+		return fmt.Errorf("Error parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
+	}
+
+	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandWorkspaceProperties(d *schema.ResourceData) *machinelearningservices.WorkspaceProperties {
-	properties := machinelearningservices.WorkspaceProperties{}
-
-	if description, hasDescription := d.GetOk("description"); hasDescription {
-		de := description.(string)
-		properties.Description = &de
+func validateStorageAccount(ctx context.Context, client *storage.AccountsClient, accountID string) error {
+	if accountID == "" {
+		return fmt.Errorf("Error validating Storage Account: Empty ID")
 	}
 
-	if friendlyName, hasFriendlyName := d.GetOk("friendly_name"); hasFriendlyName {
-		f := friendlyName.(string)
-		properties.FriendlyName = &f
+	// TODO -- use parse function "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers".ParseAccountID
+	// when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
+	id, err := parse.AccountIDCaseDiffSuppress(accountID)
+	if err != nil {
+		return fmt.Errorf("Error validating Storage Account: %+v", err)
 	}
 
-	if storage, hasStorage := d.GetOk("storage_account"); hasStorage {
-		s := storage.(string)
-		properties.StorageAccount = &s
+	account, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("Error validating Storage Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if sku := account.Sku; sku != nil {
+		if sku.Tier == storage.Premium {
+			return fmt.Errorf("Error validating Storage Account %q (Resource Group %q): The associated Storage Account must not be Premium", id.Name, id.ResourceGroup)
+		}
 	}
 
-	if containerRegistry, hasContainerRegistry := d.GetOk("container_registry"); hasContainerRegistry {
-		c := containerRegistry.(string)
-		properties.ContainerRegistry = &c
-	}
-
-	if applicationInsights, hasApplicationInsights := d.GetOk("application_insights"); hasApplicationInsights {
-		i := applicationInsights.(string)
-		properties.ApplicationInsights = &i
-	}
-
-	if keyVault, hasKeyVault := d.GetOk("key_vault"); hasKeyVault {
-		k := keyVault.(string)
-		properties.KeyVault = &k
-	}
-
-	return &properties
+	return nil
 }
 
-func expandArmMachineLearningWorkspaceIdentity(d *schema.ResourceData) *machinelearningservices.Identity {
-	identities := d.Get("identity").([]interface{})
-	identity := identities[0].(map[string]interface{})
-	identityType := machinelearningservices.ResourceIdentityType(identity["type"].(string))
-	return &machinelearningservices.Identity{
+func validateContainerRegistry(ctx context.Context, client *containerregistry.RegistriesClient, acrID *string) error {
+	if acrID == nil {
+		return nil
+	}
+
+	// TODO: use container registry's custom ID parse function when implemented
+	id, err := azure.ParseAzureResourceID(*acrID)
+	if err != nil {
+		return fmt.Errorf("Error validating Container Registry: %+v", err)
+	}
+
+	acrName := id.Path["registries"]
+	resourceGroup := id.ResourceGroup
+	acr, err := client.Get(ctx, resourceGroup, acrName)
+	if err != nil {
+		return fmt.Errorf("Error validating Container Registry %q (Resource Group %q): %+v", acrName, resourceGroup, err)
+	}
+	if acr.AdminUserEnabled == nil || !*acr.AdminUserEnabled {
+		return fmt.Errorf("Error validating Container Registry%q (Resource Group %q): The associated Container Registry must set `admin_enabled` to true", acrName, resourceGroup)
+	}
+
+	return nil
+}
+
+func expandArmMachineLearningWorkspaceIdentity(input []interface{}) *machinelearningservices.Identity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	identityType := machinelearningservices.ResourceIdentityType(v["type"].(string))
+
+	identity := machinelearningservices.Identity{
 		Type: identityType,
 	}
+
+	return &identity
 }
 
-func expandArmMachineLearningSku(d *schema.ResourceData) *machinelearningservices.Sku {
-	s := d.Get("sku").([]interface{})
-	sku := s[0].(map[string]interface{})
-	skuName := sku["name"].(string)
-	skuTier := sku["tier"].(string)
-	return &machinelearningservices.Sku{
-		Name: &skuName,
-		Tier: &skuTier,
+func flattenArmMachineLearningWorkspaceIdentity(identity *machinelearningservices.Identity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
+
+	t := string(identity.Type)
+
+	principalID := ""
+	if identity.PrincipalID != nil {
+		principalID = *identity.PrincipalID
+	}
+
+	tenantID := ""
+	if identity.TenantID != nil {
+		tenantID = *identity.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         t,
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
 	}
 }
