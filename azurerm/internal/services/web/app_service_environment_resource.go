@@ -12,6 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,7 +27,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 		Update: resourceArmAppServiceEnvironmentCreateOrUpdate,
 		Delete: resourceArmAppServiceEnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceEnvironmentID(id)
+			_, err := parse.AppServiceEnvironmentID(id)
 			return err
 		}),
 
@@ -42,7 +44,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppServiceEnvironmentName,
+				ValidateFunc: validate.AppServiceEnvironmentName,
 			},
 
 			"internal_load_balancing_mode": {
@@ -68,7 +70,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "I1",
-				ValidateFunc: validateAppServiceEnvironmentPricingTier,
+				ValidateFunc: validate.AppServiceEnvironmentPricingTier,
 			},
 
 			"front_end_scale_factor": {
@@ -128,6 +130,7 @@ func resourceArmAppServiceEnvironmentCreateOrUpdate(d *schema.ResourceData, meta
 	pricingTier := d.Get("pricing_tier").(string)
 
 	// the SDK is coded primarily for v1, which needs a non-null entry for workerpool, so we construct an empty slice for it
+	// TODO Submit change for SDK?
 	wp := []web.WorkerPool{{}}
 
 	envelope := web.AppServiceEnvironmentResource{
@@ -173,7 +176,7 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceEnvironmentID(d.Id())
+	id, err := parse.AppServiceEnvironmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -223,7 +226,7 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceEnvironmentID(d.Id())
+	id, err := parse.AppServiceEnvironmentID(d.Id())
 	if err != nil {
 		return err
 	}
