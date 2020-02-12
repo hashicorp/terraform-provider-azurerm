@@ -283,12 +283,7 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 		Target:     []string{"Deleted"},
 		Refresh:    relayNamespaceDeleteRefreshFunc(ctx, client, resourceGroup, name),
 		MinTimeout: 15 * time.Second,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 60 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
