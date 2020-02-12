@@ -8,9 +8,11 @@ description: |-
 
 # Azure Provider: Migrating to a renamed resource
 
-This guide examples how to migrate from a resource which have been deprecated to it's replacement. The complete list of resources which have been deprecated in favour of others can be found below.
+This guide shows how to migrate from a resource which have been deprecated to its replacement. The complete list of resources which have been deprecated in favour of others can be found below.
 
-~> **Note:** The following resources have been Deprecated and will be removed in version 2.0 of the Azure Provider. You must move off the deprecated resources to upgrade to 2.0.
+~> **Note:** The following resources have been Deprecated and will be removed in version 2.0 of the Azure Provider
+
+!> **Note:** You must move off the deprecated resources to upgrade to version 2.0 of the Azure Provider.
 
 | Old Name                                               | New Name                                           |
 | ------------------------------------------------------ | -------------------------------------------------- |
@@ -78,7 +80,7 @@ resource "azurerm_monitor_autoscale_setting" "example" {
 }
 ```
 
-As the Terraform Configuration has been updated - we now need to update the State. We can view the items Terraform is tracking in it's Statefile using the `terraform state list` command, for example:
+As the Terraform Configuration has been updated - we now need to update the State. We can view the items Terraform is tracking in its Statefile using the `terraform state list` command, for example:
 
 ```bash
 $ terraform state list
@@ -89,14 +91,14 @@ azurerm_virtual_machine.example
 
 In order to migrate from the old resource to the new resource we need to first remove the old resource from the state - and subsequently use Terraform's [import functionality](https://www.terraform.io/docs/import/index.html) to migrate to the new resource.
 
-To import a resource in Terraform we first require it's Resource ID - we can obtain this from the command-line via:
+To import a resource in Terraform we first require its Resource ID - we can obtain this from the command-line via:
 
 ```shell
 $ echo azurerm_autoscale_setting.example.id | terraform console
 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
 ```
 
-Firstly we can remove the existing resource using `terraform state rm` - for example:
+Next we can remove the existing resource using `terraform state rm` - for example:
 
 ```shell
 $ terraform state rm azurerm_autoscale_setting.example
