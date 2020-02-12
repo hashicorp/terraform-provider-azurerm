@@ -3,15 +3,15 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_environment"
 description: |-
-  Manages an App Service Environment v2.
+  Manages an App Service Environment.
 
 ---
 
 # azurerm_app_service_environment
 
-Manages a App Service Environment v2
+Manages a App Service Environment
 
-*WARNING* Deleting an App Service Environment resource will also delete App Service Plans and App Services associated with it. 
+**WARNING** Deleting an App Service Environment resource will also delete App Service Plans and App Services associated with it. 
 
 ## Example Usage
 
@@ -57,17 +57,19 @@ resource "azurerm_app_service_environment" "example" {
 
 * `name` - (Required) name of the App Service Environment. 
 
-~> *NOTE* Must meet DNS name specification.
+~> **NOTE** Must meet DNS name specification.
 
 * `subnet_id` - (Required) Resource ID for the ASE subnet.
 
-~> *NOTE* a /24 or larger CIDR is required.
+~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
 
 * `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1` (default), `I2` and `I3`. 
 
+~> **NOTE** Azure currently utilises Dv2 instances for Isolated SKUs, being `Standard_D1_V2`, `Standard_D2_V2`, and `Standard_D3_V2`.
+
 * `front_end_scale_factor` - (Optional) Scale factor for front end instances. Possible values are between `15` (default) and `5`.
 
-~> *NOTE* Lowering/changing this value has cost implications, see https://docs.microsoft.com/en-us/azure/app-service/environment/using-an-ase#front-end-scaling for details.
+~> **NOTE** Lowering/changing this value has cost implications, see https://docs.microsoft.com/en-us/azure/app-service/environment/using-an-ase#front-end-scaling for details.
 
 ## Attribute Reference
 
