@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,14 +47,6 @@ func AzureProvider() terraform.ResourceProvider {
 			}
 
 			resources[k] = v
-		}
-	}
-
-	// TODO: remove all of this in 2.0 once Custom Timeouts are supported
-	if !features.SupportsCustomTimeouts() {
-		// ensure any timeouts configured on the resources are removed until 2.0
-		for _, v := range resources {
-			v.Timeouts = nil
 		}
 	}
 

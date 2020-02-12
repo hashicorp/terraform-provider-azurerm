@@ -276,11 +276,7 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
 		Refresh: netappVolumeDeleteStateRefreshFunc(ctx, client, resourceGroup, accountName, poolName, name),
-	}
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 20 * time.Minute
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {

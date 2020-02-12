@@ -217,14 +217,10 @@ func resourceArmRecoveryServicesProtectedVmWaitForStateCreateUpdate(ctx context.
 		Refresh:    resourceArmRecoveryServicesProtectedVmRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, true),
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			state.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			state.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		state.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		state.Timeout = 30 * time.Minute
+		state.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	resp, err := state.WaitForState()
@@ -243,12 +239,7 @@ func resourceArmRecoveryServicesProtectedVmWaitForDeletion(ctx context.Context, 
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
 		Refresh:    resourceArmRecoveryServicesProtectedVmRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, false),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		state.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		state.Timeout = 30 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
 	resp, err := state.WaitForState()
