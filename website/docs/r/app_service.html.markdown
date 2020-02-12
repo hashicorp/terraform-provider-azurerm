@@ -75,6 +75,8 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+* `backup` - (Optional) A `backup` block as defined below.
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
