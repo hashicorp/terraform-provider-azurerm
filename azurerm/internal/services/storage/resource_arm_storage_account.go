@@ -1369,21 +1369,30 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 }
 
 func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
-	blobServiceProperties := storage.BlobServicePropertiesProperties{}
-	blobProperties := storage.BlobServiceProperties{
-		BlobServicePropertiesProperties: &blobServiceProperties,
+	props := storage.BlobServiceProperties{
+		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+			Cors: &storage.CorsRules{
+				CorsRules: &[]storage.CorsRule{},
+			},
+			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
+				Enabled: utils.Bool(false),
+			},
+		},
 	}
 
 	if len(input) == 0 || input[0] == nil {
-		return blobProperties
+		return props
 	}
 
-	blobAttr := input[0].(map[string]interface{})
+	v := input[0].(map[string]interface{})
 
-	blobServiceProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(blobAttr["delete_retention_policy"].([]interface{}))
-	blobServiceProperties.Cors = expandBlobPropertiesCors(blobAttr["cors_rule"].([]interface{}))
+	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 
-	return blobProperties
+	corsRaw := v["cors_rule"].([]interface{})
+	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
+
+	return props
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
@@ -1437,7 +1446,17 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
 	var err error
-	properties := queues.StorageServiceProperties{}
+	properties := queues.StorageServiceProperties{
+		Cors: &queues.Cors{
+			CorsRule: []queues.CorsRule{},
+		},
+		HourMetrics: &queues.MetricsConfig{
+			Enabled: false,
+		},
+		MinuteMetrics: &queues.MetricsConfig{
+			Enabled: false,
+		},
+	}
 	if len(input) == 0 {
 		return properties, nil
 	}
