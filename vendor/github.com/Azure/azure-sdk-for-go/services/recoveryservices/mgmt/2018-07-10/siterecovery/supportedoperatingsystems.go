@@ -35,9 +35,7 @@ func NewSupportedOperatingSystemsClient(subscriptionID string, resourceGroupName
 	return NewSupportedOperatingSystemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewSupportedOperatingSystemsClientWithBaseURI creates an instance of the SupportedOperatingSystemsClient client
-// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
-// clouds, Azure stack).
+// NewSupportedOperatingSystemsClientWithBaseURI creates an instance of the SupportedOperatingSystemsClient client.
 func NewSupportedOperatingSystemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) SupportedOperatingSystemsClient {
 	return SupportedOperatingSystemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

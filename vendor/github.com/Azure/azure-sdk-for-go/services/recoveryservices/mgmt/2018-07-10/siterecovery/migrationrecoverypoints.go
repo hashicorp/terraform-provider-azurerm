@@ -35,9 +35,7 @@ func NewMigrationRecoveryPointsClient(subscriptionID string, resourceGroupName s
 	return NewMigrationRecoveryPointsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewMigrationRecoveryPointsClientWithBaseURI creates an instance of the MigrationRecoveryPointsClient client using a
-// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
-// Azure stack).
+// NewMigrationRecoveryPointsClientWithBaseURI creates an instance of the MigrationRecoveryPointsClient client.
 func NewMigrationRecoveryPointsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) MigrationRecoveryPointsClient {
 	return MigrationRecoveryPointsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

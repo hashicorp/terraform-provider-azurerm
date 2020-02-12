@@ -37,8 +37,7 @@ func NewReplicationEligibilityResultsClient(subscriptionID string, resourceGroup
 }
 
 // NewReplicationEligibilityResultsClientWithBaseURI creates an instance of the ReplicationEligibilityResultsClient
-// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
-// (sovereign clouds, Azure stack).
+// client.
 func NewReplicationEligibilityResultsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationEligibilityResultsClient {
 	return ReplicationEligibilityResultsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

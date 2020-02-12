@@ -36,9 +36,7 @@ func NewReplicationMigrationItemsClient(subscriptionID string, resourceGroupName
 	return NewReplicationMigrationItemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationMigrationItemsClientWithBaseURI creates an instance of the ReplicationMigrationItemsClient client
-// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
-// clouds, Azure stack).
+// NewReplicationMigrationItemsClientWithBaseURI creates an instance of the ReplicationMigrationItemsClient client.
 func NewReplicationMigrationItemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationMigrationItemsClient {
 	return ReplicationMigrationItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

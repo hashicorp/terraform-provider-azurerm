@@ -36,9 +36,7 @@ func NewReplicationLogicalNetworksClient(subscriptionID string, resourceGroupNam
 	return NewReplicationLogicalNetworksClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationLogicalNetworksClientWithBaseURI creates an instance of the ReplicationLogicalNetworksClient client
-// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
-// clouds, Azure stack).
+// NewReplicationLogicalNetworksClientWithBaseURI creates an instance of the ReplicationLogicalNetworksClient client.
 func NewReplicationLogicalNetworksClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationLogicalNetworksClient {
 	return ReplicationLogicalNetworksClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

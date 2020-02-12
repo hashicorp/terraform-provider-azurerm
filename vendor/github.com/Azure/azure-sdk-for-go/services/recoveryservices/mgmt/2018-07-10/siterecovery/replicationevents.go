@@ -35,9 +35,7 @@ func NewReplicationEventsClient(subscriptionID string, resourceGroupName string,
 	return NewReplicationEventsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationEventsClientWithBaseURI creates an instance of the ReplicationEventsClient client using a custom
-// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
-// stack).
+// NewReplicationEventsClientWithBaseURI creates an instance of the ReplicationEventsClient client.
 func NewReplicationEventsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationEventsClient {
 	return ReplicationEventsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

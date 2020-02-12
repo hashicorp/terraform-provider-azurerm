@@ -745,22 +745,6 @@ func PossibleInstanceTypeBasicRecoveryPlanActionDetailsValues() []InstanceTypeBa
 	return []InstanceTypeBasicRecoveryPlanActionDetails{InstanceTypeAutomationRunbookActionDetails, InstanceTypeManualActionDetails, InstanceTypeRecoveryPlanActionDetails, InstanceTypeScriptActionDetails}
 }
 
-// InstanceTypeBasicRecoveryPlanProviderSpecificDetails enumerates the values for instance type basic recovery
-// plan provider specific details.
-type InstanceTypeBasicRecoveryPlanProviderSpecificDetails string
-
-const (
-	// InstanceTypeRecoveryPlanA2ADetails ...
-	InstanceTypeRecoveryPlanA2ADetails InstanceTypeBasicRecoveryPlanProviderSpecificDetails = "RecoveryPlanA2ADetails"
-	// InstanceTypeRecoveryPlanProviderSpecificDetails ...
-	InstanceTypeRecoveryPlanProviderSpecificDetails InstanceTypeBasicRecoveryPlanProviderSpecificDetails = "RecoveryPlanProviderSpecificDetails"
-)
-
-// PossibleInstanceTypeBasicRecoveryPlanProviderSpecificDetailsValues returns an array of possible values for the InstanceTypeBasicRecoveryPlanProviderSpecificDetails const type.
-func PossibleInstanceTypeBasicRecoveryPlanProviderSpecificDetailsValues() []InstanceTypeBasicRecoveryPlanProviderSpecificDetails {
-	return []InstanceTypeBasicRecoveryPlanProviderSpecificDetails{InstanceTypeRecoveryPlanA2ADetails, InstanceTypeRecoveryPlanProviderSpecificDetails}
-}
-
 // InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput enumerates the values for instance type basic
 // recovery plan provider specific failover input.
 type InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput string
@@ -783,22 +767,6 @@ const (
 // PossibleInstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputValues returns an array of possible values for the InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput const type.
 func PossibleInstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputValues() []InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput {
 	return []InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput{InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeA2A, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeHyperVReplicaAzure, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeHyperVReplicaAzureFailback, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeInMage, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeInMageAzureV2, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeRecoveryPlanProviderSpecificFailoverInput}
-}
-
-// InstanceTypeBasicRecoveryPlanProviderSpecificInput enumerates the values for instance type basic recovery
-// plan provider specific input.
-type InstanceTypeBasicRecoveryPlanProviderSpecificInput string
-
-const (
-	// InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeA2A ...
-	InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeA2A InstanceTypeBasicRecoveryPlanProviderSpecificInput = "A2A"
-	// InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeRecoveryPlanProviderSpecificInput ...
-	InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeRecoveryPlanProviderSpecificInput InstanceTypeBasicRecoveryPlanProviderSpecificInput = "RecoveryPlanProviderSpecificInput"
-)
-
-// PossibleInstanceTypeBasicRecoveryPlanProviderSpecificInputValues returns an array of possible values for the InstanceTypeBasicRecoveryPlanProviderSpecificInput const type.
-func PossibleInstanceTypeBasicRecoveryPlanProviderSpecificInputValues() []InstanceTypeBasicRecoveryPlanProviderSpecificInput {
-	return []InstanceTypeBasicRecoveryPlanProviderSpecificInput{InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeA2A, InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeRecoveryPlanProviderSpecificInput}
 }
 
 // InstanceTypeBasicRemoveDisksProviderSpecificInput enumerates the values for instance type basic remove disks
@@ -2089,10 +2057,6 @@ type A2AProtectedManagedDiskDetails struct {
 	KeyIdentifier *string `json:"keyIdentifier,omitempty"`
 	// KekKeyVaultArmID - The KeyVault resource id for key (KEK).
 	KekKeyVaultArmID *string `json:"kekKeyVaultArmId,omitempty"`
-	// FailoverDiskName - The failover name for the managed disk.
-	FailoverDiskName *string `json:"failoverDiskName,omitempty"`
-	// TfoDiskName - The test failover name for the managed disk.
-	TfoDiskName *string `json:"tfoDiskName,omitempty"`
 }
 
 // A2AProtectionContainerMappingDetails a2A provider specific settings.
@@ -2280,8 +2244,6 @@ type A2AReplicationDetails struct {
 	RecoveryAvailabilitySet *string `json:"recoveryAvailabilitySet,omitempty"`
 	// SelectedRecoveryAzureNetworkID - The recovery virtual network.
 	SelectedRecoveryAzureNetworkID *string `json:"selectedRecoveryAzureNetworkId,omitempty"`
-	// SelectedTfoAzureNetworkID - The test failover virtual network.
-	SelectedTfoAzureNetworkID *string `json:"selectedTfoAzureNetworkId,omitempty"`
 	// VMNics - The virtual machine nic details.
 	VMNics *[]VMNicDetails `json:"vmNics,omitempty"`
 	// VMSyncedConfigDetails - The synced configuration details.
@@ -2314,8 +2276,6 @@ type A2AReplicationDetails struct {
 	RecoveryAvailabilityZone *string `json:"recoveryAvailabilityZone,omitempty"`
 	// VMEncryptionType - READ-ONLY; The encryption type of the VM. Possible values include: 'NotEncrypted', 'OnePassEncrypted', 'TwoPassEncrypted'
 	VMEncryptionType VMEncryptionType `json:"vmEncryptionType,omitempty"`
-	// TfoAzureVMName - The test failover VM name.
-	TfoAzureVMName *string `json:"tfoAzureVMName,omitempty"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeReplicationProviderSpecificSettings', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeA2A', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplicaBaseReplicationDetails', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplica2012R2', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplica2012', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeInMageAzureV2', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeInMage'
 	InstanceType InstanceTypeBasicReplicationProviderSpecificSettings `json:"instanceType,omitempty"`
 }
@@ -2378,9 +2338,6 @@ func (ard A2AReplicationDetails) MarshalJSON() ([]byte, error) {
 	if ard.SelectedRecoveryAzureNetworkID != nil {
 		objectMap["selectedRecoveryAzureNetworkId"] = ard.SelectedRecoveryAzureNetworkID
 	}
-	if ard.SelectedTfoAzureNetworkID != nil {
-		objectMap["selectedTfoAzureNetworkId"] = ard.SelectedTfoAzureNetworkID
-	}
 	if ard.VMNics != nil {
 		objectMap["vmNics"] = ard.VMNics
 	}
@@ -2425,9 +2382,6 @@ func (ard A2AReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 	if ard.RecoveryAvailabilityZone != nil {
 		objectMap["recoveryAvailabilityZone"] = ard.RecoveryAvailabilityZone
-	}
-	if ard.TfoAzureVMName != nil {
-		objectMap["tfoAzureVMName"] = ard.TfoAzureVMName
 	}
 	if ard.InstanceType != "" {
 		objectMap["instanceType"] = ard.InstanceType
@@ -2691,8 +2645,6 @@ type A2AUpdateReplicationProtectedItemInput struct {
 	RecoveryBootDiagStorageAccountID *string `json:"recoveryBootDiagStorageAccountId,omitempty"`
 	// DiskEncryptionInfo - The recovery os disk encryption information.
 	DiskEncryptionInfo *DiskEncryptionInfo `json:"diskEncryptionInfo,omitempty"`
-	// TfoAzureVMName - The user given name for test failover VM.
-	TfoAzureVMName *string `json:"tfoAzureVMName,omitempty"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeUpdateReplicationProtectedItemProviderInput', 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeA2A', 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeInMageAzureV2'
 	InstanceType InstanceTypeBasicUpdateReplicationProtectedItemProviderInput `json:"instanceType,omitempty"`
 }
@@ -2715,9 +2667,6 @@ func (aurpii A2AUpdateReplicationProtectedItemInput) MarshalJSON() ([]byte, erro
 	}
 	if aurpii.DiskEncryptionInfo != nil {
 		objectMap["diskEncryptionInfo"] = aurpii.DiskEncryptionInfo
-	}
-	if aurpii.TfoAzureVMName != nil {
-		objectMap["tfoAzureVMName"] = aurpii.TfoAzureVMName
 	}
 	if aurpii.InstanceType != "" {
 		objectMap["instanceType"] = aurpii.InstanceType
@@ -2788,10 +2737,6 @@ type A2AVMManagedDiskUpdateDetails struct {
 	RecoveryReplicaDiskAccountType *string `json:"recoveryReplicaDiskAccountType,omitempty"`
 	// DiskEncryptionInfo - The recovery disk encryption information (for one / single pass flows).
 	DiskEncryptionInfo *DiskEncryptionInfo `json:"diskEncryptionInfo,omitempty"`
-	// FailoverDiskName - The target disk name for unplanned failover operation.
-	FailoverDiskName *string `json:"failoverDiskName,omitempty"`
-	// TfoDiskName - The target disk name for test failover operation.
-	TfoDiskName *string `json:"tfoDiskName,omitempty"`
 }
 
 // AddDisksInput input for add disk(s) operation.
@@ -4255,67 +4200,6 @@ type CreateRecoveryPlanInputProperties struct {
 	FailoverDeploymentModel FailoverDeploymentModel `json:"failoverDeploymentModel,omitempty"`
 	// Groups - The recovery plan groups.
 	Groups *[]RecoveryPlanGroup `json:"groups,omitempty"`
-	// ProviderSpecificInput - The provider specific input.
-	ProviderSpecificInput *[]BasicRecoveryPlanProviderSpecificInput `json:"providerSpecificInput,omitempty"`
-}
-
-// UnmarshalJSON is the custom unmarshaler for CreateRecoveryPlanInputProperties struct.
-func (crpip *CreateRecoveryPlanInputProperties) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "primaryFabricId":
-			if v != nil {
-				var primaryFabricID string
-				err = json.Unmarshal(*v, &primaryFabricID)
-				if err != nil {
-					return err
-				}
-				crpip.PrimaryFabricID = &primaryFabricID
-			}
-		case "recoveryFabricId":
-			if v != nil {
-				var recoveryFabricID string
-				err = json.Unmarshal(*v, &recoveryFabricID)
-				if err != nil {
-					return err
-				}
-				crpip.RecoveryFabricID = &recoveryFabricID
-			}
-		case "failoverDeploymentModel":
-			if v != nil {
-				var failoverDeploymentModel FailoverDeploymentModel
-				err = json.Unmarshal(*v, &failoverDeploymentModel)
-				if err != nil {
-					return err
-				}
-				crpip.FailoverDeploymentModel = failoverDeploymentModel
-			}
-		case "groups":
-			if v != nil {
-				var groups []RecoveryPlanGroup
-				err = json.Unmarshal(*v, &groups)
-				if err != nil {
-					return err
-				}
-				crpip.Groups = &groups
-			}
-		case "providerSpecificInput":
-			if v != nil {
-				providerSpecificInput, err := unmarshalBasicRecoveryPlanProviderSpecificInputArray(*v)
-				if err != nil {
-					return err
-				}
-				crpip.ProviderSpecificInput = &providerSpecificInput
-			}
-		}
-	}
-
-	return nil
 }
 
 // CurrentJobDetails current job details of the migration item.
@@ -10696,16 +10580,6 @@ type InputEndpoint struct {
 	Protocol *string `json:"protocol,omitempty"`
 }
 
-// IPConfig IP configuration details.
-type IPConfig struct {
-	// StaticIPAddress - The static IP address of the IP configuration.
-	StaticIPAddress *string `json:"staticIPAddress,omitempty"`
-	// PublicIPAddressID - The Id of the public IP address associated with the IP configuration.
-	PublicIPAddressID *string `json:"publicIpAddressId,omitempty"`
-	// LBBackendAddressPoolIds - The backend address pools associated with the IP configuration.
-	LBBackendAddressPoolIds *[]string `json:"lBBackendAddressPoolIds,omitempty"`
-}
-
 // Job job details.
 type Job struct {
 	autorest.Response `json:"-"`
@@ -14845,47 +14719,6 @@ type RecoveryPlan struct {
 	Location *string `json:"location,omitempty"`
 }
 
-// RecoveryPlanA2ADetails recovery plan A2A specific details.
-type RecoveryPlanA2ADetails struct {
-	// PrimaryZone - The primary zone.
-	PrimaryZone *string `json:"primaryZone,omitempty"`
-	// RecoveryZone - The recovery zone.
-	RecoveryZone *string `json:"recoveryZone,omitempty"`
-	// InstanceType - Possible values include: 'InstanceTypeRecoveryPlanProviderSpecificDetails', 'InstanceTypeRecoveryPlanA2ADetails'
-	InstanceType InstanceTypeBasicRecoveryPlanProviderSpecificDetails `json:"instanceType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for RecoveryPlanA2ADetails.
-func (rpad RecoveryPlanA2ADetails) MarshalJSON() ([]byte, error) {
-	rpad.InstanceType = InstanceTypeRecoveryPlanA2ADetails
-	objectMap := make(map[string]interface{})
-	if rpad.PrimaryZone != nil {
-		objectMap["primaryZone"] = rpad.PrimaryZone
-	}
-	if rpad.RecoveryZone != nil {
-		objectMap["recoveryZone"] = rpad.RecoveryZone
-	}
-	if rpad.InstanceType != "" {
-		objectMap["instanceType"] = rpad.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsRecoveryPlanA2ADetails is the BasicRecoveryPlanProviderSpecificDetails implementation for RecoveryPlanA2ADetails.
-func (rpad RecoveryPlanA2ADetails) AsRecoveryPlanA2ADetails() (*RecoveryPlanA2ADetails, bool) {
-	return &rpad, true
-}
-
-// AsRecoveryPlanProviderSpecificDetails is the BasicRecoveryPlanProviderSpecificDetails implementation for RecoveryPlanA2ADetails.
-func (rpad RecoveryPlanA2ADetails) AsRecoveryPlanProviderSpecificDetails() (*RecoveryPlanProviderSpecificDetails, bool) {
-	return nil, false
-}
-
-// AsBasicRecoveryPlanProviderSpecificDetails is the BasicRecoveryPlanProviderSpecificDetails implementation for RecoveryPlanA2ADetails.
-func (rpad RecoveryPlanA2ADetails) AsBasicRecoveryPlanProviderSpecificDetails() (BasicRecoveryPlanProviderSpecificDetails, bool) {
-	return &rpad, true
-}
-
 // RecoveryPlanA2AFailoverInput recovery plan A2A failover input.
 type RecoveryPlanA2AFailoverInput struct {
 	// RecoveryPointType - The recovery point type. Possible values include: 'Latest', 'LatestApplicationConsistent', 'LatestCrashConsistent', 'LatestProcessed'
@@ -14950,47 +14783,6 @@ func (rpafi RecoveryPlanA2AFailoverInput) AsRecoveryPlanProviderSpecificFailover
 // AsBasicRecoveryPlanProviderSpecificFailoverInput is the BasicRecoveryPlanProviderSpecificFailoverInput implementation for RecoveryPlanA2AFailoverInput.
 func (rpafi RecoveryPlanA2AFailoverInput) AsBasicRecoveryPlanProviderSpecificFailoverInput() (BasicRecoveryPlanProviderSpecificFailoverInput, bool) {
 	return &rpafi, true
-}
-
-// RecoveryPlanA2AInput recovery plan A2A input.
-type RecoveryPlanA2AInput struct {
-	// PrimaryZone - The primary zone.
-	PrimaryZone *string `json:"primaryZone,omitempty"`
-	// RecoveryZone - The recovery zone.
-	RecoveryZone *string `json:"recoveryZone,omitempty"`
-	// InstanceType - Possible values include: 'InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeRecoveryPlanProviderSpecificInput', 'InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeA2A'
-	InstanceType InstanceTypeBasicRecoveryPlanProviderSpecificInput `json:"instanceType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for RecoveryPlanA2AInput.
-func (rpai RecoveryPlanA2AInput) MarshalJSON() ([]byte, error) {
-	rpai.InstanceType = InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeA2A
-	objectMap := make(map[string]interface{})
-	if rpai.PrimaryZone != nil {
-		objectMap["primaryZone"] = rpai.PrimaryZone
-	}
-	if rpai.RecoveryZone != nil {
-		objectMap["recoveryZone"] = rpai.RecoveryZone
-	}
-	if rpai.InstanceType != "" {
-		objectMap["instanceType"] = rpai.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsRecoveryPlanA2AInput is the BasicRecoveryPlanProviderSpecificInput implementation for RecoveryPlanA2AInput.
-func (rpai RecoveryPlanA2AInput) AsRecoveryPlanA2AInput() (*RecoveryPlanA2AInput, bool) {
-	return &rpai, true
-}
-
-// AsRecoveryPlanProviderSpecificInput is the BasicRecoveryPlanProviderSpecificInput implementation for RecoveryPlanA2AInput.
-func (rpai RecoveryPlanA2AInput) AsRecoveryPlanProviderSpecificInput() (*RecoveryPlanProviderSpecificInput, bool) {
-	return nil, false
-}
-
-// AsBasicRecoveryPlanProviderSpecificInput is the BasicRecoveryPlanProviderSpecificInput implementation for RecoveryPlanA2AInput.
-func (rpai RecoveryPlanA2AInput) AsBasicRecoveryPlanProviderSpecificInput() (BasicRecoveryPlanProviderSpecificInput, bool) {
-	return &rpai, true
 }
 
 // RecoveryPlanAction recovery plan action details.
@@ -15802,166 +15594,6 @@ type RecoveryPlanProperties struct {
 	CurrentScenarioStatusDescription *string `json:"currentScenarioStatusDescription,omitempty"`
 	// Groups - The recovery plan groups.
 	Groups *[]RecoveryPlanGroup `json:"groups,omitempty"`
-	// ProviderSpecificDetails - READ-ONLY; The provider id and provider specific details.
-	ProviderSpecificDetails *[]BasicRecoveryPlanProviderSpecificDetails `json:"providerSpecificDetails,omitempty"`
-}
-
-// UnmarshalJSON is the custom unmarshaler for RecoveryPlanProperties struct.
-func (rpp *RecoveryPlanProperties) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "friendlyName":
-			if v != nil {
-				var friendlyName string
-				err = json.Unmarshal(*v, &friendlyName)
-				if err != nil {
-					return err
-				}
-				rpp.FriendlyName = &friendlyName
-			}
-		case "primaryFabricId":
-			if v != nil {
-				var primaryFabricID string
-				err = json.Unmarshal(*v, &primaryFabricID)
-				if err != nil {
-					return err
-				}
-				rpp.PrimaryFabricID = &primaryFabricID
-			}
-		case "primaryFabricFriendlyName":
-			if v != nil {
-				var primaryFabricFriendlyName string
-				err = json.Unmarshal(*v, &primaryFabricFriendlyName)
-				if err != nil {
-					return err
-				}
-				rpp.PrimaryFabricFriendlyName = &primaryFabricFriendlyName
-			}
-		case "recoveryFabricId":
-			if v != nil {
-				var recoveryFabricID string
-				err = json.Unmarshal(*v, &recoveryFabricID)
-				if err != nil {
-					return err
-				}
-				rpp.RecoveryFabricID = &recoveryFabricID
-			}
-		case "recoveryFabricFriendlyName":
-			if v != nil {
-				var recoveryFabricFriendlyName string
-				err = json.Unmarshal(*v, &recoveryFabricFriendlyName)
-				if err != nil {
-					return err
-				}
-				rpp.RecoveryFabricFriendlyName = &recoveryFabricFriendlyName
-			}
-		case "failoverDeploymentModel":
-			if v != nil {
-				var failoverDeploymentModel string
-				err = json.Unmarshal(*v, &failoverDeploymentModel)
-				if err != nil {
-					return err
-				}
-				rpp.FailoverDeploymentModel = &failoverDeploymentModel
-			}
-		case "replicationProviders":
-			if v != nil {
-				var replicationProviders []string
-				err = json.Unmarshal(*v, &replicationProviders)
-				if err != nil {
-					return err
-				}
-				rpp.ReplicationProviders = &replicationProviders
-			}
-		case "allowedOperations":
-			if v != nil {
-				var allowedOperations []string
-				err = json.Unmarshal(*v, &allowedOperations)
-				if err != nil {
-					return err
-				}
-				rpp.AllowedOperations = &allowedOperations
-			}
-		case "lastPlannedFailoverTime":
-			if v != nil {
-				var lastPlannedFailoverTime date.Time
-				err = json.Unmarshal(*v, &lastPlannedFailoverTime)
-				if err != nil {
-					return err
-				}
-				rpp.LastPlannedFailoverTime = &lastPlannedFailoverTime
-			}
-		case "lastUnplannedFailoverTime":
-			if v != nil {
-				var lastUnplannedFailoverTime date.Time
-				err = json.Unmarshal(*v, &lastUnplannedFailoverTime)
-				if err != nil {
-					return err
-				}
-				rpp.LastUnplannedFailoverTime = &lastUnplannedFailoverTime
-			}
-		case "lastTestFailoverTime":
-			if v != nil {
-				var lastTestFailoverTime date.Time
-				err = json.Unmarshal(*v, &lastTestFailoverTime)
-				if err != nil {
-					return err
-				}
-				rpp.LastTestFailoverTime = &lastTestFailoverTime
-			}
-		case "currentScenario":
-			if v != nil {
-				var currentScenario CurrentScenarioDetails
-				err = json.Unmarshal(*v, &currentScenario)
-				if err != nil {
-					return err
-				}
-				rpp.CurrentScenario = &currentScenario
-			}
-		case "currentScenarioStatus":
-			if v != nil {
-				var currentScenarioStatus string
-				err = json.Unmarshal(*v, &currentScenarioStatus)
-				if err != nil {
-					return err
-				}
-				rpp.CurrentScenarioStatus = &currentScenarioStatus
-			}
-		case "currentScenarioStatusDescription":
-			if v != nil {
-				var currentScenarioStatusDescription string
-				err = json.Unmarshal(*v, &currentScenarioStatusDescription)
-				if err != nil {
-					return err
-				}
-				rpp.CurrentScenarioStatusDescription = &currentScenarioStatusDescription
-			}
-		case "groups":
-			if v != nil {
-				var groups []RecoveryPlanGroup
-				err = json.Unmarshal(*v, &groups)
-				if err != nil {
-					return err
-				}
-				rpp.Groups = &groups
-			}
-		case "providerSpecificDetails":
-			if v != nil {
-				providerSpecificDetails, err := unmarshalBasicRecoveryPlanProviderSpecificDetailsArray(*v)
-				if err != nil {
-					return err
-				}
-				rpp.ProviderSpecificDetails = &providerSpecificDetails
-			}
-		}
-	}
-
-	return nil
 }
 
 // RecoveryPlanProtectedItem recovery plan protected item.
@@ -15970,80 +15602,6 @@ type RecoveryPlanProtectedItem struct {
 	ID *string `json:"id,omitempty"`
 	// VirtualMachineID - The virtual machine Id.
 	VirtualMachineID *string `json:"virtualMachineId,omitempty"`
-}
-
-// BasicRecoveryPlanProviderSpecificDetails recovery plan provider specific details.
-type BasicRecoveryPlanProviderSpecificDetails interface {
-	AsRecoveryPlanA2ADetails() (*RecoveryPlanA2ADetails, bool)
-	AsRecoveryPlanProviderSpecificDetails() (*RecoveryPlanProviderSpecificDetails, bool)
-}
-
-// RecoveryPlanProviderSpecificDetails recovery plan provider specific details.
-type RecoveryPlanProviderSpecificDetails struct {
-	// InstanceType - Possible values include: 'InstanceTypeRecoveryPlanProviderSpecificDetails', 'InstanceTypeRecoveryPlanA2ADetails'
-	InstanceType InstanceTypeBasicRecoveryPlanProviderSpecificDetails `json:"instanceType,omitempty"`
-}
-
-func unmarshalBasicRecoveryPlanProviderSpecificDetails(body []byte) (BasicRecoveryPlanProviderSpecificDetails, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["instanceType"] {
-	case string(InstanceTypeRecoveryPlanA2ADetails):
-		var rpad RecoveryPlanA2ADetails
-		err := json.Unmarshal(body, &rpad)
-		return rpad, err
-	default:
-		var rppsd RecoveryPlanProviderSpecificDetails
-		err := json.Unmarshal(body, &rppsd)
-		return rppsd, err
-	}
-}
-func unmarshalBasicRecoveryPlanProviderSpecificDetailsArray(body []byte) ([]BasicRecoveryPlanProviderSpecificDetails, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	rppsdArray := make([]BasicRecoveryPlanProviderSpecificDetails, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		rppsd, err := unmarshalBasicRecoveryPlanProviderSpecificDetails(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		rppsdArray[index] = rppsd
-	}
-	return rppsdArray, nil
-}
-
-// MarshalJSON is the custom marshaler for RecoveryPlanProviderSpecificDetails.
-func (rppsd RecoveryPlanProviderSpecificDetails) MarshalJSON() ([]byte, error) {
-	rppsd.InstanceType = InstanceTypeRecoveryPlanProviderSpecificDetails
-	objectMap := make(map[string]interface{})
-	if rppsd.InstanceType != "" {
-		objectMap["instanceType"] = rppsd.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsRecoveryPlanA2ADetails is the BasicRecoveryPlanProviderSpecificDetails implementation for RecoveryPlanProviderSpecificDetails.
-func (rppsd RecoveryPlanProviderSpecificDetails) AsRecoveryPlanA2ADetails() (*RecoveryPlanA2ADetails, bool) {
-	return nil, false
-}
-
-// AsRecoveryPlanProviderSpecificDetails is the BasicRecoveryPlanProviderSpecificDetails implementation for RecoveryPlanProviderSpecificDetails.
-func (rppsd RecoveryPlanProviderSpecificDetails) AsRecoveryPlanProviderSpecificDetails() (*RecoveryPlanProviderSpecificDetails, bool) {
-	return &rppsd, true
-}
-
-// AsBasicRecoveryPlanProviderSpecificDetails is the BasicRecoveryPlanProviderSpecificDetails implementation for RecoveryPlanProviderSpecificDetails.
-func (rppsd RecoveryPlanProviderSpecificDetails) AsBasicRecoveryPlanProviderSpecificDetails() (BasicRecoveryPlanProviderSpecificDetails, bool) {
-	return &rppsd, true
 }
 
 // BasicRecoveryPlanProviderSpecificFailoverInput recovery plan provider specific failover input base class.
@@ -16158,80 +15716,6 @@ func (rppsfi RecoveryPlanProviderSpecificFailoverInput) AsRecoveryPlanProviderSp
 // AsBasicRecoveryPlanProviderSpecificFailoverInput is the BasicRecoveryPlanProviderSpecificFailoverInput implementation for RecoveryPlanProviderSpecificFailoverInput.
 func (rppsfi RecoveryPlanProviderSpecificFailoverInput) AsBasicRecoveryPlanProviderSpecificFailoverInput() (BasicRecoveryPlanProviderSpecificFailoverInput, bool) {
 	return &rppsfi, true
-}
-
-// BasicRecoveryPlanProviderSpecificInput recovery plan provider specific input base class.
-type BasicRecoveryPlanProviderSpecificInput interface {
-	AsRecoveryPlanA2AInput() (*RecoveryPlanA2AInput, bool)
-	AsRecoveryPlanProviderSpecificInput() (*RecoveryPlanProviderSpecificInput, bool)
-}
-
-// RecoveryPlanProviderSpecificInput recovery plan provider specific input base class.
-type RecoveryPlanProviderSpecificInput struct {
-	// InstanceType - Possible values include: 'InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeRecoveryPlanProviderSpecificInput', 'InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeA2A'
-	InstanceType InstanceTypeBasicRecoveryPlanProviderSpecificInput `json:"instanceType,omitempty"`
-}
-
-func unmarshalBasicRecoveryPlanProviderSpecificInput(body []byte) (BasicRecoveryPlanProviderSpecificInput, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["instanceType"] {
-	case string(InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeA2A):
-		var rpai RecoveryPlanA2AInput
-		err := json.Unmarshal(body, &rpai)
-		return rpai, err
-	default:
-		var rppsi RecoveryPlanProviderSpecificInput
-		err := json.Unmarshal(body, &rppsi)
-		return rppsi, err
-	}
-}
-func unmarshalBasicRecoveryPlanProviderSpecificInputArray(body []byte) ([]BasicRecoveryPlanProviderSpecificInput, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	rppsiArray := make([]BasicRecoveryPlanProviderSpecificInput, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		rppsi, err := unmarshalBasicRecoveryPlanProviderSpecificInput(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		rppsiArray[index] = rppsi
-	}
-	return rppsiArray, nil
-}
-
-// MarshalJSON is the custom marshaler for RecoveryPlanProviderSpecificInput.
-func (rppsi RecoveryPlanProviderSpecificInput) MarshalJSON() ([]byte, error) {
-	rppsi.InstanceType = InstanceTypeBasicRecoveryPlanProviderSpecificInputInstanceTypeRecoveryPlanProviderSpecificInput
-	objectMap := make(map[string]interface{})
-	if rppsi.InstanceType != "" {
-		objectMap["instanceType"] = rppsi.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsRecoveryPlanA2AInput is the BasicRecoveryPlanProviderSpecificInput implementation for RecoveryPlanProviderSpecificInput.
-func (rppsi RecoveryPlanProviderSpecificInput) AsRecoveryPlanA2AInput() (*RecoveryPlanA2AInput, bool) {
-	return nil, false
-}
-
-// AsRecoveryPlanProviderSpecificInput is the BasicRecoveryPlanProviderSpecificInput implementation for RecoveryPlanProviderSpecificInput.
-func (rppsi RecoveryPlanProviderSpecificInput) AsRecoveryPlanProviderSpecificInput() (*RecoveryPlanProviderSpecificInput, bool) {
-	return &rppsi, true
-}
-
-// AsBasicRecoveryPlanProviderSpecificInput is the BasicRecoveryPlanProviderSpecificInput implementation for RecoveryPlanProviderSpecificInput.
-func (rppsi RecoveryPlanProviderSpecificInput) AsBasicRecoveryPlanProviderSpecificInput() (BasicRecoveryPlanProviderSpecificInput, bool) {
-	return &rppsi, true
 }
 
 // RecoveryPlanScriptActionDetails recovery plan script action details.
@@ -21782,8 +21266,6 @@ type UpdateReplicationProtectedItemInputProperties struct {
 	RecoveryAzureVMSize *string `json:"recoveryAzureVMSize,omitempty"`
 	// SelectedRecoveryAzureNetworkID - Target Azure Network Id.
 	SelectedRecoveryAzureNetworkID *string `json:"selectedRecoveryAzureNetworkId,omitempty"`
-	// SelectedTfoAzureNetworkID - The Azure Network Id for test failover.
-	SelectedTfoAzureNetworkID *string `json:"selectedTfoAzureNetworkId,omitempty"`
 	// SelectedSourceNicID - The selected source nic Id which will be used as the primary nic during failover.
 	SelectedSourceNicID *string `json:"selectedSourceNicId,omitempty"`
 	// EnableRdpOnTargetOption - The selected option to enable RDP\SSH on target vm after failover. String value of {SrsDataContract.EnableRDPOnTargetOption} enum.
@@ -21833,15 +21315,6 @@ func (urpiip *UpdateReplicationProtectedItemInputProperties) UnmarshalJSON(body 
 					return err
 				}
 				urpiip.SelectedRecoveryAzureNetworkID = &selectedRecoveryAzureNetworkID
-			}
-		case "selectedTfoAzureNetworkId":
-			if v != nil {
-				var selectedTfoAzureNetworkID string
-				err = json.Unmarshal(*v, &selectedTfoAzureNetworkID)
-				if err != nil {
-					return err
-				}
-				urpiip.SelectedTfoAzureNetworkID = &selectedTfoAzureNetworkID
 			}
 		case "selectedSourceNicId":
 			if v != nil {
@@ -22916,16 +22389,6 @@ type VMNicDetails struct {
 	RecoveryLBBackendAddressPoolIds *[]string `json:"recoveryLBBackendAddressPoolIds,omitempty"`
 	// EnableAcceleratedNetworkingOnRecovery - A value indicating whether the NIC has accelerated networking enabled.
 	EnableAcceleratedNetworkingOnRecovery *bool `json:"enableAcceleratedNetworkingOnRecovery,omitempty"`
-	// TfoVMNetworkID - The network to be used by NIC during test failover.
-	TfoVMNetworkID *string `json:"tfoVMNetworkId,omitempty"`
-	// TfoVMSubnetName - The subnet to be used by NIC during test failover.
-	TfoVMSubnetName *string `json:"tfoVMSubnetName,omitempty"`
-	// TfoNetworkSecurityGroupID - The NSG to be used by NIC during test failover.
-	TfoNetworkSecurityGroupID *string `json:"tfoNetworkSecurityGroupId,omitempty"`
-	// EnableAcceleratedNetworkingOnTfo - Whether the test failover NIC has accelerated networking enabled.
-	EnableAcceleratedNetworkingOnTfo *bool `json:"enableAcceleratedNetworkingOnTfo,omitempty"`
-	// TfoIPConfigs - The IP configurations to be used by NIC during test failover.
-	TfoIPConfigs *[]IPConfig `json:"tfoIPConfigs,omitempty"`
 }
 
 // VMNicInputDetails hyper V VM network input details.
@@ -22946,14 +22409,6 @@ type VMNicInputDetails struct {
 	RecoveryLBBackendAddressPoolIds *[]string `json:"recoveryLBBackendAddressPoolIds,omitempty"`
 	// EnableAcceleratedNetworkingOnRecovery - Whether the NIC has accelerated networking enabled.
 	EnableAcceleratedNetworkingOnRecovery *bool `json:"enableAcceleratedNetworkingOnRecovery,omitempty"`
-	// TfoVMSubnetName - The subnet to be used by NIC during test failover.
-	TfoVMSubnetName *string `json:"tfoVMSubnetName,omitempty"`
-	// TfoNetworkSecurityGroupID - The NSG to be used by NIC during test failover.
-	TfoNetworkSecurityGroupID *string `json:"tfoNetworkSecurityGroupId,omitempty"`
-	// EnableAcceleratedNetworkingOnTfo - Whether the test NIC has accelerated networking enabled.
-	EnableAcceleratedNetworkingOnTfo *bool `json:"enableAcceleratedNetworkingOnTfo,omitempty"`
-	// TfoIPConfigs - The IP configurations to be used by NIC during test failover.
-	TfoIPConfigs *[]IPConfig `json:"tfoIPConfigs,omitempty"`
 }
 
 // VMNicUpdatesTaskDetails this class represents the vm NicUpdates task details.

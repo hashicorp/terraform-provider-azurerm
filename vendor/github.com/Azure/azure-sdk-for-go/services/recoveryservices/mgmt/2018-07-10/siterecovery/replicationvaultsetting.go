@@ -36,9 +36,7 @@ func NewReplicationVaultSettingClient(subscriptionID string, resourceGroupName s
 	return NewReplicationVaultSettingClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationVaultSettingClientWithBaseURI creates an instance of the ReplicationVaultSettingClient client using a
-// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
-// Azure stack).
+// NewReplicationVaultSettingClientWithBaseURI creates an instance of the ReplicationVaultSettingClient client.
 func NewReplicationVaultSettingClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationVaultSettingClient {
 	return ReplicationVaultSettingClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
