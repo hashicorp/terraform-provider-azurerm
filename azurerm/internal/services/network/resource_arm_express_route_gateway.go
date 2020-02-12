@@ -201,12 +201,3 @@ func resourceArmExpressRouteGatewayDelete(d *schema.ResourceData, meta interface
 
 	return nil
 }
-
-// func expandExpressRouteGatewayAutoScaleConfigurationBounds(d *schema.ResourceData) *network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds {
-// 	minScaleUnits := int32(d.Get("scale_units").(int))
-// 	configuration := network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
-// 		Min: &minScaleUnits,
-// 	}
-
-// 	return &configuration
-// }
