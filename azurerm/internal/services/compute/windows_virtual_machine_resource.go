@@ -217,9 +217,9 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"secret": windowsSecretSchema(),
 
 			"source_image_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 				ValidateFunc: validation.Any(
 					computeValidate.ImageID,
 					computeValidate.SharedImageID,
