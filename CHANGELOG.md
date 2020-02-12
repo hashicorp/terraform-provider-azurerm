@@ -34,13 +34,6 @@ IMPROVEMENTS:
 * `azurerm_storage_container` - support for authenticating using Azure AD [GH-5614]
 * `azurerm_storage_queue` - support for authenticating using Azure AD [GH-5614]
 
-CHANGES TO BETA RESOURCES:
-
-* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
-* `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
-* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
-* `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
-
 BUGS:
 
 * `azurerm_storage_account` - fix hanging destroy caused by multiple network rules [GH-5565]
