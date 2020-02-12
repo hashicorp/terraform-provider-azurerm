@@ -276,7 +276,7 @@ func testCheckCorrectTargetSubnet(resourceName string, expectedTargetSubnet stri
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		keyMatcher := regexp.MustCompile("network_interface\\.[0-9]*\\.target_subnet_name")
+		keyMatcher := regexp.MustCompile(`network_interface\.[0-9]*\.target_subnet_name`)
 
 		for key, value := range state.Primary.Attributes {
 			log.Printf("Testing state key %q", key)
