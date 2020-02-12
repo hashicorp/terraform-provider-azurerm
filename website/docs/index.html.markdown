@@ -31,18 +31,19 @@ We recommend using either a Service Principal or Managed Service Identity when r
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=1.44.0"
+  version = "=2.0.0"
+  features { }
 }
 
 # Create a resource group
 resource "azurerm_resource_group" "example" {
-  name     = "production"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 # Create a virtual network within the resource group
 resource "azurerm_virtual_network" "example" {
-  name                = "production-network"
+  name                = "example-network"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
@@ -80,10 +81,11 @@ If you have configuration questions, or general questions about using the provid
 * [Terraform's community resources](https://www.terraform.io/docs/extend/community/index.html)
 * [HashiCorp support](https://support.hashicorp.com) for Terraform Enterprise customers
 
-
 ## Argument Reference
 
 The following arguments are supported:
+
+* `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
 
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
@@ -145,7 +147,9 @@ It's also possible to use multiple Provider blocks within a single Terraform con
 
 ## Features
 
-It's possible to customise the behaviour of certain Azure Provider resources using the `features` block. This block is Optional in 1.x versions of the Azure Provider but will become Required from 2.0 onwards.
+It's possible to configure the behaviour of certain resources using the `features` block - more details can be found below.
+
+## Features
 
 The `features` block supports the following:
 
