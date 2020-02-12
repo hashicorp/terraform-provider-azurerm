@@ -571,34 +571,6 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_advanced_threat_protection", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_advanced_threat_protection", "false"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
@@ -1337,42 +1309,6 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                              = "unlikely23exst2acct%s"
-  resource_group_name               = "${azurerm_resource_group.test.name}"
-  location                          = "${azurerm_resource_group.test.location}"
-  account_tier                      = "Standard"
-  account_replication_type          = "LRS"
-  enable_advanced_threat_protection = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                              = "unlikely23exst2acct%s"
-  resource_group_name               = "${azurerm_resource_group.test.name}"
-  location                          = "${azurerm_resource_group.test.location}"
-  account_tier                      = "Standard"
-  account_replication_type          = "LRS"
-  enable_advanced_threat_protection = false
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMStorageAccount_blobProperties(data acceptance.TestData) string {

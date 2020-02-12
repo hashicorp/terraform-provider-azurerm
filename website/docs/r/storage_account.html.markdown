@@ -105,10 +105,6 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
-* `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
-
-~> **Note:** `enable_advanced_threat_protection` is not supported in all regions.
-
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `blob_properties` - (Optional) A `blob_properties` block as defined below.

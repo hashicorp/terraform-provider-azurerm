@@ -8,10 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -24,8 +20,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
@@ -175,14 +174,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
-			},
-
-			// TODO remove this in 2.0 for the dedicated resource
-			"enable_advanced_threat_protection": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property has been deprecated in favour of the new 'azurerm_advanced_threat_protection' resource and will be removed in version 2.0 of the provider",
 			},
 
 			"network_rules": {
@@ -646,7 +637,6 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -766,22 +756,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
-	// TODO: deprecate & split this out into it's own resource in 2.0
-	// as this is not available in all regions, and presumably off by default
-	// lets only try to set this value when true
-	// TODO in 2.0 switch to guarding this with d.GetOkExists() ?
-	if v := d.Get("enable_advanced_threat_protection").(bool); v {
-		advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
-			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-				IsEnabled: utils.Bool(v),
-			},
-		}
-
-		if _, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
-		}
-	}
-
 	if val, ok := d.GetOk("blob_properties"); ok {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
@@ -830,7 +804,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 // available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -989,20 +962,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("network_rules")
 	}
 
-	if d.HasChange("enable_advanced_threat_protection") {
-		opts := security.AdvancedThreatProtectionSetting{
-			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
-			},
-		}
-
-		if _, err := advancedThreatProtectionClient.Create(ctx, d.Id(), opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("enable_advanced_threat_protection")
-	}
-
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
@@ -1052,7 +1011,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1191,23 +1149,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
-	}
-
-	// TODO in 2.0 switch to guarding this with d.GetOkExists()
-	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
-	if err != nil {
-		msg := err.Error()
-		if !strings.Contains(msg, "The resource namespace 'Microsoft.Security' is invalid.") {
-			if !strings.Contains(msg, "No registered resource provider found for location '") {
-				if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
-					return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
-				}
-			}
-		}
-	} else {
-		if atpp := atp.AdvancedThreatProtectionProperties; atpp != nil {
-			d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
-		}
 	}
 
 	storageClient := meta.(*clients.Client).Storage
