@@ -1610,26 +1610,30 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 }
 
 func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
-	properties := []interface{}{}
 	if input.BlobServicePropertiesProperties == nil {
-		return properties
+		return []interface{}{}
 	}
 
-	blobProperties := make(map[string]interface{})
-
+	flattenedCorsRules := make([]interface{}, 0)
 	if corsRules := input.BlobServicePropertiesProperties.Cors; corsRules != nil {
-		blobProperties["cors_rule"] = flattenBlobPropertiesCorsRule(corsRules)
+		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
 	}
 
+	flattenedDeletePolicy := make([]interface{}, 0)
 	if deletePolicy := input.BlobServicePropertiesProperties.DeleteRetentionPolicy; deletePolicy != nil {
-		blobProperties["delete_retention_policy"] = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
+		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
-	if len(blobProperties) == 0 {
-		return properties
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
+		return []interface{}{}
 	}
 
-	return []interface{}{blobProperties}
+	return []interface{}{
+		map[string]interface{}{
+			"cors_rule":               flattenedCorsRules,
+			"delete_retention_policy": flattenedDeletePolicy,
+		},
+	}
 }
 
 func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
@@ -1640,25 +1644,38 @@ func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
 	}
 
 	for _, corsRule := range *input.CorsRules {
-		attr := make(map[string]interface{})
-
+		allowedOrigins := make([]string, 0)
 		if corsRule.AllowedOrigins != nil {
-			attr["allowed_origins"] = *corsRule.AllowedOrigins
-		}
-		if corsRule.AllowedMethods != nil {
-			attr["allowed_methods"] = *corsRule.AllowedMethods
-		}
-		if corsRule.AllowedHeaders != nil {
-			attr["allowed_headers"] = *corsRule.AllowedHeaders
-		}
-		if corsRule.ExposedHeaders != nil {
-			attr["exposed_headers"] = *corsRule.ExposedHeaders
-		}
-		if corsRule.MaxAgeInSeconds != nil {
-			attr["max_age_in_seconds"] = *corsRule.MaxAgeInSeconds
+			allowedOrigins = *corsRule.AllowedOrigins
 		}
 
-		corsRules = append(corsRules, attr)
+		allowedMethods := make([]string, 0)
+		if corsRule.AllowedMethods != nil {
+			allowedMethods = *corsRule.AllowedMethods
+		}
+
+		allowedHeaders := make([]string, 0)
+		if corsRule.AllowedHeaders != nil {
+			allowedHeaders = *corsRule.AllowedHeaders
+		}
+
+		exposedHeaders := make([]string, 0)
+		if corsRule.ExposedHeaders != nil {
+			exposedHeaders = *corsRule.ExposedHeaders
+		}
+
+		maxAgeInSeconds := 0
+		if corsRule.MaxAgeInSeconds != nil {
+			maxAgeInSeconds = int(*corsRule.MaxAgeInSeconds)
+		}
+
+		corsRules = append(corsRules, map[string]interface{}{
+			"allowed_headers":    allowedHeaders,
+			"allowed_origins":    allowedOrigins,
+			"allowed_methods":    allowedMethods,
+			"exposed_headers":    exposedHeaders,
+			"max_age_in_seconds": maxAgeInSeconds,
+		})
 	}
 
 	return corsRules
@@ -1677,10 +1694,9 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 			days = int(*input.Days)
 		}
 
-		attr := make(map[string]interface{})
-		attr["days"] = days
-
-		deleteRetentionPolicy = append(deleteRetentionPolicy, attr)
+		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
+			"days": days,
+		})
 	}
 
 	return deleteRetentionPolicy
