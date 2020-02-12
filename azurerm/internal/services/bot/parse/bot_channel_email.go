@@ -25,6 +25,10 @@ func BotChannelEmailID(input string) (*BotChannelEmailId, error) {
 	if service.BotName, err = id.PopSegment("botServices"); err != nil {
 		return nil, err
 	}
+	
+	if service.Name, err = id.PopSegment("channels"); err != nil {
+		return nil, err
+	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
