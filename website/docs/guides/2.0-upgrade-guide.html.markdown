@@ -14,9 +14,7 @@ Since then we've added support for 305 Resources, 92 Data Sources and have launc
 
 Version 2.0 of the AzureRM Provider is a major release and as such includes some larger-scale changes which are outlined in this document.
 
--> **NOTE:** This guide is a Work In Progress and additional information may be added to this guide until version 2.0 of the AzureRM Provider is released.
-
-!> **NOTE:** Version 2.0 of the AzureRM Provider will support Terraform 0.12 and later - Terraform 0.10 & 0.11 are no longer supported with this release.
+!> **NOTE:** Version 2.0 of the AzureRM Provider supports Terraform 0.12 and later - Terraform 0.10 & 0.11 are no longer supported with this release.
 
 ### Pinning your Provider Version
 
@@ -46,18 +44,16 @@ provider "azurerm" {
 }
 ```
 
-## What's coming in Version 2.0 of the AzureRM Provider?
+## What's available in Version 2.0 of the AzureRM Provider?
 
--> **Note:** Version 1.43 of the Azure Provider allows you to opt-into the Beta of some of these features - [see the Beta guide for more information](/docs/providers/azurerm/guides/2.0-beta.html).
-
-At a high level, we're intending for version 2.0 to include the following changes:
+At a high level, version 2.0 to includes the following changes:
 
 * [Changes when importing existing resources](#changes-when-importing-existing-resources) - when bringing Resources provisioned outside of Terraform under Terraform's control, these resources will now be required to be imported.
 * [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#operation-timeouts).
 * [New resources for Virtual Machines and Virtual Machine Scale Sets](#new-resources-for-virtual-machines-and-virtual-machine-scale-sets).
 * [Removing Fields, Data Sources and Resources which have been deprecated](#removal-of-deprecated-fields-data-sources-and-resources).
 
-Each of these topics is covered in more detail below, however please note that this guide is a Work In Progress until version 2.0 of the AzureRM Provider is released and thus things may be added/changed as necessary.
+Each of these topics is covered in more detail below.
 
 ## Changes when Importing Existing Resources
 
@@ -76,8 +72,6 @@ A resource with the ID /subscriptions/00000000-0000-0000-0000-000000000000/resou
 ```
 
 Information on how to import a given Resource can be found in the documentation for that Resource - for example here's how to [here's how to import a Resource Group in Terraform](/docs/providers/azurerm/r/resource_group.html#import).
-
-You can opt into this behaviour from version 1.22 of the AzureRM Provider by setting the Environment Variable `ARM_PROVIDER_STRICT` to `true`.
 
 ## Custom Timeouts for Resources
 

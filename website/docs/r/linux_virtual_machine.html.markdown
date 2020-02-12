@@ -1,5 +1,5 @@
 ---
-subcategory: "Beta"
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_linux_virtual_machine"
 description: |-
@@ -12,8 +12,6 @@ Manages a Linux Virtual Machine.
 
 ## Disclaimers
 
-~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider. You can find out [how to opt into the Beta in this guide](https://terraform.io/docs/providers/azurerm/guides/2.0-beta.html)
-
 -> **Note** Terraform will automatically remove the OS Disk by default - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#argument-reference).
 
 ~> **Note** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -22,7 +20,7 @@ Manages a Linux Virtual Machine.
 
 ~> **Note** This resource does not support attaching existing OS Disks. You can instead [capture an image of the OS Disk](image.html) or continue to use [the `azurerm_virtual_machine` resource](virtual_machine.html) instead.
 
-~> In this Beta release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
+~> In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
 
 ## Example Usage
 

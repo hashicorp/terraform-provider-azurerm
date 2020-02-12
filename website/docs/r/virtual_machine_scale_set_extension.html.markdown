@@ -1,14 +1,12 @@
 ---
 layout: "azurerm"
-subcategory: "Beta"
+subcategory: "Compute"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set_extension"
 description: |-
   Manages an Extension for a Virtual Machine Scale Set.
 ---
 
 # azurerm_virtual_machine_scale_set_extension
-
-~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
 
 Manages an Extension for a Virtual Machine Scale Set.
 
