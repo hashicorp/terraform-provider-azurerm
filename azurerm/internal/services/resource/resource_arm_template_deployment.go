@@ -309,14 +309,8 @@ func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 40 * time.Minute
-	}
-
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
