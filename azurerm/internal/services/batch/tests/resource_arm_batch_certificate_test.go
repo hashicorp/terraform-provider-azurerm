@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -208,11 +209,12 @@ func testCheckAzureRMBatchCertificateDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.BatchCertificateID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, accountName, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

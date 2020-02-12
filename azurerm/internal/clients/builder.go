@@ -17,6 +17,7 @@ type ClientBuilder struct {
 	DisableTerraformPartnerID   bool
 	PartnerId                   string
 	SkipProviderRegistration    bool
+	StorageUseAzureAD           bool
 	TerraformVersion            string
 	Features                    features.UserFeatures
 }
@@ -89,6 +90,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
 		Environment:                 *env,
 		Features:                    builder.Features,
+		StorageUseAzureAD:           builder.StorageUseAzureAD,
 	}
 
 	if err := client.Build(ctx, o); err != nil {

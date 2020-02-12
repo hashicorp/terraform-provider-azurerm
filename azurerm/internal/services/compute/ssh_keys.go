@@ -1,8 +1,13 @@
 package compute
 
 import (
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"regexp"
+	"strings"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -24,7 +29,7 @@ func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: ValidateSSHKey,
 				},
 
 				"username": {
@@ -110,4 +115,44 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	}
 
 	return nil
+}
+
+// ValidateSSHKey performs some basic validation on supplied SSH Keys - Encoded Signature and Key Size are evaluated
+// Will require rework if/when other Key Types are supported
+func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if strings.TrimSpace(v) == "" {
+		return nil, []error{fmt.Errorf("expected %q to not be an empty string or whitespace", k)}
+	}
+
+	keyParts := strings.Fields(v)
+	if len(keyParts) > 1 {
+		byteStr, err := base64.StdEncoding.DecodeString(keyParts[1])
+		if err != nil {
+			return nil, []error{fmt.Errorf("Error decoding %q for public key data", k)}
+		}
+		pubKey, err := ssh.ParsePublicKey(byteStr)
+		if err != nil {
+			return nil, []error{fmt.Errorf("Error parsing %q as a public key object", k)}
+		}
+
+		if pubKey.Type() != ssh.KeyAlgoRSA {
+			return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by Azure")}
+		} else {
+			//check length - held at bytes 20 and 21 for ssh-rsa
+			sizeRaw := []byte{byteStr[20], byteStr[21]}
+			sizeDec := binary.BigEndian.Uint16(sizeRaw)
+			if sizeDec < 257 {
+				return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by azure")}
+			}
+		}
+	} else {
+		return nil, []error{fmt.Errorf("Error %q is not a complete SSH2 Public Key", k)}
+	}
+
+	return warnings, errors
 }

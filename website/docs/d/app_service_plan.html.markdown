@@ -19,14 +19,14 @@ data "azurerm_app_service_plan" "example" {
 }
 
 output "app_service_plan_id" {
-  value = "${data.azurerm_app_service_plan.example.id}"
+  value = data.azurerm_app_service_plan.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service Plan.
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service Plan exists.
+* `name` - The name of the App Service Plan.
+* `resource_group_name` - The Name of the Resource Group where the App Service Plan exists.
 
 ## Attributes Reference
 
@@ -69,9 +69,9 @@ A `properties` block supports the following:
 
 * `per_site_scaling` - Can Apps assigned to this App Service Plan be scaled independently?
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

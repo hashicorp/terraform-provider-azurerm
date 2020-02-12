@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -98,16 +99,18 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		mapsAccountName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.MapsAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, mapsAccountName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on MapsAccountClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Maps Account %q (resource group: %q) does not exist", mapsAccountName, resourceGroup)
+			return fmt.Errorf("Bad: Maps Account %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -123,16 +126,18 @@ func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.MapsAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 
-			return fmt.Errorf("Error retrieving Maps Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("Error retrieving Maps Account %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 	}
 

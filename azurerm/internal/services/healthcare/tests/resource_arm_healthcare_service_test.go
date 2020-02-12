@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
 )
 
 func TestAccAzureRMHealthCareService_basic(t *testing.T) {
@@ -84,16 +85,15 @@ func testCheckAzureRMHealthCareServiceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		healthcareServiceName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for healthcare service: %s", healthcareServiceName)
+		id, err := parse.HealthcareServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := client.Get(ctx, resourceGroup, healthcareServiceName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: Healthcare service %q (resource group: %q) does not exist", healthcareServiceName, resourceGroup)
+				return fmt.Errorf("Bad: Healthcare service %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on healthcareServiceClient: %+v", err)
@@ -112,10 +112,12 @@ func testCheckAzureRMHealthCareServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.HealthcareServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return nil
 		}

@@ -19,7 +19,7 @@ data "azurerm_key_vault" "example" {
 }
 
 output "vault_uri" {
-  value = "${data.azurerm_key_vault.example.vault_uri}"
+  value = data.azurerm_key_vault.example.vault_uri
 }
 ```
 
@@ -27,9 +27,9 @@ output "vault_uri" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Key Vault.
+* `name` - Specifies the name of the Key Vault.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Key Vault exists.
+* `resource_group_name` - The name of the Resource Group in which the Key Vault exists.
 
 ## Attributes Reference
 
@@ -79,9 +79,9 @@ A `sku` block exports the following:
 
 * `storage_permissions` - A list of storage permissions applicable to this Access Policy.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

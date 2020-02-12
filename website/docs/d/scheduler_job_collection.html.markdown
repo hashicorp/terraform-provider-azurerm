@@ -21,7 +21,7 @@ data "azurerm_scheduler_job_collection" "example" {
 }
 
 output "job_collection_state" {
-  value = "${data.azurerm_scheduler_job_collection.jobs.state}"
+  value = data.azurerm_scheduler_job_collection.jobs.state
 }
 ```
 
@@ -29,9 +29,9 @@ output "job_collection_state" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Scheduler Job Collection.
+* `name` - Specifies the name of the Scheduler Job Collection.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group in which the Scheduler Job Collection resides.
+* `resource_group_name` - Specifies the name of the resource group in which the Scheduler Job Collection resides.
 
 ## Attributes Reference
 
@@ -57,9 +57,9 @@ The `quota` block supports:
 
 * `max_retry_interval` - The maximum interval between retries.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

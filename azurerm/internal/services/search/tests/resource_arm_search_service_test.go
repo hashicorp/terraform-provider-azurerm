@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -118,13 +119,15 @@ func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		searchName := rs.Primary.Attributes["name"]
+		id, err := parse.SearchServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Search Service %q (resource group %q) was not found: %+v", searchName, resourceGroup, err)
+				return fmt.Errorf("Search Service %q (resource group %q) was not found: %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			return fmt.Errorf("Bad: GetSearchService: %+v", err)
@@ -143,10 +146,12 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		searchName := rs.Primary.Attributes["name"]
+		id, err := parse.SearchServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -155,7 +160,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Bad: Search Service %q (resource group %q) still exists: %+v", searchName, resourceGroup, resp)
+		return fmt.Errorf("Bad: Search Service %q (resource group %q) still exists: %+v", id.Name, id.ResourceGroup, resp)
 	}
 
 	return nil

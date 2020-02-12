@@ -1,4 +1,52 @@
-## 1.43.0 (Unreleased)
+## 1.44.0 (Unreleased)
+
+NOTES
+
+* **Preparation for 2.0:** We intend for v1.44.0 to be the last release in the 1.x line - we'll be turning our focus to 2.0 with the next release. We recommend [consulting the list of changes coming in 2.0](https://www.terraform.io/docs/providers/azurerm/guides/2.0-upgrade-guide.html) to be aware and [trialling the Beta available in 1.x versions](https://www.terraform.io/docs/providers/azurerm/guides/2.0-beta.html) if you're interested.
+
+* **Terraform 0.10/0.11:** The upcoming version 2.0 of the Azure Provider will not support Terraform 0.10.x & Terraform 0.11.x - you will need to upgrade to Terraform 0.12 to use version 2.0 (and above) of the Azure Provider.
+
+FEATURES:
+
+* **New Data Source:** `azurerm_eventhub_consumer_group` [GH-5518]
+* **New Data Source:** `azurerm_function_app` [GH-5642]
+* **New Data Source:** `azurerm_iothub_dps_shared_access_policy` [GH-5516]
+
+CHANGES TO BETA RESOURCES:
+
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
+
+IMPROVEMENTS:
+
+* `azurerm_api_management` - support for configuring the HTTP2 protocol [GH-5593]
+* `azurerm_cognitive_account` - support for the `kind` `FormRecognizer` [GH-5679]
+* `azurerm_cognitive_account` - support for the `kind` `ImmersiveReader` [GH-5604]
+* `azurerm_databricks_workspace` - support for the `Trial` SKU [GH-5652]
+* `azurerm_function_app` - support for configuring `ip_restriction` blocks [GH-5440]
+* `azurerm_function_app` - support for configuring user assigned identities [GH-5676]
+* `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
+* `azurerm_lb` - fixing a crash when the HTTP response is dropped [GH-5680]
+* `azurerm_stream_analytics_job` - support for importing jobs created in the portal [GH-5522]
+* `azurerm_storage_blob` - support for authenticating using Azure AD [GH-5614]
+* `azurerm_storage_container` - support for authenticating using Azure AD [GH-5614]
+* `azurerm_storage_queue` - support for authenticating using Azure AD [GH-5614]
+
+CHANGES TO BETA RESOURCES:
+
+* `azurerm_linux_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_linux_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
+* `azurerm_windows_virtual_machine` - added validation for the SSH Key type [GH-5610]
+* `azurerm_windows_virtual_machine_scale_set` - support for updating VMSS's with a Automatic & Rolling Upgrade Policy (sending `health_probe_id` during an update) [GH-5430]
+
+BUGS:
+
+* `azurerm_storage_account` - fix hanging destroy caused by multiple network rules [GH-5565]
+* `azurerm_linux_virtual_machine` - fix `shared_image_id` parsing [GH-5640]
+
+## 1.43.0 (February 04, 2020)
 
 NOTES
 
@@ -8,24 +56,24 @@ NOTES
 
 FEATURES:
 
-* **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` [GH-5489]
-* **New Data Source:** `azurerm_mariadb_server` [GH-5506]
+* **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` ([#5489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5489))
+* **New Data Source:** `azurerm_mariadb_server` ([#5506](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5506))
 
 IMPROVEMENTS:
 
-* `azurerm_application_insights` - support for the `daily_data_cap_in_gb` & `daily_data_cap_notifications_disabled` properties [GH-5480]
-* `azurerm_private_endpoint` - expose mapping between `group_id` and `subresource_names` [GH-5571]
-* `azurerm_recovery_services_vault` - support for the `soft_delete_enabled` property [GH-5586]
+* `azurerm_application_insights` - support for the `daily_data_cap_in_gb` & `daily_data_cap_notifications_disabled` properties ([#5480](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5480))
+* `azurerm_private_endpoint` - expose mapping between `group_id` and `subresource_names` ([#5571](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5571))
+* `azurerm_recovery_services_vault` - support for the `soft_delete_enabled` property ([#5586](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5586))
 
 BUGS:
 
-* `azurerm_databricks_workspace` - allow underscores in `name` [GH-5548]
-* `azurerm_dns_aaaa_record` - normalize IPv6 addresses [GH-5459]
-* `azurerm_frontdoor` - including required `minimum_tls_version` to the `custom_https_configuration` block [GH-5539]
-* `azurerm_managed_disk` - correctly handles disk resizing when attached to a virtual machine [GH-5579]
-* `azurerm_marketplace_agreement` - recreate agreement if not accepted [GH-5582]
-* `azurerm_mysql_virtual_network_rule` - allow `subnet_id` to be in a different subscription then the database [GH-5568]
-* `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` [GH-5540]
+* `azurerm_databricks_workspace` - allow underscores in `name` ([#5548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5548))
+* `azurerm_dns_aaaa_record` - normalize IPv6 addresses ([#5459](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5459))
+* `azurerm_frontdoor` - including required `minimum_tls_version` to the `custom_https_configuration` block ([#5539](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5539))
+* `azurerm_managed_disk` - correctly handles disk resizing when attached to a virtual machine ([#5579](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5579))
+* `azurerm_marketplace_agreement` - recreate agreement if not accepted ([#5582](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5582))
+* `azurerm_mysql_virtual_network_rule` - allow `subnet_id` to be in a different subscription then the database ([#5568](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5568))
+* `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` ([#5540](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5540))
 
 ## 1.42.0 (January 27, 2020)
 

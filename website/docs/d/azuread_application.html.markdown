@@ -22,7 +22,7 @@ data "azurerm_azuread_application" "example" {
 }
 
 output "azure_active_directory_object_id" {
-  value = "${data.azurerm_azuread_application.example.id}"
+  value = data.azurerm_azuread_application.example.id
 }
 ```
 
@@ -50,9 +50,9 @@ output "azure_active_directory_object_id" {
 
 * `reply_urls` - A list of URLs that user tokens are sent to for sign in, or the redirect URIs that OAuth 2.0 authorization codes and access tokens are sent to.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

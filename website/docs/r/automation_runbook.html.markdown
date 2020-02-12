@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -30,9 +30,9 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_runbook" "example" {
   name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_automation_account.example.name
   log_verbose         = "true"
   log_progress        = "true"
   description         = "This is an example runbook"
@@ -54,8 +54,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -68,9 +68,9 @@ data "local_file" "example" {
 
 resource "azurerm_automation_runbook" "example" {
   name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_automation_account.example.name
   log_verbose         = "true"
   log_progress        = "true"
   description         = "This is an example runbook"
@@ -80,7 +80,7 @@ resource "azurerm_automation_runbook" "example" {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 
-  content = "${data.local_file.example.content}"
+  content = data.local_file.example.content
 }
 ```
 
@@ -124,9 +124,9 @@ The following attributes are exported:
 
 * `id` - The Automation Runbook ID.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

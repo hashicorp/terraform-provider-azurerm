@@ -33,8 +33,8 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_key_vault" "example" {
   name                        = "testvault"
   provider                    = azurerm.keyVault
-  location                    = "${azurerm_resource_group.example.location}"
-  resource_group_name         = "${azurerm_resource_group.example.name}"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
   soft_delete_enabled         = true
@@ -152,9 +152,9 @@ The following attributes are exported:
 
 * `vault_uri` - The URI of the Key Vault, used for performing operations on keys and secrets.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
