@@ -37,15 +37,16 @@ func TestBotChannelSlackId(t *testing.T) {
 		},
 		{
 			Name:  "Bot Channel Slack ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/botServices/Service1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/botServices/service1/channels/slackChannel1",
 			Expected: &BotChannelSlackId{
-				BotName:       "Service1",
 				ResourceGroup: "resGroup1",
+				BotName:       "service1",
+				Name:          "slackChannel1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/BotServices/Service1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/BotServices/service1/channels/SlackChannel1",
 			Expected: nil,
 		},
 	}
@@ -64,6 +65,9 @@ func TestBotChannelSlackId(t *testing.T) {
 
 		if actual.BotName != v.Expected.BotName {
 			t.Fatalf("Expected %q but got %q for Bot Name", v.Expected.BotName, actual.BotName)
+		}
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

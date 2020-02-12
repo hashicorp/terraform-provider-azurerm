@@ -37,15 +37,15 @@ func TestBotChannelsRegistrationId(t *testing.T) {
 		},
 		{
 			Name:  "Bot Channels Registration ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/botServices/Service1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/botServices/service1",
 			Expected: &BotChannelsRegistrationId{
-				Name:          "Service1",
+				Name:          "service1",
 				ResourceGroup: "resGroup1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/BotServices/Service1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.BotService/BotServices/service1",
 			Expected: nil,
 		},
 	}

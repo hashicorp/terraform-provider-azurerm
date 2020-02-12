@@ -9,6 +9,7 @@ import (
 type BotChannelSlackId struct {
 	ResourceGroup string
 	BotName       string
+	Name          string
 }
 
 func BotChannelSlackID(input string) (*BotChannelSlackId, error) {
@@ -22,6 +23,10 @@ func BotChannelSlackID(input string) (*BotChannelSlackId, error) {
 	}
 
 	if service.BotName, err = id.PopSegment("botServices"); err != nil {
+		return nil, err
+	}
+
+	if service.Name, err = id.PopSegment("channels"); err != nil {
 		return nil, err
 	}
 

@@ -8,7 +8,8 @@ import (
 
 type BotChannelsRegistrationId struct {
 	ResourceGroup string
-	Name          string
+	// BotName       string
+	Name string
 }
 
 func BotChannelsRegistrationID(input string) (*BotChannelsRegistrationId, error) {
