@@ -163,3 +163,32 @@ func KeyVaultGetSoftDeletedState(ctx context.Context, client *keyvault.VaultsCli
 	// this means we found an existing key vault that is not soft deleted
 	return nil, nil, nil
 }
+
+func KeyVaultIsSoftDeleteAndPurgeProtected(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) bool {
+	id, err := ParseAzureResourceID(keyVaultId)
+	if err != nil {
+		return false
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["vaults"]
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+
+	if props := resp.Properties; props != nil {
+		softDeleteEnabled := false
+		purgeProtectionEnabled := false
+
+		if esd := props.EnableSoftDelete; esd != nil {
+			softDeleteEnabled = *esd
+		}
+		if epp := props.EnableSoftDelete; epp != nil {
+			purgeProtectionEnabled = *epp
+		}
+
+		if softDeleteEnabled && purgeProtectionEnabled {
+			return true
+		}
+	}
+
+	return false
+}

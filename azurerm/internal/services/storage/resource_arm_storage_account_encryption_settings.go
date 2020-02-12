@@ -96,18 +96,17 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
-	// TODO: Validate that the key vault has both soft delete and purge protection enabled
-
 	// create the update object with the default values
+	alwaysEnabled := true
 	opts := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			Encryption: &storage.Encryption{
 				Services: &storage.EncryptionServices{
 					Blob: &storage.EncryptionService{
-						Enabled: true,
+						Enabled: utils.Bool(alwaysEnabled),
 					},
 					File: &storage.EncryptionService{
-						Enabled: true,
+						Enabled: utils.Bool(alwaysEnabled),
 					}},
 				KeySource:          storage.MicrosoftStorage,
 				KeyVaultProperties: &storage.KeyVaultProperties{},
@@ -123,6 +122,10 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 
 			if err != nil {
 				return fmt.Errorf("Error looking up Key Vault URI from id %q: %+v", keyVaultId, err)
+			}
+
+			if azure.KeyVaultIsSoftDeleteAndPurgeProtected(ctx, vaultClient, keyVaultId) {
+				return fmt.Errorf("Key Vault %q is not configured correctly, please make sure that both 'soft_delete_enabled' and 'purge_protection_enabled' arguments are set to 'true'", keyVaultId)
 			}
 
 			keyVaultProperties.KeyVaultURI = utils.String(pKeyVaultBaseUrl)
@@ -219,7 +222,7 @@ func resourceArmStorageAccountEncryptionSettingsDelete(d *schema.ResourceData, m
 
 	_, err = storageClient.Update(ctx, resourceGroupName, storageAccountName, opts)
 	if err != nil {
-		return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
+		return fmt.Errorf("Error deleting Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 	}
 
 	return nil

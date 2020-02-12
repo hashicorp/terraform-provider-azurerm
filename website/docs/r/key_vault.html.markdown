@@ -15,6 +15,8 @@ Manages a Key Vault.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
 provider "azurerm" {
   alias = "keyVault"
 
@@ -36,16 +38,15 @@ resource "azurerm_key_vault" "example" {
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
 
-  enabled_for_disk_encryption = true
-  tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_enabled         = true
   purge_protection_enabled    = false
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
-    object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.service_principal_object_id
 
     key_permissions = [
       "get",
@@ -66,7 +67,7 @@ resource "azurerm_key_vault" "example" {
   }
 
   tags = {
-    environment = "Production"
+    environment = "Testing"
   }
 }
 ```

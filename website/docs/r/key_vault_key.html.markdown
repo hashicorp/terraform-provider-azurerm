@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault where the Key should be created. Changing this forces a new resource to be created.
 
+* `key_vault_access_policy_id` - (Optional) The ID of the Key Vault Access Policy which should exist before the Key should be created. Changing this forces a new resource to be created.
+
 * `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `EC-HSM`, `Oct` (Octet), `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
 
 * `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA` or `RSA-HSM`. Changing this forces a new resource to be created.
