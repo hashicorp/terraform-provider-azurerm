@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestDnsARecordId(t *testing.T) {
+func TestDnsNsRecordId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DnsARecordId
+		Expected *DnsNsRecordId
 	}{
 		{
 			Name:     "Empty",
@@ -41,14 +41,14 @@ func TestDnsARecordId(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing A Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/A/",
+			Name:     "Missing NS Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/NS/",
 			Expected: nil,
 		},
 		{
-			Name:  "DNS A Record ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/A/Record1",
-			Expected: &DnsARecordId{
+			Name:  "DNS NS Record ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/NS/Record1",
+			Expected: &DnsNsRecordId{
 				ResourceGroup: "resGroup1",
 				ZoneName:      "zone1",
 				Name:          "Record1",
@@ -56,7 +56,7 @@ func TestDnsARecordId(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/A/Record1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/NS/Record1",
 			Expected: nil,
 		},
 	}
@@ -64,7 +64,7 @@ func TestDnsARecordId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := DnsARecordID(v.Input)
+		actual, err := DnsNsRecordID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
