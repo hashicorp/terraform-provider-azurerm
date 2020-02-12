@@ -133,7 +133,7 @@ func resourceArmStorageAccountEncryptionSettingsCreateUpdate(d *schema.ResourceD
 				return fmt.Errorf("Error looking up Key Vault URI from id %q: %+v", keyVaultId, err)
 			}
 
-			if azure.KeyVaultIsSoftDeleteAndPurgeProtected(ctx, vaultClient, keyVaultId) {
+			if !azure.KeyVaultIsSoftDeleteAndPurgeProtected(ctx, vaultClient, keyVaultId) {
 				return fmt.Errorf("Key Vault %q (Resource Group %q) is not configured correctly, please make sure that both 'soft_delete_enabled' and 'purge_protection_enabled' arguments are set to 'true'", keyVaultAccountName, keyVaultResourceGroupName)
 			}
 
