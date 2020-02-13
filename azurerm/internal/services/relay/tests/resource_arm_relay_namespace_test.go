@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -34,49 +33,6 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-// TODO: Remove in 2.0
-func TestAccAzureRMRelayNamespace_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRelayNamespace_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMRelayNamespace_basicNotDefined(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMRelayNamespace_basicNotDefined(data),
-				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
-			},
 		},
 	})
 }
@@ -201,41 +157,6 @@ resource "azurerm_relay_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku_name = "Standard"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMRelayNamespace_basicClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_relay_namespace" "test" {
-  name                = "acctestrn-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name = "Standard"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMRelayNamespace_basicNotDefined(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_relay_namespace" "test" {
-  name                = "acctestrn-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
