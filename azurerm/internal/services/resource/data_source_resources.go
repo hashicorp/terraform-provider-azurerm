@@ -185,8 +185,13 @@ func transformResource(res resources.GenericResource) *map[string]interface{} {
 	}
 
 	resID := ""
+	resGroup := ""
 	if res.ID != nil {
 		resID = *res.ID
+		parsedID, err := azure.ParseAzureResourceID(*res.ID)
+		if err == nil {
+			resGroup = parsedID.ResourceGroup
+		}
 	}
 
 	resType := ""
@@ -211,6 +216,7 @@ func transformResource(res resources.GenericResource) *map[string]interface{} {
 
 	return &map[string]interface{}{
 		"name":           resName,
+		"resource_group": resGroup,
 		"id":             resID,
 		"type":           resType,
 		"location":       resLocation,
