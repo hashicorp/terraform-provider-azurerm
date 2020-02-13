@@ -145,7 +145,6 @@ resource "azurerm_notification_hub" "import" {
   namespace_name      = azurerm_notification_hub.test.namespace_name
   resource_group_name = azurerm_notification_hub.test.resource_group_name
   location            = azurerm_notification_hub.test.location
-  sku_name            = azurerm_notification_hub.test.sku_name
 }
 `, template)
 }
