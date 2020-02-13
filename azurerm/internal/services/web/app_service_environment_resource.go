@@ -81,8 +81,8 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			},
 
 			"location": {
-				Type:      schema.TypeString,
-				Computed:  true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"resource_group_name": {
