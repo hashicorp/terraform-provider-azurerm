@@ -173,6 +173,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"protocols": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -188,6 +189,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
