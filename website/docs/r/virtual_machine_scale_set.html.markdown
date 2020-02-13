@@ -10,10 +10,11 @@ description: |-
 
 Manages a virtual machine scale set.
 
-~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+## Disclaimers
 
--> **NOTE:** The `azurerm_virtual_machine_scale_set` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
+-> **Note:** The `azurerm_virtual_machine_scale_set` resource has been superseded by the [`azurerm_linux_virtual_machine_scale_set`](linux_virtual_machine_scale_set.html) and [`azurerm_windows_virtual_machine_scale_set`](windows_virtual_machine_scale_set.html) resources. The existing `azurerm_virtual_machine_scale_set` resource will continue to be available throughout the 2.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources.
+
+~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage with Managed Disks (Recommended)
 

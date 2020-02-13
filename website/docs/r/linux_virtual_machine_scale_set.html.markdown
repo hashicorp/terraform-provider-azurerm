@@ -1,5 +1,5 @@
 ---
-subcategory: "Beta"
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_linux_virtual_machine_scale_set"
 description: |-
@@ -11,8 +11,6 @@ description: |-
 Manages a Linux Virtual Machine Scale Set.
 
 ## Disclaimers
-
-~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider. You can find out [how to opt into the Beta in this guide](https://terraform.io/docs/providers/azurerm/guides/2.0-beta.html)
 
 ~> **Note**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
