@@ -54,7 +54,6 @@ import (
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
 	relay "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/client"
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
-	scheduler "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler/client"
 	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
 	securityCenter "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/client"
 	serviceBus "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/client"
@@ -124,7 +123,6 @@ type Client struct {
 	Redis            *redis.Client
 	Relay            *relay.Client
 	Resource         *resource.Client
-	Scheduler        *scheduler.Client
 	Search           *search.Client
 	SecurityCenter   *securityCenter.Client
 	ServiceBus       *serviceBus.Client
@@ -193,7 +191,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Redis = redis.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
-	client.Scheduler = scheduler.NewClient(o)
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
