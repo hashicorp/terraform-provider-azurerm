@@ -137,7 +137,6 @@ func resourceArmEventHubNamespace() *schema.Resource {
 						"ip_rule": {
 							Type:       schema.TypeList,
 							Optional:   true,
-							MaxItems:   1,
 							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
