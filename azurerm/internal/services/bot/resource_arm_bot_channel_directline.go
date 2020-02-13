@@ -358,7 +358,6 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 // When creating a new directline channel, a Default Site is created
 // There is a race condition where this site is not removed before the create request is completed
 func filterSites(sites *[]botservice.DirectLineSite) []botservice.DirectLineSite {
-
 	filtered := make([]botservice.DirectLineSite, 0)
 	for _, site := range *sites {
 		if *site.SiteName == "Default Site" {
