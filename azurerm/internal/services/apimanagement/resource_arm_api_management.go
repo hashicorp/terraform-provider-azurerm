@@ -194,34 +194,41 @@ func resourceArmApiManagementService() *schema.Resource {
 						"enable_backend_ssl30": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"enable_backend_tls10": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"enable_backend_tls11": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"enable_frontend_ssl30": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"enable_frontend_tls10": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"enable_frontend_tls11": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"enable_triple_des_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
