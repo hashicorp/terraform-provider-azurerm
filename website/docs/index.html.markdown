@@ -135,7 +135,7 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 -> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
 
-* `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue API's, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`. 
+* `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue API's, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
 
 ~> **Note:** This requires that the User/Service Principal being used has the associated `Storage` roles - which are added to new Contributor/Owner role-assignments, but **have not** been backported by Azure to existing role-assignments.
 
@@ -143,13 +143,7 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
----
-
-When [opted into the Beta functionality coming in 2.0](/docs/providers/azurerm/guides/2.0-beta.html) it's possible to configure the behaviour of certain resources using the `features` block - more details can be found below.
-
 ## Features
-
-~> **Note:** This block is only relevant when you've [opted into the Beta functionality coming in 2.0](/docs/providers/azurerm/guides/2.0-beta.html)
 
 It's possible to customise the behaviour of certain Azure Provider resources using the `features` block. This block is Optional in 1.x versions of the Azure Provider but will become Required from 2.0 onwards.
 
