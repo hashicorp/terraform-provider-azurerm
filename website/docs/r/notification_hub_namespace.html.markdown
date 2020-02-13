@@ -41,17 +41,9 @@ The following arguments are supported:
 
 * `namespace_type` - (Required) The Type of Namespace - possible values are `Messaging` or `NotificationHub`. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
 * `sku_name` - (Optional) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
-
-----
-
-A `sku` block contains:
-
-* `name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
