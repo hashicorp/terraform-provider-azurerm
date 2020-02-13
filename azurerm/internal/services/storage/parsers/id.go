@@ -9,6 +9,11 @@ type AccountID struct {
 	ResourceGroup string
 }
 
+type StorageSyncId struct {
+	Name          string
+	ResourceGroup string
+}
+
 func ParseAccountID(input string) (*AccountID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -28,4 +33,25 @@ func ParseAccountID(input string) (*AccountID, error) {
 	}
 
 	return &account, nil
+}
+
+func ParseStorageSyncID(input string) (*StorageSyncId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	storageSync := StorageSyncId{
+		ResourceGroup: id.ResourceGroup,
+	}
+
+	if storageSync.Name, err = id.PopSegment("storageSyncServices"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &storageSync, nil
 }
