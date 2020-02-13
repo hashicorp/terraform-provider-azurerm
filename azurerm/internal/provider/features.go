@@ -7,10 +7,11 @@ import (
 
 func schemaFeatures() *schema.Schema {
 	return &schema.Schema{
-		Type: schema.TypeList,
-		// TODO: make this Required in 2.0
-		Optional: true,
+		Type:     schema.TypeList,
+		Required: true,
 		MaxItems: 1,
+		MinItems: 1,
+
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"virtual_machine": {
@@ -46,14 +47,6 @@ func schemaFeatures() *schema.Schema {
 }
 
 func expandFeatures(input []interface{}) features.UserFeatures {
-	// TODO: in 2.0 when Required this can become:
-	//val := input[0].(map[string]interface{})
-
-	var val map[string]interface{}
-	if len(input) > 0 {
-		val = input[0].(map[string]interface{})
-	}
-
 	// these are the defaults if omitted from the config
 	features := features.UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
@@ -64,6 +57,12 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			RollInstancesWhenRequired: true,
 		},
 	}
+
+	if len(input) == 0 || input[0] == nil {
+		return features
+	}
+
+	val := input[0].(map[string]interface{})
 
 	if raw, ok := val["virtual_machine"]; ok {
 		items := raw.([]interface{})
