@@ -1,27 +1,24 @@
 ---
 subcategory: "Storage"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_storage_account_encryption_settings"
+page_title: "Azure Resource Manager: azurerm_storage_account_customer_managed_key"
 description: |-
-  Manages the encryption settings of an Azure Storage Account.
+  Manages the customer managed key of an Azure Storage Account.
 ---
 
-# azurerm_storage_account_encryption_settings
+# azurerm_storage_account_customer_managed_key
 
-Manages the encryption settings of an Azure Storage Account.
+Manages the customer managed key of an Azure Storage Account.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_storage_account_encryption_settings" "tfex" {
-  storage_account_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.Storage/storageAccounts/tfexstorageaccount"
-
-  key_vault {
-    key_vault_policy_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.KeyVault/vaults/tfex-key-vault/objectId/00000000-0000-0000-0000-000000000000"
-    key_vault_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.KeyVault/vaults/tfex-key-vault"
-    key_name             = "tfex-key"
-    key_version          = "955b9ad9579e4501a311df5493bacd02"
-  }
+resource "azurerm_storage_account_customer_managed_key" "tfex" {
+  storage_account_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.Storage/storageAccounts/tfexstorageaccount"
+  key_vault_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.KeyVault/vaults/tfex-key-vault"
+  key_vault_access_policy_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.KeyVault/vaults/tfex-key-vault/objectId/00000000-0000-0000-0000-000000000000"
+  key_name                    = "tfex-key"
+  key_version                 = "955b9ad9579e4501a311df5493bacd02"
 }
 ```
 
@@ -33,7 +30,7 @@ provider "azurerm" {
 
   features {
     key_vault {
-      purge_soft_delete_on_destroy = true
+      purge_soft_delete_on_destroy = false
     }
   }
 }
@@ -51,7 +48,7 @@ resource "azurerm_key_vault" "tfex" {
   tenant_id                   = "00000000-0000-0000-0000-000000000000"
   
   soft_delete_enabled         = true
-  purge_protection_enabled    = false
+  purge_protection_enabled    = true
 
   sku_name = "standard"
 
@@ -94,15 +91,12 @@ resource "azurerm_storage_account" "tfex" {
   }
 }
 
-resource "azurerm_storage_account_encryption_settings" "tfex" {
-  storage_account_id     = azurerm_storage_account.tfex.id
-
-  key_vault {
-    key_vault_policy_id  = azurerm_key_vault_access_policy.tfex.id
-    key_vault_id         = azurerm_key_vault.tfex.id
-    key_name             = azurerm_key_vault_key.tfex.name
-    key_version          = azurerm_key_vault_key.tfex.version
-  }
+resource "azurerm_storage_account_customer_managed_key" "tfex" {
+  storage_account_id          = azurerm_storage_account.tfex.id
+  key_vault_id                = azurerm_key_vault.tfex.id
+  key_vault_access_policy_id  = azurerm_key_vault_access_policy.tfex.id
+  key_name                    = azurerm_key_vault_key.tfex.name
+  key_version                 = azurerm_key_vault_key.tfex.version
 }
 ```
 
@@ -111,15 +105,8 @@ resource "azurerm_storage_account_encryption_settings" "tfex" {
 The following arguments are supported:
 
 * `storage_account_id` - (Required) The id of the storage account to manage the encryption settings for.
-
-* `key_vault` - (Optional) A `key_vault` block as documented below.
-
----
-
-* `key_vault` supports the following:
-
 * `key_vault_id` - (Required) The ID of the Key Vault.
-* `key_vault_policy_id` - (Required) The resource ID of the `azurerm_key_vault_access_policy` granting the storage account access to the key vault.
+* `key_vault_access_policy_id` - (Required) The resource ID of the `azurerm_key_vault_access_policy` granting the storage account access to the key vault.
 * `key_name` - (Required) The name of Key Vault key.
 * `key_version` - (Required) The version of Key Vault key.
 
@@ -137,5 +124,5 @@ The following attributes are exported in addition to the arguments listed above:
 Storage Accounts Encryption Settings can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_account_encryption_settings.tfex /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
+terraform import azurerm_storage_account_customer_managed_key.tfex /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
 ```

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -191,4 +192,13 @@ func KeyVaultIsSoftDeleteAndPurgeProtected(ctx context.Context, client *keyvault
 	}
 
 	return false
+}
+
+func KeyVaultGetResourceNameResource(resourceId string, namePathKey string) (resourceName interface{}, resourceGroup interface{}, err error) {
+	id, err := azure.ParseAzureResourceID(resourceId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return id.Path[namePathKey], id.ResourceGroup, nil
 }
