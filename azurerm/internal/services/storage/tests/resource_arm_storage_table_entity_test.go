@@ -37,7 +37,7 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "import")
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
