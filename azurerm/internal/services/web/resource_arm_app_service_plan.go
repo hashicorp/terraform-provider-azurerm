@@ -306,10 +306,6 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
-		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
-			return fmt.Errorf("Error setting `properties`: %+v", err)
-		}
-
 		if profile := props.HostingEnvironmentProfile; profile != nil {
 			d.Set("app_service_environment_id", profile.ID)
 		}
