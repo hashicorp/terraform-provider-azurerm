@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -149,6 +150,49 @@ func testAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_nodeTaints(t)
+}
+
+func testAccAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	labels1 := map[string]string{"key": "value"}
+	labels2 := map[string]string{"key2": "value2"}
+	labels3 := map[string]string{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_nodeLabelsConfig(data, clientId, clientSecret, labels1),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_labels.key", "value"),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_nodeLabelsConfig(data, clientId, clientSecret, labels2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_labels.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_nodeLabelsConfig(data, clientId, clientSecret, labels3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "default_node_pool.0.node_labels"),
+				),
+			},
 		},
 	})
 }
@@ -423,6 +467,41 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_nodeLabelsConfig(data acceptance.TestData, clientId string, clientSecret string, labels map[string]string) string {
+	labelsSlice := make([]string, 0, len(labels))
+	for k, v := range labels {
+		labelsSlice = append(labelsSlice, fmt.Sprintf("      \"%s\" = \"%s\"", k, v))
+	}
+	labelsStr := strings.Join(labelsSlice, "\n")
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    node_labels = [
+%s
+    ]
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, labelsStr, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_nodeTaintsConfig(data acceptance.TestData, clientId string, clientSecret string) string {
