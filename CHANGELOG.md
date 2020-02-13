@@ -18,7 +18,10 @@ FEATURES:
 
 BREAKING CHANGES:
 
-* The deprecated `azurerm_container_service` resource has been removed [GH-5709]
+* Data Source: `azurerm_scheduler_job_collection` - This data source has been removed since it was deprecated [GH-5712]
+* `azurerm_container_service` - This resource has been removed since it was deprecated [GH-5709]
+* `azurerm_scheduler_job` - This resource has been removed since it was deprecated [GH-5712]
+* `azurerm_scheduler_job_collection` - This resource has been removed since it was deprecated [GH-5712]
 
 IMPROVEMENTS:
 
