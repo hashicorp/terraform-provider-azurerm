@@ -38,7 +38,13 @@ output "app_service_plan_id" {
 
 * `sku` - A `sku` block as documented below.
 
-* `properties` - A `properties` block as documented below.
+* `app_service_environment_id` - The ID of the App Service Environment where the App Service Plan is located.
+
+* `maximum_number_of_workers` - Maximum number of instances that can be assigned to this App Service plan.
+
+* `reserved` - Is this App Service Plan `Reserved`?
+
+* `per_site_scaling` - Can Apps assigned to this App Service Plan be scaled independently?
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -57,17 +63,6 @@ A `sku` block supports the following:
 * `size` - Specifies the plan's instance size.
 
 * `capacity` - Specifies the number of workers associated with this App Service Plan.
-
-
-A `properties` block supports the following:
-
-* `app_service_environment_id` - The ID of the App Service Environment where the App Service Plan is located.
-
-* `maximum_number_of_workers` - Maximum number of instances that can be assigned to this App Service plan.
-
-* `reserved` - Is this App Service Plan `Reserved`?
-
-* `per_site_scaling` - Can Apps assigned to this App Service Plan be scaled independently?
 
 ## Timeouts
 
