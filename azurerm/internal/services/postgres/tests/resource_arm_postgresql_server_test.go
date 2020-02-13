@@ -224,7 +224,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 				Config: testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Enabled"),
