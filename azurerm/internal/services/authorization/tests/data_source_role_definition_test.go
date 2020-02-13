@@ -142,15 +142,12 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t 
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("VirtualMachineContributor"),
+				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Virtual Machine Contributor"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
 					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.#", "38"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.0", "Microsoft.Authorization/*/read"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.15", "Microsoft.Network/networkSecurityGroups/join/action"),
 					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "0"),
 				),
 			},
