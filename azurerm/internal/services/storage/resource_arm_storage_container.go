@@ -260,21 +260,6 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenStorageContainerProperties(input containers.ContainerProperties) map[string]interface{} {
-	output := map[string]interface{}{
-		"last_modified":  input.Header.Get("Last-Modified"),
-		"lease_duration": "",
-		"lease_state":    string(input.LeaseState),
-		"lease_status":   string(input.LeaseStatus),
-	}
-
-	if input.LeaseDuration != nil {
-		output["lease_duration"] = string(*input.LeaseDuration)
-	}
-
-	return output
-}
-
 func expandStorageContainerAccessLevel(input string) containers.AccessLevel {
 	// for historical reasons, "private" above is an empty string in the API
 	// so the enum doesn't 1:1 match. You could argue the SDK should handle this
