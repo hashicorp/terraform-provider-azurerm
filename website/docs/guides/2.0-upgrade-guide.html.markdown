@@ -405,6 +405,12 @@ The `sku_name` field will become Required.
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
 
+### Resource: `azurerm_relay_namespace`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+The `sku_name` field will become Required.
+
 ### Resource: `azurerm_scheduler_job`
 
 Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Resource will be removed in v2.0 of the AzureRM Provider.
