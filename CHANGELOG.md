@@ -27,6 +27,7 @@ IMPROVEMENTS:
 
 * Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
+* `azurerm_availability_set` - updating the default value for `managed` from `false` to `true` [GH-5724]
 * `azurerm_windows_virtual_machine` - fixing a bug when provisioning from a Shared Gallery image [GH-5661]
 
 ---
