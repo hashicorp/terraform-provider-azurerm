@@ -146,13 +146,13 @@ func testAccAzureRMBotChannelDirectline_basicConfig(data acceptance.TestData) st
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-	bot_name            = "${azurerm_bot_channels_registration.test.name}"
-	location            = "${azurerm_bot_channels_registration.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	site {
-		name 				= "test"
-		enabled 			= true
-	}
+  bot_name            = "${azurerm_bot_channels_registration.test.name}"
+  location            = "${azurerm_bot_channels_registration.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  site {
+    name    = "test"
+    enabled = true
+  }
 }
 `, template)
 }
@@ -163,17 +163,17 @@ func testAccAzureRMBotChannelDirectline_completeConfig(data acceptance.TestData)
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-	bot_name            = "${azurerm_bot_channels_registration.test.name}"
-	location            = "${azurerm_bot_channels_registration.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	site {
-		name 				= "test"
-		enabled 			= true
-		v1_allowed 			= true
-		v3_allowed 			= true
-		enhanced_authentication_enabled 	= true
-		trusted_origins 		= ["https://example.com"]
-	}
+  bot_name            = "${azurerm_bot_channels_registration.test.name}"
+  location            = "${azurerm_bot_channels_registration.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  site {
+    name                            = "test"
+    enabled                         = true
+    v1_allowed                      = true
+    v3_allowed                      = true
+    enhanced_authentication_enabled = true
+    trusted_origins                 = ["https://example.com"]
+  }
 }
 `, template)
 }
@@ -184,13 +184,13 @@ func testAccAzureRMBotChannelDirectline_basicUpdate(data acceptance.TestData) st
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-	bot_name            = "${azurerm_bot_channels_registration.test.name}"
-	location            = "${azurerm_bot_channels_registration.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	site {
-		name 				= "test"
-		enabled 			= false
-	}
+  bot_name            = "${azurerm_bot_channels_registration.test.name}"
+  location            = "${azurerm_bot_channels_registration.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  site {
+    name    = "test"
+    enabled = false
+  }
 }
 `, template)
 }

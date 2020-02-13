@@ -149,6 +149,12 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
+	// Create does not include sites properly, so we need to update as well
+	time.Sleep(10 * time.Second)
+	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	}
+
 	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameDirectLineChannel1))
 	if err != nil {
 		return fmt.Errorf("Error making get request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
@@ -193,7 +199,7 @@ func resourceArmBotChannelDirectlineRead(d *schema.ResourceData, meta interface{
 	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("site", flattenDirectlineSites(*channelProps.Sites))
+				d.Set("site", flattenDirectlineSites(filterSites(channelProps.Sites)))
 			}
 		}
 	}
@@ -208,12 +214,11 @@ func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interfac
 
 	botName := d.Get("bot_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	sites := expandDirectlineSites(d.Get("site").(*schema.Set).List())
 
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
 			Properties: &botservice.DirectLineChannelProperties{
-				Sites: sites,
+				Sites: expandDirectlineSites(d.Get("site").(*schema.Set).List()),
 			},
 			ChannelName: botservice.ChannelNameDirectLineChannel1,
 		},
@@ -221,6 +226,12 @@ func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interfac
 		Kind:     botservice.KindBot,
 	}
 
+	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	}
+
+	// Create does not include sites properly, so we need to update as well
+	time.Sleep(10 * time.Second)
 	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
@@ -264,31 +275,39 @@ func resourceArmBotChannelDirectlineDelete(d *schema.ResourceData, meta interfac
 func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 	sites := make([]botservice.DirectLineSite, len(input))
 
-	for i, element := range input {
+	for _, element := range input {
+		if element == nil {
+			continue
+		}
+
 		site := element.(map[string]interface{})
+		expanded := botservice.DirectLineSite{}
 
 		if v, ok := site["name"].(string); ok {
-			sites[i].SiteName = &v
+			expanded.SiteName = &v
 		}
 		if v, ok := site["enabled"].(bool); ok {
-			sites[i].IsEnabled = &v
+			expanded.IsEnabled = &v
 		}
 		if v, ok := site["v1_allowed"].(bool); ok {
-			sites[i].IsV1Enabled = &v
+			expanded.IsV1Enabled = &v
 		}
 		if v, ok := site["v3_allowed"].(bool); ok {
-			sites[i].IsV3Enabled = &v
+			expanded.IsV3Enabled = &v
 		}
 		if v, ok := site["enhanced_authentication_enabled"].(bool); ok {
-			sites[i].IsSecureSiteEnabled = &v
+			expanded.IsSecureSiteEnabled = &v
 		}
-		if v, ok := site["trusted_origins"].([]interface{}); ok {
-			items := make([]string, len(v))
-			for i, raw := range v {
+		if v, ok := site["trusted_origins"].(*schema.Set); ok {
+			origins := v.List()
+			items := make([]string, len(origins))
+			for i, raw := range origins {
 				items[i] = raw.(string)
 			}
-			sites[i].TrustedOrigins = &items
+			expanded.TrustedOrigins = &items
 		}
+
+		sites = append(sites, expanded)
 	}
 
 	return &sites
@@ -336,4 +355,18 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 	}
 
 	return sites
+}
+
+// When creating a new directline channel, a Default Site is created
+// There is a race condition where this site is not removed before the create request is completed
+func filterSites(sites *[]botservice.DirectLineSite) []botservice.DirectLineSite {
+
+	filtered := make([]botservice.DirectLineSite, 0)
+	for _, site := range *sites {
+		if *site.SiteName == "Default Site" {
+			continue
+		}
+		filtered = append(filtered, site)
+	}
+	return filtered
 }
