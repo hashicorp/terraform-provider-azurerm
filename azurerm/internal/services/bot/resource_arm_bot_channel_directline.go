@@ -149,8 +149,7 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
-	// Create does not include sites properly, so we need to update as well
-	time.Sleep(10 * time.Second)
+	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
@@ -230,8 +229,7 @@ func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
-	// Create does not include sites properly, so we need to update as well
-	time.Sleep(10 * time.Second)
+	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
