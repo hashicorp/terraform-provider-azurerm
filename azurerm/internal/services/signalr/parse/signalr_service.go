@@ -21,7 +21,7 @@ func SignalRServiceID(input string) (*SignalRServiceId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("signalR"); err != nil {
+	if service.Name, err = id.PopSegment("SignalR"); err != nil {
 		return nil, err
 	}
 
