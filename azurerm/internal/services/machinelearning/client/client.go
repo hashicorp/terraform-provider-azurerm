@@ -10,7 +10,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-
 	WorkspacesClient := machinelearningservices.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 

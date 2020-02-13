@@ -1,5 +1,5 @@
 ---
-subcategory: "MachineLearning"
+subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_workspace"
 description: |-

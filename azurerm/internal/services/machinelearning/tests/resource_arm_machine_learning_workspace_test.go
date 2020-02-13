@@ -244,7 +244,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   tags = {
     ENV = "Test"
-	FOO = "bar"
+    FOO = "bar"
   }
 }
 `, template, data.RandomIntOfLength(16))
