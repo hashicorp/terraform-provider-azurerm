@@ -51,8 +51,6 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"location": azure.SchemaLocationDeprecated(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"status": {
@@ -118,13 +116,6 @@ func resourceArmServiceBusTopic() *schema.Resource {
 			"support_ordering": {
 				Type:     schema.TypeBool,
 				Optional: true,
-			},
-
-			// TODO: remove in the next major version
-			"enable_filtering_messages_before_publishing": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure",
 			},
 		},
 	}
