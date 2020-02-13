@@ -16,6 +16,15 @@ FEATURES:
 * **New Resource:** `azurerm_windows_virtual_machine` [GH-5705]
 * **New Resource:** `azurerm_windows_virtual_machine_scale_set` [GH-5705]
 
+BREAKING CHANGES:
+
+* The deprecated `azurerm_container_service` resource has been removed [GH-5709]
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
+* `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
+
 ---
 
 For information on v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v1.44.0/CHANGELOG.md).
