@@ -221,6 +221,10 @@ The deprecated `account_name` field will be removed. This has been deprecated in
 
 The deprecated `account_name` field will be removed. This has been deprecated in favour of the `automation_account_name` field.
 
+### Resource: `azurerm_availability_set`
+
+The default value for the field `managed` has changed from `false` to `true`.
+
 ### Resource: `azurerm_azuread_application`
 
 The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Resource will be removed in v2.0 of the AzureRM Provider.
