@@ -253,6 +253,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		// replaces the context between tests
 		p.MetaReset = func() error {
+			// hack to allow the test suite to run without defining `features{}` everywhere
+			client.Features = expandFeatures([]interface{}{})
+
 			client.StopContext = p.StopContext()
 			return nil
 		}
