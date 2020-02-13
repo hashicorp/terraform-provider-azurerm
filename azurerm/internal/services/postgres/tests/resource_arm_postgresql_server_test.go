@@ -33,28 +33,6 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	})
 }
 
-// TODO: remove in 2.0
-func TestAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "9.5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-		},
-	})
-}
-
 func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	resource.ParallelTest(t, resource.TestCase{
