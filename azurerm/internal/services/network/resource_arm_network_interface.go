@@ -121,18 +121,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Set: schema.HashString,
 						},
 
-						"load_balancer_inbound_nat_rules_ids": {
-							Type:       schema.TypeSet,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_nat_rule_association` resource.",
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-							Set: schema.HashString,
-						},
-
 						"primary": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -648,21 +636,6 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) ([]network.Inte
 			properties.LoadBalancerBackendAddressPools = &ids
 		}
 
-		if v, ok := data["load_balancer_inbound_nat_rules_ids"]; ok {
-			var natRules []network.InboundNatRule
-			rules := v.(*schema.Set).List()
-			for _, r := range rules {
-				ruleId := r.(string)
-				rule := network.InboundNatRule{
-					ID: &ruleId,
-				}
-
-				natRules = append(natRules, rule)
-			}
-
-			properties.LoadBalancerInboundNatRules = &natRules
-		}
-
 		name := data["name"].(string)
 		ipConfigs = append(ipConfigs, network.InterfaceIPConfiguration{
 			Name:                                     &name,
@@ -729,13 +702,6 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 			}
 		}
 
-		var lbInboundNatRules []interface{}
-		if props.LoadBalancerInboundNatRules != nil {
-			for _, rule := range *props.LoadBalancerInboundNatRules {
-				lbInboundNatRules = append(lbInboundNatRules, *rule.ID)
-			}
-		}
-
 		primary := false
 		if props.Primary != nil {
 			primary = *props.Primary
@@ -743,14 +709,13 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 
 		result = append(result, map[string]interface{}{
 			"load_balancer_backend_address_pools_ids": schema.NewSet(schema.HashString, lbBackendAddressPools),
-			"load_balancer_inbound_nat_rules_ids":     schema.NewSet(schema.HashString, lbInboundNatRules),
-			"name":                                    name,
-			"primary":                                 primary,
-			"private_ip_address":                      privateIPAddress,
-			"private_ip_address_allocation":           string(props.PrivateIPAllocationMethod),
-			"private_ip_address_version":              privateIPAddressVersion,
-			"public_ip_address_id":                    publicIPAddressId,
-			"subnet_id":                               subnetId,
+			"name":                          name,
+			"primary":                       primary,
+			"private_ip_address":            privateIPAddress,
+			"private_ip_address_allocation": string(props.PrivateIPAllocationMethod),
+			"private_ip_address_version":    privateIPAddressVersion,
+			"public_ip_address_id":          publicIPAddressId,
+			"subnet_id":                     subnetId,
 		})
 	}
 	return result
