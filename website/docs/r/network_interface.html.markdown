@@ -90,10 +90,6 @@ The `ip_configuration` block supports:
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
-* `application_gateway_backend_address_pools_ids` - (Optional / **Deprecated**) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
-
--> **NOTE:** At this time Network Interface <-> Application Gateway Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
-
 * `load_balancer_backend_address_pools_ids` - (Optional / **Deprecated**) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
 
 -> **NOTE:** At this time Network Interface <-> Load Balancer Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.

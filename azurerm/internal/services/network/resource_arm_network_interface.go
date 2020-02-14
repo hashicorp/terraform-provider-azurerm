@@ -109,18 +109,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
-						"application_gateway_backend_address_pools_ids": {
-							Type:       schema.TypeSet,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.",
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-							Set: schema.HashString,
-						},
-
 						"load_balancer_backend_address_pools_ids": {
 							Type:       schema.TypeSet,
 							Optional:   true,
@@ -657,21 +645,6 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) ([]network.Inte
 			properties.Primary = utils.Bool(v.(bool))
 		}
 
-		if v, ok := data["application_gateway_backend_address_pools_ids"]; ok {
-			var ids []network.ApplicationGatewayBackendAddressPool
-			pools := v.(*schema.Set).List()
-			for _, p := range pools {
-				poolId := p.(string)
-				id := network.ApplicationGatewayBackendAddressPool{
-					ID: &poolId,
-				}
-
-				ids = append(ids, id)
-			}
-
-			properties.ApplicationGatewayBackendAddressPools = &ids
-		}
-
 		if v, ok := data["load_balancer_backend_address_pools_ids"]; ok {
 			var ids []network.BackendAddressPool
 			pools := v.(*schema.Set).List()
@@ -776,13 +749,6 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 			publicIPAddressId = *props.PublicIPAddress.ID
 		}
 
-		var appGatewayBackendPools []interface{}
-		if props.ApplicationGatewayBackendAddressPools != nil {
-			for _, pool := range *props.ApplicationGatewayBackendAddressPools {
-				appGatewayBackendPools = append(appGatewayBackendPools, *pool.ID)
-			}
-		}
-
 		var lbBackendAddressPools []interface{}
 		if props.LoadBalancerBackendAddressPools != nil {
 			for _, pool := range *props.LoadBalancerBackendAddressPools {
@@ -810,17 +776,16 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 		}
 
 		result = append(result, map[string]interface{}{
-			"application_gateway_backend_address_pools_ids": schema.NewSet(schema.HashString, appGatewayBackendPools),
-			"application_security_group_ids":                schema.NewSet(schema.HashString, securityGroups),
-			"load_balancer_backend_address_pools_ids":       schema.NewSet(schema.HashString, lbBackendAddressPools),
-			"load_balancer_inbound_nat_rules_ids":           schema.NewSet(schema.HashString, lbInboundNatRules),
-			"name":                                          name,
-			"primary":                                       primary,
-			"private_ip_address":                            privateIPAddress,
-			"private_ip_address_allocation":                 string(props.PrivateIPAllocationMethod),
-			"private_ip_address_version":                    privateIPAddressVersion,
-			"public_ip_address_id":                          publicIPAddressId,
-			"subnet_id":                                     subnetId,
+			"application_security_group_ids":          schema.NewSet(schema.HashString, securityGroups),
+			"load_balancer_backend_address_pools_ids": schema.NewSet(schema.HashString, lbBackendAddressPools),
+			"load_balancer_inbound_nat_rules_ids":     schema.NewSet(schema.HashString, lbInboundNatRules),
+			"name":                                    name,
+			"primary":                                 primary,
+			"private_ip_address":                      privateIPAddress,
+			"private_ip_address_allocation":           string(props.PrivateIPAllocationMethod),
+			"private_ip_address_version":              privateIPAddressVersion,
+			"public_ip_address_id":                    publicIPAddressId,
+			"subnet_id":                               subnetId,
 		})
 	}
 	return result
