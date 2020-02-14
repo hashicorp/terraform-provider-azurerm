@@ -99,10 +99,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			},
 
 			"timezone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "UTC",
-				// todo figure out how to validate this properly
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "UTC",
+				ValidateFunc: validate.AzureTimeZoneString(),
 			},
 
 			"week_days": {
