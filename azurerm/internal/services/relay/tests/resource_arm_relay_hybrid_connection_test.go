@@ -181,12 +181,12 @@ func testAccAzureRMRelayHybridConnection_requiresImport(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_relay_namespace" "import" {
-  name                 = "acctestrnhc-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+resource "azurerm_relay_hybrid_connection" "import" {
+  name                 = azurerm_relay_hybrid_connection.test.name
+  resource_group_name  = azurerm_relay_hybrid_connection.test.resource_group_name
+  relay_namespace_name = azurerm_relay_hybrid_connection.test.relay_namespace_name
 }
-`, template, data.RandomInteger)
+`, template)
 }
 
 func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.TestCheckFunc {

@@ -42,17 +42,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Azure Relay Namespace exists. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
-* `sku_name` - (Optional) The name of the SKU to use. At this time the only supported value is `Standard`.
+* `sku_name` - (Required) The name of the SKU to use. At this time the only supported value is `Standard`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-----
-
-A `sku` block contains:
-
-* `name` - (Optional) The name of the SKU to use. At this time the only supported value is `Standard`.
 
 ## Attributes Reference
 
