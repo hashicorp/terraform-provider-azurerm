@@ -133,7 +133,7 @@ func testAccAzureRMApiManagementApiSchema_requiresImport(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_api_schema" "test" {
+resource "azurerm_api_management_api_schema" "import" {
   api_name            = "${azurerm_api_management_api.test.name}"
   api_management_name = "${azurerm_api_management.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
