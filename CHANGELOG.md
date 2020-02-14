@@ -31,6 +31,7 @@ IMPROVEMENTS:
 * `azurerm_availability_set` - updating the default value for `managed` from `false` to `true` [GH-5724]
 * `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
 * `azurerm_relay_namespace` - removing the `sku` block in favour of the `sku_name` field [GH-5719]
+* `azurerm_storage_account` - support for configuring `cors_rules` within the `blob_properties` block [GH-5425]
 * `azurerm_windows_virtual_machine` - fixing a bug when provisioning from a Shared Gallery image [GH-5661]
 
 BUG FIXES:
