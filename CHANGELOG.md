@@ -18,19 +18,19 @@ FEATURES:
 
 BREAKING CHANGES:
 
+* Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * Data Source: `azurerm_scheduler_job_collection` - This data source has been removed since it was deprecated [GH-5712]
+* `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
+* `azurerm_availability_set` - updating the default value for `managed` from `false` to `true` [GH-5724]
 * `azurerm_container_service` - This resource has been removed since it was deprecated [GH-5709]
+* `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
+* `azurerm_relay_namespace` - removing the `sku` block in favour of the `sku_name` field [GH-5719]
 * `azurerm_scheduler_job` - This resource has been removed since it was deprecated [GH-5712]
 * `azurerm_scheduler_job_collection` - This resource has been removed since it was deprecated [GH-5712]
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * Data Source: `azurerm_kubernetes_service_version` - support for filtering of preview releases [GH-5662]
-* `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
-* `azurerm_availability_set` - updating the default value for `managed` from `false` to `true` [GH-5724]
-* `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
-* `azurerm_relay_namespace` - removing the `sku` block in favour of the `sku_name` field [GH-5719]
 * `azurerm_storage_account` - support for configuring `cors_rules` within the `blob_properties` block [GH-5425]
 * `azurerm_windows_virtual_machine` - fixing a bug when provisioning from a Shared Gallery image [GH-5661]
 
