@@ -19,6 +19,7 @@ FEATURES:
 BREAKING CHANGES:
 
 * Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
+* Data Source: `azurerm_role_definition` - removing the alias `VirtualMachineContributor` which has been deprecated in favour of the full name `Virtual Machine Contributor` [GH-5733]
 * Data Source: `azurerm_scheduler_job_collection` - This data source has been removed since it was deprecated [GH-5712]
 * `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * `azurerm_availability_set` - updating the default value for `managed` from `false` to `true` [GH-5724]
