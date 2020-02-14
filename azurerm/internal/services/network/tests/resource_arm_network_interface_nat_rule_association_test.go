@@ -249,6 +249,38 @@ resource "azurerm_network_interface_nat_rule_association" "import" {
 `, template)
 }
 
+func testAccAzureRMNetworkInterfaceNATRuleAssociation_updateNIC(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration2"
+    private_ip_address_version    = "IPv6"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+
+resource "azurerm_network_interface_nat_rule_association" "test" {
+  network_interface_id  = azurerm_network_interface.test.id
+  ip_configuration_name = "testconfiguration1"
+  nat_rule_id           = azurerm_lb_nat_rule.test.id
+}
+`, template, data.RandomInteger)
+}
+
 func testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
