@@ -109,18 +109,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
-						"load_balancer_backend_address_pools_ids": {
-							Type:       schema.TypeSet,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_backend_address_pool_association` resource.",
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-							Set: schema.HashString,
-						},
-
 						"primary": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -621,21 +609,6 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) ([]network.Inte
 			properties.Primary = utils.Bool(v.(bool))
 		}
 
-		if v, ok := data["load_balancer_backend_address_pools_ids"]; ok {
-			var ids []network.BackendAddressPool
-			pools := v.(*schema.Set).List()
-			for _, p := range pools {
-				poolId := p.(string)
-				id := network.BackendAddressPool{
-					ID: &poolId,
-				}
-
-				ids = append(ids, id)
-			}
-
-			properties.LoadBalancerBackendAddressPools = &ids
-		}
-
 		name := data["name"].(string)
 		ipConfigs = append(ipConfigs, network.InterfaceIPConfiguration{
 			Name:                                     &name,
@@ -695,20 +668,12 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 			publicIPAddressId = *props.PublicIPAddress.ID
 		}
 
-		var lbBackendAddressPools []interface{}
-		if props.LoadBalancerBackendAddressPools != nil {
-			for _, pool := range *props.LoadBalancerBackendAddressPools {
-				lbBackendAddressPools = append(lbBackendAddressPools, *pool.ID)
-			}
-		}
-
 		primary := false
 		if props.Primary != nil {
 			primary = *props.Primary
 		}
 
 		result = append(result, map[string]interface{}{
-			"load_balancer_backend_address_pools_ids": schema.NewSet(schema.HashString, lbBackendAddressPools),
 			"name":                          name,
 			"primary":                       primary,
 			"private_ip_address":            privateIPAddress,
