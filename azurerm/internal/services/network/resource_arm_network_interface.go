@@ -133,18 +133,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Set: schema.HashString,
 						},
 
-						"application_security_group_ids": {
-							Type:       schema.TypeSet,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_application_security_group_association` resource.",
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-							Set: schema.HashString,
-						},
-
 						"primary": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -675,21 +663,6 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) ([]network.Inte
 			properties.LoadBalancerInboundNatRules = &natRules
 		}
 
-		if v, ok := data["application_security_group_ids"]; ok {
-			var securityGroups []network.ApplicationSecurityGroup
-			rules := v.(*schema.Set).List()
-			for _, r := range rules {
-				groupId := r.(string)
-				group := network.ApplicationSecurityGroup{
-					ID: &groupId,
-				}
-
-				securityGroups = append(securityGroups, group)
-			}
-
-			properties.ApplicationSecurityGroups = &securityGroups
-		}
-
 		name := data["name"].(string)
 		ipConfigs = append(ipConfigs, network.InterfaceIPConfiguration{
 			Name:                                     &name,
@@ -768,15 +741,7 @@ func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfigu
 			primary = *props.Primary
 		}
 
-		securityGroups := make([]interface{}, 0)
-		if sgs := props.ApplicationSecurityGroups; sgs != nil {
-			for _, sg := range *sgs {
-				securityGroups = append(securityGroups, *sg.ID)
-			}
-		}
-
 		result = append(result, map[string]interface{}{
-			"application_security_group_ids":          schema.NewSet(schema.HashString, securityGroups),
 			"load_balancer_backend_address_pools_ids": schema.NewSet(schema.HashString, lbBackendAddressPools),
 			"load_balancer_inbound_nat_rules_ids":     schema.NewSet(schema.HashString, lbInboundNatRules),
 			"name":                                    name,

@@ -98,10 +98,6 @@ The `ip_configuration` block supports:
 
 -> **NOTE:** At this time Network Interface <-> Load Balancer Inbound NAT Rule associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_nat_rule_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
-* `application_security_group_ids` - (Optional / **Deprecated**) List of Application Security Group IDs which should be attached to this NIC
-
--> **NOTE:** At this time Network Interface <-> Application Security Group associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_application_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
-
 * `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
 
 ## Attributes Reference
