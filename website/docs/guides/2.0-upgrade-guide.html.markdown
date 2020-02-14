@@ -207,6 +207,8 @@ The deprecated `fqdn_list` field in the `backend_address_pool` block will be rem
 
 The deprecated `ip_address_list` field in the `backend_address_pool` block will be removed in favour of the `ip_addresses` field, which is available from v1.22 of the AzureRM Provider.
 
+The default value for the `body` field within the `match` block will change from `*` to an empty string.
+
 ### Resource: `azurerm_automation_credential`
 
 The deprecated `account_name` field will be removed. This has been deprecated in favour of the `automation_account_name` field.
