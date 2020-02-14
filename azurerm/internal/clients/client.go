@@ -27,7 +27,6 @@ import (
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
-	graph "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
@@ -96,7 +95,6 @@ type Client struct {
 	EventGrid        *eventgrid.Client
 	Eventhub         *eventhub.Client
 	Frontdoor        *frontdoor.Client
-	Graph            *graph.Client
 	HDInsight        *hdinsight.Client
 	HealthCare       *healthcare.Client
 	IoTHub           *iothub.Client
@@ -164,7 +162,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
-	client.Graph = graph.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)

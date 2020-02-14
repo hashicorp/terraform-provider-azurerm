@@ -130,7 +130,7 @@ data "azurerm_batch_account" "test" {
 
 func testAccDataSourceAzureBatchAccount_userSubscription(data acceptance.TestData, tenantID string, subscriptionID string) string {
 	return fmt.Sprintf(`
-data "azurerm_azuread_service_principal" "test" {
+data "azuread_service_principal" "test" {
   display_name = "Microsoft Azure Batch"
 }
 
@@ -154,7 +154,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = "%s"
-    object_id = "${data.azurerm_azuread_service_principal.test.object_id}"
+    object_id = "${data.azuread_service_principal.test.object_id}"
 
     secret_permissions = [
       "get",
@@ -169,7 +169,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_role_assignment" "contribrole" {
   scope                = "/subscriptions/%s"
   role_definition_name = "Contributor"
-  principal_id         = "${data.azurerm_azuread_service_principal.test.object_id}"
+  principal_id         = "${data.azuread_service_principal.test.object_id}"
 }
 
 resource "azurerm_batch_account" "test" {
