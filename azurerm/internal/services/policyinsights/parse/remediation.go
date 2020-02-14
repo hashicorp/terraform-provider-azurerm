@@ -43,9 +43,14 @@ func RemediationID(input string) (*RemediationId, error) {
 		return nil, fmt.Errorf("Unable to parse Policy Remediation ID %q: %+v", input, err)
 	}
 
+	name := segments[1]
+	if name == "" {
+		return nil, fmt.Errorf("Unable to parse Policy Remediation ID %q: remediation name is empty", input)
+	}
+
 	id := RemediationId{
+		Name:               name,
 		RemediationScopeId: *scopeId,
-		Name:               segments[1],
 	}
 
 	return &id, nil

@@ -44,6 +44,11 @@ func TestRemediationID(t *testing.T) {
 			},
 		},
 		{
+			Name:  "Policy Remediation ID at Subscription but missing name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Policyinsights/remediations/",
+			Error: true,
+		},
+		{
 			Name:  "No resource group name",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/providers/Microsoft.Policyinsights/remediations/test",
 			Error: true,
@@ -73,6 +78,11 @@ func TestRemediationID(t *testing.T) {
 					ResourceGroup:  "group1",
 				},
 			},
+		},
+		{
+			Name:  "Policy Remediation ID at Resource Group but missing name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Policyinsights/remediations/",
+			Error: true,
 		},
 		{
 			Name:  "Missing scope resource name",
@@ -106,6 +116,11 @@ func TestRemediationID(t *testing.T) {
 			},
 		},
 		{
+			Name:  "Policy Remediation ID at Resource but missing name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Policyinsights/remediations/",
+			Error: true,
+		},
+		{
 			Name:  "Policy Remediation ID at Management Group",
 			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.PolicyInsights/remediations/test",
 			Expected: &RemediationId{
@@ -128,6 +143,11 @@ func TestRemediationID(t *testing.T) {
 					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
 				},
 			},
+		},
+		{
+			Name:  "Policy Remediation ID at Management Group but missing name",
+			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.PolicyInsights/remediations/",
+			Error: true,
 		},
 	}
 
