@@ -16,7 +16,6 @@ Manages the customer managed key of an Azure Storage Account.
 resource "azurerm_storage_account_customer_managed_key" "tfex" {
   storage_account_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.Storage/storageAccounts/tfexstorageaccount"
   key_vault_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.KeyVault/vaults/tfex-key-vault"
-  key_vault_access_policy_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.KeyVault/vaults/tfex-key-vault/objectId/00000000-0000-0000-0000-000000000000"
   key_name                    = "tfex-key"
   key_version                 = "955b9ad9579e4501a311df5493bacd02"
 }
@@ -92,11 +91,10 @@ resource "azurerm_storage_account" "tfex" {
 }
 
 resource "azurerm_storage_account_customer_managed_key" "tfex" {
-  storage_account_id          = azurerm_storage_account.tfex.id
-  key_vault_id                = azurerm_key_vault.tfex.id
-  key_vault_access_policy_id  = azurerm_key_vault_access_policy.tfex.id
-  key_name                    = azurerm_key_vault_key.tfex.name
-  key_version                 = azurerm_key_vault_key.tfex.version
+  storage_account_id = azurerm_storage_account.tfex.id
+  key_vault_id       = azurerm_key_vault.tfex.id
+  key_name           = azurerm_key_vault_key.tfex.name
+  key_version        = azurerm_key_vault_key.tfex.version
 }
 ```
 
@@ -106,7 +104,6 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The id of the storage account to manage the encryption settings for.
 * `key_vault_id` - (Required) The ID of the Key Vault.
-* `key_vault_access_policy_id` - (Required) The resource ID of the `azurerm_key_vault_access_policy` granting the storage account access to the key vault.
 * `key_name` - (Required) The name of Key Vault key.
 * `key_version` - (Required) The version of Key Vault key.
 

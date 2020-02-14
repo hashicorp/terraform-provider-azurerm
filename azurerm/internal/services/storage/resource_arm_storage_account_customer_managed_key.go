@@ -44,12 +44,6 @@ func resourceArmStorageAccountCustomerManagedKey() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"key_vault_access_policy_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
 			"key_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -121,9 +115,9 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	_, err = storageClient.Update(ctx, storageAccountResourceGroupName.(string), storageAccountName.(string), props)
+	_, err := storageClient.Update(ctx, storageAccountResourceGroupName.(string), storageAccountName.(string), props)
 	if err != nil {
-		return fmt.Errorf("Error updating Azure Storage Account %q (Resource Group %q) Customer Managed Key : %+v", storageAccountName, storageAccountResourceGroupName, err)
+		return fmt.Errorf("Error updating Azure Storage Account %q (Resource Group %q) Customer Managed Key: %+v", storageAccountName, storageAccountResourceGroupName, err)
 	}
 
 	resourceId := fmt.Sprintf("%s/customerManagedKey", storageAccountId)
@@ -139,11 +133,9 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	keyVaultId := d.Get("key_vault_id").(string)
-	keyVaultPolicy := d.Get("key_vault_access_policy_id").(string)
 
 	d.Set("storage_account_id", storageAccountId)
 	d.Set("key_vault_id", keyVaultId)
-	d.Set("key_vault_access_policy_id", keyVaultPolicy)
 
 	name, resGroup, err := azure.KeyVaultGetResourceNameResource(storageAccountId, "storageAccounts")
 	if err != nil {
@@ -178,6 +170,7 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 	defer cancel()
 
 	storageAccountId := d.Get("storage_account_id").(string)
+	encryptionServices := true
 
 	storageAccountName, resourceGroupName, err := azure.KeyVaultGetResourceNameResource(storageAccountId, "storageAccounts")
 	if err != nil {
@@ -188,15 +181,23 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 	// "Delete" doesn't really make sense it should really be a "Revert to Default"
 	// So instead of the Delete func actually deleting the Storage Account I am
 	// making it reset the Storage Account to it's default state
-	opts := storage.AccountUpdateParameters{
+	props := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			Encryption: &storage.Encryption{
+				Services: &storage.EncryptionServices{
+					Blob: &storage.EncryptionService{
+						Enabled: utils.Bool(encryptionServices),
+					},
+					File: &storage.EncryptionService{
+						Enabled: utils.Bool(encryptionServices),
+					},
+				},
 				KeySource: storage.MicrosoftStorage,
 			},
 		},
 	}
 
-	_, err = storageClient.Update(ctx, resourceGroupName.(string), storageAccountName.(string), opts)
+	_, err = storageClient.Update(ctx, resourceGroupName.(string), storageAccountName.(string), props)
 	if err != nil {
 		return fmt.Errorf("Error deleting AzureRM Storage Account %q (Resource Group %q) %q: %+v", storageAccountName.(string), resourceGroupName.(string), err)
 	}
@@ -213,20 +214,19 @@ func resourceArmStorageAccountCustomerManagedKeyImportState(d *schema.ResourceDa
 
 	d.Set("storage_account_id", id)
 	d.Set("key_vault_id", "")
-	d.Set("key_vault_access_policy_id", "")
 
-	name, resGroup, err := azure.KeyVaultGetResourceNameResource(id, "storageAccounts")
+	name, resourceGroup, err := azure.KeyVaultGetResourceNameResource(id, "storageAccounts")
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := storageClient.GetProperties(ctx, resGroup.(string), name.(string), "")
+	resp, err := storageClient.GetProperties(ctx, resourceGroup.(string), name.(string), "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil, nil
 		}
-		return nil, fmt.Errorf("Error importing the state of AzureRM Storage Account %q (Resource Group %q): %+v", name.(string), resGroup.(string), err)
+		return nil, fmt.Errorf("Error importing the state of AzureRM Storage Account %q (Resource Group %q): %+v", name.(string), resourceGroup.(string), err)
 	}
 
 	if props := resp.AccountProperties; props != nil {

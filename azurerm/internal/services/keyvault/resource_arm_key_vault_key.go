@@ -170,12 +170,10 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	keyVaultId := d.Get("key_vault_id").(string)
 
-	pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 	if err != nil {
 		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
-
-	keyVaultBaseUri := pKeyVaultBaseUrl
 
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
