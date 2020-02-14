@@ -1209,7 +1209,7 @@ func VirtualMachineScaleSetTerminateNotificationSchema() *schema.Schema {
 				"timeout": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.ISO8601Duration,
+					ValidateFunc: azValidate.ISO8601Duration,
 					Default:      "PT5M",
 				},
 			},
