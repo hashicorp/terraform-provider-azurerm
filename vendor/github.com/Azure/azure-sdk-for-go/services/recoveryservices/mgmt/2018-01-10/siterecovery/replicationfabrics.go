@@ -35,7 +35,9 @@ func NewReplicationFabricsClient(subscriptionID string, resourceGroupName string
 	return NewReplicationFabricsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationFabricsClientWithBaseURI creates an instance of the ReplicationFabricsClient client.
+// NewReplicationFabricsClientWithBaseURI creates an instance of the ReplicationFabricsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationFabricsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationFabricsClient {
 	return ReplicationFabricsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

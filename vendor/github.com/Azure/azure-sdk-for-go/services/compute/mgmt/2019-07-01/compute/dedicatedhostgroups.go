@@ -36,7 +36,9 @@ func NewDedicatedHostGroupsClient(subscriptionID string) DedicatedHostGroupsClie
 	return NewDedicatedHostGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDedicatedHostGroupsClientWithBaseURI creates an instance of the DedicatedHostGroupsClient client.
+// NewDedicatedHostGroupsClientWithBaseURI creates an instance of the DedicatedHostGroupsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDedicatedHostGroupsClientWithBaseURI(baseURI string, subscriptionID string) DedicatedHostGroupsClient {
 	return DedicatedHostGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

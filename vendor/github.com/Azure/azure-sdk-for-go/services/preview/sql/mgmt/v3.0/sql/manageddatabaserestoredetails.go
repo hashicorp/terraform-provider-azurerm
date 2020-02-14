@@ -38,7 +38,8 @@ func NewManagedDatabaseRestoreDetailsClient(subscriptionID string) ManagedDataba
 }
 
 // NewManagedDatabaseRestoreDetailsClientWithBaseURI creates an instance of the ManagedDatabaseRestoreDetailsClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewManagedDatabaseRestoreDetailsClientWithBaseURI(baseURI string, subscriptionID string) ManagedDatabaseRestoreDetailsClient {
 	return ManagedDatabaseRestoreDetailsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

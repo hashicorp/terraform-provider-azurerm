@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-01-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
@@ -380,6 +380,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"load_balancer_sku": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"outbound_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},

@@ -35,7 +35,9 @@ func NewAvailabilitySetsClient(subscriptionID string) AvailabilitySetsClient {
 	return NewAvailabilitySetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAvailabilitySetsClientWithBaseURI creates an instance of the AvailabilitySetsClient client.
+// NewAvailabilitySetsClientWithBaseURI creates an instance of the AvailabilitySetsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewAvailabilitySetsClientWithBaseURI(baseURI string, subscriptionID string) AvailabilitySetsClient {
 	return AvailabilitySetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -27,7 +27,7 @@ import (
 	"net/http"
 )
 
-// ServicesClient is the client that can be used to manage Azure Search services and API keys.
+// ServicesClient is the client that can be used to manage Azure Cognitive Search services and API keys.
 type ServicesClient struct {
 	BaseClient
 }
@@ -37,7 +37,8 @@ func NewServicesClient(subscriptionID string) ServicesClient {
 	return NewServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServicesClientWithBaseURI creates an instance of the ServicesClient client.
+// NewServicesClientWithBaseURI creates an instance of the ServicesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewServicesClientWithBaseURI(baseURI string, subscriptionID string) ServicesClient {
 	return ServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -137,11 +138,11 @@ func (client ServicesClient) CheckNameAvailabilityResponder(resp *http.Response)
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service to create or update. Search service names must only
-// contain lowercase letters, digits or dashes, cannot use dash as the first two or last one characters, cannot
-// contain consecutive dashes, and must be between 2 and 60 characters in length. Search service names must be
-// globally unique since they are part of the service URI (https://<name>.search.windows.net). You cannot
-// change the service name after the service is created.
+// searchServiceName - the name of the Azure Cognitive Search service to create or update. Search service names
+// must only contain lowercase letters, digits or dashes, cannot use dash as the first two or last one
+// characters, cannot contain consecutive dashes, and must be between 2 and 60 characters in length. Search
+// service names must be globally unique since they are part of the service URI
+// (https://<name>.search.windows.net). You cannot change the service name after the service is created.
 // service - the definition of the Search service to create or update.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
@@ -243,7 +244,8 @@ func (client ServicesClient) CreateOrUpdateResponder(resp *http.Response) (resul
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
 func (client ServicesClient) Delete(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result autorest.Response, err error) {
@@ -326,7 +328,8 @@ func (client ServicesClient) DeleteResponder(resp *http.Response) (result autore
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
 func (client ServicesClient) Get(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result Service, err error) {
@@ -571,7 +574,7 @@ func (client ServicesClient) ListBySubscriptionResponder(resp *http.Response) (r
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service to update.
+// searchServiceName - the name of the Azure Cognitive Search service to update.
 // service - the definition of the Search service to update.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.

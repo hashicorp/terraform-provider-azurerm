@@ -36,7 +36,8 @@ func NewFavoritesClient(subscriptionID string) FavoritesClient {
 	return NewFavoritesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFavoritesClientWithBaseURI creates an instance of the FavoritesClient client.
+// NewFavoritesClientWithBaseURI creates an instance of the FavoritesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFavoritesClientWithBaseURI(baseURI string, subscriptionID string) FavoritesClient {
 	return FavoritesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

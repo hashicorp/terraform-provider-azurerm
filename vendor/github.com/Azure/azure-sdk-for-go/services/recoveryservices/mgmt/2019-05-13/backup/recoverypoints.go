@@ -35,7 +35,8 @@ func NewRecoveryPointsClient(subscriptionID string) RecoveryPointsClient {
 	return NewRecoveryPointsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRecoveryPointsClientWithBaseURI creates an instance of the RecoveryPointsClient client.
+// NewRecoveryPointsClientWithBaseURI creates an instance of the RecoveryPointsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRecoveryPointsClientWithBaseURI(baseURI string, subscriptionID string) RecoveryPointsClient {
 	return RecoveryPointsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

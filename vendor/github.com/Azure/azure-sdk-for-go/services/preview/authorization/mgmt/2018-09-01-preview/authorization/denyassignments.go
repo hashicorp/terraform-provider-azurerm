@@ -35,7 +35,8 @@ func NewDenyAssignmentsClient(subscriptionID string) DenyAssignmentsClient {
 	return NewDenyAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDenyAssignmentsClientWithBaseURI creates an instance of the DenyAssignmentsClient client.
+// NewDenyAssignmentsClientWithBaseURI creates an instance of the DenyAssignmentsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDenyAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) DenyAssignmentsClient {
 	return DenyAssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

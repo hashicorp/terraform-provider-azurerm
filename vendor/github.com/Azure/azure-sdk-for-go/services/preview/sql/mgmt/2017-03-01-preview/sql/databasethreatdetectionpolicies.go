@@ -38,7 +38,8 @@ func NewDatabaseThreatDetectionPoliciesClient(subscriptionID string) DatabaseThr
 }
 
 // NewDatabaseThreatDetectionPoliciesClientWithBaseURI creates an instance of the DatabaseThreatDetectionPoliciesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewDatabaseThreatDetectionPoliciesClientWithBaseURI(baseURI string, subscriptionID string) DatabaseThreatDetectionPoliciesClient {
 	return DatabaseThreatDetectionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

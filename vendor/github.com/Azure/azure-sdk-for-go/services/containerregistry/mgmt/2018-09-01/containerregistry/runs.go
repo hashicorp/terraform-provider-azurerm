@@ -36,7 +36,8 @@ func NewRunsClient(subscriptionID string) RunsClient {
 	return NewRunsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRunsClientWithBaseURI creates an instance of the RunsClient client.
+// NewRunsClientWithBaseURI creates an instance of the RunsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRunsClientWithBaseURI(baseURI string, subscriptionID string) RunsClient {
 	return RunsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

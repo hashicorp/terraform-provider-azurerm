@@ -35,7 +35,9 @@ func NewReplicationPoliciesClient(subscriptionID string, resourceGroupName strin
 	return NewReplicationPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationPoliciesClientWithBaseURI creates an instance of the ReplicationPoliciesClient client.
+// NewReplicationPoliciesClientWithBaseURI creates an instance of the ReplicationPoliciesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationPoliciesClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationPoliciesClient {
 	return ReplicationPoliciesClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

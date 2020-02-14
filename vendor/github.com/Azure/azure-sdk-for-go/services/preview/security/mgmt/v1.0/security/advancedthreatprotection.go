@@ -35,7 +35,9 @@ func NewAdvancedThreatProtectionClient(subscriptionID string, ascLocation string
 	return NewAdvancedThreatProtectionClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAdvancedThreatProtectionClientWithBaseURI creates an instance of the AdvancedThreatProtectionClient client.
+// NewAdvancedThreatProtectionClientWithBaseURI creates an instance of the AdvancedThreatProtectionClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewAdvancedThreatProtectionClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AdvancedThreatProtectionClient {
 	return AdvancedThreatProtectionClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

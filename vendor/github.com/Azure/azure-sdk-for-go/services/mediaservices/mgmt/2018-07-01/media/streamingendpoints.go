@@ -36,7 +36,9 @@ func NewStreamingEndpointsClient(subscriptionID string) StreamingEndpointsClient
 	return NewStreamingEndpointsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingEndpointsClientWithBaseURI creates an instance of the StreamingEndpointsClient client.
+// NewStreamingEndpointsClientWithBaseURI creates an instance of the StreamingEndpointsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewStreamingEndpointsClientWithBaseURI(baseURI string, subscriptionID string) StreamingEndpointsClient {
 	return StreamingEndpointsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

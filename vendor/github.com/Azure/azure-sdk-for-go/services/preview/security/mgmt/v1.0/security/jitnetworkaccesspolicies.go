@@ -36,7 +36,9 @@ func NewJitNetworkAccessPoliciesClient(subscriptionID string, ascLocation string
 	return NewJitNetworkAccessPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewJitNetworkAccessPoliciesClientWithBaseURI creates an instance of the JitNetworkAccessPoliciesClient client.
+// NewJitNetworkAccessPoliciesClientWithBaseURI creates an instance of the JitNetworkAccessPoliciesClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewJitNetworkAccessPoliciesClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) JitNetworkAccessPoliciesClient {
 	return JitNetworkAccessPoliciesClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

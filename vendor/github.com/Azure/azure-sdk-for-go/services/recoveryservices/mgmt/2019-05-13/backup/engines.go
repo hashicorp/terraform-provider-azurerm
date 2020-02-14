@@ -35,7 +35,8 @@ func NewEnginesClient(subscriptionID string) EnginesClient {
 	return NewEnginesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEnginesClientWithBaseURI creates an instance of the EnginesClient client.
+// NewEnginesClientWithBaseURI creates an instance of the EnginesClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewEnginesClientWithBaseURI(baseURI string, subscriptionID string) EnginesClient {
 	return EnginesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

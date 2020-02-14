@@ -35,7 +35,8 @@ func NewBastionHostsClient(subscriptionID string) BastionHostsClient {
 	return NewBastionHostsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBastionHostsClientWithBaseURI creates an instance of the BastionHostsClient client.
+// NewBastionHostsClientWithBaseURI creates an instance of the BastionHostsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBastionHostsClientWithBaseURI(baseURI string, subscriptionID string) BastionHostsClient {
 	return BastionHostsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

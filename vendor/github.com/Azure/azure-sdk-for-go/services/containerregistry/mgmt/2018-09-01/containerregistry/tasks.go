@@ -36,7 +36,8 @@ func NewTasksClient(subscriptionID string) TasksClient {
 	return NewTasksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTasksClientWithBaseURI creates an instance of the TasksClient client.
+// NewTasksClientWithBaseURI creates an instance of the TasksClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTasksClientWithBaseURI(baseURI string, subscriptionID string) TasksClient {
 	return TasksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

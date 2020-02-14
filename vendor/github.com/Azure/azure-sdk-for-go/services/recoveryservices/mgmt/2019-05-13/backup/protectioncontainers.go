@@ -35,7 +35,9 @@ func NewProtectionContainersClient(subscriptionID string) ProtectionContainersCl
 	return NewProtectionContainersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProtectionContainersClientWithBaseURI creates an instance of the ProtectionContainersClient client.
+// NewProtectionContainersClientWithBaseURI creates an instance of the ProtectionContainersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewProtectionContainersClientWithBaseURI(baseURI string, subscriptionID string) ProtectionContainersClient {
 	return ProtectionContainersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

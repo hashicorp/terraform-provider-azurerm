@@ -36,7 +36,8 @@ func NewVariableClient(subscriptionID string) VariableClient {
 	return NewVariableClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVariableClientWithBaseURI creates an instance of the VariableClient client.
+// NewVariableClientWithBaseURI creates an instance of the VariableClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVariableClientWithBaseURI(baseURI string, subscriptionID string) VariableClient {
 	return VariableClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

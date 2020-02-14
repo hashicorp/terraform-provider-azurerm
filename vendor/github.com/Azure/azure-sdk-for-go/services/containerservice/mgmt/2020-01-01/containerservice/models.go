@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-01-01/containerservice"
 
 // AgentPoolType enumerates the values for agent pool type.
 type AgentPoolType string
@@ -231,6 +231,21 @@ const (
 // PossibleOSTypeValues returns an array of possible values for the OSType const type.
 func PossibleOSTypeValues() []OSType {
 	return []OSType{Linux, Windows}
+}
+
+// OutboundType enumerates the values for outbound type.
+type OutboundType string
+
+const (
+	// LoadBalancer ...
+	LoadBalancer OutboundType = "loadBalancer"
+	// UserDefinedRouting ...
+	UserDefinedRouting OutboundType = "userDefinedRouting"
+)
+
+// PossibleOutboundTypeValues returns an array of possible values for the OutboundType const type.
+func PossibleOutboundTypeValues() []OutboundType {
+	return []OutboundType{LoadBalancer, UserDefinedRouting}
 }
 
 // ResourceIdentityType enumerates the values for resource identity type.
@@ -1729,6 +1744,8 @@ type ManagedClusterAddonProfile struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// Config - Key-value pairs for configuring an add-on.
 	Config map[string]*string `json:"config"`
+	// Identity - READ-ONLY; Information of user assigned identity used by this add-on.
+	Identity *ManagedClusterAddonProfileIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAddonProfile.
@@ -1741,6 +1758,16 @@ func (mcap ManagedClusterAddonProfile) MarshalJSON() ([]byte, error) {
 		objectMap["config"] = mcap.Config
 	}
 	return json.Marshal(objectMap)
+}
+
+// ManagedClusterAddonProfileIdentity information of user assigned identity used by this add-on.
+type ManagedClusterAddonProfileIdentity struct {
+	// ResourceID - The resource id of the user assigned identity.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// ClientID - The client id of the user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+	// ObjectID - The object id of the user assigned identity.
+	ObjectID *string `json:"objectId,omitempty"`
 }
 
 // ManagedClusterAgentPoolProfile profile for the container service agent pool.
@@ -1771,7 +1798,7 @@ type ManagedClusterAgentPoolProfile struct {
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// AvailabilityZones - (PREVIEW) Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
+	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
@@ -1779,8 +1806,75 @@ type ManagedClusterAgentPoolProfile struct {
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
 	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
+	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
+	Tags map[string]*string `json:"tags"`
+	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
+	NodeLabels map[string]*string `json:"nodeLabels"`
 	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfile.
+func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcapp.Name != nil {
+		objectMap["name"] = mcapp.Name
+	}
+	if mcapp.Count != nil {
+		objectMap["count"] = mcapp.Count
+	}
+	if mcapp.VMSize != "" {
+		objectMap["vmSize"] = mcapp.VMSize
+	}
+	if mcapp.OsDiskSizeGB != nil {
+		objectMap["osDiskSizeGB"] = mcapp.OsDiskSizeGB
+	}
+	if mcapp.VnetSubnetID != nil {
+		objectMap["vnetSubnetID"] = mcapp.VnetSubnetID
+	}
+	if mcapp.MaxPods != nil {
+		objectMap["maxPods"] = mcapp.MaxPods
+	}
+	if mcapp.OsType != "" {
+		objectMap["osType"] = mcapp.OsType
+	}
+	if mcapp.MaxCount != nil {
+		objectMap["maxCount"] = mcapp.MaxCount
+	}
+	if mcapp.MinCount != nil {
+		objectMap["minCount"] = mcapp.MinCount
+	}
+	if mcapp.EnableAutoScaling != nil {
+		objectMap["enableAutoScaling"] = mcapp.EnableAutoScaling
+	}
+	if mcapp.Type != "" {
+		objectMap["type"] = mcapp.Type
+	}
+	if mcapp.OrchestratorVersion != nil {
+		objectMap["orchestratorVersion"] = mcapp.OrchestratorVersion
+	}
+	if mcapp.AvailabilityZones != nil {
+		objectMap["availabilityZones"] = mcapp.AvailabilityZones
+	}
+	if mcapp.EnableNodePublicIP != nil {
+		objectMap["enableNodePublicIP"] = mcapp.EnableNodePublicIP
+	}
+	if mcapp.ScaleSetPriority != "" {
+		objectMap["scaleSetPriority"] = mcapp.ScaleSetPriority
+	}
+	if mcapp.ScaleSetEvictionPolicy != "" {
+		objectMap["scaleSetEvictionPolicy"] = mcapp.ScaleSetEvictionPolicy
+	}
+	if mcapp.Tags != nil {
+		objectMap["tags"] = mcapp.Tags
+	}
+	if mcapp.NodeLabels != nil {
+		objectMap["nodeLabels"] = mcapp.NodeLabels
+	}
+	if mcapp.NodeTaints != nil {
+		objectMap["nodeTaints"] = mcapp.NodeTaints
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedClusterAgentPoolProfileProperties properties for the container service agent pool profile.
@@ -1809,7 +1903,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// AvailabilityZones - (PREVIEW) Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
+	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
@@ -1817,8 +1911,72 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
 	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
+	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
+	Tags map[string]*string `json:"tags"`
+	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
+	NodeLabels map[string]*string `json:"nodeLabels"`
 	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfileProperties.
+func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcappp.Count != nil {
+		objectMap["count"] = mcappp.Count
+	}
+	if mcappp.VMSize != "" {
+		objectMap["vmSize"] = mcappp.VMSize
+	}
+	if mcappp.OsDiskSizeGB != nil {
+		objectMap["osDiskSizeGB"] = mcappp.OsDiskSizeGB
+	}
+	if mcappp.VnetSubnetID != nil {
+		objectMap["vnetSubnetID"] = mcappp.VnetSubnetID
+	}
+	if mcappp.MaxPods != nil {
+		objectMap["maxPods"] = mcappp.MaxPods
+	}
+	if mcappp.OsType != "" {
+		objectMap["osType"] = mcappp.OsType
+	}
+	if mcappp.MaxCount != nil {
+		objectMap["maxCount"] = mcappp.MaxCount
+	}
+	if mcappp.MinCount != nil {
+		objectMap["minCount"] = mcappp.MinCount
+	}
+	if mcappp.EnableAutoScaling != nil {
+		objectMap["enableAutoScaling"] = mcappp.EnableAutoScaling
+	}
+	if mcappp.Type != "" {
+		objectMap["type"] = mcappp.Type
+	}
+	if mcappp.OrchestratorVersion != nil {
+		objectMap["orchestratorVersion"] = mcappp.OrchestratorVersion
+	}
+	if mcappp.AvailabilityZones != nil {
+		objectMap["availabilityZones"] = mcappp.AvailabilityZones
+	}
+	if mcappp.EnableNodePublicIP != nil {
+		objectMap["enableNodePublicIP"] = mcappp.EnableNodePublicIP
+	}
+	if mcappp.ScaleSetPriority != "" {
+		objectMap["scaleSetPriority"] = mcappp.ScaleSetPriority
+	}
+	if mcappp.ScaleSetEvictionPolicy != "" {
+		objectMap["scaleSetEvictionPolicy"] = mcappp.ScaleSetEvictionPolicy
+	}
+	if mcappp.Tags != nil {
+		objectMap["tags"] = mcappp.Tags
+	}
+	if mcappp.NodeLabels != nil {
+		objectMap["nodeLabels"] = mcappp.NodeLabels
+	}
+	if mcappp.NodeTaints != nil {
+		objectMap["nodeTaints"] = mcappp.NodeTaints
+	}
+	return json.Marshal(objectMap)
 }
 
 // ManagedClusterAPIServerAccessProfile access profile for managed cluster API server.
@@ -1985,7 +2143,7 @@ func NewManagedClusterListResultPage(getNextPage func(context.Context, ManagedCl
 	return ManagedClusterListResultPage{fn: getNextPage}
 }
 
-// ManagedClusterLoadBalancerProfile profile of the managed cluster load balancer
+// ManagedClusterLoadBalancerProfile profile of the managed cluster load balancer.
 type ManagedClusterLoadBalancerProfile struct {
 	// ManagedOutboundIPs - Desired managed outbound IPs for the cluster load balancer.
 	ManagedOutboundIPs *ManagedClusterLoadBalancerProfileManagedOutboundIPs `json:"managedOutboundIPs,omitempty"`
@@ -1995,6 +2153,10 @@ type ManagedClusterLoadBalancerProfile struct {
 	OutboundIPs *ManagedClusterLoadBalancerProfileOutboundIPs `json:"outboundIPs,omitempty"`
 	// EffectiveOutboundIPs - The effective outbound IP resources of the cluster load balancer.
 	EffectiveOutboundIPs *[]ResourceReference `json:"effectiveOutboundIPs,omitempty"`
+	// AllocatedOutboundPorts - Desired number of allocated SNAT ports per VM. Allowed values must be in the range of 0 to 64000 (inclusive). The default value is 0 which results in Azure dynamically allocating ports.
+	AllocatedOutboundPorts *int32 `json:"allocatedOutboundPorts,omitempty"`
+	// IdleTimeoutInMinutes - Desired outbound flow idle timeout in minutes. Allowed values must be in the range of 4 to 120 (inclusive). The default value is 30 minutes.
+	IdleTimeoutInMinutes *int32 `json:"idleTimeoutInMinutes,omitempty"`
 }
 
 // ManagedClusterLoadBalancerProfileManagedOutboundIPs desired managed outbound IPs for the cluster load
@@ -2074,6 +2236,10 @@ type ManagedClusterProperties struct {
 	AadProfile *ManagedClusterAADProfile `json:"aadProfile,omitempty"`
 	// APIServerAccessProfile - Access profile for managed cluster API server.
 	APIServerAccessProfile *ManagedClusterAPIServerAccessProfile `json:"apiServerAccessProfile,omitempty"`
+	// DiskEncryptionSetID - ResourceId of the disk encryption set to use for enabling encryption at rest.
+	DiskEncryptionSetID *string `json:"diskEncryptionSetID,omitempty"`
+	// IdentityProfile - Identities associated with the cluster.
+	IdentityProfile map[string]*ManagedClusterPropertiesIdentityProfileValue `json:"identityProfile"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterProperties.
@@ -2118,7 +2284,23 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.APIServerAccessProfile != nil {
 		objectMap["apiServerAccessProfile"] = mcp.APIServerAccessProfile
 	}
+	if mcp.DiskEncryptionSetID != nil {
+		objectMap["diskEncryptionSetID"] = mcp.DiskEncryptionSetID
+	}
+	if mcp.IdentityProfile != nil {
+		objectMap["identityProfile"] = mcp.IdentityProfile
+	}
 	return json.Marshal(objectMap)
+}
+
+// ManagedClusterPropertiesIdentityProfileValue ...
+type ManagedClusterPropertiesIdentityProfileValue struct {
+	// ResourceID - The resource id of the user assigned identity.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// ClientID - The client id of the user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+	// ObjectID - The object id of the user assigned identity.
+	ObjectID *string `json:"objectId,omitempty"`
 }
 
 // ManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -2413,6 +2595,8 @@ type NetworkProfileType struct {
 	DNSServiceIP *string `json:"dnsServiceIP,omitempty"`
 	// DockerBridgeCidr - A CIDR notation IP range assigned to the Docker bridge network. It must not overlap with any Subnet IP ranges or the Kubernetes service address range.
 	DockerBridgeCidr *string `json:"dockerBridgeCidr,omitempty"`
+	// OutboundType - The outbound (egress) routing method. Possible values include: 'LoadBalancer', 'UserDefinedRouting'
+	OutboundType OutboundType `json:"outboundType,omitempty"`
 	// LoadBalancerSku - The load balancer sku for the managed cluster. Possible values include: 'Standard', 'Basic'
 	LoadBalancerSku LoadBalancerSku `json:"loadBalancerSku,omitempty"`
 	// LoadBalancerProfile - Profile of the cluster load balancer.
@@ -3303,6 +3487,16 @@ func (toVar TagsObject) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = toVar.Tags
 	}
 	return json.Marshal(objectMap)
+}
+
+// UserAssignedIdentity ...
+type UserAssignedIdentity struct {
+	// ResourceID - The resource id of the user assigned identity.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// ClientID - The client id of the user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+	// ObjectID - The object id of the user assigned identity.
+	ObjectID *string `json:"objectId,omitempty"`
 }
 
 // VMDiagnostics profile for diagnostics on the container service VMs.

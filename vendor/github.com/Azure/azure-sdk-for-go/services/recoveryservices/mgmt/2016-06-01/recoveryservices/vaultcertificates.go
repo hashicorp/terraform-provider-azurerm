@@ -35,7 +35,9 @@ func NewVaultCertificatesClient(subscriptionID string) VaultCertificatesClient {
 	return NewVaultCertificatesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVaultCertificatesClientWithBaseURI creates an instance of the VaultCertificatesClient client.
+// NewVaultCertificatesClientWithBaseURI creates an instance of the VaultCertificatesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewVaultCertificatesClientWithBaseURI(baseURI string, subscriptionID string) VaultCertificatesClient {
 	return VaultCertificatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

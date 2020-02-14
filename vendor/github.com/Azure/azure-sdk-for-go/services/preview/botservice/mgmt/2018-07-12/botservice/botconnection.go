@@ -36,7 +36,8 @@ func NewBotConnectionClient(subscriptionID string) BotConnectionClient {
 	return NewBotConnectionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBotConnectionClientWithBaseURI creates an instance of the BotConnectionClient client.
+// NewBotConnectionClientWithBaseURI creates an instance of the BotConnectionClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBotConnectionClientWithBaseURI(baseURI string, subscriptionID string) BotConnectionClient {
 	return BotConnectionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

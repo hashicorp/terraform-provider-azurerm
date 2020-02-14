@@ -35,7 +35,8 @@ func NewVMInsightsClient(subscriptionID string) VMInsightsClient {
 	return NewVMInsightsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVMInsightsClientWithBaseURI creates an instance of the VMInsightsClient client.
+// NewVMInsightsClientWithBaseURI creates an instance of the VMInsightsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVMInsightsClientWithBaseURI(baseURI string, subscriptionID string) VMInsightsClient {
 	return VMInsightsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,8 @@ func NewTopicTypesClient(subscriptionID string) TopicTypesClient {
 	return NewTopicTypesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTopicTypesClientWithBaseURI creates an instance of the TopicTypesClient client.
+// NewTopicTypesClientWithBaseURI creates an instance of the TopicTypesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTopicTypesClientWithBaseURI(baseURI string, subscriptionID string) TopicTypesClient {
 	return TopicTypesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

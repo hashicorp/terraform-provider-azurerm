@@ -37,7 +37,8 @@ func NewJobVersionsClient(subscriptionID string) JobVersionsClient {
 	return NewJobVersionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobVersionsClientWithBaseURI creates an instance of the JobVersionsClient client.
+// NewJobVersionsClientWithBaseURI creates an instance of the JobVersionsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewJobVersionsClientWithBaseURI(baseURI string, subscriptionID string) JobVersionsClient {
 	return JobVersionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewContactsClient(subscriptionID string, ascLocation string) ContactsClient
 	return NewContactsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewContactsClientWithBaseURI creates an instance of the ContactsClient client.
+// NewContactsClientWithBaseURI creates an instance of the ContactsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewContactsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) ContactsClient {
 	return ContactsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

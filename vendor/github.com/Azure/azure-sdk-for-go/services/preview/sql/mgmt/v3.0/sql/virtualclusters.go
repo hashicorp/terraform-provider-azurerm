@@ -37,7 +37,8 @@ func NewVirtualClustersClient(subscriptionID string) VirtualClustersClient {
 	return NewVirtualClustersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVirtualClustersClientWithBaseURI creates an instance of the VirtualClustersClient client.
+// NewVirtualClustersClientWithBaseURI creates an instance of the VirtualClustersClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVirtualClustersClientWithBaseURI(baseURI string, subscriptionID string) VirtualClustersClient {
 	return VirtualClustersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

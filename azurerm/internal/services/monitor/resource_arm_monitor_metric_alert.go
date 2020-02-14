@@ -397,7 +397,7 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlert
 
 			actions = append(actions, insights.MetricAlertAction{
 				ActionGroupID:     utils.String(agID),
-				WebhookProperties: props,
+				WebHookProperties: props,
 			})
 		}
 	}
@@ -466,7 +466,7 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 		}
 
 		props := make(map[string]string)
-		for pk, pv := range action.WebhookProperties {
+		for pk, pv := range action.WebHookProperties {
 			if pv != nil {
 				props[pk] = *pv
 			}

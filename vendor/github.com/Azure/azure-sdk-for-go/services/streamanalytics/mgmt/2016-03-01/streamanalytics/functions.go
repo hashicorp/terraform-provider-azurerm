@@ -35,7 +35,8 @@ func NewFunctionsClient(subscriptionID string) FunctionsClient {
 	return NewFunctionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFunctionsClientWithBaseURI creates an instance of the FunctionsClient client.
+// NewFunctionsClientWithBaseURI creates an instance of the FunctionsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFunctionsClientWithBaseURI(baseURI string, subscriptionID string) FunctionsClient {
 	return FunctionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

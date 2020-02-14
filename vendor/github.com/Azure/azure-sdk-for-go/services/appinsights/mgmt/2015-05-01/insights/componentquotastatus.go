@@ -36,7 +36,9 @@ func NewComponentQuotaStatusClient(subscriptionID string) ComponentQuotaStatusCl
 	return NewComponentQuotaStatusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewComponentQuotaStatusClientWithBaseURI creates an instance of the ComponentQuotaStatusClient client.
+// NewComponentQuotaStatusClientWithBaseURI creates an instance of the ComponentQuotaStatusClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewComponentQuotaStatusClientWithBaseURI(baseURI string, subscriptionID string) ComponentQuotaStatusClient {
 	return ComponentQuotaStatusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

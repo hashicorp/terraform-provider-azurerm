@@ -36,7 +36,8 @@ func NewActionGroupsClient(subscriptionID string) ActionGroupsClient {
 	return NewActionGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewActionGroupsClientWithBaseURI creates an instance of the ActionGroupsClient client.
+// NewActionGroupsClientWithBaseURI creates an instance of the ActionGroupsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewActionGroupsClientWithBaseURI(baseURI string, subscriptionID string) ActionGroupsClient {
 	return ActionGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

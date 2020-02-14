@@ -35,7 +35,8 @@ func NewTransformationsClient(subscriptionID string) TransformationsClient {
 	return NewTransformationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTransformationsClientWithBaseURI creates an instance of the TransformationsClient client.
+// NewTransformationsClientWithBaseURI creates an instance of the TransformationsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTransformationsClientWithBaseURI(baseURI string, subscriptionID string) TransformationsClient {
 	return TransformationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

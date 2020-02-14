@@ -35,7 +35,9 @@ func NewScriptExecutionHistoryClient(subscriptionID string) ScriptExecutionHisto
 	return NewScriptExecutionHistoryClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewScriptExecutionHistoryClientWithBaseURI creates an instance of the ScriptExecutionHistoryClient client.
+// NewScriptExecutionHistoryClientWithBaseURI creates an instance of the ScriptExecutionHistoryClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewScriptExecutionHistoryClientWithBaseURI(baseURI string, subscriptionID string) ScriptExecutionHistoryClient {
 	return ScriptExecutionHistoryClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

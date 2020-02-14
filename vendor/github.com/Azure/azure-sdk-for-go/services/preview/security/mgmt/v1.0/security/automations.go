@@ -36,7 +36,8 @@ func NewAutomationsClient(subscriptionID string, ascLocation string) Automations
 	return NewAutomationsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAutomationsClientWithBaseURI creates an instance of the AutomationsClient client.
+// NewAutomationsClientWithBaseURI creates an instance of the AutomationsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAutomationsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AutomationsClient {
 	return AutomationsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

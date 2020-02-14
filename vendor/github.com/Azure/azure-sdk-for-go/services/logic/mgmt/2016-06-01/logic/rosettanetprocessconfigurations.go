@@ -37,7 +37,8 @@ func NewRosettaNetProcessConfigurationsClient(subscriptionID string) RosettaNetP
 }
 
 // NewRosettaNetProcessConfigurationsClientWithBaseURI creates an instance of the RosettaNetProcessConfigurationsClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewRosettaNetProcessConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) RosettaNetProcessConfigurationsClient {
 	return RosettaNetProcessConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,8 @@ func NewRouteTablesClient(subscriptionID string) RouteTablesClient {
 	return NewRouteTablesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRouteTablesClientWithBaseURI creates an instance of the RouteTablesClient client.
+// NewRouteTablesClientWithBaseURI creates an instance of the RouteTablesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRouteTablesClientWithBaseURI(baseURI string, subscriptionID string) RouteTablesClient {
 	return RouteTablesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

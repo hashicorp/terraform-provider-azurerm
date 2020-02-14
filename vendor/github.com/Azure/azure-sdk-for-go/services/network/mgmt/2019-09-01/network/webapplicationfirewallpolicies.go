@@ -37,7 +37,8 @@ func NewWebApplicationFirewallPoliciesClient(subscriptionID string) WebApplicati
 }
 
 // NewWebApplicationFirewallPoliciesClientWithBaseURI creates an instance of the WebApplicationFirewallPoliciesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewWebApplicationFirewallPoliciesClientWithBaseURI(baseURI string, subscriptionID string) WebApplicationFirewallPoliciesClient {
 	return WebApplicationFirewallPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

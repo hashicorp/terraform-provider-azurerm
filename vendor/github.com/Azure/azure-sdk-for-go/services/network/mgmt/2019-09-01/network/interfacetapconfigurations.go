@@ -36,7 +36,9 @@ func NewInterfaceTapConfigurationsClient(subscriptionID string) InterfaceTapConf
 	return NewInterfaceTapConfigurationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewInterfaceTapConfigurationsClientWithBaseURI creates an instance of the InterfaceTapConfigurationsClient client.
+// NewInterfaceTapConfigurationsClientWithBaseURI creates an instance of the InterfaceTapConfigurationsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewInterfaceTapConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) InterfaceTapConfigurationsClient {
 	return InterfaceTapConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

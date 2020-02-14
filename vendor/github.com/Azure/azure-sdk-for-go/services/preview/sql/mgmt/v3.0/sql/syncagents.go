@@ -37,7 +37,8 @@ func NewSyncAgentsClient(subscriptionID string) SyncAgentsClient {
 	return NewSyncAgentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSyncAgentsClientWithBaseURI creates an instance of the SyncAgentsClient client.
+// NewSyncAgentsClientWithBaseURI creates an instance of the SyncAgentsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSyncAgentsClientWithBaseURI(baseURI string, subscriptionID string) SyncAgentsClient {
 	return SyncAgentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

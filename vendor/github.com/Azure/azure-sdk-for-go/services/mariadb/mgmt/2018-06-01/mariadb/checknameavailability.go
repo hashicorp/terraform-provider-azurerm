@@ -36,7 +36,9 @@ func NewCheckNameAvailabilityClient(subscriptionID string) CheckNameAvailability
 	return NewCheckNameAvailabilityClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCheckNameAvailabilityClientWithBaseURI creates an instance of the CheckNameAvailabilityClient client.
+// NewCheckNameAvailabilityClientWithBaseURI creates an instance of the CheckNameAvailabilityClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewCheckNameAvailabilityClientWithBaseURI(baseURI string, subscriptionID string) CheckNameAvailabilityClient {
 	return CheckNameAvailabilityClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -56,6 +58,8 @@ func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvail
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: nameAvailabilityRequest,
 			Constraints: []validation.Constraint{{Target: "nameAvailabilityRequest.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("mariadb.CheckNameAvailabilityClient", "Execute", err.Error())

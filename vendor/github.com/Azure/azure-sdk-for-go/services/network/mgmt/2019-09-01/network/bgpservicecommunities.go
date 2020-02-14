@@ -35,7 +35,9 @@ func NewBgpServiceCommunitiesClient(subscriptionID string) BgpServiceCommunities
 	return NewBgpServiceCommunitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBgpServiceCommunitiesClientWithBaseURI creates an instance of the BgpServiceCommunitiesClient client.
+// NewBgpServiceCommunitiesClientWithBaseURI creates an instance of the BgpServiceCommunitiesClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewBgpServiceCommunitiesClientWithBaseURI(baseURI string, subscriptionID string) BgpServiceCommunitiesClient {
 	return BgpServiceCommunitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

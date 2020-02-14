@@ -36,7 +36,9 @@ func NewWorkItemConfigurationsClient(subscriptionID string) WorkItemConfiguratio
 	return NewWorkItemConfigurationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkItemConfigurationsClientWithBaseURI creates an instance of the WorkItemConfigurationsClient client.
+// NewWorkItemConfigurationsClientWithBaseURI creates an instance of the WorkItemConfigurationsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewWorkItemConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) WorkItemConfigurationsClient {
 	return WorkItemConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

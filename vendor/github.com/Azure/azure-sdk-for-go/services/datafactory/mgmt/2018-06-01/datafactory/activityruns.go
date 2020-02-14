@@ -37,7 +37,8 @@ func NewActivityRunsClient(subscriptionID string) ActivityRunsClient {
 	return NewActivityRunsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewActivityRunsClientWithBaseURI creates an instance of the ActivityRunsClient client.
+// NewActivityRunsClientWithBaseURI creates an instance of the ActivityRunsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewActivityRunsClientWithBaseURI(baseURI string, subscriptionID string) ActivityRunsClient {
 	return ActivityRunsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

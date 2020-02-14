@@ -317,6 +317,9 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `Standard`.
 
+* `outboundType` - (Optional) The outbound (egress) routing method. Possible values are `load_balancer` and `userDefinedRouting`(UDR).  Specifying `userDefinedRouting` skips setup of standard load balancers (public IP, backend pools) in favor of the user setup with a custom UDR.
+~> **NOTE** When specifying `outboundType` the SKU must be `Standard`.
+
 ---
 
 A `load_balancer_profile` block supports the following:

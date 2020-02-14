@@ -35,7 +35,8 @@ func NewWorkflowsClient(subscriptionID string) WorkflowsClient {
 	return NewWorkflowsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkflowsClientWithBaseURI creates an instance of the WorkflowsClient client.
+// NewWorkflowsClientWithBaseURI creates an instance of the WorkflowsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWorkflowsClientWithBaseURI(baseURI string, subscriptionID string) WorkflowsClient {
 	return WorkflowsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

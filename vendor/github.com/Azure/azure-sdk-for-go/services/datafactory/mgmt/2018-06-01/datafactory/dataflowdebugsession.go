@@ -37,7 +37,9 @@ func NewDataFlowDebugSessionClient(subscriptionID string) DataFlowDebugSessionCl
 	return NewDataFlowDebugSessionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDataFlowDebugSessionClientWithBaseURI creates an instance of the DataFlowDebugSessionClient client.
+// NewDataFlowDebugSessionClientWithBaseURI creates an instance of the DataFlowDebugSessionClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDataFlowDebugSessionClientWithBaseURI(baseURI string, subscriptionID string) DataFlowDebugSessionClient {
 	return DataFlowDebugSessionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

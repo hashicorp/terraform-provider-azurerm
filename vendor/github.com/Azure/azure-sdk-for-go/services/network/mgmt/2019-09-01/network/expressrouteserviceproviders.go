@@ -36,7 +36,8 @@ func NewExpressRouteServiceProvidersClient(subscriptionID string) ExpressRouteSe
 }
 
 // NewExpressRouteServiceProvidersClientWithBaseURI creates an instance of the ExpressRouteServiceProvidersClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewExpressRouteServiceProvidersClientWithBaseURI(baseURI string, subscriptionID string) ExpressRouteServiceProvidersClient {
 	return ExpressRouteServiceProvidersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

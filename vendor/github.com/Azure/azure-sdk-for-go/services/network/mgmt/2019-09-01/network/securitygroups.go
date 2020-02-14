@@ -35,7 +35,8 @@ func NewSecurityGroupsClient(subscriptionID string) SecurityGroupsClient {
 	return NewSecurityGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSecurityGroupsClientWithBaseURI creates an instance of the SecurityGroupsClient client.
+// NewSecurityGroupsClientWithBaseURI creates an instance of the SecurityGroupsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSecurityGroupsClientWithBaseURI(baseURI string, subscriptionID string) SecurityGroupsClient {
 	return SecurityGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

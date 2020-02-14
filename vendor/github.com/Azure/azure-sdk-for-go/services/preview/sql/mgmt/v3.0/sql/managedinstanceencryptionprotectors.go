@@ -39,7 +39,8 @@ func NewManagedInstanceEncryptionProtectorsClient(subscriptionID string) Managed
 }
 
 // NewManagedInstanceEncryptionProtectorsClientWithBaseURI creates an instance of the
-// ManagedInstanceEncryptionProtectorsClient client.
+// ManagedInstanceEncryptionProtectorsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedInstanceEncryptionProtectorsClientWithBaseURI(baseURI string, subscriptionID string) ManagedInstanceEncryptionProtectorsClient {
 	return ManagedInstanceEncryptionProtectorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,9 @@ func NewUserAssignedIdentitiesClient(subscriptionID string) UserAssignedIdentiti
 	return NewUserAssignedIdentitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewUserAssignedIdentitiesClientWithBaseURI creates an instance of the UserAssignedIdentitiesClient client.
+// NewUserAssignedIdentitiesClientWithBaseURI creates an instance of the UserAssignedIdentitiesClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewUserAssignedIdentitiesClientWithBaseURI(baseURI string, subscriptionID string) UserAssignedIdentitiesClient {
 	return UserAssignedIdentitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

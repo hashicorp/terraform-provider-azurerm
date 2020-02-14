@@ -35,7 +35,9 @@ func NewDomainRegistrationProviderClient(subscriptionID string) DomainRegistrati
 	return NewDomainRegistrationProviderClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDomainRegistrationProviderClientWithBaseURI creates an instance of the DomainRegistrationProviderClient client.
+// NewDomainRegistrationProviderClientWithBaseURI creates an instance of the DomainRegistrationProviderClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewDomainRegistrationProviderClientWithBaseURI(baseURI string, subscriptionID string) DomainRegistrationProviderClient {
 	return DomainRegistrationProviderClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

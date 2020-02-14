@@ -37,7 +37,8 @@ func NewExpressRouteCircuitAuthorizationsClient(subscriptionID string) ExpressRo
 }
 
 // NewExpressRouteCircuitAuthorizationsClientWithBaseURI creates an instance of the
-// ExpressRouteCircuitAuthorizationsClient client.
+// ExpressRouteCircuitAuthorizationsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExpressRouteCircuitAuthorizationsClientWithBaseURI(baseURI string, subscriptionID string) ExpressRouteCircuitAuthorizationsClient {
 	return ExpressRouteCircuitAuthorizationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewWorkbooksClient(subscriptionID string) WorkbooksClient {
 	return NewWorkbooksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkbooksClientWithBaseURI creates an instance of the WorkbooksClient client.
+// NewWorkbooksClientWithBaseURI creates an instance of the WorkbooksClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWorkbooksClientWithBaseURI(baseURI string, subscriptionID string) WorkbooksClient {
 	return WorkbooksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

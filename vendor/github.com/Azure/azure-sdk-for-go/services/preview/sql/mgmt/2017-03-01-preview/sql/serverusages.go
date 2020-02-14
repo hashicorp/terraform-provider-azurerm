@@ -37,7 +37,8 @@ func NewServerUsagesClient(subscriptionID string) ServerUsagesClient {
 	return NewServerUsagesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerUsagesClientWithBaseURI creates an instance of the ServerUsagesClient client.
+// NewServerUsagesClientWithBaseURI creates an instance of the ServerUsagesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewServerUsagesClientWithBaseURI(baseURI string, subscriptionID string) ServerUsagesClient {
 	return ServerUsagesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

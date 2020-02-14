@@ -36,7 +36,9 @@ func NewFirewallPolicyRuleGroupsClient(subscriptionID string) FirewallPolicyRule
 	return NewFirewallPolicyRuleGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFirewallPolicyRuleGroupsClientWithBaseURI creates an instance of the FirewallPolicyRuleGroupsClient client.
+// NewFirewallPolicyRuleGroupsClientWithBaseURI creates an instance of the FirewallPolicyRuleGroupsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewFirewallPolicyRuleGroupsClientWithBaseURI(baseURI string, subscriptionID string) FirewallPolicyRuleGroupsClient {
 	return FirewallPolicyRuleGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

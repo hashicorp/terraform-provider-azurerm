@@ -38,7 +38,8 @@ func NewManagedDatabaseSensitivityLabelsClient(subscriptionID string) ManagedDat
 }
 
 // NewManagedDatabaseSensitivityLabelsClientWithBaseURI creates an instance of the
-// ManagedDatabaseSensitivityLabelsClient client.
+// ManagedDatabaseSensitivityLabelsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedDatabaseSensitivityLabelsClientWithBaseURI(baseURI string, subscriptionID string) ManagedDatabaseSensitivityLabelsClient {
 	return ManagedDatabaseSensitivityLabelsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

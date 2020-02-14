@@ -38,7 +38,9 @@ func NewCheckNameAvailabilityClient(subscriptionID string) CheckNameAvailability
 	return NewCheckNameAvailabilityClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCheckNameAvailabilityClientWithBaseURI creates an instance of the CheckNameAvailabilityClient client.
+// NewCheckNameAvailabilityClientWithBaseURI creates an instance of the CheckNameAvailabilityClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewCheckNameAvailabilityClientWithBaseURI(baseURI string, subscriptionID string) CheckNameAvailabilityClient {
 	return CheckNameAvailabilityClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

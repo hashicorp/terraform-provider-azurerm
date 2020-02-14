@@ -35,7 +35,9 @@ func NewPrivateEndpointsClient(subscriptionID string) PrivateEndpointsClient {
 	return NewPrivateEndpointsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPrivateEndpointsClientWithBaseURI creates an instance of the PrivateEndpointsClient client.
+// NewPrivateEndpointsClientWithBaseURI creates an instance of the PrivateEndpointsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewPrivateEndpointsClientWithBaseURI(baseURI string, subscriptionID string) PrivateEndpointsClient {
 	return PrivateEndpointsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

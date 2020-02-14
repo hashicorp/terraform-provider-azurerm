@@ -35,7 +35,9 @@ func NewReplicationVaultHealthClient(subscriptionID string, resourceGroupName st
 	return NewReplicationVaultHealthClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationVaultHealthClientWithBaseURI creates an instance of the ReplicationVaultHealthClient client.
+// NewReplicationVaultHealthClientWithBaseURI creates an instance of the ReplicationVaultHealthClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewReplicationVaultHealthClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationVaultHealthClient {
 	return ReplicationVaultHealthClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

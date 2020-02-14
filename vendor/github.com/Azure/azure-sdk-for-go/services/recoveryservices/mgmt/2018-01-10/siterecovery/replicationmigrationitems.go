@@ -36,7 +36,9 @@ func NewReplicationMigrationItemsClient(subscriptionID string, resourceGroupName
 	return NewReplicationMigrationItemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationMigrationItemsClientWithBaseURI creates an instance of the ReplicationMigrationItemsClient client.
+// NewReplicationMigrationItemsClientWithBaseURI creates an instance of the ReplicationMigrationItemsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationMigrationItemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationMigrationItemsClient {
 	return ReplicationMigrationItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -628,6 +630,97 @@ func (client ReplicationMigrationItemsClient) MigrateResponder(resp *http.Respon
 	return
 }
 
+// Resync the operation to resynchronize replication of an ASR migration item.
+// Parameters:
+// fabricName - fabric name.
+// protectionContainerName - protection container name.
+// migrationItemName - migration item name.
+// input - resync input.
+func (client ReplicationMigrationItemsClient) Resync(ctx context.Context, fabricName string, protectionContainerName string, migrationItemName string, input ResyncInput) (result ReplicationMigrationItemsResyncFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationMigrationItemsClient.Resync")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: input,
+			Constraints: []validation.Constraint{{Target: "input.Properties", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "input.Properties.ProviderSpecificDetails", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("siterecovery.ReplicationMigrationItemsClient", "Resync", err.Error())
+	}
+
+	req, err := client.ResyncPreparer(ctx, fabricName, protectionContainerName, migrationItemName, input)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Resync", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ResyncSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "Resync", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ResyncPreparer prepares the Resync request.
+func (client ReplicationMigrationItemsClient) ResyncPreparer(ctx context.Context, fabricName string, protectionContainerName string, migrationItemName string, input ResyncInput) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"fabricName":              autorest.Encode("path", fabricName),
+		"migrationItemName":       autorest.Encode("path", migrationItemName),
+		"protectionContainerName": autorest.Encode("path", protectionContainerName),
+		"resourceGroupName":       autorest.Encode("path", client.ResourceGroupName),
+		"resourceName":            autorest.Encode("path", client.ResourceName),
+		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-01-10"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/Subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.RecoveryServices/vaults/{resourceName}/replicationFabrics/{fabricName}/replicationProtectionContainers/{protectionContainerName}/replicationMigrationItems/{migrationItemName}/resync", pathParameters),
+		autorest.WithJSON(input),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ResyncSender sends the Resync request. The method will close the
+// http.Response Body if it receives an error.
+func (client ReplicationMigrationItemsClient) ResyncSender(req *http.Request) (future ReplicationMigrationItemsResyncFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req, sd...)
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// ResyncResponder handles the response to the Resync request. The method always
+// closes the http.Response Body.
+func (client ReplicationMigrationItemsClient) ResyncResponder(resp *http.Response) (result MigrationItem, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // TestMigrate the operation to initiate test migration of the item.
 // Parameters:
 // fabricName - fabric name.
@@ -738,7 +831,10 @@ func (client ReplicationMigrationItemsClient) TestMigrateCleanup(ctx context.Con
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: testMigrateCleanupInput,
-			Constraints: []validation.Constraint{{Target: "testMigrateCleanupInput.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "testMigrateCleanupInput.Properties", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "testMigrateCleanupInput.Properties.Comments", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "testMigrateCleanupInput.Properties.Comments", Name: validation.MaxLength, Rule: 1024, Chain: nil}}},
+				}}}}}); err != nil {
 		return result, validation.NewError("siterecovery.ReplicationMigrationItemsClient", "TestMigrateCleanup", err.Error())
 	}
 

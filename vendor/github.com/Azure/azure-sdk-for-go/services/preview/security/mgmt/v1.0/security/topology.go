@@ -36,7 +36,8 @@ func NewTopologyClient(subscriptionID string, ascLocation string) TopologyClient
 	return NewTopologyClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewTopologyClientWithBaseURI creates an instance of the TopologyClient client.
+// NewTopologyClientWithBaseURI creates an instance of the TopologyClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTopologyClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) TopologyClient {
 	return TopologyClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

@@ -36,7 +36,9 @@ func NewMigrationConfigsClient(subscriptionID string) MigrationConfigsClient {
 	return NewMigrationConfigsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMigrationConfigsClientWithBaseURI creates an instance of the MigrationConfigsClient client.
+// NewMigrationConfigsClientWithBaseURI creates an instance of the MigrationConfigsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewMigrationConfigsClientWithBaseURI(baseURI string, subscriptionID string) MigrationConfigsClient {
 	return MigrationConfigsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

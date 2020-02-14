@@ -35,7 +35,8 @@ func NewSubnetsClient(subscriptionID string) SubnetsClient {
 	return NewSubnetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSubnetsClientWithBaseURI creates an instance of the SubnetsClient client.
+// NewSubnetsClientWithBaseURI creates an instance of the SubnetsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSubnetsClientWithBaseURI(baseURI string, subscriptionID string) SubnetsClient {
 	return SubnetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

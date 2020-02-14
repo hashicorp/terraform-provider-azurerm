@@ -36,7 +36,8 @@ func NewControllersClient(subscriptionID string) ControllersClient {
 	return NewControllersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewControllersClientWithBaseURI creates an instance of the ControllersClient client.
+// NewControllersClientWithBaseURI creates an instance of the ControllersClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewControllersClientWithBaseURI(baseURI string, subscriptionID string) ControllersClient {
 	return ControllersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

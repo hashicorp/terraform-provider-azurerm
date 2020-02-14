@@ -35,7 +35,9 @@ func NewMetricDefinitionsClient(subscriptionID string) MetricDefinitionsClient {
 	return NewMetricDefinitionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMetricDefinitionsClientWithBaseURI creates an instance of the MetricDefinitionsClient client.
+// NewMetricDefinitionsClientWithBaseURI creates an instance of the MetricDefinitionsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewMetricDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) MetricDefinitionsClient {
 	return MetricDefinitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

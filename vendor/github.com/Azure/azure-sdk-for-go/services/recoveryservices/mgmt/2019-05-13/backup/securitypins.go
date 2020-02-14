@@ -35,7 +35,8 @@ func NewSecurityPINsClient(subscriptionID string) SecurityPINsClient {
 	return NewSecurityPINsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSecurityPINsClientWithBaseURI creates an instance of the SecurityPINsClient client.
+// NewSecurityPINsClientWithBaseURI creates an instance of the SecurityPINsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSecurityPINsClientWithBaseURI(baseURI string, subscriptionID string) SecurityPINsClient {
 	return SecurityPINsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

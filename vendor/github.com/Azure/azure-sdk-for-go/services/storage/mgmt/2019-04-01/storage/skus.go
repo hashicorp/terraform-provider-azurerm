@@ -36,7 +36,8 @@ func NewSkusClient(subscriptionID string) SkusClient {
 	return NewSkusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSkusClientWithBaseURI creates an instance of the SkusClient client.
+// NewSkusClientWithBaseURI creates an instance of the SkusClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSkusClientWithBaseURI(baseURI string, subscriptionID string) SkusClient {
 	return SkusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

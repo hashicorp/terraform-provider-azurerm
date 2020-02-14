@@ -37,7 +37,9 @@ func NewIntegrationRuntimeNodesClient(subscriptionID string) IntegrationRuntimeN
 	return NewIntegrationRuntimeNodesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewIntegrationRuntimeNodesClientWithBaseURI creates an instance of the IntegrationRuntimeNodesClient client.
+// NewIntegrationRuntimeNodesClientWithBaseURI creates an instance of the IntegrationRuntimeNodesClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewIntegrationRuntimeNodesClientWithBaseURI(baseURI string, subscriptionID string) IntegrationRuntimeNodesClient {
 	return IntegrationRuntimeNodesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,9 @@ func NewCollectionRegionClient(subscriptionID string) CollectionRegionClient {
 	return NewCollectionRegionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCollectionRegionClientWithBaseURI creates an instance of the CollectionRegionClient client.
+// NewCollectionRegionClientWithBaseURI creates an instance of the CollectionRegionClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewCollectionRegionClientWithBaseURI(baseURI string, subscriptionID string) CollectionRegionClient {
 	return CollectionRegionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,9 @@ func NewStreamingLocatorsClient(subscriptionID string) StreamingLocatorsClient {
 	return NewStreamingLocatorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingLocatorsClientWithBaseURI creates an instance of the StreamingLocatorsClient client.
+// NewStreamingLocatorsClientWithBaseURI creates an instance of the StreamingLocatorsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewStreamingLocatorsClientWithBaseURI(baseURI string, subscriptionID string) StreamingLocatorsClient {
 	return StreamingLocatorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

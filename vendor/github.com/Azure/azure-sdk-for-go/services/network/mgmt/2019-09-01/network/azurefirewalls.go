@@ -35,7 +35,8 @@ func NewAzureFirewallsClient(subscriptionID string) AzureFirewallsClient {
 	return NewAzureFirewallsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAzureFirewallsClientWithBaseURI creates an instance of the AzureFirewallsClient client.
+// NewAzureFirewallsClientWithBaseURI creates an instance of the AzureFirewallsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAzureFirewallsClientWithBaseURI(baseURI string, subscriptionID string) AzureFirewallsClient {
 	return AzureFirewallsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -502,13 +503,13 @@ func (client AzureFirewallsClient) ListAllComplete(ctx context.Context) (result 
 // resourceGroupName - the name of the resource group.
 // azureFirewallName - the name of the Azure Firewall.
 // parameters - parameters supplied to update azure firewall tags.
-func (client AzureFirewallsClient) UpdateTags(ctx context.Context, resourceGroupName string, azureFirewallName string, parameters TagsObject) (result AzureFirewall, err error) {
+func (client AzureFirewallsClient) UpdateTags(ctx context.Context, resourceGroupName string, azureFirewallName string, parameters TagsObject) (result AzureFirewallsUpdateTagsFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AzureFirewallsClient.UpdateTags")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -519,16 +520,10 @@ func (client AzureFirewallsClient) UpdateTags(ctx context.Context, resourceGroup
 		return
 	}
 
-	resp, err := client.UpdateTagsSender(req)
+	result, err = client.UpdateTagsSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "UpdateTags", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "UpdateTags", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.UpdateTagsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "UpdateTags", resp, "Failure responding to request")
 	}
 
 	return
@@ -559,9 +554,15 @@ func (client AzureFirewallsClient) UpdateTagsPreparer(ctx context.Context, resou
 
 // UpdateTagsSender sends the UpdateTags request. The method will close the
 // http.Response Body if it receives an error.
-func (client AzureFirewallsClient) UpdateTagsSender(req *http.Request) (*http.Response, error) {
+func (client AzureFirewallsClient) UpdateTagsSender(req *http.Request) (future AzureFirewallsUpdateTagsFuture, err error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req, sd...)
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // UpdateTagsResponder handles the response to the UpdateTags request. The method always
@@ -570,7 +571,7 @@ func (client AzureFirewallsClient) UpdateTagsResponder(resp *http.Response) (res
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

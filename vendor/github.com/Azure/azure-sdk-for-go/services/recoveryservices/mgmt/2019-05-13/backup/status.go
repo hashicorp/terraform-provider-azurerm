@@ -35,7 +35,8 @@ func NewStatusClient(subscriptionID string) StatusClient {
 	return NewStatusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStatusClientWithBaseURI creates an instance of the StatusClient client.
+// NewStatusClientWithBaseURI creates an instance of the StatusClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStatusClientWithBaseURI(baseURI string, subscriptionID string) StatusClient {
 	return StatusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

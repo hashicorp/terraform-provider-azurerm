@@ -35,7 +35,9 @@ func NewExpressRouteLinksClient(subscriptionID string) ExpressRouteLinksClient {
 	return NewExpressRouteLinksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExpressRouteLinksClientWithBaseURI creates an instance of the ExpressRouteLinksClient client.
+// NewExpressRouteLinksClientWithBaseURI creates an instance of the ExpressRouteLinksClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewExpressRouteLinksClientWithBaseURI(baseURI string, subscriptionID string) ExpressRouteLinksClient {
 	return ExpressRouteLinksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

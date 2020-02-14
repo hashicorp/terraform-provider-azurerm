@@ -35,7 +35,8 @@ func NewJobsGroupClient(subscriptionID string) JobsGroupClient {
 	return NewJobsGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobsGroupClientWithBaseURI creates an instance of the JobsGroupClient client.
+// NewJobsGroupClientWithBaseURI creates an instance of the JobsGroupClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewJobsGroupClientWithBaseURI(baseURI string, subscriptionID string) JobsGroupClient {
 	return JobsGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

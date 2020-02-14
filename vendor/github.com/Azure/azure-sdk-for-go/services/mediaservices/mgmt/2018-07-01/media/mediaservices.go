@@ -35,7 +35,8 @@ func NewMediaservicesClient(subscriptionID string) MediaservicesClient {
 	return NewMediaservicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMediaservicesClientWithBaseURI creates an instance of the MediaservicesClient client.
+// NewMediaservicesClientWithBaseURI creates an instance of the MediaservicesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewMediaservicesClientWithBaseURI(baseURI string, subscriptionID string) MediaservicesClient {
 	return MediaservicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

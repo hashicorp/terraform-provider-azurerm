@@ -36,7 +36,8 @@ func NewSnapshotsClient(subscriptionID string) SnapshotsClient {
 	return NewSnapshotsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSnapshotsClientWithBaseURI creates an instance of the SnapshotsClient client.
+// NewSnapshotsClientWithBaseURI creates an instance of the SnapshotsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSnapshotsClientWithBaseURI(baseURI string, subscriptionID string) SnapshotsClient {
 	return SnapshotsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

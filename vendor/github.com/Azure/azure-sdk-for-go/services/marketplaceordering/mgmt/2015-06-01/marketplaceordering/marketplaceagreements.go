@@ -35,7 +35,9 @@ func NewMarketplaceAgreementsClient(subscriptionID string) MarketplaceAgreements
 	return NewMarketplaceAgreementsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMarketplaceAgreementsClientWithBaseURI creates an instance of the MarketplaceAgreementsClient client.
+// NewMarketplaceAgreementsClientWithBaseURI creates an instance of the MarketplaceAgreementsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewMarketplaceAgreementsClientWithBaseURI(baseURI string, subscriptionID string) MarketplaceAgreementsClient {
 	return MarketplaceAgreementsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

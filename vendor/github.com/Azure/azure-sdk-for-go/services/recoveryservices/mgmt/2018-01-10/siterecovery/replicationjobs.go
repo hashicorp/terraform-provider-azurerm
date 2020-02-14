@@ -35,7 +35,8 @@ func NewReplicationJobsClient(subscriptionID string, resourceGroupName string, r
 	return NewReplicationJobsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationJobsClientWithBaseURI creates an instance of the ReplicationJobsClient client.
+// NewReplicationJobsClientWithBaseURI creates an instance of the ReplicationJobsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicationJobsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationJobsClient {
 	return ReplicationJobsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

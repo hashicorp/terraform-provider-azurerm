@@ -37,7 +37,9 @@ func NewServicePrincipalsClient(tenantID string) ServicePrincipalsClient {
 	return NewServicePrincipalsClientWithBaseURI(DefaultBaseURI, tenantID)
 }
 
-// NewServicePrincipalsClientWithBaseURI creates an instance of the ServicePrincipalsClient client.
+// NewServicePrincipalsClientWithBaseURI creates an instance of the ServicePrincipalsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewServicePrincipalsClientWithBaseURI(baseURI string, tenantID string) ServicePrincipalsClient {
 	return ServicePrincipalsClient{NewWithBaseURI(baseURI, tenantID)}
 }

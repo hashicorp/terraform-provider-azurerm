@@ -38,7 +38,8 @@ func NewReplicationStorageClassificationsClient(subscriptionID string, resourceG
 }
 
 // NewReplicationStorageClassificationsClientWithBaseURI creates an instance of the
-// ReplicationStorageClassificationsClient client.
+// ReplicationStorageClassificationsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicationStorageClassificationsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationStorageClassificationsClient {
 	return ReplicationStorageClassificationsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

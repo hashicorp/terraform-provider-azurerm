@@ -36,7 +36,8 @@ func NewDedicatedHostsClient(subscriptionID string) DedicatedHostsClient {
 	return NewDedicatedHostsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDedicatedHostsClientWithBaseURI creates an instance of the DedicatedHostsClient client.
+// NewDedicatedHostsClientWithBaseURI creates an instance of the DedicatedHostsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDedicatedHostsClientWithBaseURI(baseURI string, subscriptionID string) DedicatedHostsClient {
 	return DedicatedHostsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

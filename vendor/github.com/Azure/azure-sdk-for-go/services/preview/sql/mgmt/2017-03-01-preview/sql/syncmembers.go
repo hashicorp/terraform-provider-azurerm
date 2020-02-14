@@ -37,7 +37,8 @@ func NewSyncMembersClient(subscriptionID string) SyncMembersClient {
 	return NewSyncMembersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSyncMembersClientWithBaseURI creates an instance of the SyncMembersClient client.
+// NewSyncMembersClientWithBaseURI creates an instance of the SyncMembersClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSyncMembersClientWithBaseURI(baseURI string, subscriptionID string) SyncMembersClient {
 	return SyncMembersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

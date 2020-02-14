@@ -37,7 +37,8 @@ func NewRegulatoryComplianceControlsClient(subscriptionID string, ascLocation st
 }
 
 // NewRegulatoryComplianceControlsClientWithBaseURI creates an instance of the RegulatoryComplianceControlsClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewRegulatoryComplianceControlsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) RegulatoryComplianceControlsClient {
 	return RegulatoryComplianceControlsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

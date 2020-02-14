@@ -38,7 +38,9 @@ func NewWorkloadClassifiersClient(subscriptionID string) WorkloadClassifiersClie
 	return NewWorkloadClassifiersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkloadClassifiersClientWithBaseURI creates an instance of the WorkloadClassifiersClient client.
+// NewWorkloadClassifiersClientWithBaseURI creates an instance of the WorkloadClassifiersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewWorkloadClassifiersClientWithBaseURI(baseURI string, subscriptionID string) WorkloadClassifiersClient {
 	return WorkloadClassifiersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

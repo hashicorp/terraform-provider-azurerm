@@ -35,7 +35,9 @@ func NewTenantActivityLogsClient(subscriptionID string) TenantActivityLogsClient
 	return NewTenantActivityLogsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTenantActivityLogsClientWithBaseURI creates an instance of the TenantActivityLogsClient client.
+// NewTenantActivityLogsClientWithBaseURI creates an instance of the TenantActivityLogsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewTenantActivityLogsClientWithBaseURI(baseURI string, subscriptionID string) TenantActivityLogsClient {
 	return TenantActivityLogsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

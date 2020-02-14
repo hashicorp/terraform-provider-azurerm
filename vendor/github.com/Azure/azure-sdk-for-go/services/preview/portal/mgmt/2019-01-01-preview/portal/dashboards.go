@@ -36,7 +36,8 @@ func NewDashboardsClient(subscriptionID string) DashboardsClient {
 	return NewDashboardsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDashboardsClientWithBaseURI creates an instance of the DashboardsClient client.
+// NewDashboardsClientWithBaseURI creates an instance of the DashboardsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDashboardsClientWithBaseURI(baseURI string, subscriptionID string) DashboardsClient {
 	return DashboardsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

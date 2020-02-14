@@ -36,7 +36,8 @@ func NewAnalyticsItemsClient(subscriptionID string) AnalyticsItemsClient {
 	return NewAnalyticsItemsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAnalyticsItemsClientWithBaseURI creates an instance of the AnalyticsItemsClient client.
+// NewAnalyticsItemsClientWithBaseURI creates an instance of the AnalyticsItemsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAnalyticsItemsClientWithBaseURI(baseURI string, subscriptionID string) AnalyticsItemsClient {
 	return AnalyticsItemsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

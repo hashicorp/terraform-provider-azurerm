@@ -36,7 +36,8 @@ func NewLogProfilesClient(subscriptionID string) LogProfilesClient {
 	return NewLogProfilesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLogProfilesClientWithBaseURI creates an instance of the LogProfilesClient client.
+// NewLogProfilesClientWithBaseURI creates an instance of the LogProfilesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLogProfilesClientWithBaseURI(baseURI string, subscriptionID string) LogProfilesClient {
 	return LogProfilesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

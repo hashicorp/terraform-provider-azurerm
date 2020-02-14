@@ -36,7 +36,8 @@ func NewSessionsClient(subscriptionID string) SessionsClient {
 	return NewSessionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSessionsClientWithBaseURI creates an instance of the SessionsClient client.
+// NewSessionsClientWithBaseURI creates an instance of the SessionsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSessionsClientWithBaseURI(baseURI string, subscriptionID string) SessionsClient {
 	return SessionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

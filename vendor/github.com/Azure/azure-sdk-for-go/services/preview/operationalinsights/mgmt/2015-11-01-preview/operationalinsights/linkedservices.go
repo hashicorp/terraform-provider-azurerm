@@ -36,7 +36,8 @@ func NewLinkedServicesClient(subscriptionID string) LinkedServicesClient {
 	return NewLinkedServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLinkedServicesClientWithBaseURI creates an instance of the LinkedServicesClient client.
+// NewLinkedServicesClientWithBaseURI creates an instance of the LinkedServicesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLinkedServicesClientWithBaseURI(baseURI string, subscriptionID string) LinkedServicesClient {
 	return LinkedServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

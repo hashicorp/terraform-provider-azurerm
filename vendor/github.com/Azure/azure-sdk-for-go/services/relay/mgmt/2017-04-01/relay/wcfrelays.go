@@ -36,7 +36,8 @@ func NewWCFRelaysClient(subscriptionID string) WCFRelaysClient {
 	return NewWCFRelaysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWCFRelaysClientWithBaseURI creates an instance of the WCFRelaysClient client.
+// NewWCFRelaysClientWithBaseURI creates an instance of the WCFRelaysClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWCFRelaysClientWithBaseURI(baseURI string, subscriptionID string) WCFRelaysClient {
 	return WCFRelaysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,9 @@ func NewExpressRoutePortsClient(subscriptionID string) ExpressRoutePortsClient {
 	return NewExpressRoutePortsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExpressRoutePortsClientWithBaseURI creates an instance of the ExpressRoutePortsClient client.
+// NewExpressRoutePortsClientWithBaseURI creates an instance of the ExpressRoutePortsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewExpressRoutePortsClientWithBaseURI(baseURI string, subscriptionID string) ExpressRoutePortsClient {
 	return ExpressRoutePortsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

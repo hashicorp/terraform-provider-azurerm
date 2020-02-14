@@ -37,7 +37,9 @@ func NewIntegrationRuntimesClient(subscriptionID string) IntegrationRuntimesClie
 	return NewIntegrationRuntimesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewIntegrationRuntimesClientWithBaseURI creates an instance of the IntegrationRuntimesClient client.
+// NewIntegrationRuntimesClientWithBaseURI creates an instance of the IntegrationRuntimesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewIntegrationRuntimesClientWithBaseURI(baseURI string, subscriptionID string) IntegrationRuntimesClient {
 	return IntegrationRuntimesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

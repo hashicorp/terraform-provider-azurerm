@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -35,15 +36,15 @@ func NewReplicasClient(subscriptionID string) ReplicasClient {
 	return NewReplicasClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewReplicasClientWithBaseURI creates an instance of the ReplicasClient client.
+// NewReplicasClientWithBaseURI creates an instance of the ReplicasClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicasClientWithBaseURI(baseURI string, subscriptionID string) ReplicasClient {
 	return ReplicasClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // ListByServer list all the replicas for a given server.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 func (client ReplicasClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result ServerListResult, err error) {
 	if tracing.IsEnabled() {
@@ -56,6 +57,16 @@ func (client ReplicasClient) ListByServer(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.ReplicasClient", "ListByServer", err.Error())
+	}
+
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ReplicasClient", "ListByServer", nil, "Failure preparing request")

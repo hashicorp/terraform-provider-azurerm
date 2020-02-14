@@ -35,7 +35,9 @@ func NewResourceStorageConfigsClient(subscriptionID string) ResourceStorageConfi
 	return NewResourceStorageConfigsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceStorageConfigsClientWithBaseURI creates an instance of the ResourceStorageConfigsClient client.
+// NewResourceStorageConfigsClientWithBaseURI creates an instance of the ResourceStorageConfigsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewResourceStorageConfigsClientWithBaseURI(baseURI string, subscriptionID string) ResourceStorageConfigsClient {
 	return ResourceStorageConfigsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,9 @@ func NewNotificationChannelsClient(subscriptionID string) NotificationChannelsCl
 	return NewNotificationChannelsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewNotificationChannelsClientWithBaseURI creates an instance of the NotificationChannelsClient client.
+// NewNotificationChannelsClientWithBaseURI creates an instance of the NotificationChannelsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewNotificationChannelsClientWithBaseURI(baseURI string, subscriptionID string) NotificationChannelsClient {
 	return NotificationChannelsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -37,7 +37,9 @@ func NewRestorableDroppedDatabasesClient(subscriptionID string) RestorableDroppe
 	return NewRestorableDroppedDatabasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRestorableDroppedDatabasesClientWithBaseURI creates an instance of the RestorableDroppedDatabasesClient client.
+// NewRestorableDroppedDatabasesClientWithBaseURI creates an instance of the RestorableDroppedDatabasesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewRestorableDroppedDatabasesClientWithBaseURI(baseURI string, subscriptionID string) RestorableDroppedDatabasesClient {
 	return RestorableDroppedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

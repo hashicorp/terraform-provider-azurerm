@@ -37,7 +37,9 @@ func NewManagedInstanceKeysClient(subscriptionID string) ManagedInstanceKeysClie
 	return NewManagedInstanceKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagedInstanceKeysClientWithBaseURI creates an instance of the ManagedInstanceKeysClient client.
+// NewManagedInstanceKeysClientWithBaseURI creates an instance of the ManagedInstanceKeysClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewManagedInstanceKeysClientWithBaseURI(baseURI string, subscriptionID string) ManagedInstanceKeysClient {
 	return ManagedInstanceKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

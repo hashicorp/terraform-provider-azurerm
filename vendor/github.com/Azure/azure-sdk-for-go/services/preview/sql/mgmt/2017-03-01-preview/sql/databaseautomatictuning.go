@@ -37,7 +37,9 @@ func NewDatabaseAutomaticTuningClient(subscriptionID string) DatabaseAutomaticTu
 	return NewDatabaseAutomaticTuningClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabaseAutomaticTuningClientWithBaseURI creates an instance of the DatabaseAutomaticTuningClient client.
+// NewDatabaseAutomaticTuningClientWithBaseURI creates an instance of the DatabaseAutomaticTuningClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewDatabaseAutomaticTuningClientWithBaseURI(baseURI string, subscriptionID string) DatabaseAutomaticTuningClient {
 	return DatabaseAutomaticTuningClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

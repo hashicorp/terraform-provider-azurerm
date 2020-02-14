@@ -153,8 +153,8 @@ func PossibleUnavailableNameReasonValues() []UnavailableNameReason {
 	return []UnavailableNameReason{AlreadyExists, Invalid}
 }
 
-// AdminKeyResult response containing the primary and secondary admin API keys for a given Azure Search
-// service.
+// AdminKeyResult response containing the primary and secondary admin API keys for a given Azure Cognitive
+// Search service.
 type AdminKeyResult struct {
 	autorest.Response `json:"-"`
 	// PrimaryKey - READ-ONLY; The primary admin API key of the Search service.
@@ -210,10 +210,10 @@ type Identity struct {
 	Type IdentityType `json:"type,omitempty"`
 }
 
-// ListQueryKeysResult response containing the query API keys for a given Azure Search service.
+// ListQueryKeysResult response containing the query API keys for a given Azure Cognitive Search service.
 type ListQueryKeysResult struct {
 	autorest.Response `json:"-"`
-	// Value - READ-ONLY; The query keys for the Azure Search service.
+	// Value - READ-ONLY; The query keys for the Azure Cognitive Search service.
 	Value *[]QueryKey `json:"value,omitempty"`
 }
 
@@ -247,8 +247,8 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// QueryKey describes an API key for a given Azure Search service that has permissions for query operations
-// only.
+// QueryKey describes an API key for a given Azure Cognitive Search service that has permissions for query
+// operations only.
 type QueryKey struct {
 	autorest.Response `json:"-"`
 	// Name - READ-ONLY; The name of the query API key; may be empty.
@@ -288,7 +288,7 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Service describes an Azure Search service and its current state.
+// Service describes an Azure Cognitive Search service and its current state.
 type Service struct {
 	autorest.Response `json:"-"`
 	// ServiceProperties - Properties of the Search service.
@@ -417,7 +417,7 @@ func (s *Service) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ServiceListResult response containing a list of Azure Search services.
+// ServiceListResult response containing a list of Azure Cognitive Search services.
 type ServiceListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of Search services.
@@ -432,7 +432,7 @@ type ServiceProperties struct {
 	PartitionCount *int32 `json:"partitionCount,omitempty"`
 	// HostingMode - Applicable only for the standard3 SKU. You can set this property to enable up to 3 high density partitions that allow up to 1000 indexes, which is much higher than the maximum indexes allowed for any other SKU. For the standard3 SKU, the value is either 'default' or 'highDensity'. For all other SKUs, this value must be 'default'. Possible values include: 'Default', 'HighDensity'
 	HostingMode HostingMode `json:"hostingMode,omitempty"`
-	// Status - READ-ONLY; The status of the Search service. Possible values include: 'running': The Search service is running and no provisioning operations are underway. 'provisioning': The Search service is being provisioned or scaled up or down. 'deleting': The Search service is being deleted. 'degraded': The Search service is degraded. This can occur when the underlying search units are not healthy. The Search service is most likely operational, but performance might be slow and some requests might be dropped. 'disabled': The Search service is disabled. In this state, the service will reject all API requests. 'error': The Search service is in an error state. If your service is in the degraded, disabled, or error states, it means the Azure Search team is actively investigating the underlying issue. Dedicated services in these states are still chargeable based on the number of search units provisioned. Possible values include: 'ServiceStatusRunning', 'ServiceStatusProvisioning', 'ServiceStatusDeleting', 'ServiceStatusDegraded', 'ServiceStatusDisabled', 'ServiceStatusError'
+	// Status - READ-ONLY; The status of the Search service. Possible values include: 'running': The Search service is running and no provisioning operations are underway. 'provisioning': The Search service is being provisioned or scaled up or down. 'deleting': The Search service is being deleted. 'degraded': The Search service is degraded. This can occur when the underlying search units are not healthy. The Search service is most likely operational, but performance might be slow and some requests might be dropped. 'disabled': The Search service is disabled. In this state, the service will reject all API requests. 'error': The Search service is in an error state. If your service is in the degraded, disabled, or error states, it means the Azure Cognitive Search team is actively investigating the underlying issue. Dedicated services in these states are still chargeable based on the number of search units provisioned. Possible values include: 'ServiceStatusRunning', 'ServiceStatusProvisioning', 'ServiceStatusDeleting', 'ServiceStatusDegraded', 'ServiceStatusDisabled', 'ServiceStatusError'
 	Status ServiceStatus `json:"status,omitempty"`
 	// StatusDetails - READ-ONLY; The details of the Search service status.
 	StatusDetails *string `json:"statusDetails,omitempty"`
@@ -469,7 +469,8 @@ func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (s Ser
 	return
 }
 
-// Sku defines the SKU of an Azure Search Service, which determines price tier and capacity limits.
+// Sku defines the SKU of an Azure Cognitive Search Service, which determines price tier and capacity
+// limits.
 type Sku struct {
 	// Name - The SKU of the Search service. Valid values include: 'free': Shared service. 'basic': Dedicated service with up to 3 replicas. 'standard': Dedicated service with up to 12 partitions and 12 replicas. 'standard2': Similar to standard, but with more capacity per search unit. 'standard3': The largest Standard offering with up to 12 partitions and 12 replicas (or up to 3 partitions with more indexes if you also set the hostingMode property to 'highDensity'). 'storage_optimized_l1': Supports 1TB per partition, up to 12 partitions. 'storage_optimized_l2': Supports 2TB per partition, up to 12 partitions.'. Possible values include: 'Free', 'Basic', 'Standard', 'Standard2', 'Standard3', 'StorageOptimizedL1', 'StorageOptimizedL2'
 	Name SkuName `json:"name,omitempty"`

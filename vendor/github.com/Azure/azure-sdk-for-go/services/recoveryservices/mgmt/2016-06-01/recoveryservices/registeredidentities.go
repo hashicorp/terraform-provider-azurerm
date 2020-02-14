@@ -35,7 +35,9 @@ func NewRegisteredIdentitiesClient(subscriptionID string) RegisteredIdentitiesCl
 	return NewRegisteredIdentitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRegisteredIdentitiesClientWithBaseURI creates an instance of the RegisteredIdentitiesClient client.
+// NewRegisteredIdentitiesClientWithBaseURI creates an instance of the RegisteredIdentitiesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewRegisteredIdentitiesClientWithBaseURI(baseURI string, subscriptionID string) RegisteredIdentitiesClient {
 	return RegisteredIdentitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

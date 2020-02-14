@@ -35,7 +35,9 @@ func NewVaultExtendedInfoClient(subscriptionID string) VaultExtendedInfoClient {
 	return NewVaultExtendedInfoClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVaultExtendedInfoClientWithBaseURI creates an instance of the VaultExtendedInfoClient client.
+// NewVaultExtendedInfoClientWithBaseURI creates an instance of the VaultExtendedInfoClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewVaultExtendedInfoClientWithBaseURI(baseURI string, subscriptionID string) VaultExtendedInfoClient {
 	return VaultExtendedInfoClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
