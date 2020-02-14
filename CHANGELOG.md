@@ -33,6 +33,10 @@ IMPROVEMENTS:
 * `azurerm_relay_namespace` - removing the `sku` block in favour of the `sku_name` field [GH-5719]
 * `azurerm_windows_virtual_machine` - fixing a bug when provisioning from a Shared Gallery image [GH-5661]
 
+BUG FIXES:
+
+* `azurerm_signalr_service` - ensuring the SignalR segment is parsed in the correct case [GH-5737]
+
 ---
 
 For information on v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v1.44.0/CHANGELOG.md).
