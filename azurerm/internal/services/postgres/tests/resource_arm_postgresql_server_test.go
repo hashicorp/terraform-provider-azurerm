@@ -353,35 +353,6 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
-}
-
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku_name = "GP_Gen5_2"
-
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-    auto_grow             = "Disabled"
-  }
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "%s"
-  ssl_enforcement              = "Enabled"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, "9.5")
-}
-
 func testAccAzureRMPostgreSQLServer_basicNinePointFive(data acceptance.TestData) string {
 	return testAccAzureRMPostgreSQLServer_basic(data, "9.5")
 }
