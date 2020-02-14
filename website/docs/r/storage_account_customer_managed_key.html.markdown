@@ -13,17 +13,8 @@ Manages the customer managed key of an Azure Storage Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_storage_account_customer_managed_key" "tfex" {
-  storage_account_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.Storage/storageAccounts/tfexstorageaccount"
-  key_vault_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-RG/providers/Microsoft.KeyVault/vaults/tfex-key-vault"
-  key_name                    = "tfex-key"
-  key_version                 = "955b9ad9579e4501a311df5493bacd02"
-}
-```
+data "azurerm_client_config" "current" {}
 
-## Example Usage with User Managed Key Vault Key
-
-```hcl
 provider "azurerm" {
   alias = "keyVault"
 
@@ -44,7 +35,7 @@ resource "azurerm_key_vault" "tfex" {
   provider                    = azurerm.keyVault
   location                    = azurerm_resource_group.tfex.location
   resource_group_name         = azurerm_resource_group.tfex.name
-  tenant_id                   = "00000000-0000-0000-0000-000000000000"
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
   
   soft_delete_enabled         = true
   purge_protection_enabled    = true
@@ -59,15 +50,24 @@ resource "azurerm_key_vault" "tfex" {
 resource "azurerm_key_vault_key" "tfex" {
   name                       = "tfex-key"
   key_vault_id               = azurerm_key_vault.tfex.id
-  key_vault_access_policy_id = azurerm_key_vault_access_policy.tfex.id
+  key_vault_access_policy_id = azurerm_key_vault_access_policy.storage.id
   key_type                   = "RSA"
   key_size                   = 2048
   key_opts                   = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 }
 
-resource "azurerm_key_vault_access_policy" "tfex" {
+resource "azurerm_key_vault_access_policy" "storage" {
   key_vault_id = azurerm_key_vault.tfex.id
-  tenant_id    = "00000000-0000-0000-0000-000000000000"
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_storage_account.tfex.identity.0.principal_id
+
+  key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
+  secret_permissions = ["get"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.tfex.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.tfex.identity.0.principal_id
 
   key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
