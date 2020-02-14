@@ -51,7 +51,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// NOTE: does this want it's own association resource?
 			"network_security_group_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -315,16 +314,20 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	locks.ByName(name, networkInterfaceResourceName)
 	defer locks.UnlockByName(name, networkInterfaceResourceName)
 
+	// first get the existing one so that we can pull things as needed
+	existing, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	update := network.Interface{
-		Name:     utils.String(name),
-		Location: utils.String(location),
+		Name:                      utils.String(name),
+		Location:                  utils.String(location),
+		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{},
 	}
 
 	if d.HasChange("dns_servers") {
-		if update.InterfacePropertiesFormat == nil {
-			update.InterfacePropertiesFormat = &network.InterfacePropertiesFormat{}
-		}
 		if update.InterfacePropertiesFormat.DNSSettings == nil {
 			update.InterfacePropertiesFormat.DNSSettings = &network.InterfaceDNSSettings{}
 		}
@@ -336,25 +339,14 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("enable_accelerated_networking") {
-		if update.InterfacePropertiesFormat == nil {
-			update.InterfacePropertiesFormat = &network.InterfacePropertiesFormat{}
-		}
-
 		update.InterfacePropertiesFormat.EnableAcceleratedNetworking = utils.Bool(d.Get("enable_accelerated_networking").(bool))
 	}
 
 	if d.HasChange("enable_ip_forwarding") {
-		if update.InterfacePropertiesFormat == nil {
-			update.InterfacePropertiesFormat = &network.InterfacePropertiesFormat{}
-		}
-
 		update.InterfacePropertiesFormat.EnableIPForwarding = utils.Bool(d.Get("enable_ip_forwarding").(bool))
 	}
 
 	if d.HasChange("internal_dns_name_label") {
-		if update.InterfacePropertiesFormat == nil {
-			update.InterfacePropertiesFormat = &network.InterfacePropertiesFormat{}
-		}
 		if update.InterfacePropertiesFormat.DNSSettings == nil {
 			update.InterfacePropertiesFormat.DNSSettings = &network.InterfaceDNSSettings{}
 		}
@@ -363,10 +355,6 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("ip_configuration") {
-		if update.InterfacePropertiesFormat == nil {
-			update.InterfacePropertiesFormat = &network.InterfacePropertiesFormat{}
-		}
-
 		ipConfigsRaw := d.Get("ip_configuration").([]interface{})
 		ipConfigs, err := expandNetworkInterfaceIPConfigurations(ipConfigsRaw)
 		if err != nil {
@@ -381,16 +369,19 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		defer lockingDetails.unlock()
 
 		update.InterfacePropertiesFormat.IPConfigurations = &ipConfigs
+	} else {
+		update.InterfacePropertiesFormat.IPConfigurations = existing.InterfacePropertiesFormat.IPConfigurations
 	}
 
 	if d.HasChange("network_security_group_id") {
-		if update.InterfacePropertiesFormat == nil {
-			update.InterfacePropertiesFormat = &network.InterfacePropertiesFormat{}
+		update.InterfacePropertiesFormat.NetworkSecurityGroup = &network.SecurityGroup{}
+		if networkSecurityGroupId := d.Get("network_security_group_id").(string); networkSecurityGroupId != "" {
+			update.InterfacePropertiesFormat.NetworkSecurityGroup.ID = utils.String(networkSecurityGroupId)
+		} else {
+			update.InterfacePropertiesFormat.NetworkSecurityGroup = nil
 		}
-
-		update.InterfacePropertiesFormat.NetworkSecurityGroup = &network.SecurityGroup{
-			ID: utils.String(d.Get("network_security_group_id").(string)),
-		}
+	} else {
+		update.InterfacePropertiesFormat.NetworkSecurityGroup = existing.InterfacePropertiesFormat.NetworkSecurityGroup
 	}
 
 	if d.HasChange("tags") {
