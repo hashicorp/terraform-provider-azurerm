@@ -315,7 +315,7 @@ A `identity` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response. Defaults to `*`.
+* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
 
 * `status_code` - (Optional) A list of allowed status codes for this Health Probe.
 

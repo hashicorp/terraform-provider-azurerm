@@ -900,7 +900,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"body": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Default:  "*",
 									},
 
 									"status_code": {
