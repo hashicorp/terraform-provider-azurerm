@@ -33,14 +33,14 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                        = "testvault"
-  provider                    = azurerm.keyVault
-  location                    = azurerm_resource_group.example.location
-  resource_group_name         = azurerm_resource_group.example.name
+  name                = "testvault"
+  provider            = azurerm.keyVault
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  soft_delete_enabled         = true
-  purge_protection_enabled    = false
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  soft_delete_enabled      = true
+  purge_protection_enabled = false
 
   sku_name = "standard"
 
@@ -82,8 +82,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
 * `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
@@ -109,11 +107,6 @@ The following arguments are supported:
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-A `sku` block supports the following:
-
-* `name` - (Required)  The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 ---
 A `access_policy` block supports the following:

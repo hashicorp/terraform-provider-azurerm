@@ -31,14 +31,14 @@ resource "azurerm_resource_group" "tfex" {
 }
 
 resource "azurerm_key_vault" "tfex" {
-  name                        = "tfex-key-vault"
-  provider                    = azurerm.keyVault
-  location                    = azurerm_resource_group.tfex.location
-  resource_group_name         = azurerm_resource_group.tfex.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  
-  soft_delete_enabled         = true
-  purge_protection_enabled    = true
+  name                = "tfex-key-vault"
+  provider            = azurerm.keyVault
+  location            = azurerm_resource_group.tfex.location
+  resource_group_name = azurerm_resource_group.tfex.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
 
   sku_name = "standard"
 
@@ -61,7 +61,7 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.tfex.identity.0.principal_id
 
-  key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
+  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
 
@@ -70,16 +70,16 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.tfex.identity.0.principal_id
 
-  key_permissions    = ["get","create","delete","list","restore","recover","unwrapkey","wrapkey","purge","encrypt","decrypt","sign","verify"]
+  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
 
 resource "azurerm_storage_account" "tfex" {
-  name                      = "tfexstorageaccount"
-  resource_group_name       = azurerm_resource_group.tfex.name
-  location                  = azurerm_resource_group.tfex.location
-  account_tier              = "Standard"
-  account_replication_type  = "GRS"
+  name                     = "tfexstorageaccount"
+  resource_group_name      = azurerm_resource_group.tfex.name
+  location                 = azurerm_resource_group.tfex.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 
   identity {
     type = "SystemAssigned"

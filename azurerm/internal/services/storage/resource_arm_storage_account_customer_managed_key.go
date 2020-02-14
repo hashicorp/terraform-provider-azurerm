@@ -115,7 +115,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	_, err := storageClient.Update(ctx, storageAccountResourceGroupName.(string), storageAccountName.(string), props)
+	_, err = storageClient.Update(ctx, storageAccountResourceGroupName.(string), storageAccountName.(string), props)
 	if err != nil {
 		return fmt.Errorf("Error updating Azure Storage Account %q (Resource Group %q) Customer Managed Key: %+v", storageAccountName, storageAccountResourceGroupName, err)
 	}
