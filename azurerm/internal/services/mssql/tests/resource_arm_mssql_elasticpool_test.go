@@ -339,7 +339,7 @@ resource "azurerm_mssql_elasticpool" "import" {
   location            = "${azurerm_mssql_elasticpool.test.location}"
   server_name         = "${azurerm_mssql_elasticpool.test.server_name}"
   max_size_gb         = 4.8828125
- 
+
   sku {
     name     = "BasicPool"
     tier     = "Basic"
