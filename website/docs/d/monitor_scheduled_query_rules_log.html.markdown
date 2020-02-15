@@ -35,7 +35,6 @@ output "query_rule_id" {
 * `data_source_id` - The resource URI over which log search query is to be run.
 * `description` - The description of the Scheduled Query Rule.
 * `enabled` - Whether this Scheduled Query Rule is enabled.
-* `throttling` - Time for which alerts should be throttled or suppressed. 
 
 ---
 

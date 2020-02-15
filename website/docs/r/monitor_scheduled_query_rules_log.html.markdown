@@ -53,9 +53,7 @@ The following arguments are supported:
 * `criteria` - (Required) A `criteria` block as defined below.
 * `data_source_id` - (Required) The resource uri over which log search query is to be run.
 * `description` - (Optional) The description of the Scheduled Query Rule.
-* `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
-* `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (
-inclusive).
+* `enabled` - (Optional) Whether this Scheduled Query Rule is enabled.  Default is `true`.
 
 ---
 

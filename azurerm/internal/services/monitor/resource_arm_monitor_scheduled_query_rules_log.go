@@ -57,8 +57,9 @@ func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 			},
 
 			"criteria": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"dimension": {
@@ -152,7 +153,7 @@ func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData
 
 	location := azure.NormalizeLocation(d.Get("location"))
 
-	source := expandMonitorScheduledQueryRulesLogSource(d)
+	source := azure.ExpandMonitorScheduledQueryRulesCommonSource(d)
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -169,7 +170,7 @@ func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -199,11 +200,11 @@ func resourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta i
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -212,19 +213,18 @@ func resourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta i
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	d.Set("description", resp.Description)
 	if resp.Enabled == insights.True {
 		d.Set("enabled", true)
 	} else {
 		d.Set("enabled", false)
 	}
 
-	d.Set("description", resp.Description)
-
 	action, ok := resp.Action.(insights.LogToMetricAction)
 	if !ok {
-		return fmt.Errorf("Wrong action type in scheduled query rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
+		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
-	if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
+	if err = d.Set("criteria", azure.FlattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
 		return fmt.Errorf("Error setting `criteria`: %+v", err)
 	}
 
@@ -254,7 +254,7 @@ func resourceArmMonitorScheduledQueryRulesLogDelete(d *schema.ResourceData, meta
 
 	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -310,59 +310,4 @@ func expandMonitorScheduledQueryRulesLogToMetricAction(d *schema.ResourceData) *
 	}
 
 	return &action
-}
-
-func expandMonitorScheduledQueryRulesLogSource(d *schema.ResourceData) *insights.Source {
-	authorizedResourceIDs := d.Get("authorized_resource_ids").(*schema.Set).List()
-	dataSourceID := d.Get("data_source_id").(string)
-	source := insights.Source{
-		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
-		DataSourceID:        utils.String(dataSourceID),
-		QueryType:           insights.ResultCount,
-	}
-
-	return &source
-}
-
-func flattenAzureRmScheduledQueryRulesLogCriteria(input *[]insights.Criteria) []interface{} {
-	result := make([]interface{}, 0)
-
-	if input != nil {
-		for _, criteria := range *input {
-			v := make(map[string]interface{})
-
-			v["dimension"] = flattenAzureRmScheduledQueryRulesLogDimension(criteria.Dimensions)
-			v["metric_name"] = *criteria.MetricName
-
-			result = append(result, v)
-		}
-	}
-
-	return result
-}
-
-func flattenAzureRmScheduledQueryRulesLogDimension(input *[]insights.Dimension) []interface{} {
-	result := make([]interface{}, 0)
-
-	if input != nil {
-		for _, dimension := range *input {
-			v := make(map[string]interface{})
-
-			if dimension.Name != nil {
-				v["name"] = *dimension.Name
-			}
-
-			if dimension.Operator != nil {
-				v["operator"] = *dimension.Operator
-			}
-
-			if dimension.Values != nil {
-				v["values"] = *dimension.Values
-			}
-
-			result = append(result, v)
-		}
-	}
-
-	return result
 }

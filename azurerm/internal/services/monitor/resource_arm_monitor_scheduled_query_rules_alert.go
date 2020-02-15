@@ -58,8 +58,9 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 				},
 			},
 			"action": {
-				Type:     schema.TypeSet,
-				Optional: true,
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action_group": {
@@ -133,13 +134,15 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 				ValidateFunc: validation.IntBetween(5, 2880),
 			},
 			"trigger": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"metric_trigger": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"metric_column": {
@@ -214,7 +217,9 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 	query := d.Get("query").(string)
 	_, ok := d.GetOk("metric_trigger")
 	if ok {
-		if !(strings.Contains(query, "summarize") && strings.Contains(query, "AggregatedValue") && strings.Contains(query, "bin")) {
+		if !(strings.Contains(query, "summarize") &&
+			strings.Contains(query, "AggregatedValue") &&
+			strings.Contains(query, "bin")) {
 			return fmt.Errorf("Error in parameter values for Scheduled Query Rules %q (Resource Group %q): query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", name, resourceGroup)
 		}
 	}
@@ -242,7 +247,7 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 
 	location := azure.NormalizeLocation(d.Get("location"))
 
-	source := expandMonitorScheduledQueryRulesAlertSource(d)
+	source := azure.ExpandMonitorScheduledQueryRulesCommonSource(d)
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -260,7 +265,7 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating or updating Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -290,11 +295,11 @@ func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -303,19 +308,18 @@ func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	d.Set("description", resp.Description)
 	if resp.Enabled == insights.True {
 		d.Set("enabled", true)
 	} else {
 		d.Set("enabled", false)
 	}
 
-	d.Set("description", resp.Description)
-
 	action, ok := resp.Action.(insights.AlertingAction)
 	if !ok {
-		return fmt.Errorf("Wrong action type in scheduled query rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
+		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
-	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+	if err = d.Set("action", azure.FlattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 		return fmt.Errorf("Error setting `action`: %+v", err)
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
@@ -324,7 +328,7 @@ func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)
-	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
+	if err = d.Set("trigger", azure.FlattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
 		return fmt.Errorf("Error setting `trigger`: %+v", err)
 	}
 
@@ -367,7 +371,7 @@ func resourceArmMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, me
 
 	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting scheduled query rule %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -454,20 +458,6 @@ func expandMonitorScheduledQueryRulesAlertSchedule(d *schema.ResourceData) *insi
 	return &schedule
 }
 
-func expandMonitorScheduledQueryRulesAlertSource(d *schema.ResourceData) *insights.Source {
-	authorizedResourceIDs := d.Get("authorized_resource_ids").(*schema.Set).List()
-	dataSourceID := d.Get("data_source_id").(string)
-	query := d.Get("query").(string)
-	source := insights.Source{
-		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
-		DataSourceID:        utils.String(dataSourceID),
-		Query:               utils.String(query),
-		QueryType:           insights.ResultCount,
-	}
-
-	return &source
-}
-
 func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) *insights.TriggerCondition {
 	result := insights.TriggerCondition{}
 	if len(input) == 0 {
@@ -490,57 +480,4 @@ func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) *insights
 	}
 
 	return &result
-}
-
-func flattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGroup) []interface{} {
-	result := make([]interface{}, 0)
-	v := make(map[string]interface{})
-
-	if input != nil {
-		if input.ActionGroup != nil {
-			v["action_group"] = *input.ActionGroup
-		}
-		v["email_subject"] = input.EmailSubject
-		v["custom_webhook_payload"] = input.CustomWebhookPayload
-	}
-	result = append(result, v)
-
-	return result
-}
-
-func flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input *insights.LogMetricTrigger) []interface{} {
-	result := make(map[string]interface{})
-
-	if input == nil {
-		return []interface{}{}
-	}
-
-	result["operator"] = string(input.ThresholdOperator)
-
-	if input.Threshold != nil {
-		result["threshold"] = *input.Threshold
-	}
-
-	result["metric_trigger_type"] = string(input.MetricTriggerType)
-
-	if input.MetricColumn != nil {
-		result["metric_column"] = *input.MetricColumn
-	}
-	return []interface{}{result}
-}
-
-func flattenAzureRmScheduledQueryRulesAlertTrigger(input *insights.TriggerCondition) []interface{} {
-	result := make(map[string]interface{})
-
-	result["operator"] = string(input.ThresholdOperator)
-
-	if input.Threshold != nil {
-		result["threshold"] = *input.Threshold
-	}
-
-	if input.MetricTrigger != nil {
-		result["metric_trigger"] = flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input.MetricTrigger)
-	}
-
-	return []interface{}{result}
 }

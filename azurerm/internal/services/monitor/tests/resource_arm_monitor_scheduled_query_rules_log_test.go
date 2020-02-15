@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
+func TestAccAzureRMMonitorScheduledQueryRulesLogToMetricAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +20,7 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesLogDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorScheduledQueryRules_logToMetricAction(data),
+				Config: testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorScheduledQueryRulesLogExists(data.ResourceName),
 				),
@@ -30,7 +30,132 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
 	})
 }
 
-func testAccAzureRMMonitorScheduledQueryRules_logToMetricAction(data acceptance.TestData) string {
+func TestAccAzureRMMonitorScheduledQueryRulesLogToMetricAction_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesLogDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorScheduledQueryRulesLogExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorScheduledQueryRulesLogExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMonitorScheduledQueryRulesLogToMetricAction_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesLogDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorScheduledQueryRulesLogExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestAppInsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type    = "web"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_scheduled_query_rules_log" "test" {
+  name                = "acctestsqr-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  data_source_id = "${azurerm_application_insights.test.id}"
+
+  criteria {
+    metric_name = "Average_%% Idle Time"
+    dimension {
+      name     = "InstanceName"
+      operator = "Include"
+      values   = ["50"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestAppInsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type    = "web"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_scheduled_query_rules_log" "test" {
+  name                = "acctestsqr-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  description         = "test log to metric action"
+  enabled             = true
+
+  data_source_id = "${azurerm_application_insights.test.id}"
+
+  criteria {
+    metric_name = "Average_%% Idle Time"
+    dimension {
+      name     = "Computer"
+      operator = "Include"
+      values   = ["25"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"

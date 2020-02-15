@@ -149,18 +149,20 @@ func dataSourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	name := d.Get("name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Scheduled Query Rule %q was not found", name)
+			return fmt.Errorf("[DEBUG] Scheduled Query Rule %q was not found in Resource Group %q: %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("Error reading Scheduled Query Rule: %+v", err)
+		return fmt.Errorf("Error getting Scheduled Query Rule %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
+
+	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -175,9 +177,9 @@ func dataSourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, me
 
 	action, ok := resp.Action.(insights.AlertingAction)
 	if !ok {
-		return fmt.Errorf("Wrong action type in scheduled query rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
+		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
-	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+	if err = d.Set("action", azure.FlattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 		return fmt.Errorf("Error setting `action`: %+v", err)
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
@@ -186,7 +188,7 @@ func dataSourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, me
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)
-	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
+	if err = d.Set("trigger", azure.FlattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
 		return fmt.Errorf("Error setting `trigger`: %+v", err)
 	}
 

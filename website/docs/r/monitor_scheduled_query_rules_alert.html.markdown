@@ -127,12 +127,13 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the Scheduled Query Rule instance.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
 * `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated.  Values must be between 5 and 1440 (inclusive).
+* `query` - (Required) Log search query.
 * `time_window` - (Required) Time window for which data needs to be fetched for query (must be greater than or equal to `frequency`).  Values must be between 5 and 2880 (inclusive).
 * `trigger` - (Required) The condition that results in the alert rule being run.
+* `action` - (Required) An `action` block as defined below.
 * `authorized_resource_ids` - (Optional) List of Resource IDs referred into query.
-* `action` - (Optional) An `action` block as defined below.
 * `description` - (Optional) The description of the Scheduled Query Rule.
-* `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
+* `enabled` - (Optional) Whether this Scheduled Query Rule is enabled.  Default is `true`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
 * `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (inclusive).
 
