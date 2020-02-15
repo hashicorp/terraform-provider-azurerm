@@ -296,6 +296,32 @@ func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_zoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlDatabase_zoneRedundant(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMSqlDatabase_zoneRedundant(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.DatabasesClient
@@ -813,4 +839,33 @@ resource "azurerm_sql_database" "test" {
   read_scale          = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, readScale)
+}
+
+func testAccAzureRMSqlDatabase_zoneRedundant(data acceptance.TestData, zoneRedundant bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                = "acctestdb%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  edition             = "Premium"
+  collation           = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes      = "1073741824"
+  zone_redundant      = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, zoneRedundant)
 }

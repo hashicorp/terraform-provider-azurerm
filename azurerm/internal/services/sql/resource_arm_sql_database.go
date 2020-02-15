@@ -318,6 +318,12 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Default:  false,
 			},
 
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -449,6 +455,10 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		properties.DatabaseProperties.ReadScale = sql.ReadScaleDisabled
 	}
 
+	if v, ok := d.GetOkExists("zone_redundant"); ok {
+		properties.DatabaseProperties.ZoneRedundant = utils.Bool(v.(bool))
+	}
+
 	// The requested Service Objective Name does not match the requested Service Objective Id.
 	if d.HasChange("requested_service_objective_name") && !d.HasChange("requested_service_objective_id") {
 		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
@@ -569,6 +579,10 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("read_scale", true)
 		} else {
 			d.Set("read_scale", false)
+		}
+
+		if zoneRedundant := props.ZoneRedundant; zoneRedundant != nil {
+			d.Set("zone_redundant", zoneRedundant)
 		}
 	}
 
