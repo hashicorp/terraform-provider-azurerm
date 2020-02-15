@@ -79,6 +79,10 @@ The following arguments are supported:
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
 
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
+
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
@@ -241,6 +245,12 @@ A `sign_up` block supports the following:
 * `enabled` - (Required) Can users sign up on the development portal?
 
 * `terms_of_service` - (Optional) A `terms_of_service` block as defined below.
+
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `subnet_id` - (Required) The id of the subnet that will be used for the API Management.
 
 ---
 
