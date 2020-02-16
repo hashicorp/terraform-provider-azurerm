@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -78,43 +77,6 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Deprecated - remove in 2.0
-func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "ignored", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMLogAnalyticsLinkedService_noResourceID(data),
-				ExpectError: regexp.MustCompile("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block"),
-			},
-		},
-	})
-}
-
-// Deprecated - remove in 2.0
-func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
