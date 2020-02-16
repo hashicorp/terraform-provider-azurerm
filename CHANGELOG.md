@@ -32,6 +32,7 @@ BREAKING CHANGES:
 * `azurerm_container_service` - This resource has been removed since it was deprecated [GH-5709]
 * `azurerm_kubernetes_cluster` - updating the default value for `load_balancer_sku` to `Standard` from `Basic` [GH-5747]
 * `azurerm_log_analytics_workspace_linked_service` - This resource has been removed since it was deprecated [GH-5754]
+* `azurerm_mssql_elasticpool` - removing the deprecated `elastic_pool_properties` block [GH-5744]
 * `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
 * `azurerm_relay_namespace` - removing the `sku` block in favour of the `sku_name` field [GH-5719]
 * `azurerm_scheduler_job` - This resource has been removed since it was deprecated [GH-5712]
