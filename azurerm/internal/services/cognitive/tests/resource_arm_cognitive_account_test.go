@@ -167,6 +167,71 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCognitiveAccount_accountApiProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpoint(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMCognitiveAccount_updateAccountApiProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpoint(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			{
+				Config: testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpointUpdatedUrl(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:9000/"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -314,6 +379,54 @@ resource "azurerm_cognitive_account" "test" {
   tags = {
     Acceptance = "Test"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "QnAMaker"
+
+  properties {
+    api_properties {
+      qna_runtime_endpoint = "https://localhost:8080/"
+    }
+  }
+
+  sku_name = "S0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpointUpdatedUrl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "QnAMaker"
+
+  properties {
+    api_properties {
+      qna_runtime_endpoint = "https://localhost:9000/"
+    }
+  }
+
+  sku_name = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
