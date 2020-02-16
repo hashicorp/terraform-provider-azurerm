@@ -395,11 +395,11 @@ func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
 func expandCognitiveAccountProperties(d *schema.ResourceData) *cognitiveservices.AccountProperties {
 	accountProperties := &cognitiveservices.AccountProperties{}
 
-	if props := d.Get("properties").([]interface{}); props != nil && len(props) > 0 {
+	if props := d.Get("properties").([]interface{}); len(props) > 0 {
 		properties := props[0].(map[string]interface{})
 
 		accountApiProperties := &cognitiveservices.AccountAPIProperties{}
-		if apiProps := properties["api_properties"].([]interface{}); apiProps != nil && len(apiProps) > 0 {
+		if apiProps := properties["api_properties"].([]interface{}); len(apiProps) > 0 {
 			apiProperties := apiProps[0].(map[string]interface{})
 
 			if qnaRuntimeEndpoint := apiProperties["qna_runtime_endpoint"]; qnaRuntimeEndpoint != nil {
