@@ -169,7 +169,7 @@ The deprecated field `internal_fqdn` will be removed.
 
 The deprecated field `network_interface_ids` will be removed.
 
-### Date Source: `azurerm_role_definition`
+### Data Source: `azurerm_role_definition`
 
 The Data Source no longer supports the alias `VirtualMachineContributor` for the Built-in role `Virtual Machine Contributor`.
 
