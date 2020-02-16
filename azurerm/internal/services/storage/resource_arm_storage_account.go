@@ -456,7 +456,6 @@ func resourceArmStorageAccount() *schema.Resource {
 			"static_website": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
