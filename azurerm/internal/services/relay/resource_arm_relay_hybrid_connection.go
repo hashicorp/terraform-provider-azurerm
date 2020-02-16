@@ -91,7 +91,7 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", *existing.ID)
 		}
 	}
 

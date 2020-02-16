@@ -72,7 +72,6 @@ func TestAccWindowsVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 				// create the original VM
 				Config: testWindowsVirtualMachine_imageFromExistingMachinePrep(data),
 				Check: resource.ComposeTestCheckFunc(
-
 					checkWindowsVirtualMachineExists("azurerm_windows_virtual_machine.source"),
 					generalizeWindowsVirtualMachine("azurerm_windows_virtual_machine.source"),
 				),
@@ -298,12 +297,6 @@ resource "azurerm_image" "test" {
   source_virtual_machine_id = azurerm_windows_virtual_machine.source.id
 }
 
-resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctest-gallery-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
 resource "azurerm_shared_image" "test" {
   name                = "acctest-gallery-image"
   gallery_name        = azurerm_shared_image_gallery.test.name
@@ -334,7 +327,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
+  name                = "${local.vm_name}2"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -350,7 +343,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
-`, template, data.RandomInteger)
+`, template)
 }
 
 func testWindowsVirtualMachine_imageFromSourceImageReference(data acceptance.TestData) string {
@@ -391,14 +384,9 @@ func generalizeWindowsVirtualMachine(resourceName string) func(s *terraform.Stat
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		// TODO: make this for Windows..
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
-		username := rs.Primary.Attributes["admin_username"]
-		password := rs.Primary.Attributes["admin_password"]
-		port := "22"
-		location := rs.Primary.Attributes["location"]
 
-		return testGeneralizeVMImage(resourceGroup, name, username, password, name, port, location)(s)
+		return testGeneralizeWindowsVMImage(resourceGroup, name)(s)
 	}
 }

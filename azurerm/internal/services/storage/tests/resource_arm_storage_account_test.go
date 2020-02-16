@@ -611,6 +611,7 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_blobProperties(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.cors_rule.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.delete_retention_policy.0.days", "300"),
 				),
 			},
@@ -619,6 +620,7 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_blobPropertiesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.cors_rule.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.delete_retention_policy.0.days", "7"),
 				),
 			},
@@ -1391,6 +1393,14 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   blob_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+    }
+
     delete_retention_policy {
       days = 300
     }
@@ -1415,6 +1425,22 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   blob_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*", "x-method-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET"]
+      max_age_in_seconds = "2000000000"
+    }
+
+    cors_rule {
+      allowed_origins    = ["http://www.test.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["PUT"]
+      max_age_in_seconds = "1000"
+    }
+
     delete_retention_policy {
     }
   }

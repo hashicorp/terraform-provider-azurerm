@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -27,41 +26,6 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMNotificationHubNamespace_freeClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNotificationHubNamespace_freeClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMNotificationHubNamespace_freeNotDefined(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMNotificationHubNamespace_freeNotDefined(data),
-				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
-			},
 		},
 	})
 }
@@ -154,42 +118,6 @@ resource "azurerm_notification_hub_namespace" "test" {
   namespace_type      = "NotificationHub"
 
   sku_name = "Free"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMNotificationHubNamespace_freeClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_notification_hub_namespace" "test" {
-  name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub"
-
-  sku {
-    name = "Free"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMNotificationHubNamespace_freeNotDefined(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_notification_hub_namespace" "test" {
-  name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

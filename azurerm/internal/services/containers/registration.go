@@ -26,7 +26,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_container_group":              resourceArmContainerGroup(),
 		"azurerm_container_registry_webhook":   resourceArmContainerRegistryWebhook(),
 		"azurerm_container_registry":           resourceArmContainerRegistry(),
-		"azurerm_container_service":            resourceArmContainerService(),
 		"azurerm_kubernetes_cluster":           resourceArmKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": resourceArmKubernetesClusterNodePool(),
 	}
