@@ -98,6 +98,45 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				}, false),
 			},
 
+						"tier": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservices.Free),
+								string(cognitiveservices.Standard),
+								string(cognitiveservices.Premium),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					// TODO Add customSubDomainName & NetworkAcls
+					Schema: map[string]*schema.Schema{
+						"api_properties": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								// TODO Add statisticsEnabled, eventHubConnectionString & storageAccountConnectionString
+								Schema: map[string]*schema.Schema{
+									"qna_runtime_endpoint": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsURLWithHTTPS,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 
 			"endpoint": {
@@ -127,6 +166,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	kind := d.Get("kind").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetProperties(ctx, resourceGroup, name)
@@ -146,11 +186,16 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
+	accountProperties := expandCognitiveAccountProperties(d)
+	if err := validateCognitiveAccountProperties(accountProperties, kind); err != nil {
+		return err
+	}
+
 	properties := cognitiveservices.Account{
-		Kind:       utils.String(d.Get("kind").(string)),
+		Kind:       utils.String(kind),
 		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:        sku,
-		Properties: &cognitiveservices.AccountProperties{},
+		Properties: accountProperties,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -183,9 +228,15 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
+	accountProperties := expandCognitiveAccountProperties(d)
+	if err := validateCognitiveAccountProperties(accountProperties, d.Get("kind").(string)); err != nil {
+		return err
+	}
+
 	properties := cognitiveservices.Account{
-		Sku:  sku,
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:        sku,
+		Properties: accountProperties,
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, properties); err != nil {
@@ -228,7 +279,15 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("sku_name", sku.Name)
 	}
 
+	if err = d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
+	}
+
 	if props := resp.Properties; props != nil {
+		flattenedProps := flattenCognitiveAccountProperties(props)
+		if len(flattenedProps) > 0 {
+			d.Set("properties", flattenedProps)
+		}
 		d.Set("endpoint", props.Endpoint)
 	}
 
@@ -286,4 +345,83 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 		Name: utils.String(skuName),
 		Tier: tier,
 	}, nil
+}
+
+func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
+	skus := d.Get("sku").([]interface{})
+	sku := skus[0].(map[string]interface{})
+
+	return &cognitiveservices.Sku{
+		Name: utils.String(sku["name"].(string)),
+		Tier: cognitiveservices.SkuTier(sku["tier"].(string)),
+	}
+}
+
+func expandCognitiveAccountProperties(d *schema.ResourceData) *cognitiveservices.AccountProperties {
+	accountProperties := &cognitiveservices.AccountProperties{}
+
+	if props := d.Get("properties").([]interface{}); props != nil && len(props) > 0 {
+		properties := props[0].(map[string]interface{})
+
+		accountApiProperties := &cognitiveservices.AccountAPIProperties{}
+		if apiProps := properties["api_properties"].([]interface{}); apiProps != nil && len(apiProps) > 0 {
+			apiProperties := apiProps[0].(map[string]interface{})
+
+			if qnaRuntimeEndpoint := apiProperties["qna_runtime_endpoint"]; qnaRuntimeEndpoint != nil {
+				accountApiProperties.QnaRuntimeEndpoint = utils.String(qnaRuntimeEndpoint.(string))
+			}
+			accountProperties.APIProperties = accountApiProperties
+		}
+	}
+	return accountProperties
+}
+
+func validateCognitiveAccountProperties(accountProperties *cognitiveservices.AccountProperties, kind string) error {
+	if kind == "QnAMaker" && (accountProperties == nil || accountProperties.APIProperties == nil || accountProperties.APIProperties.QnaRuntimeEndpoint == nil) {
+		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+	}
+
+	return nil
+}
+
+func flattenCognitiveAccountSku(input *cognitiveservices.Sku) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"tier": string(input.Tier),
+	}
+
+	if v := input.Name; v != nil {
+		m["name"] = *v
+	}
+
+	return []interface{}{m}
+}
+
+func flattenCognitiveAccountProperties(input *cognitiveservices.AccountProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input.APIProperties != nil {
+		result["api_properties"] = flattenCognitiveAccountApiProperties(input.APIProperties)
+	}
+
+	if len(result) > 0 {
+		return append(results, result)
+	}
+
+	return results
+}
+
+func flattenCognitiveAccountApiProperties(input *cognitiveservices.AccountAPIProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input.QnaRuntimeEndpoint != nil {
+		result["qna_runtime_endpoint"] = *input.QnaRuntimeEndpoint
+	}
+
+	return append(results, result)
 }
