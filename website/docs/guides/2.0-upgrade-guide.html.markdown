@@ -157,6 +157,18 @@ The deprecated fields `service_principal_object_id` and `service_principal_appli
 
 The deprecated field `zone_type` will be removed. Private DNS Zones are now a separate resource in both Azure and Terraform.
 
+### Data Source: `azurerm_key_vault`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+### Data Source: `azurerm_key_vault_key`
+
+The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
+
+### Data Source: `azurerm_key_vault_secret`
+
+The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
+
 ### Data Source: `azurerm_kubernetes_cluster`
 
 The deprecated block `agent_pool_profile` will be removed. This has been replaced by the `default_node_pool` block.
@@ -348,6 +360,31 @@ The deprecated `location` field will be removed, since this is no longer used.
 ### Resource: `azurerm_lb_rule`
 
 The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_key_vault`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+The `sku_name` field is now case sensitive.
+
+### Resource: `azurerm_key_vault_access_policy`
+
+The deprecated `vault_name` field has been replaced by the `key_vault_id` field and will be removed.
+
+The deprecated `resource_group_name` will be removed.
+
+### Resource: `azurerm_key_vault_certificate`
+
+The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
+
+### Resource: `azurerm_key_vault_key`
+
+The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
+
+
+### Resource: `azurerm_key_vault_secret`
+
+The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
 
 ### Resource: `azurerm_log_analytics_linked_service`
 

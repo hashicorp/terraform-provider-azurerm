@@ -41,9 +41,9 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the Key Vault exists.
 
-* `sku` - A `sku` block as described below.
-
 * `tenant_id` - The Azure Active Directory Tenant ID used for authenticating requests to the Key Vault.
+
+* `sku_name` - The Name of the SKU used for this Key Vault.
 
 * `access_policy` - One or more `access_policy` blocks as defined below.
 
@@ -55,11 +55,7 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the Key Vault.
 
-A `sku` block exports the following:
-
-* `name` - The name of the SKU used for this Key Vault.
-
-`access_policy` supports the following:
+A `access_policy` block supports the following:
 
 * `tenant_id` - The Azure Active Directory Tenant ID used to authenticate requests for this Key Vault.
 
