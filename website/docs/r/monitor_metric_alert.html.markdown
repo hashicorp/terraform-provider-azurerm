@@ -73,7 +73,7 @@ The following arguments are supported:
 * `criteria` - (Required) One or more `criteria` blocks as defined below.
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Metric Alert be enabled? Defaults to `true`.
-* `auto_mitigate` - (Optional) Should the alerts in this Metric Alert be auto resolved? Defaults to `false`.
+* `auto_mitigate` - (Optional) Should the alerts in this Metric Alert be auto resolved? Defaults to `true`.
 * `description` - (Optional) The description of this Metric Alert.
 * `frequency` - (Optional) The evaluation frequency of this Metric Alert, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT15M`, `PT30M` and `PT1H`. Defaults to `PT1M`.
 * `severity` - (Optional) The severity of this Metric Alert. Possible values are `0`, `1`, `2`, `3` and `4`. Defaults to `3`.
