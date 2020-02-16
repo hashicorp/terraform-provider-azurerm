@@ -32,12 +32,12 @@ func TestDnsZoneId(t *testing.T) {
 		},
 		{
 			Name:     "Missing DNS Zones Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/",
 			Expected: nil,
 		},
 		{
 			Name:  "DNS Zone ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/zone1",
 			Expected: &DnsZoneId{
 				Name:          "zone1",
 				ResourceGroup: "resGroup1",
@@ -45,7 +45,7 @@ func TestDnsZoneId(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/DnsZones/zone1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/Dnszones/zone1",
 			Expected: nil,
 		},
 	}

@@ -32,31 +32,31 @@ func TestDnsARecordId(t *testing.T) {
 		},
 		{
 			Name:     "Missing DNS Zones Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/",
 			Expected: nil,
 		},
 		{
 			Name:     "DNS Zone ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/zone1",
 			Expected: nil,
 		},
 		{
 			Name:     "Missing A Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/A/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/zone1/A/",
 			Expected: nil,
 		},
 		{
 			Name:  "DNS A Record ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/A/Record1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/zone1/A/myrecord1",
 			Expected: &DnsARecordId{
 				ResourceGroup: "resGroup1",
 				ZoneName:      "zone1",
-				Name:          "Record1",
+				Name:          "myrecord1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnsZones/zone1/A/Record1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/zone1/a/myrecord1",
 			Expected: nil,
 		},
 	}
