@@ -100,8 +100,8 @@ func (client UsagesClient) ListByVaultsPreparer(ctx context.Context, resourceGro
 // ListByVaultsSender sends the ListByVaults request. The method will close the
 // http.Response Body if it receives an error.
 func (client UsagesClient) ListByVaultsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByVaultsResponder handles the response to the ListByVaults request. The method always

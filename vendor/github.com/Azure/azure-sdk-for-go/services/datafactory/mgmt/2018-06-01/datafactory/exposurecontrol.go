@@ -103,8 +103,8 @@ func (client ExposureControlClient) GetFeatureValuePreparer(ctx context.Context,
 // GetFeatureValueSender sends the GetFeatureValue request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExposureControlClient) GetFeatureValueSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetFeatureValueResponder handles the response to the GetFeatureValue request. The method always
@@ -195,8 +195,8 @@ func (client ExposureControlClient) GetFeatureValueByFactoryPreparer(ctx context
 // GetFeatureValueByFactorySender sends the GetFeatureValueByFactory request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExposureControlClient) GetFeatureValueByFactorySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetFeatureValueByFactoryResponder handles the response to the GetFeatureValueByFactory request. The method always

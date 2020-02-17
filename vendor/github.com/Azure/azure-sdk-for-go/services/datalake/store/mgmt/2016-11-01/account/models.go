@@ -233,6 +233,29 @@ func PossibleTrustedIDProviderStateValues() []TrustedIDProviderState {
 	return []TrustedIDProviderState{TrustedIDProviderStateDisabled, TrustedIDProviderStateEnabled}
 }
 
+// UsageUnit enumerates the values for usage unit.
+type UsageUnit string
+
+const (
+	// Bytes ...
+	Bytes UsageUnit = "Bytes"
+	// BytesPerSecond ...
+	BytesPerSecond UsageUnit = "BytesPerSecond"
+	// Count ...
+	Count UsageUnit = "Count"
+	// CountsPerSecond ...
+	CountsPerSecond UsageUnit = "CountsPerSecond"
+	// Percent ...
+	Percent UsageUnit = "Percent"
+	// Seconds ...
+	Seconds UsageUnit = "Seconds"
+)
+
+// PossibleUsageUnitValues returns an array of possible values for the UsageUnit const type.
+func PossibleUsageUnitValues() []UsageUnit {
+	return []UsageUnit{Bytes, BytesPerSecond, Count, CountsPerSecond, Percent, Seconds}
+}
+
 // AccountsCreateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFutureType struct {
@@ -2074,6 +2097,35 @@ func (uvnrwap *UpdateVirtualNetworkRuleWithAccountParameters) UnmarshalJSON(body
 	}
 
 	return nil
+}
+
+// Usage describes the Resource Usage.
+type Usage struct {
+	// Unit - READ-ONLY; Gets the unit of measurement. Possible values include: 'Count', 'Bytes', 'Seconds', 'Percent', 'CountsPerSecond', 'BytesPerSecond'
+	Unit UsageUnit `json:"unit,omitempty"`
+	// ID - READ-ONLY; Resource identifier.
+	ID *string `json:"id,omitempty"`
+	// CurrentValue - READ-ONLY; Gets the current count of the allocated resources in the subscription.
+	CurrentValue *int32 `json:"currentValue,omitempty"`
+	// Limit - READ-ONLY; Gets the maximum count of the resources that can be allocated in the subscription.
+	Limit *int32 `json:"limit,omitempty"`
+	// Name - READ-ONLY; Gets the name of the type of usage.
+	Name *UsageName `json:"name,omitempty"`
+}
+
+// UsageListResult the response from the List Usages operation.
+type UsageListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Gets or sets the list of Storage Resource Usages.
+	Value *[]Usage `json:"value,omitempty"`
+}
+
+// UsageName the usage names that can be used.
+type UsageName struct {
+	// Value - READ-ONLY; Gets a string describing the resource name.
+	Value *string `json:"value,omitempty"`
+	// LocalizedValue - READ-ONLY; Gets a localized string describing the resource name.
+	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
 // VirtualNetworkRule data Lake Store virtual network rule information.

@@ -1,7 +1,7 @@
 ---
+subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_user_assigned_identity"
-sidebar_current: "docs-azurerm-datasource-user-assigned-identity"
 description: |-
   Gets information about an existing User Assigned Identity.
 
@@ -20,18 +20,18 @@ data "azurerm_user_assigned_identity" "example" {
 }
 
 output "uai_client_id" {
-  value = "${data.azurerm_user_assigned_identity.example.client_id}"
+  value = data.azurerm_user_assigned_identity.example.client_id
 }
 
 output "uai_principal_id" {
-  value = "${data.azurerm_user_assigned_identity.example.principal_id}"
+  value = data.azurerm_user_assigned_identity.example.principal_id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required)  The name of the User Assigned Identity.
-* `resource_group_name` - (Required) The name of the Resource Group in which the User Assigned Identity exists.
+* `name` -  The name of the User Assigned Identity.
+* `resource_group_name` - The name of the Resource Group in which the User Assigned Identity exists.
 
 ## Attributes Reference
 
@@ -42,3 +42,9 @@ The following attributes are exported:
 * `principal_id` - The Service Principal ID of the User Assigned Identity.
 * `client_id` - The Client ID of the User Assigned Identity.
 * `tags` - A mapping of tags assigned to the User Assigned Identity.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the User Assigned Identity.

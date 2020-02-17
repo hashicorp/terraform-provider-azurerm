@@ -1,7 +1,7 @@
 ---
+subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_workflow"
-sidebar_current: "docs-azurerm-resource-logic-app-workflow"
 description: |-
   Manages a Logic App Workflow.
 ---
@@ -13,15 +13,15 @@ Manages a Logic App Workflow.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "workflow-resources"
   location = "East US"
 }
 
-resource "azurerm_logic_app_workflow" "test" {
+resource "azurerm_logic_app_workflow" "example" {
   name                = "workflow1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `workflow_schema` - (Optional) Specifies the Schema to use for this Logic App Workflow. Defaults to `https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#`. Changing this forces a new resource to be created.
 
-* `workflow_version` - (Optional) Specifies the version of the Schema used for this Logic App Workflow. Defaults to `1.0.0.0`. Changing this forces a new resource to be create.d
+* `workflow_version` - (Optional) Specifies the version of the Schema used for this Logic App Workflow. Defaults to `1.0.0.0`. Changing this forces a new resource to be created.
 
 * `parameters` - (Optional) A map of Key-Value pairs.
 
@@ -52,6 +52,15 @@ The following attributes are exported:
 * `id` - The Logic App Workflow ID.
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Logic App Workflow.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App Workflow.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Logic App Workflow.
 
 ## Import
 

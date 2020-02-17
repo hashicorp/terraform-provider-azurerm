@@ -106,10 +106,117 @@ type BasicDependency struct {
 	ResourceName *string `json:"resourceName,omitempty"`
 }
 
+// CloudError an error response for a resource management request.
+type CloudError struct {
+	Error *ErrorResponse `json:"error,omitempty"`
+}
+
+// CreateOrUpdateByIDFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type CreateOrUpdateByIDFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CreateOrUpdateByIDFuture) Result(client Client) (gr GenericResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateByIDFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.CreateOrUpdateByIDFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+		gr, err = client.CreateOrUpdateByIDResponder(gr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type CreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CreateOrUpdateFuture) Result(client Client) (gr GenericResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.CreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+		gr, err = client.CreateOrUpdateResponder(gr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // DebugSetting ...
 type DebugSetting struct {
 	// DetailLevel - Specifies the type of information to log for debugging. The permitted values are none, requestContent, responseContent, or both requestContent and responseContent separated by a comma. The default is none. When setting this value, carefully consider the type of information you are passing in during deployment. By logging information about the request or response, you could potentially expose sensitive data that is retrieved through the deployment operations.
 	DetailLevel *string `json:"detailLevel,omitempty"`
+}
+
+// DeleteByIDFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type DeleteByIDFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DeleteByIDFuture) Result(client Client) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.DeleteByIDFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.DeleteByIDFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type DeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DeleteFuture) Result(client Client) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.DeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.DeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // Dependency deployment dependency information.
@@ -532,104 +639,104 @@ type DeploymentPropertiesExtended struct {
 	OnErrorDeployment *OnErrorDeploymentExtended `json:"onErrorDeployment,omitempty"`
 }
 
-// DeploymentsGroupCreateOrUpdateAtSubscriptionScopeFuture an abstraction for monitoring and retrieving the
+// DeploymentsCreateOrUpdateAtSubscriptionScopeFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
-type DeploymentsGroupCreateOrUpdateAtSubscriptionScopeFuture struct {
+type DeploymentsCreateOrUpdateAtSubscriptionScopeFuture struct {
 	azure.Future
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *DeploymentsGroupCreateOrUpdateAtSubscriptionScopeFuture) Result(client DeploymentsGroupClient) (de DeploymentExtended, err error) {
+func (future *DeploymentsCreateOrUpdateAtSubscriptionScopeFuture) Result(client DeploymentsClient) (de DeploymentExtended, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsGroupCreateOrUpdateAtSubscriptionScopeFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsCreateOrUpdateAtSubscriptionScopeFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsGroupCreateOrUpdateAtSubscriptionScopeFuture")
+		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsCreateOrUpdateAtSubscriptionScopeFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if de.Response.Response, err = future.GetResult(sender); err == nil && de.Response.Response.StatusCode != http.StatusNoContent {
 		de, err = client.CreateOrUpdateAtSubscriptionScopeResponder(de.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.DeploymentsGroupCreateOrUpdateAtSubscriptionScopeFuture", "Result", de.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "resources.DeploymentsCreateOrUpdateAtSubscriptionScopeFuture", "Result", de.Response.Response, "Failure responding to request")
 		}
 	}
 	return
 }
 
-// DeploymentsGroupCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// DeploymentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
-type DeploymentsGroupCreateOrUpdateFuture struct {
+type DeploymentsCreateOrUpdateFuture struct {
 	azure.Future
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *DeploymentsGroupCreateOrUpdateFuture) Result(client DeploymentsGroupClient) (de DeploymentExtended, err error) {
+func (future *DeploymentsCreateOrUpdateFuture) Result(client DeploymentsClient) (de DeploymentExtended, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsGroupCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsGroupCreateOrUpdateFuture")
+		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsCreateOrUpdateFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if de.Response.Response, err = future.GetResult(sender); err == nil && de.Response.Response.StatusCode != http.StatusNoContent {
 		de, err = client.CreateOrUpdateResponder(de.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.DeploymentsGroupCreateOrUpdateFuture", "Result", de.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "resources.DeploymentsCreateOrUpdateFuture", "Result", de.Response.Response, "Failure responding to request")
 		}
 	}
 	return
 }
 
-// DeploymentsGroupDeleteAtSubscriptionScopeFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
-type DeploymentsGroupDeleteAtSubscriptionScopeFuture struct {
+// DeploymentsDeleteAtSubscriptionScopeFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DeploymentsDeleteAtSubscriptionScopeFuture struct {
 	azure.Future
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *DeploymentsGroupDeleteAtSubscriptionScopeFuture) Result(client DeploymentsGroupClient) (ar autorest.Response, err error) {
+func (future *DeploymentsDeleteAtSubscriptionScopeFuture) Result(client DeploymentsClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsGroupDeleteAtSubscriptionScopeFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsDeleteAtSubscriptionScopeFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsGroupDeleteAtSubscriptionScopeFuture")
+		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsDeleteAtSubscriptionScopeFuture")
 		return
 	}
 	ar.Response = future.Response()
 	return
 }
 
-// DeploymentsGroupDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// DeploymentsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
-type DeploymentsGroupDeleteFuture struct {
+type DeploymentsDeleteFuture struct {
 	azure.Future
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *DeploymentsGroupDeleteFuture) Result(client DeploymentsGroupClient) (ar autorest.Response, err error) {
+func (future *DeploymentsDeleteFuture) Result(client DeploymentsClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeploymentsGroupDeleteFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "resources.DeploymentsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsGroupDeleteFuture")
+		err = azure.NewAsyncOpIncompleteError("resources.DeploymentsDeleteFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -645,11 +752,33 @@ type DeploymentValidateResult struct {
 	Properties *DeploymentPropertiesExtended `json:"properties,omitempty"`
 }
 
+// ErrorAdditionalInfo the resource management error additional info.
+type ErrorAdditionalInfo struct {
+	// Type - READ-ONLY; The additional info type.
+	Type *string `json:"type,omitempty"`
+	// Info - READ-ONLY; The additional info.
+	Info interface{} `json:"info,omitempty"`
+}
+
+// ErrorResponse the resource management error response.
+type ErrorResponse struct {
+	// Code - READ-ONLY; The error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; The error message.
+	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]ErrorResponse `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+}
+
 // ExportTemplateRequest export resource group template request parameters.
 type ExportTemplateRequest struct {
-	// ResourcesProperty - The IDs of the resources. The only supported string currently is '*' (all resources). Future updates will support exporting specific resources.
+	// ResourcesProperty - The IDs of the resources to filter the export by. To export all resources, supply an array with single entry '*'.
 	ResourcesProperty *[]string `json:"resources,omitempty"`
-	// Options - The export template options. Supported values include 'IncludeParameterDefaultValue', 'IncludeComments' or 'IncludeParameterDefaultValue, IncludeComments
+	// Options - The export template options. A CSV-formatted list containing zero or more of the following: 'IncludeParameterDefaultValue', 'IncludeComments', 'SkipResourceNameParameterization', 'SkipAllParameterization'
 	Options *string `json:"options,omitempty"`
 }
 
@@ -754,109 +883,6 @@ func (g Group) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = g.Tags
 	}
 	return json.Marshal(objectMap)
-}
-
-// GroupCreateOrUpdateByIDFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type GroupCreateOrUpdateByIDFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupCreateOrUpdateByIDFuture) Result(client GroupClient) (gr GenericResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupCreateOrUpdateByIDFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupCreateOrUpdateByIDFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
-		gr, err = client.CreateOrUpdateByIDResponder(gr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.GroupCreateOrUpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// GroupCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type GroupCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupCreateOrUpdateFuture) Result(client GroupClient) (gr GenericResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
-		gr, err = client.CreateOrUpdateResponder(gr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.GroupCreateOrUpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// GroupDeleteByIDFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type GroupDeleteByIDFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupDeleteByIDFuture) Result(client GroupClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupDeleteByIDFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupDeleteByIDFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// GroupDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type GroupDeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupDeleteFuture) Result(client GroupClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupDeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
 }
 
 // GroupExportResult resource group export result.
@@ -1022,29 +1048,6 @@ func NewGroupListResultPage(getNextPage func(context.Context, GroupListResult) (
 	return GroupListResultPage{fn: getNextPage}
 }
 
-// GroupMoveResourcesFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type GroupMoveResourcesFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupMoveResourcesFuture) Result(client GroupClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupMoveResourcesFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupMoveResourcesFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
 // GroupPatchable resource group information.
 type GroupPatchable struct {
 	// Name - The name of the resource group.
@@ -1080,103 +1083,22 @@ type GroupProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
-// GroupsGroupDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type GroupsGroupDeleteFuture struct {
+// GroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type GroupsDeleteFuture struct {
 	azure.Future
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *GroupsGroupDeleteFuture) Result(client GroupsGroupClient) (ar autorest.Response, err error) {
+func (future *GroupsDeleteFuture) Result(client GroupsClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupsGroupDeleteFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "resources.GroupsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupsGroupDeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// GroupUpdateByIDFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type GroupUpdateByIDFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupUpdateByIDFuture) Result(client GroupClient) (gr GenericResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupUpdateByIDFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupUpdateByIDFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
-		gr, err = client.UpdateByIDResponder(gr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.GroupUpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// GroupUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type GroupUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupUpdateFuture) Result(client GroupClient) (gr GenericResource, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
-		gr, err = client.UpdateResponder(gr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.GroupUpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// GroupValidateMoveResourcesFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type GroupValidateMoveResourcesFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *GroupValidateMoveResourcesFuture) Result(client GroupClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupValidateMoveResourcesFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.GroupValidateMoveResourcesFuture")
+		err = azure.NewAsyncOpIncompleteError("resources.GroupsDeleteFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -1385,6 +1307,29 @@ type MoveInfo struct {
 	ResourcesProperty *[]string `json:"resources,omitempty"`
 	// TargetResourceGroup - The target resource group.
 	TargetResourceGroup *string `json:"targetResourceGroup,omitempty"`
+}
+
+// MoveResourcesFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type MoveResourcesFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MoveResourcesFuture) Result(client Client) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.MoveResourcesFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.MoveResourcesFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // OnErrorDeployment deployment on error behavior.
@@ -2038,10 +1983,99 @@ type TargetResource struct {
 	ResourceType *string `json:"resourceType,omitempty"`
 }
 
+// TemplateHashResult result of the request to calculate template hash. It contains a string of minified
+// template and its hash.
+type TemplateHashResult struct {
+	autorest.Response `json:"-"`
+	// MinifiedTemplate - The minified template string.
+	MinifiedTemplate *string `json:"minifiedTemplate,omitempty"`
+	// TemplateHash - The template hash.
+	TemplateHash *string `json:"templateHash,omitempty"`
+}
+
 // TemplateLink entity representing the reference to the template.
 type TemplateLink struct {
 	// URI - The URI of the template to deploy.
 	URI *string `json:"uri,omitempty"`
 	// ContentVersion - If included, must match the ContentVersion in the template.
 	ContentVersion *string `json:"contentVersion,omitempty"`
+}
+
+// UpdateByIDFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type UpdateByIDFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *UpdateByIDFuture) Result(client Client) (gr GenericResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.UpdateByIDFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.UpdateByIDFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+		gr, err = client.UpdateByIDResponder(gr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// UpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type UpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *UpdateFuture) Result(client Client) (gr GenericResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.UpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
+		gr, err = client.UpdateResponder(gr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ValidateMoveResourcesFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ValidateMoveResourcesFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ValidateMoveResourcesFuture) Result(client Client) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.ValidateMoveResourcesFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("resources.ValidateMoveResourcesFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }

@@ -138,6 +138,21 @@ func PossibleIotHubNameUnavailabilityReasonValues() []IotHubNameUnavailabilityRe
 	return []IotHubNameUnavailabilityReason{AlreadyExists, Invalid}
 }
 
+// IotHubReplicaRoleType enumerates the values for iot hub replica role type.
+type IotHubReplicaRoleType string
+
+const (
+	// Primary ...
+	Primary IotHubReplicaRoleType = "primary"
+	// Secondary ...
+	Secondary IotHubReplicaRoleType = "secondary"
+)
+
+// PossibleIotHubReplicaRoleTypeValues returns an array of possible values for the IotHubReplicaRoleType const type.
+func PossibleIotHubReplicaRoleTypeValues() []IotHubReplicaRoleType {
+	return []IotHubReplicaRoleType{Primary, Secondary}
+}
+
 // IotHubScaleType enumerates the values for iot hub scale type.
 type IotHubScaleType string
 
@@ -1007,6 +1022,14 @@ func NewIotHubDescriptionListResultPage(getNextPage func(context.Context, IotHub
 	return IotHubDescriptionListResultPage{fn: getNextPage}
 }
 
+// IotHubLocationDescription public representation of one of the locations where a resource is provisioned.
+type IotHubLocationDescription struct {
+	// Location - Azure Geo Regions
+	Location *string `json:"location,omitempty"`
+	// Role - Specific Role assigned to this location. Possible values include: 'Primary', 'Secondary'
+	Role IotHubReplicaRoleType `json:"role,omitempty"`
+}
+
 // IotHubNameAvailabilityInfo the properties indicating whether a given IoT hub name is available.
 type IotHubNameAvailabilityInfo struct {
 	autorest.Response `json:"-"`
@@ -1046,6 +1069,8 @@ type IotHubProperties struct {
 	DeviceStreams *IotHubPropertiesDeviceStreams `json:"deviceStreams,omitempty"`
 	// Features - The capabilities and features enabled for the IoT hub. Possible values include: 'None', 'DeviceManagement'
 	Features Capabilities `json:"features,omitempty"`
+	// Locations - Primary and secondary location for iot hub
+	Locations *[]IotHubLocationDescription `json:"locations,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IotHubProperties.
@@ -1083,6 +1108,9 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ihp.Features != "" {
 		objectMap["features"] = ihp.Features
+	}
+	if ihp.Locations != nil {
+		objectMap["locations"] = ihp.Locations
 	}
 	return json.Marshal(objectMap)
 }

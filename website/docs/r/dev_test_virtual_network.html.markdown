@@ -1,37 +1,37 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_virtual_network"
-sidebar_current: "docs-azurerm-resource-dev-test-virtual-network"
 description: |-
-  Manages a Virtual Network within a Dev Test Lab.
+  Manages a Virtual Network within a DevTest Lab.
 ---
 
 # azurerm_dev_test_virtual_network
 
-Manages a Virtual Network within a Dev Test Lab.
+Manages a Virtual Network within a DevTest Lab.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_dev_test_lab" "test" {
+resource "azurerm_dev_test_lab" "example" {
   name                = "example-devtestlab"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     "Sydney" = "Australia"
   }
 }
 
-resource "azurerm_dev_test_virtual_network" "test" {
+resource "azurerm_dev_test_virtual_network" "example" {
   name                = "example-network"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.example.name
+  resource_group_name = azurerm_resource_group.example.name
 
   subnet {
     use_public_ip_address           = "Allow"
@@ -80,9 +80,20 @@ A `subnet` block exports the following:
 
 * `name` - The name of the Subnet for this Virtual Network.
 
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DevTest Virtual Network.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Virtual Network.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Virtual Network.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Virtual Network.
+
 ## Import
 
-Dev Test Virtual Networks can be imported using the `resource id`, e.g.
+DevTest Virtual Networks can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_dev_test_virtual_network.network1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualnetworks/network1

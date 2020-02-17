@@ -1,7 +1,7 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
-sidebar_current: "docs-azurerm-data-source-kubernetes-cluster"
 description: |-
   Gets information about an existing Managed Kubernetes Cluster (AKS)
 ---
@@ -16,7 +16,7 @@ Use this data source to access information about an existing Managed Kubernetes 
 ## Example Usage
 
 ```hcl
-data "azurerm_kubernetes_cluster" "test" {
+data "azurerm_kubernetes_cluster" "example" {
   name                = "myakscluster"
   resource_group_name = "my-example-resource-group"
 }
@@ -26,15 +26,19 @@ data "azurerm_kubernetes_cluster" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the managed Kubernetes Cluster.
+* `name` - The name of the managed Kubernetes Cluster.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the managed Kubernetes Cluster exists.
+* `resource_group_name` - The name of the Resource Group in which the managed Kubernetes Cluster exists.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Kubernetes Managed Cluster.
+
+* `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the masters.
+
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
 
 * `addon_profile` - A `addon_profile` block as documented below.
 
@@ -43,6 +47,10 @@ The following attributes are exported:
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located                   
+
+-> **NOTE:**  At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
@@ -54,9 +62,15 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
+* `private_link_enabled` - Does this Kubernetes Cluster have the Kubernetes API exposed via Private Link?                           
+
+-> **NOTE:** At this time Private Link is in Public Preview
+
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
 * `linux_profile` - A `linux_profile` block as documented below.
+
+* `windows_profile` - A `windows_profile` block as documented below.
 
 * `network_profile` - A `network_profile` block as documented below.
 
@@ -76,6 +90,10 @@ A `addon_profile` block exports the following:
 
 * `oms_agent` - A `oms_agent` block.
 
+* `kube_dashboard` - A `kube_dashboard` block.
+
+* `azure_policy` - A `azure_policy` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -86,6 +104,14 @@ A `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
+* `availability_zones` - The availability zones used for the nodes.
+
+* `enable_auto_scaling` - If the auto-scaler is enabled.
+
+* `min_count` - Minimum number of nodes for auto-scaling
+
+* `max_count` - Maximum number of nodes for auto-scaling
+
 * `name` - The name assigned to this pool of agents.
 
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
@@ -95,6 +121,8 @@ A `agent_pool_profile` block exports the following:
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+
+* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
 
 ---
 
@@ -153,6 +181,12 @@ A `linux_profile` block exports the following:
 
 ---
 
+A `windows_profile` block exports the following:
+
+* `admin_username` - The username associated with the administrator account of the Windows VMs.
+
+---
+
 A `network_profile` block exports the following:
 
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
@@ -177,6 +211,18 @@ A `oms_agent` block exports the following:
 
 ---
 
+A `kube_dashboard` block supports the following:
+
+* `enabled` - Is the Kubernetes Dashboard enabled?
+
+---
+
+A `azure_policy` block supports the following:
+
+* `enabled` - Is Azure Policy for Kubernetes enabled?
+
+---
+
 A `role_based_access_control` block exports the following:
 
 * `azure_active_directory` - A `azure_active_directory` block as documented above.
@@ -194,3 +240,9 @@ A `service_principal` block supports the following:
 A `ssh_key` block exports the following:
 
 * `key_data` - The Public SSH Key used to access the cluster.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Managed Kubernetes Cluster (AKS).

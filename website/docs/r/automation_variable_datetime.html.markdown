@@ -1,14 +1,14 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_datetime"
-sidebar_current: "docs-azurerm-resource-automation-variable-datetime"
 description: |-
-  Manages a date/time variable in Azure Automation.
+  Manages a DateTime variable in Azure Automation.
 ---
 
 # azurerm_automation_variable_datetime
 
-Manages a date/time variable in Azure Automation
+Manages a DateTime variable in Azure Automation
 
 
 ## Example Usage
@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "tfex-example-account"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -31,8 +31,8 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_variable_datetime" "example" {
   name                    = "tfex-example-var"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
   value                   = "2019-04-24T21:40:54.074Z"
 }
 ```
@@ -59,10 +59,18 @@ The following attributes are exported:
 
 * `id` - The ID of the Automation Variable.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation DateTime Variable.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation DateTime Variable.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation DateTime Variable.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation DateTime Variable.
 
 ## Import
 
-Automation Datetime Variable can be imported using the `resource id`, e.g.
+Automation DateTime Variable can be imported using the `resource id`, e.g.
 
 ```shell
 $ terraform import azurerm_automation_variable_datetime.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfex-example-rg/providers/Microsoft.Automation/automationAccounts/tfex-example-account/variables/tfex-example-var

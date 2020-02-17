@@ -1,7 +1,7 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_module"
-sidebar_current: "docs-azurerm-resource-automation-module"
 description: |-
   Manages a Automation Module.
 ---
@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -30,8 +30,8 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_module" "example" {
   name                    = "xActiveDirectory"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
 
   module_link {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
@@ -60,3 +60,20 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Automation Module ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation Module.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Module.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Module.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation Module.
+
+## Import
+
+Automation Modules can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_automation_module.module1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/modules/module1
+```

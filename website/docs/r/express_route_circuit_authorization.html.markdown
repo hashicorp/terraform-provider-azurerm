@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit_authorization"
-sidebar_current: "docs-azurerm-resource-network-express-route-circuit-authorization"
 description: |-
   Manages an ExpressRoute Circuit Authorization.
 ---
@@ -13,15 +13,15 @@ Manages an ExpressRoute Circuit Authorization.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "exprtTest"
   location = "West US"
 }
 
-resource "azurerm_express_route_circuit" "test" {
+resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -38,10 +38,10 @@ resource "azurerm_express_route_circuit" "test" {
   }
 }
 
-resource "azurerm_express_route_circuit_authorization" "test" {
+resource "azurerm_express_route_circuit_authorization" "example" {
   name                       = "exampleERCAuth"
-  express_route_circuit_name = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name = azurerm_express_route_circuit.example.name
+  resource_group_name        = azurerm_resource_group.example.name
 }
 ```
 
@@ -67,6 +67,17 @@ The following attributes are exported:
 * `authorization_key` - The Authorization Key.
 
 * `authorization_use_status` - The authorization use status.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit Authorization.
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit Authorization.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit Authorization.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit Authorization.
 
 ## Import
 

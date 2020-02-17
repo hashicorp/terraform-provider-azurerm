@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_peering"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-peering"
 description: |-
   Manages a virtual network peering which allows resources to access other
   resources in the linked virtual network.
@@ -15,37 +15,37 @@ resources in the linked virtual network.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "peeredvnets-rg"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test1" {
+resource "azurerm_virtual_network" "example-1" {
   name                = "peternetwork1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.1.0/24"]
   location            = "West US"
 }
 
-resource "azurerm_virtual_network" "test2" {
+resource "azurerm_virtual_network" "example-2" {
   name                = "peternetwork2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.2.0/24"]
   location            = "West US"
 }
 
-resource "azurerm_virtual_network_peering" "test1" {
+resource "azurerm_virtual_network_peering" "example-1" {
   name                      = "peer1to2"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test1.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
+  resource_group_name       = azurerm_resource_group.example.name
+  virtual_network_name      = azurerm_virtual_network.example-1.name
+  remote_virtual_network_id = azurerm_virtual_network.example-2.id
 }
 
-resource "azurerm_virtual_network_peering" "test2" {
+resource "azurerm_virtual_network_peering" "example-2" {
   name                      = "peer2to1"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test2.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.test1.id}"
+  resource_group_name       = azurerm_resource_group.example.name
+  virtual_network_name      = azurerm_virtual_network.example-2.name
+  remote_virtual_network_id = azurerm_virtual_network.example-1.id
 }
 ```
 
@@ -67,34 +67,41 @@ variable "vnet_address_space" {
 }
 
 resource "azurerm_resource_group" "vnet" {
-  count    = "${length(var.location)}"
+  count    = length(var.location)
   name     = "rg-global-vnet-peering-${count.index}"
-  location = "${element(var.location, count.index)}"
+  location = element(var.location, count.index)
 }
 
 resource "azurerm_virtual_network" "vnet" {
-  count               = "${length(var.location)}"
+  count               = length(var.location)
   name                = "vnet-${count.index}"
-  resource_group_name = "${element(azurerm_resource_group.vnet.*.name, count.index)}"
-  address_space       = ["${element(var.vnet_address_space, count.index)}"]
-  location            = "${element(azurerm_resource_group.vnet.*.location, count.index)}"
+  resource_group_name = element(azurerm_resource_group.vnet.*.name, count.index)
+  address_space       = [element(var.vnet_address_space, count.index)]
+  location            = element(azurerm_resource_group.vnet.*.location, count.index)
 }
 
 resource "azurerm_subnet" "nva" {
-  count                = "${length(var.location)}"
+  count                = length(var.location)
   name                 = "nva"
-  resource_group_name  = "${element(azurerm_resource_group.vnet.*.name, count.index)}"
-  virtual_network_name = "${element(azurerm_virtual_network.vnet.*.name, count.index)}"
-  address_prefix       = "${cidrsubnet("${element(azurerm_virtual_network.vnet.*.address_space[count.index], count.index)}", 13, 0)}" # /29
+  resource_group_name  = element(azurerm_resource_group.vnet.*.name, count.index)
+  virtual_network_name = element(azurerm_virtual_network.vnet.*.name, count.index)
+  address_prefix = cidrsubnet(
+    element(
+      azurerm_virtual_network.vnet[count.index].address_space,
+      count.index,
+    ),
+    13,
+    0,
+  ) # /29
 }
 
-# enable global peering between the two virtual network 
+# enable global peering between the two virtual network
 resource "azurerm_virtual_network_peering" "peering" {
-  count                        = "${length(var.location)}"
+  count                        = length(var.location)
   name                         = "peering-to-${element(azurerm_virtual_network.vnet.*.name, 1 - count.index)}"
-  resource_group_name          = "${element(azurerm_resource_group.vnet.*.name, count.index)}"
-  virtual_network_name         = "${element(azurerm_virtual_network.vnet.*.name, count.index)}"
-  remote_virtual_network_id    = "${element(azurerm_virtual_network.vnet.*.id, 1 - count.index)}"
+  resource_group_name          = element(azurerm_resource_group.vnet.*.name, count.index)
+  virtual_network_name         = element(azurerm_virtual_network.vnet.*.name, count.index)
+  remote_virtual_network_id    = element(azurerm_virtual_network.vnet.*.id, 1 - count.index)
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
 
@@ -143,7 +150,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Virtual Network Peering resource ID.
+* `id` - The ID of the Virtual Network Peering.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Network Peering.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Peering.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Peering.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Network Peering.
 
 ## Note
 
@@ -154,5 +170,5 @@ Virtual Network peerings cannot be created, updated or deleted concurrently.
 Virtual Network Peerings can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_network_peering.testPeering /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/virtualNetworkPeerings/myvnet1peering
+terraform import azurerm_virtual_network_peering.examplePeering /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/virtualNetworkPeerings/myvnet1peering
 ```

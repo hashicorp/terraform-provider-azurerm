@@ -1,7 +1,7 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image"
-sidebar_current: "docs-azurerm-resource-compute-shared-image-x"
 description: |-
   Manages a Shared Image within a Shared Image Gallery.
 
@@ -11,20 +11,18 @@ description: |-
 
 Manages a Shared Image within a Shared Image Gallery.
 
--> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
-
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_shared_image_gallery" "test" {
+resource "azurerm_shared_image_gallery" "example" {
   name                = "example_image_gallery"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   description         = "Shared images and things."
 
   tags = {
@@ -33,11 +31,11 @@ resource "azurerm_shared_image_gallery" "test" {
   }
 }
 
-resource "azurerm_shared_image" "test" {
+resource "azurerm_shared_image" "example" {
   name                = "my-image"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  gallery_name        = azurerm_shared_image_gallery.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
 
   identifier {
@@ -91,6 +89,15 @@ A `identifier` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Shared Image.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Shared Image.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image.
 
 ## Import
 

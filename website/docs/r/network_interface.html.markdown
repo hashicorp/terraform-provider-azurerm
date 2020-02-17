@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
-sidebar_current: "docs-azurerm-resource-network-interface-x"
 description: |-
   Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
 
@@ -14,33 +14,33 @@ Manages a Network Interface located in a Virtual Network, usually attached to a 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "acceptanceTestVirtualNetwork1"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "test" {
+resource "azurerm_network_interface" "example" {
   name                = "acceptanceTestNetworkInterface1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
   }
 
@@ -112,17 +112,26 @@ The `ip_configuration` block supports:
 
 The following attributes are exported:
 
-* `id` - The Virtual Network Interface ID.
+* `id` - The ID of the Network Interface.
 * `mac_address` - The media access control (MAC) address of the network interface.
 * `private_ip_address` - The first private IP address of the network interface.
 * `private_ip_addresses` - The private IP addresses of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
 * `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Interface.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Interface.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Interface.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Interface.
+
 ## Import
 
 Network Interfaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_interface.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1
+terraform import azurerm_network_interface.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1
 ```

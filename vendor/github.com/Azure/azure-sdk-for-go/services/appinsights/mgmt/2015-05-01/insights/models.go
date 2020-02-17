@@ -875,6 +875,14 @@ type ApplicationInsightsComponentProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// SamplingPercentage - Percentage of the data produced by the application being monitored that is being sampled for Application Insights telemetry.
 	SamplingPercentage *float64 `json:"SamplingPercentage,omitempty"`
+	// ConnectionString - READ-ONLY; Application Insights component connection string.
+	ConnectionString *string `json:"ConnectionString,omitempty"`
+	// RetentionInDays - Retention period in days.
+	RetentionInDays *int32 `json:"RetentionInDays,omitempty"`
+	// DisableIPMasking - Disable IP masking.
+	DisableIPMasking *bool `json:"DisableIpMasking,omitempty"`
+	// ImmediatePurgeDataOn30Days - Purge data immediately after 30 days.
+	ImmediatePurgeDataOn30Days *bool `json:"ImmediatePurgeDataOn30Days,omitempty"`
 }
 
 // ApplicationInsightsComponentQuotaStatus an Application Insights component daily data volume cap status
@@ -917,7 +925,7 @@ type ComponentPurgeBody struct {
 type ComponentPurgeBodyFilters struct {
 	// Column - The column of the table over which the given query should run
 	Column *string `json:"column,omitempty"`
-	// Operator - A query operator to evaluate over the provided column and value(s).
+	// Operator - A query operator to evaluate over the provided column and value(s). Supported operators are ==, =~, in, in~, >, >=, <, <=, between, and have the same behavior as they would in a KQL query.
 	Operator *string `json:"operator,omitempty"`
 	// Value - the value for the operator to function over. This can be a number (e.g., > 100), a string (timestamp >= '2017-09-01') or array of values.
 	Value interface{} `json:"value,omitempty"`
@@ -1195,12 +1203,6 @@ func (page OperationListResultPage) Values() []Operation {
 // Creates a new instance of the OperationListResultPage type.
 func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
 	return OperationListResultPage{fn: getNextPage}
-}
-
-// SetObject ...
-type SetObject struct {
-	autorest.Response `json:"-"`
-	Value             interface{} `json:"value,omitempty"`
 }
 
 // TagsResource a container holding only the Tags for a resource, allowing the user to update the tags on a
@@ -1767,5 +1769,23 @@ type WorkItemCreateConfiguration struct {
 	// ValidateOnly - Boolean indicating validate only
 	ValidateOnly *bool `json:"ValidateOnly,omitempty"`
 	// WorkItemProperties - Custom work item properties
-	WorkItemProperties *string `json:"WorkItemProperties,omitempty"`
+	WorkItemProperties map[string]*string `json:"WorkItemProperties"`
+}
+
+// MarshalJSON is the custom marshaler for WorkItemCreateConfiguration.
+func (wicc WorkItemCreateConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wicc.ConnectorID != nil {
+		objectMap["ConnectorId"] = wicc.ConnectorID
+	}
+	if wicc.ConnectorDataConfiguration != nil {
+		objectMap["ConnectorDataConfiguration"] = wicc.ConnectorDataConfiguration
+	}
+	if wicc.ValidateOnly != nil {
+		objectMap["ValidateOnly"] = wicc.ValidateOnly
+	}
+	if wicc.WorkItemProperties != nil {
+		objectMap["WorkItemProperties"] = wicc.WorkItemProperties
+	}
+	return json.Marshal(objectMap)
 }

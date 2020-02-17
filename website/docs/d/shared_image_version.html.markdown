@@ -1,7 +1,7 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_version"
-sidebar_current: "docs-azurerm-datasource-shared-image-version"
 description: |-
   Gets information about an existing Version of a Shared Image within a Shared Image Gallery.
 
@@ -11,12 +11,10 @@ description: |-
 
 Use this data source to access information about an existing Version of a Shared Image within a Shared Image Gallery.
 
--> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
-
 ## Example Usage
 
 ```hcl
-data "azurerm_shared_image_version" "test" {
+data "azurerm_shared_image_version" "example" {
   name                = "1.0.0"
   image_name          = "my-image"
   gallery_name        = "my-image-gallery"
@@ -28,13 +26,13 @@ data "azurerm_shared_image_version" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Image Version.
+* `name` - The name of the Image Version.
 
-* `image_name` - (Required) The name of the Shared Image in which this Version exists.
+* `image_name` - The name of the Shared Image in which this Version exists.
 
-* `gallery_name` - (Required) The name of the Shared Image in which the Shared Image exists.
+* `gallery_name` - The name of the Shared Image in which the Shared Image exists.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Shared Image Gallery exists.
+* `resource_group_name` - The name of the Resource Group in which the Shared Image Gallery exists.
 
 ## Attributes Reference
 
@@ -59,3 +57,11 @@ The `target_region` block exports the following:
 * `name` - The Azure Region in which this Image Version exists.
 
 * `regional_replica_count` - The number of replicas of the Image Version to be created per region.
+
+* `storage_account_type` - The storage account type for the image version.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Version of a Shared Image within a Shared Image Gallery.

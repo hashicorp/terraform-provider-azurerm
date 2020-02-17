@@ -1,7 +1,7 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
-sidebar_current: "docs-azurerm-datasource-storage-account-x"
 description: |-
   Gets information about an existing Storage Account.
 
@@ -14,20 +14,20 @@ Use this data source to access information about an existing Storage Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_storage_account" "test" {
+data "azurerm_storage_account" "example" {
   name                = "packerimages"
   resource_group_name = "packer-storage"
 }
 
 output "storage_account_tier" {
-  value = "${data.azurerm_storage_account.test.account_tier}"
+  value = data.azurerm_storage_account.example.account_tier
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Storage Account
-* `resource_group_name` - (Required) Specifies the name of the resource group the Storage Account is located in.
+* `name` - Specifies the name of the Storage Account
+* `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.
 
 ## Attributes Reference
 
@@ -124,8 +124,15 @@ output "storage_account_tier" {
 
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location
 
+~> **Note:** If there's a Write Lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 ---
 
 * `custom_domain` supports the following:
 
 * `name` - The Custom Domain Name used for the Storage Account.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.

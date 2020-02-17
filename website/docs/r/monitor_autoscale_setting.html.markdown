@@ -1,7 +1,7 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_autoscale_setting"
-sidebar_current: "docs-azurerm-resource-monitor-autoscale-setting"
 description: |-
     Manages an AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.
 ---
@@ -13,20 +13,20 @@ Manages a AutoScale Setting which can be applied to Virtual Machine Scale Sets, 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
   location = "West US"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_monitor_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
 
   profile {
     name = "defaultProfile"
@@ -40,7 +40,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -60,7 +60,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -91,20 +91,20 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 ## Example Usage (repeating on weekends)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
   location = "West US"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_monitor_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
 
   profile {
     name = "Weekends"
@@ -118,7 +118,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -138,7 +138,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -177,21 +177,21 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 ## Example Usage (for fixed dates)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
   location = "West US"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_monitor_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
   enabled             = true
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
 
   profile {
     name = "forJuly"
@@ -205,7 +205,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -225,7 +225,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -318,7 +318,7 @@ A `rule` block supports the following:
 A `metric_trigger` block supports the following:
 
 * `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU` for `Virtual Machine Scale Sets` and `CpuPercentage` for `App Service Plan`.
-	
+
 -> **NOTE:** The allowed value of `metric_name` highly depends on the targeting resource type, please visit [Supported metrics with Azure Monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported) for more details.
 
 * `metric_resource_id` - (Required) The ID of the Resource which the Rule monitors.
@@ -401,10 +401,19 @@ The following attributes are exported:
 
 * `id` - The ID of the AutoScale Setting.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the AutoScale Setting.
+* `update` - (Defaults to 30 minutes) Used when updating the AutoScale Setting.
+* `read` - (Defaults to 5 minutes) Used when retrieving the AutoScale Setting.
+* `delete` - (Defaults to 30 minutes) Used when deleting the AutoScale Setting.
+
 ## Import
 
 AutoScale Setting can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_monitor_autoscale_setting.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
+terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
 ```

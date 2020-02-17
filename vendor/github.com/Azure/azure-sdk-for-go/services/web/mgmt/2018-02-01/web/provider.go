@@ -95,8 +95,8 @@ func (client ProviderClient) GetAvailableStacksPreparer(ctx context.Context, osT
 // GetAvailableStacksSender sends the GetAvailableStacks request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProviderClient) GetAvailableStacksSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAvailableStacksResponder handles the response to the GetAvailableStacks request. The method always
@@ -208,8 +208,8 @@ func (client ProviderClient) GetAvailableStacksOnPremPreparer(ctx context.Contex
 // GetAvailableStacksOnPremSender sends the GetAvailableStacksOnPrem request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProviderClient) GetAvailableStacksOnPremSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAvailableStacksOnPremResponder handles the response to the GetAvailableStacksOnPrem request. The method always
@@ -315,8 +315,8 @@ func (client ProviderClient) ListOperationsPreparer(ctx context.Context) (*http.
 // ListOperationsSender sends the ListOperations request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProviderClient) ListOperationsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListOperationsResponder handles the response to the ListOperations request. The method always

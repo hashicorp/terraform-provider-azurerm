@@ -1,7 +1,7 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_database"
-sidebar_current: "docs-azurerm-resource-database-mariadb-database"
 description: |-
   Manages a MariaDB Database within a MariaDB Server.
 ---
@@ -20,15 +20,10 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_mariadb_server" "example" {
   name                = "mariadb-svr"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen5"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -44,8 +39,8 @@ resource "azurerm_mariadb_server" "example" {
 
 resource "azurerm_mariadb_database" "example" {
   name                = "mariadb_database"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_mariadb_server.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mariadb_server.example.name
   charset             = "utf8"
   collation           = "utf8_general_ci"
 }
@@ -71,6 +66,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the MariaDB Database.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MariaDB Database.
+* `update` - (Defaults to 60 minutes) Used when updating the MariaDB Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Database.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MariaDB Database.
 
 ## Import
 
