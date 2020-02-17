@@ -251,7 +251,6 @@ resource "azurerm_iothub" "import" {
 
   sku {
     name     = "B1"
-    tier     = "Basic"
     capacity = "1"
   }
 

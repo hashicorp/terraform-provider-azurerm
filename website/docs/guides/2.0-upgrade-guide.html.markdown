@@ -327,9 +327,13 @@ The deprecated `internal_public_ip_address_id` field in the `ip_configuration` b
 
 The deprecated `sku.tier` property will be remove.
 
+The `sku.name` property is now case sensitive. 
+
 ### Resource: `azurerm_iothub_dps`
 
 The deprecated `sku.tier` property will be remove.
+
+The `sku.name` property is now case sensitive. 
 
 ### Resource: `azurerm_iot_dps`
 

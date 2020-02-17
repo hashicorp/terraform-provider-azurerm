@@ -94,20 +94,7 @@ func resourceArmIotHub() *schema.Resource {
 								string(devices.S1),
 								string(devices.S2),
 								string(devices.S3),
-							}, true), // todo 2.0 make this case sensitive (all constants?)
-						},
-
-						"tier": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Computed:         true,
-							Deprecated:       "This property is no longer required and will be removed in version 2.0 of the provider",
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Basic),
-								string(devices.Free),
-								string(devices.Standard),
-							}, true),
+							}, false),
 						},
 
 						"capacity": {
@@ -880,7 +867,6 @@ func flattenIoTHubSku(input *devices.IotHubSkuInfo) []interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = string(input.Name)
-	output["tier"] = string(input.Tier)
 	if capacity := input.Capacity; capacity != nil {
 		output["capacity"] = int(*capacity)
 	}
