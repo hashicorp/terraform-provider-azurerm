@@ -51,9 +51,8 @@ func resourceArmMySqlServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:          schema.TypeString,
-				Required:      true,
-				ConflictsWith: []string{"sku"},
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"B_Gen4_1",
 					"B_Gen4_2",
@@ -162,10 +161,10 @@ func resourceArmMySqlServer() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			tier, _ := diff.GetOk("sku.0.tier")
+			tier, _ := diff.GetOk("sku_name")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
 
-			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
+			if strings.HasPrefix(tier.(string), "B_") && storageMB.(int) > 1048576 {
 				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
 			}
 
