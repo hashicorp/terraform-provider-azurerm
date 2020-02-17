@@ -28,9 +28,6 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = "${azurerm_resource_group.example.name}"
   address_prefix       = "10.1.0.0/22"
   virtual_network_name = "${azurerm_virtual_network.example.name}"
-
-  # this field is deprecated and will be removed in 2.0 - but is required until then
-  route_table_id = "${azurerm_route_table.example.id}"
 }
 
 resource "azurerm_subnet_route_table_association" "example" {
