@@ -118,7 +118,7 @@ func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, m
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		if storageAccount.AccountProperties == nil {
 			return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountName, resourceGroup)
 		}
