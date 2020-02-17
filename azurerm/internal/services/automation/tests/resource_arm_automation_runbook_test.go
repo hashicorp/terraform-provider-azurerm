@@ -203,7 +203,7 @@ resource "azurerm_automation_runbook" "import" {
   name                    = "${azurerm_automation_runbook.test.name}"
   location                = "${azurerm_automation_runbook.test.location}"
   resource_group_name     = "${azurerm_automation_runbook.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_runbook.test.account_name}"
+  automation_account_name = "${azurerm_automation_runbook.test.automation_account_name}"
 
   log_verbose  = "true"
   log_progress = "true"
