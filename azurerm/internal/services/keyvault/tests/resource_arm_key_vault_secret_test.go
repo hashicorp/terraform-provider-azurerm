@@ -421,9 +421,9 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name            = "secret-%s"
-  value           = "szechuan"
-  key_vault_id    = "${azurerm_key_vault.test.id}"
+  name         = "secret-%s"
+  value        = "szechuan"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

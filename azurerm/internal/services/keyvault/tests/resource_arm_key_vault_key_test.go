@@ -640,10 +640,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name            = "key-%s"
-  key_vault_id    = "${azurerm_key_vault.test.id}"
-  key_type        = "RSA"
-  key_size        = 2048
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "RSA"
+  key_size     = 2048
 
   key_opts = [
     "encrypt",
@@ -698,10 +698,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name            = "key-%s"
-  key_vault_id    = "${azurerm_key_vault.test.id}"
-  key_type        = "EC"
-  curve           = "P-521"
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "EC"
+  curve        = "P-521"
 
   key_opts = [
     "sign",
@@ -753,10 +753,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name            = "key-%s"
-  key_vault_id    = "${azurerm_key_vault.test.id}"
-  key_type        = "EC-HSM"
-  curve           = "P-521"
+  name         = "key-%s"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_type     = "EC-HSM"
+  curve        = "P-521"
 
   key_opts = [
     "sign",
