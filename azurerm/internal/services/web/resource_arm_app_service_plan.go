@@ -94,63 +94,21 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
-			"properties": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "These properties have been moved to the top level",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"app_service_environment_id": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ForceNew:      true,
-							Computed:      true,
-							Deprecated:    "This property has been moved to the top level",
-							ConflictsWith: []string{"app_service_environment_id"},
-						},
-
-						"reserved": {
-							Type:          schema.TypeBool,
-							Optional:      true,
-							Computed:      true,
-							Deprecated:    "This property has been moved to the top level",
-							ConflictsWith: []string{"reserved"},
-						},
-
-						"per_site_scaling": {
-							Type:          schema.TypeBool,
-							Optional:      true,
-							Computed:      true,
-							Deprecated:    "This property has been moved to the top level",
-							ConflictsWith: []string{"per_site_scaling"},
-						},
-					},
-				},
-			},
-
 			/// AppServicePlanProperties
 			"app_service_environment_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"properties.0.app_service_environment_id"},
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"per_site_scaling": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"properties.0.per_site_scaling"},
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"reserved": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"properties.0.reserved"},
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"maximum_elastic_worker_count": {
