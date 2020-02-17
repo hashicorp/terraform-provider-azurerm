@@ -44,7 +44,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 
 			"automation_account_name": {
 				Type:         schema.TypeString,
-				Required:     true, //todo change to required once account_name has been removed
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
@@ -77,7 +77,6 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	// todo remove this once `account_name` is removed
 	accountName := d.Get("automation_account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
