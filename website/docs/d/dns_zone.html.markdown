@@ -41,9 +41,6 @@ in your subscription that matches `name` will be returned.
 * `registration_virtual_network_ids` - A list of Virtual Network ID's that register hostnames in this DNS zone.
 * `resolution_virtual_network_ids` - A list of Virtual Network ID's that resolve records in this DNS zone.
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
-* `zone_type` - (**Deprecated**) The type of this DNS zone, such as `Public` or `Private`.
-
-~> **Note:** This field is deprecated since Private DNS is now a separate resource and will be removed in 2.0 of the Azure Provider.
 
 ## Timeouts
 

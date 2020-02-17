@@ -51,12 +51,6 @@ func dataSourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"zone_type": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Private DNS Zones are now supported through a separate resource in Azure & Terraform",
-			},
-
 			"registration_virtual_network_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -114,7 +108,6 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.ZoneProperties; props != nil {
 		d.Set("number_of_record_sets", props.NumberOfRecordSets)
 		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
-		d.Set("zone_type", props.ZoneType)
 
 		registrationVNets := make([]string, 0)
 		if rvns := props.RegistrationVirtualNetworks; rvns != nil {

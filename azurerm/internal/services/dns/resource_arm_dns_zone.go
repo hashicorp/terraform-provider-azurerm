@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -60,17 +59,6 @@ func resourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"zone_type": {
-				Type:       schema.TypeString,
-				Default:    string(dns.Public),
-				Optional:   true,
-				Deprecated: "Use the `azurerm_private_dns_zone` resource instead.",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(dns.Private),
-					string(dns.Public),
-				}, false),
-			},
-
 			"registration_virtual_network_ids": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -110,7 +98,6 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	location := "global"
-	zoneType := d.Get("zone_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	registrationVirtualNetworkIds := expandDnsZoneRegistrationVirtualNetworkIds(d)
@@ -120,7 +107,6 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		Location: &location,
 		Tags:     tags.Expand(t),
 		ZoneProperties: &dns.ZoneProperties{
-			ZoneType:                    dns.ZoneType(zoneType),
 			RegistrationVirtualNetworks: registrationVirtualNetworkIds,
 			ResolutionVirtualNetworks:   resolutionVirtualNetworkIds,
 		},
@@ -173,7 +159,6 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
 	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
-	d.Set("zone_type", resp.ZoneType)
 
 	registrationVirtualNetworks := flattenDnsZoneRegistrationVirtualNetworkIDs(resp.RegistrationVirtualNetworks)
 	if err := d.Set("registration_virtual_network_ids", registrationVirtualNetworks); err != nil {

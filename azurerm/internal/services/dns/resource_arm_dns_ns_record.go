@@ -48,28 +48,9 @@ func resourceArmDnsNsRecord() *schema.Resource {
 			},
 
 			"records": {
-				Type: schema.TypeList,
-				//TODO: add `Required: true` once we remove the `record` attribute
-				Optional:      true,
-				Computed:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				ConflictsWith: []string{"record"},
-			},
-
-			"record": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "This field has been replaced by `records`",
-				ConflictsWith: []string{"records"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"nsdname": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
+				Type:     schema.TypeList,
+				Required: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"ttl": {
@@ -174,11 +155,6 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error settings `records`: %+v", err)
 	}
 
-	//TODO: remove this once we remove the `record` attribute
-	if err := d.Set("record", flattenAzureRmDnsNsRecordsSet(resp.NsRecords)); err != nil {
-		return fmt.Errorf("Error settings `record`: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
@@ -234,8 +210,7 @@ func flattenAzureRmDnsNsRecords(records *[]dns.NsRecord) []string {
 func expandAzureRmDnsNsRecords(d *schema.ResourceData) *[]dns.NsRecord {
 	var records []dns.NsRecord
 
-	//TODO: remove this once we remove the `record` attribute
-	if d.HasChange("records") || !d.HasChange("record") {
+	if d.HasChange("records") {
 		recordStrings := d.Get("records").([]interface{})
 		records = make([]dns.NsRecord, len(recordStrings))
 		for i, v := range recordStrings {
@@ -246,20 +221,6 @@ func expandAzureRmDnsNsRecords(d *schema.ResourceData) *[]dns.NsRecord {
 			}
 
 			records[i] = nsRecord
-		}
-	} else {
-		recordList := d.Get("record").(*schema.Set).List()
-		if len(recordList) != 0 {
-			records = make([]dns.NsRecord, len(recordList))
-			for i, v := range recordList {
-				record := v.(map[string]interface{})
-				nsdname := record["nsdname"].(string)
-				nsRecord := dns.NsRecord{
-					Nsdname: &nsdname,
-				}
-
-				records[i] = nsRecord
-			}
 		}
 	}
 	return &records

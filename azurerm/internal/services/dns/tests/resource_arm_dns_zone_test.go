@@ -205,7 +205,6 @@ resource "azurerm_virtual_network" "test" {
 resource "azurerm_dns_zone" "test" {
   name                             = "acctestzone%d.com"
   resource_group_name              = "${azurerm_resource_group.test.name}"
-  zone_type                        = "Private"
   registration_virtual_network_ids = ["${azurerm_virtual_network.test.id}"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
