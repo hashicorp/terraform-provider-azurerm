@@ -238,7 +238,7 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                = "Get-AzureVMTutorial"
+  name                    = "Get-AzureVMTutorial"
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
@@ -279,7 +279,7 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                = "Get-AzureVMTutorial"
+  name                    = "Get-AzureVMTutorial"
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
