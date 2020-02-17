@@ -35,6 +35,7 @@ BREAKING CHANGES:
 * `azurerm_kubernetes_cluster` - updating the default value for `load_balancer_sku` to `Standard` from `Basic` [GH-5747]
 * `azurerm_log_analytics_workspace_linked_service` - This resource has been removed since it was deprecated [GH-5754]
 * `azurerm_maps_account` - the `sku_name` field is now case-sensitive [GH-5776]
+* `azurerm_mariadb_server` - removing the `sku` block since it's been deprecated in favour of the `sku_name` field [GH-5777]
 * `azurerm_mssql_elasticpool` - removing the deprecated `elastic_pool_properties` block [GH-5744]
 * `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
 * `azurerm_postgresql_server` - removing the `sku` block which has been deprecated in favour of the `sku_name` field [GH-5721]
