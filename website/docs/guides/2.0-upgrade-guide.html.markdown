@@ -367,6 +367,10 @@ This resource has been renamed to `azurerm_log_analytics_linked_service` which i
 
 The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
 
+### Resource: `azurerm_maps_account`
+
+The `sku_name` field is now case sensitive.
+
 ### Resource: `azurerm_mariadb_server`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
