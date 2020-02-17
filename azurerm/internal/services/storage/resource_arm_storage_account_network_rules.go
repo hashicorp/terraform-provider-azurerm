@@ -251,8 +251,8 @@ func checkForNonDefaultStorageAccountNetworkRule(rule *storage.NetworkRuleSet) b
 		return false
 	}
 
-	if rule.IPRules != nil || len(*rule.IPRules) != 0 ||
-		rule.VirtualNetworkRules != nil || len(*rule.VirtualNetworkRules) == 0 ||
+	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
+		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
 		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
 		return true
 	}
