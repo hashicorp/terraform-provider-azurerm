@@ -41,6 +41,16 @@ BREAKING CHANGES:
 * `azurerm_relay_namespace` - removing the `sku` block in favour of the `sku_name` field [GH-5719]
 * `azurerm_scheduler_job` - This resource has been removed since it was deprecated [GH-5712]
 * `azurerm_scheduler_job_collection` - This resource has been removed since it was deprecated [GH-5712]
+* `azurerm_storage_account` - removing the deprecated `account_type` field [GH-5710]
+* `azurerm_storage_account` - removing the deprecated `enable_advanced_threat_protection` field [GH-5710]
+* `azurerm_storage_blob` - making the `type` field case-sensitive [GH-5710]
+* `azurerm_storage_blob` - removing the deprecated `attempts` field [GH-5710]
+* `azurerm_storage_blob` - removing the deprecated `resource_group_name` field [GH-5710]
+* `azurerm_storage_container` - removing the deprecated `resource_group_name` field [GH-5710]
+* `azurerm_storage_container` - removing the deprecated `properties` block [GH-5710]
+* `azurerm_storage_queue` - removing the deprecated `resource_group_name` field [GH-5710]
+* `azurerm_storage_share` - removing the deprecated `resource_group_name` field [GH-5710]
+* `azurerm_storage_table` - removing the deprecated `resource_group_name` field [GH-5710]
 
 IMPROVEMENTS:
 
