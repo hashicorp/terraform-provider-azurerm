@@ -51,12 +51,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"network_security_group_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
-			},
-
 			"ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -218,23 +212,6 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 	locks.ByName(name, networkInterfaceResourceName)
 	defer locks.UnlockByName(name, networkInterfaceResourceName)
 
-	if v, ok := d.GetOk("network_security_group_id"); ok {
-		nsgId := v.(string)
-		properties.NetworkSecurityGroup = &network.SecurityGroup{
-			ID: &nsgId,
-		}
-
-		parsedNsgID, err := azure.ParseAzureResourceID(nsgId)
-		if err != nil {
-			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", nsgId, err)
-		}
-
-		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
-
-		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	}
-
 	dns, hasDns := d.GetOk("dns_servers")
 	nameLabel, hasNameLabel := d.GetOk("internal_dns_name_label")
 	if hasDns || hasNameLabel {
@@ -259,7 +236,7 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("Error expanding `ip_configuration`: %+v", err)
 	}
-	lockingDetails, err := determineResourcesToLockFromIPConfiguration(&ipConfigs)
+	lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
 	if err != nil {
 		return fmt.Errorf("Error determing locking details: %+v", err)
 	}
@@ -267,8 +244,8 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 	lockingDetails.lock()
 	defer lockingDetails.unlock()
 
-	if len(ipConfigs) > 0 {
-		properties.IPConfigurations = &ipConfigs
+	if len(*ipConfigs) > 0 {
+		properties.IPConfigurations = ipConfigs
 	}
 
 	iface := network.Interface{
@@ -320,6 +297,13 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if existing.InterfacePropertiesFormat == nil {
+		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+	}
+
+	// then pull out things we need to lock on
+	info := parseFieldsFromNetworkInterface(*existing.InterfacePropertiesFormat)
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	update := network.Interface{
 		Name:                      utils.String(name),
@@ -360,7 +344,7 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		if err != nil {
 			return fmt.Errorf("Error expanding `ip_configuration`: %+v", err)
 		}
-		lockingDetails, err := determineResourcesToLockFromIPConfiguration(&ipConfigs)
+		lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
 		if err != nil {
 			return fmt.Errorf("Error determing locking details: %+v", err)
 		}
@@ -368,26 +352,21 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		lockingDetails.lock()
 		defer lockingDetails.unlock()
 
-		update.InterfacePropertiesFormat.IPConfigurations = &ipConfigs
+		// then map the fields managed in other resources back
+		ipConfigs = mapFieldsToNetworkInterface(ipConfigs, info)
+
+		update.InterfacePropertiesFormat.IPConfigurations = ipConfigs
 	} else {
 		update.InterfacePropertiesFormat.IPConfigurations = existing.InterfacePropertiesFormat.IPConfigurations
-	}
-
-	if d.HasChange("network_security_group_id") {
-		update.InterfacePropertiesFormat.NetworkSecurityGroup = &network.SecurityGroup{}
-		if networkSecurityGroupId := d.Get("network_security_group_id").(string); networkSecurityGroupId != "" {
-			update.InterfacePropertiesFormat.NetworkSecurityGroup.ID = utils.String(networkSecurityGroupId)
-		} else {
-			update.InterfacePropertiesFormat.NetworkSecurityGroup = nil
-		}
-	} else {
-		update.InterfacePropertiesFormat.NetworkSecurityGroup = existing.InterfacePropertiesFormat.NetworkSecurityGroup
 	}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
+
+	// this can be managed in another resource, so just port it over
+	update.InterfacePropertiesFormat.NetworkSecurityGroup = existing.InterfacePropertiesFormat.NetworkSecurityGroup
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, update)
 	if err != nil {
@@ -459,10 +438,6 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 
-		networkSecurityGroupId := ""
-		if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.ID != nil {
-			networkSecurityGroupId = *props.NetworkSecurityGroup.ID
-		}
 		virtualMachineId := ""
 		if props.VirtualMachine != nil && props.VirtualMachine.ID != nil {
 			virtualMachineId = *props.VirtualMachine.ID
@@ -480,7 +455,6 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 		d.Set("internal_dns_name_label", internalDnsNameLabel)
 		d.Set("mac_address", props.MacAddress)
-		d.Set("network_security_group_id", networkSecurityGroupId)
 		d.Set("private_ip_address", primaryPrivateIPAddress)
 		d.Set("virtual_machine_id", virtualMachineId)
 
@@ -527,19 +501,6 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	}
 	props := *existing.InterfacePropertiesFormat
 
-	if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.ID != nil {
-		networkSecurityGroupId := *props.NetworkSecurityGroup.ID
-		parsedNsgID, err := azure.ParseAzureResourceID(networkSecurityGroupId)
-		if err != nil {
-			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", networkSecurityGroupId, err)
-		}
-
-		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
-
-		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	}
-
 	lockingDetails, err := determineResourcesToLockFromIPConfiguration(props.IPConfigurations)
 	if err != nil {
 		return fmt.Errorf("Error determing locking details: %+v", err)
@@ -560,7 +521,7 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandNetworkInterfaceIPConfigurations(input []interface{}) ([]network.InterfaceIPConfiguration, error) {
+func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]network.InterfaceIPConfiguration, error) {
 	ipConfigs := make([]network.InterfaceIPConfiguration, 0)
 
 	for _, configRaw := range input {
@@ -622,7 +583,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) ([]network.Inte
 		}
 	}
 
-	return ipConfigs, nil
+	return &ipConfigs, nil
 }
 
 func flattenNetworkInterfaceIPConfigurations(input *[]network.InterfaceIPConfiguration) []interface{} {
@@ -694,5 +655,129 @@ func flattenNetworkInterfaceDnsServers(input *[]string) []string {
 	for _, v := range *input {
 		output = append(output, v)
 	}
+	return output
+}
+
+type networkInterfaceUpdateInformation struct {
+	applicationGatewayBackendAddressPoolIDs []string
+	applicationSecurityGroupIDs             []string
+	loadBalancerBackendAddressPoolIDs       []string
+	loadBalancerInboundNatRuleIDs           []string
+	networkSecurityGroupID                  string
+}
+
+func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) networkInterfaceUpdateInformation {
+	networkSecurityGroupId := ""
+	if input.NetworkSecurityGroup != nil && input.NetworkSecurityGroup.ID != nil {
+		networkSecurityGroupId = *input.NetworkSecurityGroup.ID
+	}
+
+	var mapToSlice = func(input map[string]struct{}) []string {
+		output := make([]string, 0)
+
+		for id, _ := range input {
+			output = append(output, id)
+		}
+
+		return output
+	}
+
+	applicationSecurityGroupIds := make(map[string]struct{}, 0)
+	applicationGatewayBackendAddressPoolIds := make(map[string]struct{}, 0)
+	loadBalancerBackendAddressPoolIds := make(map[string]struct{}, 0)
+	loadBalancerInboundNatRuleIds := make(map[string]struct{}, 0)
+
+	if input.IPConfigurations != nil {
+		for _, v := range *input.IPConfigurations {
+			if v.InterfaceIPConfigurationPropertiesFormat == nil {
+				continue
+			}
+
+			props := *v.InterfaceIPConfigurationPropertiesFormat
+			if props.ApplicationSecurityGroups != nil {
+				for _, asg := range *props.ApplicationSecurityGroups {
+					if asg.ID != nil {
+						applicationSecurityGroupIds[*asg.ID] = struct{}{}
+					}
+				}
+			}
+
+			if props.ApplicationGatewayBackendAddressPools != nil {
+				for _, pool := range *props.ApplicationGatewayBackendAddressPools {
+					if pool.ID != nil {
+						applicationGatewayBackendAddressPoolIds[*pool.ID] = struct{}{}
+					}
+				}
+			}
+
+			if props.LoadBalancerBackendAddressPools != nil {
+				for _, pool := range *props.LoadBalancerBackendAddressPools {
+					if pool.ID != nil {
+						loadBalancerBackendAddressPoolIds[*pool.ID] = struct{}{}
+					}
+				}
+			}
+
+			if props.LoadBalancerInboundNatRules != nil {
+				for _, rule := range *props.LoadBalancerInboundNatRules {
+					if rule.ID != nil {
+						loadBalancerInboundNatRuleIds[*rule.ID] = struct{}{}
+					}
+				}
+			}
+		}
+	}
+
+	return networkInterfaceUpdateInformation{
+		applicationGatewayBackendAddressPoolIDs: mapToSlice(applicationGatewayBackendAddressPoolIds),
+		applicationSecurityGroupIDs:             mapToSlice(applicationSecurityGroupIds),
+		loadBalancerBackendAddressPoolIDs:       mapToSlice(loadBalancerBackendAddressPoolIds),
+		loadBalancerInboundNatRuleIDs:           mapToSlice(loadBalancerInboundNatRuleIds),
+		networkSecurityGroupID:                  networkSecurityGroupId,
+	}
+}
+
+func mapFieldsToNetworkInterface(input *[]network.InterfaceIPConfiguration, info networkInterfaceUpdateInformation) *[]network.InterfaceIPConfiguration {
+	output := input
+
+	applicationSecurityGroups := make([]network.ApplicationSecurityGroup, 0)
+	for _, id := range info.applicationSecurityGroupIDs {
+		applicationSecurityGroups = append(applicationSecurityGroups, network.ApplicationSecurityGroup{
+			ID: utils.String(id),
+		})
+	}
+
+	applicationGatewayBackendAddressPools := make([]network.ApplicationGatewayBackendAddressPool, 0)
+	for _, id := range info.applicationGatewayBackendAddressPoolIDs {
+		applicationGatewayBackendAddressPools = append(applicationGatewayBackendAddressPools, network.ApplicationGatewayBackendAddressPool{
+			ID: utils.String(id),
+		})
+	}
+
+	loadBalancerBackendAddressPools := make([]network.BackendAddressPool, 0)
+	for _, id := range info.loadBalancerBackendAddressPoolIDs {
+		loadBalancerBackendAddressPools = append(loadBalancerBackendAddressPools, network.BackendAddressPool{
+			ID: utils.String(id),
+		})
+	}
+
+	loadBalancerInboundNatRules := make([]network.InboundNatRule, 0)
+	for _, id := range info.loadBalancerInboundNatRuleIDs {
+		loadBalancerInboundNatRules = append(loadBalancerInboundNatRules, network.InboundNatRule{
+			ID: utils.String(id),
+		})
+	}
+
+	for _, config := range *output {
+		if config.InterfaceIPConfigurationPropertiesFormat == nil {
+			continue
+		}
+
+		config.ApplicationSecurityGroups = &applicationSecurityGroups
+		config.ApplicationGatewayBackendAddressPools = &applicationGatewayBackendAddressPools
+		config.LoadBalancerBackendAddressPools = &loadBalancerBackendAddressPools
+		config.LoadBalancerInboundNatRules = &loadBalancerInboundNatRules
+	}
+
 	return output
 }
