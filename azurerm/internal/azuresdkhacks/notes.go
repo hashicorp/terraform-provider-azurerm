@@ -1,11 +1,11 @@
 package azuresdkhacks
 
 // There's a functional difference that exists between the Azure SDK for Go and Azure Resource Manager API
-// where when performing a delta update unchanged fields are omited from the response when they could
+// where when performing a delta update unchanged fields are omitted from the response when they could
 // also have a legitimate value of `null` (to remove/disable a sub-block).
 //
 // Ultimately the Azure SDK for Go has opted to serialise structs with `json:"name,omitempty"` which
-// means that this value will be omited if nil to allow for delta updates - however this means there's
+// means that this value will be omitted if nil to allow for delta updates - however this means there's
 // no means of removing/resetting a value of a nested object once provided since a `nil` object will be
 // reset
 //
