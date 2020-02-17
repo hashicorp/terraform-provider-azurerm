@@ -186,7 +186,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 
 	sku, err := expandServerSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for PostgreSQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("error expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	skuName := sku.Name
