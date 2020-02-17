@@ -242,6 +242,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 		Pending:    []string{"200"},
 		Target:     []string{"404"},
 		MinTimeout: 30 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 
@@ -256,12 +257,6 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 		},
 	}
 
-	if features.SupportsCustomTimeouts() {
-		deleteWait.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		deleteWait.Timeout = 30 * time.Minute
-	}
-
 	if _, err := deleteWait.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting the deletion of EventHub Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
 	}
@@ -272,6 +267,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 		Pending:    []string{"NameInUse"},
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.CheckNameAvailability(ctx, resourceGroup, namespaceName, eventhub.CheckNameAvailabilityParameter{Name: utils.String(name)})
 			if err != nil {
@@ -280,12 +276,6 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 
 			return resp, string(resp.Reason), nil
 		},
-	}
-
-	if features.SupportsCustomTimeouts() {
-		nameFreeWait.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		nameFreeWait.Timeout = 30 * time.Minute
 	}
 
 	if _, err := nameFreeWait.WaitForState(); err != nil {
@@ -300,6 +290,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.
 		Pending:    []string{string(eventhub.Accepted)},
 		Target:     []string{string(eventhub.Succeeded)},
 		MinTimeout: 30 * time.Second,
+		Timeout:    timeout,
 		Refresh: func() (interface{}, string, error) {
 			read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 			if err != nil {
@@ -315,12 +306,6 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.
 
 			return read, "nil", fmt.Errorf("Waiting for replication error EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): provisioning state is nil", name, namespaceName, resourceGroup)
 		},
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = timeout
-	} else {
-		stateConf.Timeout = 30 * time.Minute
 	}
 
 	_, err := stateConf.WaitForState()

@@ -117,6 +117,10 @@ The following arguments are supported:
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
 
+* `static_website` - (Optional) A `static_website` block as defined below.
+
+~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2`
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -124,6 +128,8 @@ The following arguments are supported:
 ---
 
 A `blob_properties` block supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
@@ -221,13 +227,21 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 A `queue_properties` block supports the following:
 
-* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+* `cors_rule` - (Optional) A `cors_rule` block as defined above.
 
 * `logging` - (Optional) A `logging` block as defined below.
 
 * `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
+
+---
+
+A `static_website` block supports the following:
+
+* `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
+
+* `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
 
 ## Attributes Reference
 
@@ -314,8 +328,6 @@ The following attributes are exported in addition to the arguments listed above:
 -> You can access the Principal ID via `${azurerm_storage_account.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity.0.tenant_id}`
 
 ## Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

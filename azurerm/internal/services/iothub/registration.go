@@ -23,8 +23,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_iot_dps":                           resourceArmIotDPS(),
-		"azurerm_iot_dps_certificate":               resourceArmIotDPSCertificate(),
 		"azurerm_iothub_dps":                        resourceArmIotHubDPS(),
 		"azurerm_iothub_dps_certificate":            resourceArmIotHubDPSCertificate(),
 		"azurerm_iothub_dps_shared_access_policy":   resourceArmIotHubDPSSharedAccessPolicy(),

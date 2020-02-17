@@ -56,7 +56,6 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.Relay":                {},
 		"Microsoft.RecoveryServices":     {},
 		"Microsoft.Resources":            {},
-		"Microsoft.Scheduler":            {},
 		"Microsoft.Search":               {},
 		"Microsoft.Security":             {},
 		"Microsoft.ServiceBus":           {},

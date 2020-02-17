@@ -46,7 +46,7 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotDPSDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_basic(data),
@@ -68,7 +68,7 @@ func TestAccAzureRMIotHubDPS_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotDPSDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_basic(data),

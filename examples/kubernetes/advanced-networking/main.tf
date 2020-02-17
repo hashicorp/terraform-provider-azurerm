@@ -26,7 +26,7 @@ resource "azurerm_virtual_network" "example" {
 resource "azurerm_subnet" "example" {
   name                 = "internal"
   resource_group_name  = "${azurerm_resource_group.example.name}"
-  address_prefix       = "10.1.0.0/24"
+  address_prefix       = "10.1.0.0/22"
   virtual_network_name = "${azurerm_virtual_network.example.name}"
 
   # this field is deprecated and will be removed in 2.0 - but is required until then

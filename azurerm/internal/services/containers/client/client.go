@@ -9,14 +9,12 @@ import (
 
 type Client struct {
 	AgentPoolsClient         *containerservice.AgentPoolsClient
-	KubernetesClustersClient *containerservice.ManagedClustersClient
 	GroupsClient             *containerinstance.ContainerGroupsClient
+	KubernetesClustersClient *containerservice.ManagedClustersClient
 	RegistriesClient         *containerregistry.RegistriesClient
-	WebhooksClient           *containerregistry.WebhooksClient
 	ReplicationsClient       *containerregistry.ReplicationsClient
-
-	// TODO: this can be removed in 2.0
-	ServicesClient *containerservice.ContainerServicesClient
+	ServicesClient           *containerservice.ContainerServicesClient
+	WebhooksClient           *containerregistry.WebhooksClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -39,7 +37,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	agentPoolsClient := containerservice.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
-	// ACS
 	servicesClient := containerservice.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 

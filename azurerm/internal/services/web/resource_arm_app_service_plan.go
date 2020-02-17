@@ -94,63 +94,21 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
-			"properties": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "These properties have been moved to the top level",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"app_service_environment_id": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ForceNew:      true,
-							Computed:      true,
-							Deprecated:    "This property has been moved to the top level",
-							ConflictsWith: []string{"app_service_environment_id"},
-						},
-
-						"reserved": {
-							Type:          schema.TypeBool,
-							Optional:      true,
-							Computed:      true,
-							Deprecated:    "This property has been moved to the top level",
-							ConflictsWith: []string{"reserved"},
-						},
-
-						"per_site_scaling": {
-							Type:          schema.TypeBool,
-							Optional:      true,
-							Computed:      true,
-							Deprecated:    "This property has been moved to the top level",
-							ConflictsWith: []string{"per_site_scaling"},
-						},
-					},
-				},
-			},
-
 			/// AppServicePlanProperties
 			"app_service_environment_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"properties.0.app_service_environment_id"},
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"per_site_scaling": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"properties.0.per_site_scaling"},
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"reserved": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"properties.0.reserved"},
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"maximum_elastic_worker_count": {
@@ -203,7 +161,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
-	properties := expandAppServicePlanProperties(d)
+	properties := &web.AppServicePlanProperties{}
 
 	isXenon := d.Get("is_xenon").(bool)
 	properties.IsXenon = &isXenon
@@ -306,10 +264,6 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
-		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
-			return fmt.Errorf("Error setting `properties`: %+v", err)
-		}
-
 		if profile := props.HostingEnvironmentProfile; profile != nil {
 			d.Set("app_service_environment_id", profile.ID)
 		}
@@ -402,50 +356,6 @@ func flattenAppServicePlanSku(input *web.SkuDescription) []interface{} {
 	outputs = append(outputs, output)
 
 	return outputs
-}
-
-func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanProperties {
-	configs := d.Get("properties").([]interface{})
-	properties := web.AppServicePlanProperties{}
-	if len(configs) == 0 {
-		return &properties
-	}
-	config := configs[0].(map[string]interface{})
-
-	appServiceEnvironmentId := config["app_service_environment_id"].(string)
-	if appServiceEnvironmentId != "" {
-		properties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-			ID: utils.String(appServiceEnvironmentId),
-		}
-	}
-
-	perSiteScaling := config["per_site_scaling"].(bool)
-	properties.PerSiteScaling = utils.Bool(perSiteScaling)
-
-	reserved := config["reserved"].(bool)
-	properties.Reserved = utils.Bool(reserved)
-
-	return &properties
-}
-
-func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interface{} {
-	result := make([]interface{}, 0, 1)
-	properties := make(map[string]interface{})
-
-	if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
-		properties["app_service_environment_id"] = *props.HostingEnvironmentProfile.ID
-	}
-
-	if props.PerSiteScaling != nil {
-		properties["per_site_scaling"] = *props.PerSiteScaling
-	}
-
-	if props.Reserved != nil {
-		properties["reserved"] = *props.Reserved
-	}
-
-	result = append(result, properties)
-	return result
 }
 
 func validateAppServicePlanName(v interface{}, k string) (warnings []string, errors []error) {

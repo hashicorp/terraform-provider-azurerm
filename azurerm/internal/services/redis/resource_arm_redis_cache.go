@@ -372,12 +372,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		MinTimeout: 15 * time.Second,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-	} else {
-		stateConf.Timeout = 60 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
@@ -461,12 +456,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		MinTimeout: 15 * time.Second,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-	} else {
-		stateConf.Timeout = 60 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {

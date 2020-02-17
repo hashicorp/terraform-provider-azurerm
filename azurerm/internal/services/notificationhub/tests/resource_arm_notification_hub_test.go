@@ -123,10 +123,7 @@ resource "azurerm_notification_hub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   namespace_type      = "NotificationHub"
-
-  sku {
-    name = "Free"
-  }
+  sku_name            = "Free"
 }
 
 resource "azurerm_notification_hub" "test" {
@@ -144,10 +141,10 @@ func testAccAzureRMNotificationHub_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_notification_hub" "import" {
-  name                = "${azurerm_notification_hub.test.name}"
-  namespace_name      = "${azurerm_notification_hub.test.namespace_name}"
-  resource_group_name = "${azurerm_notification_hub.test.resource_group_name}"
-  location            = "${azurerm_notification_hub.test.location}"
+  name                = azurerm_notification_hub.test.name
+  namespace_name      = azurerm_notification_hub.test.namespace_name
+  resource_group_name = azurerm_notification_hub.test.resource_group_name
+  location            = azurerm_notification_hub.test.location
 }
 `, template)
 }
