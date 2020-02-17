@@ -25,8 +25,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_app_service_plan" "example" {
   name                = "example-appserviceplan"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -36,9 +36,9 @@ resource "azurerm_app_service_plan" "example" {
 
 resource "azurerm_app_service" "example" {
   name                = "example-app-service"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 
   site_config {
     dotnet_framework_version = "v4.0"
@@ -74,6 +74,8 @@ The following arguments are supported:
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
+* `backup` - (Optional) A `backup` block as defined below.
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
@@ -391,9 +393,7 @@ A `source_control` block exports the following:
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

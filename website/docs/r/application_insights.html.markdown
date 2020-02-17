@@ -21,16 +21,16 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
 
 output "instrumentation_key" {
-  value = "${azurerm_application_insights.example.instrumentation_key}"
+  value = azurerm_application_insights.example.instrumentation_key
 }
 
 output "app_id" {
-  value = "${azurerm_application_insights.example.app_id}"
+  value = azurerm_application_insights.example.app_id
 }
 ```
 
@@ -68,9 +68,7 @@ The following attributes are exported:
 
 * `instrumentation_key` - The Instrumentation Key for this Application Insights component.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

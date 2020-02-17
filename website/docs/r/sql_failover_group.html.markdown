@@ -20,38 +20,36 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_sql_server" "primary" {
   name                         = "sql-primary"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
-  location                     = "${azurerm_resource_group.example.location}"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "sqladmin"
-  administrator_login_password = "pa$$$$w0rd"
-
+  administrator_login_password = "pa$$w0rd"
 }
 
 resource "azurerm_sql_server" "secondary" {
   name                         = "sql-secondary"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
+  resource_group_name          = azurerm_resource_group.example.name
   location                     = "northeurope"
   version                      = "12.0"
   administrator_login          = "sqladmin"
-  administrator_login_password = "pa$$$$w0rd"
-
+  administrator_login_password = "pa$$w0rd"
 }
 
 resource "azurerm_sql_database" "db1" {
   name                = "db1"
-  resource_group_name = "${azurerm_sql_server.primary.resource_group_name}"
-  location            = "${azurerm_sql_server.primary.location}"
-  server_name         = "${azurerm_sql_server.primary.name}"
+  resource_group_name = azurerm_sql_server.primary.resource_group_name
+  location            = azurerm_sql_server.primary.location
+  server_name         = azurerm_sql_server.primary.name
 }
 
 resource "azurerm_sql_failover_group" "example" {
   name                = "example-failover-group"
-  resource_group_name = "${azurerm_sql_server.primary.resource_group_name}"
-  server_name         = "${azurerm_sql_server.primary.name}"
-  databases           = ["${azurerm_sql_database.db1.id}"]
+  resource_group_name = azurerm_sql_server.primary.resource_group_name
+  server_name         = azurerm_sql_server.primary.name
+  databases           = [azurerm_sql_database.db1.id]
   partner_servers {
-    id = "${azurerm_sql_server.secondary.id}"
+    id = azurerm_sql_server.secondary.id
   }
 
   read_write_endpoint_failover_policy {
@@ -108,9 +106,7 @@ The following attributes are exported:
 * `databases` - list of databases in the failover group.
 * `partner_servers` - list of partner server information for the failover group.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

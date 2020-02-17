@@ -14,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +27,6 @@ func resourceArmCognitiveAccount() *schema.Resource {
 		Read:   resourceArmCognitiveAccountRead,
 		Update: resourceArmCognitiveAccountUpdate,
 		Delete: resourceArmCognitiveAccountDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,6 +34,11 @@ func resourceArmCognitiveAccount() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.CognitiveAccountID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -70,6 +74,8 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"CustomVision.Training",
 					"Emotion",
 					"Face",
+					"FormRecognizer",
+					"ImmersiveReader",
 					"LUIS",
 					"LUIS.Authoring",
 					"QnAMaker",
@@ -207,25 +213,22 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CognitiveAccountID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	resourceGroup := id.ResourceGroup
-	name := id.Path["accounts"]
 
 	var sku *cognitiveservices.Sku
 	if b, ok := d.GetOk("sku_name"); ok {
 		var err error
 		sku, err = expandAccountSkuName(b.(string))
 		if err != nil {
-			return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
+			return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 		}
 	} else if _, ok := d.GetOk("sku"); ok {
 		sku = expandCognitiveAccountSku(d)
 	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for Cognitive Account %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for Cognitive Account %q (Resource Group %q)", id.Name, id.ResourceGroup)
 	}
 
 	properties := cognitiveservices.Account{
@@ -233,8 +236,8 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err = client.Update(ctx, resourceGroup, name, properties); err != nil {
-		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, properties); err != nil {
+		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceArmCognitiveAccountRead(d, meta)
@@ -245,27 +248,24 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CognitiveAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["accounts"]
-
-	resp, err := client.GetProperties(ctx, resourceGroup, name)
+	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 		return err
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
@@ -284,15 +284,15 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("endpoint", props.Endpoint)
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", name, resourceGroup, err)
+		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("primary_access_key", keys.Key1)
@@ -306,18 +306,15 @@ func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CognitiveAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["accounts"]
-
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

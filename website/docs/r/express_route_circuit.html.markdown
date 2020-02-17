@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -79,9 +79,9 @@ The following attributes are exported:
 * `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

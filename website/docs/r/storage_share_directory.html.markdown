@@ -20,22 +20,22 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "azureteststorage"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "example" {
   name                 = "sharename"
-  storage_account_name = "${azurerm_storage_account.example.name}"
+  storage_account_name = azurerm_storage_account.example.name
   quota                = 50
 }
 
 resource "azurerm_storage_share_directory" "example" {
   name                 = "example"
-  share_name           = "${azurerm_storage_share.example.name}"
-  storage_account_name = "${azurerm_storage_account.example.name}"
+  share_name           = azurerm_storage_share.example.name
+  storage_account_name = azurerm_storage_account.example.name
 }
 ```
 
@@ -57,9 +57,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Directory within the File Share.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

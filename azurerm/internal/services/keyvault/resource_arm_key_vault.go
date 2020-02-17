@@ -323,12 +323,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
-				}
-
-				if features.SupportsCustomTimeouts() {
-					stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-				} else {
-					stateConf.Timeout = 30 * time.Minute
+					Timeout:                   d.Timeout(schema.TimeoutCreate),
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {

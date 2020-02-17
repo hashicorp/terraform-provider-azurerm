@@ -20,16 +20,16 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
-  location                 = "${azurerm_resource_group.example.location}"
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "example" {
-  storage_account_id = "${azurerm_storage_account.example.id}"
+  storage_account_id = azurerm_storage_account.example.id
 
   rule {
     name    = "rule1"
@@ -121,9 +121,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Storage Account Management Policy.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

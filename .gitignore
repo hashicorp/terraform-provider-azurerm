@@ -15,6 +15,8 @@ website/node_modules
 *.backup
 ./*.tfstate
 .terraform/
+*.tfvars
+*.auto.tfvars
 *.log
 *.bak
 *~

@@ -13,24 +13,24 @@ Use this data source to access information about an existing Role Definition.
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "custom" {
   role_definition_id = "00000000-0000-0000-0000-000000000000"
   name               = "CustomRoleDef"
-  scope              = "${data.azurerm_subscription.primary.id}"
-
+  scope              = data.azurerm_subscription.primary.id
   #...
 }
 
 data "azurerm_role_definition" "custom" {
-  role_definition_id = "${azurerm_role_definition.custom.role_definition_id}"
-  scope              = "${data.azurerm_subscription.primary.id}" # /subscriptions/00000000-0000-0000-0000-000000000000
+  role_definition_id = azurerm_role_definition.custom.role_definition_id
+  scope              = data.azurerm_subscription.primary.id # /subscriptions/00000000-0000-0000-0000-000000000000
 }
 
 data "azurerm_role_definition" "custom-byname" {
-  name  = "${azurerm_role_definition.custom.name}"
-  scope = "${data.azurerm_subscription.primary.id}"
+  name  = azurerm_role_definition.custom.name
+  scope = data.azurerm_subscription.primary.id
 }
 
 data "azurerm_builtin_role_definition" "builtin" {
@@ -38,11 +38,11 @@ data "azurerm_builtin_role_definition" "builtin" {
 }
 
 output "custom_role_definition_id" {
-  value = "${data.azurerm_role_definition.custom.id}"
+  value = data.azurerm_role_definition.custom.id
 }
 
 output "contributor_role_definition_id" {
-  value = "${data.azurerm_role_definition.builtin.id}"
+  value = data.azurerm_role_definition.builtin.id
 }
 ```
 
@@ -72,9 +72,7 @@ A `permissions` block contains:
 * `actions` - a list of actions supported by this role
 * `not_actions` - a list of actions which are denied by this role
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

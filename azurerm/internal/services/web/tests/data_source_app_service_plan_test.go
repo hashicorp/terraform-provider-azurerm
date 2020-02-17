@@ -24,8 +24,6 @@ func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Basic"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "B1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.per_site_scaling", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
@@ -47,8 +45,6 @@ func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.per_site_scaling", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
 				),
@@ -142,9 +138,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 
-  properties {
-    per_site_scaling = true
-  }
+  per_site_scaling = true
 
   tags = {
     environment = "Test"
@@ -177,9 +171,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "EP1"
   }
 
-  properties {
-    per_site_scaling = true
-  }
+  per_site_scaling = true
 
   tags = {
     environment = "Test"

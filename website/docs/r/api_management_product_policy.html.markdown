@@ -21,9 +21,9 @@ data "azurerm_api_management_product" "example" {
 }
 
 resource "azurerm_api_management_product_policy" "example" {
-  product_id          = "${data.azurerm_api_management_product.example.product_id}"
-  api_management_name = "${data.azurerm_api_management_product.example.api_management_name}"
-  resource_group_name = "${data.azurerm_api_management_product.example.resource_group_name}"
+  product_id          = data.azurerm_api_management_product.example.product_id
+  api_management_name = data.azurerm_api_management_product.example.api_management_name
+  resource_group_name = data.azurerm_api_management_product.example.resource_group_name
 
   xml_content = <<XML
 <policies>
@@ -32,6 +32,7 @@ resource "azurerm_api_management_product_policy" "example" {
   </inbound>
 </policies>
 XML
+
 }
 ```
 
@@ -56,9 +57,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Product Policy.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

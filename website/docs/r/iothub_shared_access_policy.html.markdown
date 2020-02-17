@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iothub" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -31,8 +31,8 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_shared_access_policy" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iothub_name         = "${azurerm_iothub.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iothub_name         = azurerm_iothub.example.name
 
   registry_read  = true
   registry_write = true
@@ -75,9 +75,9 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the Shared Access Policy.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

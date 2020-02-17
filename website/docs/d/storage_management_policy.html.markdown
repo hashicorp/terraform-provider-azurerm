@@ -12,14 +12,14 @@ Use this data source to access information about an existing Storage Management 
 
 ## Example Usage
 
-```terraform
+```hcl
 data "azurerm_storage_account" "example" {
   name                = "storageaccountname"
   resource_group_name = "resourcegroupname"
 }
 
 data "azurerm_storage_management_policy" "example" {
-  storage_account_id = "${azurerm_storage_account.example.id}"
+  storage_account_id = azurerm_storage_account.example.id
 }
 ```
 
@@ -27,7 +27,7 @@ data "azurerm_storage_management_policy" "example" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) Specifies the id of the storage account to retrieve the management policy for.
+* `storage_account_id` - Specifies the id of the storage account to retrieve the management policy for.
 
 ## Attributes Reference
 
@@ -38,8 +38,8 @@ The following arguments are supported:
 
 * `rule` supports the following:
 
-* `name` - (Required) A rule name can contain any combination of alpha numeric characters. Rule name is case-sensitive. It must be unique within a policy.
-* `enabled` - (Required)  Boolean to specify whether the rule is enabled.
+* `name` - A rule name can contain any combination of alpha numeric characters. Rule name is case-sensitive. It must be unique within a policy.
+* `enabled` -  Boolean to specify whether the rule is enabled.
 * `filters` - A `filter` block as documented below.
 * `actions` - An `actions` block as documented below.
 
@@ -71,9 +71,7 @@ The following arguments are supported:
 
 * `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

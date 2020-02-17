@@ -20,15 +20,15 @@ data "azurerm_firewall" "example" {
 }
 
 output "firewall_private_ip" {
-  value = "${data.azurerm_firewall.example.ip_configuration.0.private_ip_address}"
+  value = data.azurerm_firewall.example.ip_configuration[0].private_ip_address
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Azure Firewall.
+* `name` - The name of the Azure Firewall.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Azure Firewall exists.
+* `resource_group_name` - The name of the Resource Group in which the Azure Firewall exists.
 
 ## Attributes Reference
 
@@ -48,9 +48,7 @@ A `ip_configuration` block exports the following:
 
 * `public_ip_address_id`- The Resource ID of the public IP address of the Azure Firewall.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

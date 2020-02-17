@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "default" {
 
 resource "azurerm_storage_account" "default" {
   name                     = "defaultStorageAccount"
-  resource_group_name      = "${azurerm_resource_group.default.name}"
-  location                 = "${azurerm_resource_group.default.location}"
+  resource_group_name      = azurerm_resource_group.default.name
+  location                 = azurerm_resource_group.default.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -33,17 +33,17 @@ resource "azurerm_storage_account" "default" {
 
 resource "azurerm_storage_queue" "default" {
   name                 = "defaultStorageQueue"
-  resource_group_name  = "${azurerm_resource_group.default.name}"
-  storage_account_name = "${azurerm_storage_account.default.name}"
+  resource_group_name  = azurerm_resource_group.default.name
+  storage_account_name = azurerm_storage_account.default.name
 }
 
 resource "azurerm_eventgrid_event_subscription" "default" {
   name  = "defaultEventSubscription"
-  scope = "${azurerm_resource_group.default.id}"
+  scope = azurerm_resource_group.default.id
 
   storage_queue_endpoint {
-    storage_account_id = "${azurerm_storage_account.default.id}"
-    queue_name         = "${azurerm_storage_queue.default.name}"
+    storage_account_id = azurerm_storage_account.default.id
+    queue_name         = azurerm_storage_queue.default.name
   }
 }
 ```
@@ -136,9 +136,9 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

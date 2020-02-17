@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_wan" "example" {
   name                = "example-vwan"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 
@@ -52,9 +52,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Virtual WAN.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

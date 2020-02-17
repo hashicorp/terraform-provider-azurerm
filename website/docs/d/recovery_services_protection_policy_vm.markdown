@@ -24,11 +24,11 @@ data "azurerm_recovery_services_protection_policy_vm" "policy" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Recovery Services VM Protection Policy.
+* `name` - Specifies the name of the Recovery Services VM Protection Policy.
 
-* `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault.
+* `recovery_vault_name` - Specifies the name of the Recovery Services Vault.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Recovery Services VM Protection Policy resides.
+* `resource_group_name` - The name of the resource group in which the Recovery Services VM Protection Policy resides.
 
 ## Attributes Reference
 
@@ -39,9 +39,7 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the resource.
 
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

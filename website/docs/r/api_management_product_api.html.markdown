@@ -20,22 +20,22 @@ data "azurerm_api_management" "example" {
 
 data "azurerm_api_management_api" "example" {
   name                = "search-api"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
   revision            = "2"
 }
 
 data "azurerm_api_management_product" "example" {
   product_id          = "my-product"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 
 resource "azurerm_api_management_product_api" "example" {
-  api_name            = "${data.azurerm_api_management_api.example.name}"
-  product_id          = "${data.azurerm_api_management_product.example.product_id}"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_name            = data.azurerm_api_management_api.example.name
+  product_id          = data.azurerm_api_management_product.example.product_id
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 ```
 
@@ -57,9 +57,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Product API.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

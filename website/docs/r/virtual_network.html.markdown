@@ -25,25 +25,25 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_network_security_group" "example" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_ddos_protection_plan" "example" {
   name                = "ddospplan1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_virtual_network" "example" {
   name                = "virtualNetwork1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 
   ddos_protection_plan {
-    id     = "${azurerm_ddos_protection_plan.example.id}"
+    id     = azurerm_ddos_protection_plan.example.id
     enable = true
   }
 
@@ -60,7 +60,7 @@ resource "azurerm_virtual_network" "example" {
   subnet {
     name           = "subnet3"
     address_prefix = "10.0.3.0/24"
-    security_group = "${azurerm_network_security_group.example.id}"
+    security_group = azurerm_network_security_group.example.id
   }
 
   tags = {
@@ -136,9 +136,7 @@ The `subnet` block exports:
 
 * `id` - The ID of this subnet.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

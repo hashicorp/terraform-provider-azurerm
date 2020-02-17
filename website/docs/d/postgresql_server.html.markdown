@@ -19,15 +19,15 @@ data "azurerm_postgresql_server" "example" {
 }
 
 output "postgresql_server_id" {
-  value = "${data.azurerm_postgresql_server.example.id}"
+  value = data.azurerm_postgresql_server.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the PostgreSQL Server.
+* `name` - The name of the PostgreSQL Server.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the PostgreSQL Server exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the PostgreSQL Server exists.
 
 ## Attributes Reference
 
@@ -41,9 +41,7 @@ output "postgresql_server_id" {
 
 * `tags` - A mapping of tags assigned to the resource.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

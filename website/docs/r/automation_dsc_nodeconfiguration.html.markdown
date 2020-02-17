@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -30,17 +30,17 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_dsc_configuration" "example" {
   name                    = "test"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
-  location                = "${azurerm_resource_group.example.location}"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  location                = azurerm_resource_group.example.location
   content_embedded        = "configuration test {}"
 }
 
 resource "azurerm_automation_dsc_nodeconfiguration" "example" {
   name                    = "test.localhost"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
-  depends_on              = ["azurerm_automation_dsc_configuration.example"]
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  depends_on              = [azurerm_automation_dsc_configuration.example]
 
   content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
@@ -65,6 +65,7 @@ instance of OMI_ConfigurationDocument
   Name="test";
 };
 mofcontent
+
 }
 ```
 
@@ -86,9 +87,7 @@ The following attributes are exported:
 
 * `id` - The DSC Node Configuration ID.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

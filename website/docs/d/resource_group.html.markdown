@@ -19,8 +19,8 @@ data "azurerm_resource_group" "example" {
 
 resource "azurerm_managed_disk" "example" {
   name                 = "managed_disk_name"
-  location             = "${data.azurerm_resource_group.example.location}"
-  resource_group_name  = "${data.azurerm_resource_group.example.name}"
+  location             = data.azurerm_resource_group.example.location
+  resource_group_name  = data.azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -29,7 +29,7 @@ resource "azurerm_managed_disk" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the resource group.
+* `name` - Specifies the name of the resource group.
 
 ~> **Note:** If the specified location doesn't match the actual resource group location, an error message with the actual location value will be shown.
 
@@ -38,9 +38,7 @@ resource "azurerm_managed_disk" "example" {
 * `location` - The location of the resource group.
 * `tags` - A mapping of tags assigned to the resource group.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

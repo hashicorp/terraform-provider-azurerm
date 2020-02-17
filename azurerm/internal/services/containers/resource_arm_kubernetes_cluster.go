@@ -407,8 +407,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(containerservice.Basic),
+							Default:  string(containerservice.Standard),
 							ForceNew: true,
+							// TODO: fix the casing in the Swagger
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Basic),
 								string(containerservice.Standard),
@@ -563,7 +564,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_admin_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {
@@ -605,7 +605,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {

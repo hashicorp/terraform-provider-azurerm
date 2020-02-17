@@ -22,17 +22,17 @@ resource "azurerm_resource_group" "secondary" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.secondary.location}"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
   sku                 = "Standard"
 }
 
 resource "azurerm_recovery_services_replication_policy" "policy" {
   name                                                 = "policy"
-  resource_group_name                                  = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name                                  = "${azurerm_recovery_services_vault.vault.name}"
-  recovery_point_retention_in_minutes                  = "${24 * 60}"
-  application_consistent_snapshot_frequency_in_minutes = "${4 * 60}"
+  resource_group_name                                  = azurerm_resource_group.secondary.name
+  recovery_vault_name                                  = azurerm_recovery_services_vault.vault.name
+  recovery_point_retention_in_minutes                  = 24 * 60
+  application_consistent_snapshot_frequency_in_minutes = 4 * 60
 }
 ```
 
@@ -56,9 +56,7 @@ In addition to the arguments above, the following attributes are exported:
 
 * `id` - The ID of the Recovery Services Replication Policy.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

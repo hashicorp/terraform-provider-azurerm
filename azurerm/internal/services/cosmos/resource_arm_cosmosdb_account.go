@@ -716,6 +716,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 		Pending:    []string{"Deleting"},
 		Target:     []string{"NotFound"},
 		MinTimeout: 30 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
@@ -729,11 +730,6 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 180 * time.Minute
-	}
 	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Waiting forCosmosDB Account %q to delete (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -774,14 +770,10 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 		},
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		stateConf.Timeout = 180 * time.Minute
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	resp, err := stateConf.WaitForState()

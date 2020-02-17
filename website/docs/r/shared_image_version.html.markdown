@@ -27,14 +27,14 @@ data "azurerm_shared_image" "existing" {
 
 resource "azurerm_shared_image_version" "example" {
   name                = "0.0.1"
-  gallery_name        = "${data.azurerm_shared_image.existing.gallery_name}"
-  image_name          = "${data.azurerm_shared_image.existing.name}"
-  resource_group_name = "${data.azurerm_shared_image.existing.resource_group_name}"
-  location            = "${data.azurerm_shared_image.existing.location}"
-  managed_image_id    = "${data.azurerm_image.existing.id}"
+  gallery_name        = data.azurerm_shared_image.existing.gallery_name
+  image_name          = data.azurerm_shared_image.existing.name
+  resource_group_name = data.azurerm_shared_image.existing.resource_group_name
+  location            = data.azurerm_shared_image.existing.location
+  managed_image_id    = data.azurerm_image.existing.id
 
   target_region {
-    name                   = "${data.azurerm_shared_image.existing.location}"
+    name                   = data.azurerm_shared_image.existing.location
     regional_replica_count = "5"
     storage_account_type   = "Standard_LRS"
   }
@@ -81,9 +81,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Shared Image Version.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

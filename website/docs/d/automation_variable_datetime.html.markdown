@@ -21,7 +21,7 @@ data "azurerm_automation_variable_datetime" "example" {
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_datetime.example.id}"
+  value = data.azurerm_automation_variable_datetime.example.id
 }
 ```
 
@@ -30,11 +30,11 @@ output "variable_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Automation Variable.
+* `name` - The name of the Automation Variable.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the automation account exists.
+* `resource_group_name` - The Name of the Resource Group where the automation account exists.
 
-* `automation_account_name` - (Required) The name of the automation account in which the Automation Variable exists.
+* `automation_account_name` - The name of the automation account in which the Automation Variable exists.
 
 
 ## Attributes Reference
@@ -49,9 +49,7 @@ The following attributes are exported:
 
 * `value` - The value of the Automation Variable in the [RFC3339 Section 5.6 Internet Date/Time Format](https://tools.ietf.org/html/rfc3339#section-5.6).
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

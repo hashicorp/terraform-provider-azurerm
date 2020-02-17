@@ -22,17 +22,18 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "example" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  data_factory_name     = "${azurerm_data_factory.example.name}"
-  service_principal_id  = "${data.azurerm_client_config.current.client_id}"
+  resource_group_name   = azurerm_resource_group.example.name
+  data_factory_name     = azurerm_data_factory.example.name
+  service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "exampleKey"
   tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://datalakestoragegen2"
@@ -73,9 +74,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Data Factory Data Lake Storage Gen2 Linked Service.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

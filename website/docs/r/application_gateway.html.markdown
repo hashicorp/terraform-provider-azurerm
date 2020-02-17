@@ -20,29 +20,29 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.254.0.0/16"]
 }
 
 resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.254.0.0/24"
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.254.2.0/24"
 }
 
 resource "azurerm_public_ip" "example" {
   name                = "example-pip"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   allocation_method   = "Dynamic"
 }
 
@@ -59,8 +59,8 @@ locals {
 
 resource "azurerm_application_gateway" "network" {
   name                = "example-appgateway"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "Standard_Small"
@@ -70,25 +70,25 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_subnet.frontend.id}"
+    subnet_id = azurerm_subnet.frontend.id
   }
 
   frontend_port {
-    name = "${local.frontend_port_name}"
+    name = local.frontend_port_name
     port = 80
   }
 
   frontend_ip_configuration {
-    name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.example.id}"
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 
   backend_address_pool {
-    name = "${local.backend_address_pool_name}"
+    name = local.backend_address_pool_name
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
+    name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
     path                  = "/path1/"
     port                  = 80
@@ -97,18 +97,18 @@ resource "azurerm_application_gateway" "network" {
   }
 
   http_listener {
-    name                           = "${local.listener_name}"
-    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
-    frontend_port_name             = "${local.frontend_port_name}"
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
+    name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
   }
 }
 ```
@@ -315,7 +315,7 @@ A `identity` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response. Defaults to `*`.
+* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
 
 * `status_code` - (Optional) A list of allowed status codes for this Health Probe.
 
@@ -730,9 +730,7 @@ A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
