@@ -64,8 +64,9 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
-* `azurerm_windows_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
+* `azurerm_role_assignment` - validating that the `name` is a UUID [GH-5624]
 * `azurerm_signalr_service` - ensuring the SignalR segment is parsed in the correct case [GH-5737]
+* `azurerm_windows_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
 
 ---
 
