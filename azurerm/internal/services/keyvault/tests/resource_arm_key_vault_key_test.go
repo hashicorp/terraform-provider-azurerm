@@ -241,7 +241,8 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+			// key vault's been deleted
+			return nil
 		}
 
 		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
