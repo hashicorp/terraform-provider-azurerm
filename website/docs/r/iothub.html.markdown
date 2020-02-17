@@ -147,6 +147,8 @@ A `sku` block supports the following:
 
 * `capacity` - (Required) The number of provisioned IoT Hub units.
 
+~> **NOTE:** Only one IotHub can be on the `Free` tier per subscription.
+
 ---
 
 An `endpoint` block supports the following:
