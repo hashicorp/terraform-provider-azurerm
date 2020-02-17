@@ -83,7 +83,6 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
 	vaultId := d.Get("key_vault_id").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 
 	tenantIdRaw := d.Get("tenant_id").(string)
 	tenantId, err := uuid.FromString(tenantIdRaw)
@@ -99,7 +98,7 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 		return err
 	}
 
-	resourceGroup = id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	vaultName, ok := id.Path["vaults"]
 	if !ok {
 		return fmt.Errorf("key_value_id does not contain `vaults`: %q", vaultId)

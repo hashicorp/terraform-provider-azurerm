@@ -198,15 +198,6 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-// Remove in 2.0
-func flattenKeyVaultDataSourceSku(sku *keyvault.Sku) []interface{} {
-	result := map[string]interface{}{
-		"name": string(sku.Name),
-	}
-
-	return []interface{}{result}
-}
-
 func flattenKeyVaultDataSourceNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	if input == nil {
 		return []interface{}{}
