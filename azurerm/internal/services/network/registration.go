@@ -71,6 +71,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_network_interface_application_security_group_association":               resourceArmNetworkInterfaceApplicationSecurityGroupAssociation(),
 		"azurerm_network_interface_backend_address_pool_association":                     resourceArmNetworkInterfaceBackendAddressPoolAssociation(),
 		"azurerm_network_interface_nat_rule_association":                                 resourceArmNetworkInterfaceNatRuleAssociation(),
+		"azurerm_network_interface_security_group_association":                           resourceArmNetworkInterfaceSecurityGroupAssociation(),
 		"azurerm_network_packet_capture":                                                 resourceArmNetworkPacketCapture(),
 		"azurerm_network_profile":                                                        resourceArmNetworkProfile(),
 		"azurerm_packet_capture":                                                         resourceArmPacketCapture(),
