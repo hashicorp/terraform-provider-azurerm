@@ -73,7 +73,6 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
-						//TODO: should this be renamed to private_ip_address_allocation_method or private_ip_allocation_method ?
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -145,14 +144,6 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				Computed:   true,
 			},
 
-			/**
-			 * As of 2018-01-06: AN (aka. SR-IOV) on Azure is GA on Windows and Linux.
-			 *
-			 * Refer to: https://azure.microsoft.com/en-us/blog/maximize-your-vm-s-performance-with-accelerated-networking-now-generally-available-for-both-windows-and-linux/
-			 *
-			 * Refer to: https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli
-			 * For details, VM configuration and caveats.
-			 */
 			"enable_accelerated_networking": {
 				Type:     schema.TypeBool,
 				Computed: true,
