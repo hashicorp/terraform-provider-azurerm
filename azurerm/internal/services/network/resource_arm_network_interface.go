@@ -112,14 +112,13 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				Set: schema.HashString,
 			},
 
 			"enable_accelerated_networking": {
@@ -218,14 +217,13 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 		dnsSettings := network.InterfaceDNSSettings{}
 
 		if hasDns {
-			dnsRaw := dns.(*schema.Set).List()
+			dnsRaw := dns.([]interface{})
 			dns := expandNetworkInterfaceDnsServers(dnsRaw)
 			dnsSettings.DNSServers = &dns
 		}
 
 		if hasNameLabel {
-			name_label := nameLabel.(string)
-			dnsSettings.InternalDNSNameLabel = &name_label
+			dnsSettings.InternalDNSNameLabel = utils.String(nameLabel.(string))
 		}
 
 		properties.DNSSettings = &dnsSettings
@@ -316,7 +314,7 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 			update.InterfacePropertiesFormat.DNSSettings = &network.InterfaceDNSSettings{}
 		}
 
-		dnsServersRaw := d.Get("dns_servers").(*schema.Set).List()
+		dnsServersRaw := d.Get("dns_servers").([]interface{})
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
 		update.InterfacePropertiesFormat.DNSSettings.DNSServers = &dnsServers
