@@ -1525,7 +1525,6 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 }
 
 func flattenManagedClusterAccessProfile(input *containerservice.ManagedClusterAPIServerAccessProfile) []interface{} {
-
 	apiServerAccessProfile := make(map[string]interface{})
 
 	apiServerAccessProfile["authorized_ip_ranges"] = []string{}
