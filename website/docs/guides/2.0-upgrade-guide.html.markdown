@@ -323,6 +323,10 @@ The deprecated `location` field will be removed, since this is no longer used.
 
 The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
 
+### Resource: `azurerm_frontdoor`
+
+The `forwarding_protocol` property now defaults to `HttpsOnly`
+
 ### Resource: `azurerm_iothub`
 
 The deprecated `sku.tier` property will be remove.

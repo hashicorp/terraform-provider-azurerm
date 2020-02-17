@@ -195,7 +195,6 @@ func resourceArmFrontDoor() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									// TODO: In 2.0 Switch default value from MatchRequest to HTTPSOnly #4627
 									"forwarding_protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -204,7 +203,7 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.HTTPSOnly),
 											string(frontdoor.MatchRequest),
 										}, false),
-										Default: string(frontdoor.MatchRequest),
+										Default: string(frontdoor.HTTPSOnly),
 									},
 								},
 							},
