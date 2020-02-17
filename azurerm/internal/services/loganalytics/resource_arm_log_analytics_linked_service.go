@@ -59,8 +59,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 
 			"resource_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
