@@ -186,33 +186,6 @@ resource "azurerm_log_analytics_linked_service" "test" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_noResourceID(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-}
-`, template)
-}
-
-func testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-  linked_service_properties {
-    resource_id = "${azurerm_automation_account.test.id}"
-  }
-}
-`, template)
-}
-
 func testAccAzureRMLogAnalyticsLinkedService_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
