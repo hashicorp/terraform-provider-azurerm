@@ -132,8 +132,8 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 			},
 
 			"geo_location": {
-				Type: schema.TypeSet,
-				Required:     true,
+				Type:     schema.TypeSet,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 
@@ -314,7 +314,6 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	if !utils.ResponseWasNotFound(r) {
 		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 	}
-
 
 	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
 	if err != nil {
