@@ -204,7 +204,6 @@ resource "azurerm_automation_certificate" "import" {
   resource_group_name     = azurerm_automation_certificate.test.resource_group_name
   automation_account_name = azurerm_automation_certificate.test.automation_account_name
   base64                  = azurerm_automation_certificate.test.base64
-  thumbprint              = azurerm_automation_certificate.test.thumbprint
 }
 `, template)
 }

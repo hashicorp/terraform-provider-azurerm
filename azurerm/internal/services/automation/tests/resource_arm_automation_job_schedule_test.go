@@ -299,6 +299,7 @@ resource "azurerm_automation_job_schedule" "import" {
   automation_account_name = "${azurerm_automation_job_schedule.test.automation_account_name}"
   schedule_name           = "${azurerm_automation_job_schedule.test.schedule_name}"
   runbook_name            = "${azurerm_automation_job_schedule.test.runbook_name}"
+  job_schedule_id         = "${azurerm_automation_job_schedule.test.job_schedule_id}"
 }
 `, template)
 }
