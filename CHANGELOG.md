@@ -63,6 +63,7 @@ BREAKING CHANGES:
 * `azurerm_maps_account` - the `sku_name` field is now case-sensitive [GH-5776]
 * `azurerm_mariadb_server` - removing the `sku` block since it's been deprecated in favour of the `sku_name` field [GH-5777]
 * `azurerm_mssql_elasticpool` - removing the deprecated `elastic_pool_properties` block [GH-5744]
+* `azurerm_mysql_server` - removing the deprecated `sku` block [GH-5743]
 * `azurerm_network_interface` - removing the deprecated `application_gateway_backend_address_pools_ids` field from the `ip_configurations` block [GH-5784]
 * `azurerm_network_interface` - removing the deprecated `application_security_group_ids ` field from the `ip_configurations` block [GH-5784]
 * `azurerm_network_interface` - removing the deprecated `load_balancer_backend_address_pools_ids ` field from the `ip_configurations` block [GH-5784]
