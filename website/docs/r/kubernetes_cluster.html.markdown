@@ -63,9 +63,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `default_node_pool` - (Optional) A `default_node_pool` block as defined below.
-
--> **NOTE:** The `default_node_pool` block will become required in 2.0
+* `default_node_pool` - (Required) A `default_node_pool` block as defined below.
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
@@ -73,15 +71,9 @@ The following arguments are supported:
 
 * `service_principal` - (Required) A `service_principal` block as documented below.
 
-* `agent_pool_profile` - (Optional) One or more `agent_pool_profile` blocks as defined below.
-
-~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0. For additional node pools beyond default, see [azurerm_kubernetes_cluster_node_pool](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster_node_pool.html).
-
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
-* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
-
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+* `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined below.
 
 * `enable_pod_security_policy` - (Optional) Whether Pod Security Policies are enabled. Note that this also requires role based access control to be enabled.
 
@@ -111,13 +103,9 @@ The following arguments are supported:
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
-* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
-
--> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
-
 ---
 
-A `aci_connector_linux` block supports the following:
+An `aci_connector_linux` block supports the following:
 
 * `enabled` - (Required) Is the virtual node addon enabled?
 
@@ -142,7 +130,7 @@ resource "azurerm_subnet" "virtual" {
 
 ---
 
-A `addon_profile` block supports the following:
+An `addon_profile` block supports the following:
 
 * `aci_connector_linux` - (Optional) A `aci_connector_linux` block. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-portal).
 
@@ -158,49 +146,19 @@ A `addon_profile` block supports the following:
 
 ---
 
-A `agent_pool_profile` block supports the following:
+An `api_server_access_profile` block supports the following:
 
-~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0. For additional node pools beyond default, see [azurerm_kubernetes_cluster_node_pool](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster_node_pool.html).
+* `authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
 
-* `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
+-> **NOTE:**  `authorized_ip_ranges` is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
 
-* `count` - (Optional) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 100 (inclusive). Defaults to `1`.
+* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
--> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
-
-* `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
-
-* `availability_zones` - (Optional) Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
-
--> **NOTE:** To configure Availability Zones the `load_balancer_sku` must be set to `Standard`
-
-* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
-
-* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
-
-* `min_count` - (Optional) Minimum number of nodes for auto-scaling.
-
-* `max_count` - (Optional) Maximum number of nodes for auto-scaling.
-
-* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
-
-* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
-
-* `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
-
-* `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
-
-* `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
-
-* `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
-
--> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
-
-~> **NOTE:** A route table must be configured on this Subnet.
+-> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
 
 ---
 
-A `azure_active_directory` block supports the following:
+An `azure_active_directory` block supports the following:
 
 * `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
 
@@ -213,7 +171,7 @@ A `azure_active_directory` block supports the following:
 
 ---
 
-A `azure_policy` block supports the following:
+An `azure_policy` block supports the following:
 
 * `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
 
@@ -267,13 +225,13 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 ---
 
-A `http_application_routing` block supports the following:
+An `http_application_routing` block supports the following:
 
 * `enabled` (Required) Is HTTP Application Routing Enabled? Changing this forces a new resource to be created.
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`.
 
@@ -331,7 +289,7 @@ A `load_balancer_profile` block supports the following:
 
 ---
 
-A `oms_agent` block supports the following:
+An `oms_agent` block supports the following:
 
 * `enabled` - (Required) Is the OMS Agent Enabled?
 

@@ -36,9 +36,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Kubernetes Managed Cluster.
 
-* `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the masters.
-
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+* `api_server_access_profile` - An `api_server_access_profile` block as defined below.
 
 * `addon_profile` - A `addon_profile` block as documented below.
 
@@ -62,10 +60,6 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_link_enabled` - Does this Kubernetes Cluster have the Kubernetes API exposed via Private Link?                           
-
--> **NOTE:** At this time Private Link is in Public Preview
-
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
 * `linux_profile` - A `linux_profile` block as documented below.
@@ -84,7 +78,7 @@ The following attributes are exported:
 
 ---
 
-A `addon_profile` block exports the following:
+An `addon_profile` block exports the following:
 
 * `http_application_routing` - A `http_application_routing` block.
 
@@ -96,7 +90,19 @@ A `addon_profile` block exports the following:
 
 ---
 
-A `agent_pool_profile` block exports the following:
+An `api_server_access_profile` block exports the following:
+
+* `authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the masters.
+
+-> **NOTE:**  `authorized_ip_ranges` is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+
+* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
+
+-> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
+
+---
+
+An `agent_pool_profile` block exports the following:
 
 * `type` - The type of the Agent Pool.
 
@@ -126,7 +132,7 @@ A `agent_pool_profile` block exports the following:
 
 ---
 
-A `azure_active_directory` block exports the following:
+An `azure_active_directory` block exports the following:
 
 * `client_app_id` - The Client ID of an Azure Active Directory Application.
 
@@ -203,7 +209,7 @@ A `network_profile` block exports the following:
 
 ---
 
-A `oms_agent` block exports the following:
+An `oms_agent` block exports the following:
 
 * `enabled` - Is the OMS Agent Enabled?
 
@@ -217,7 +223,7 @@ A `kube_dashboard` block supports the following:
 
 ---
 
-A `azure_policy` block supports the following:
+An `azure_policy` block supports the following:
 
 * `enabled` - Is Azure Policy for Kubernetes enabled?
 
@@ -237,7 +243,7 @@ A `service_principal` block supports the following:
 
 ---
 
-A `ssh_key` block exports the following:
+An `ssh_key` block exports the following:
 
 * `key_data` - The Public SSH Key used to access the cluster.
 
