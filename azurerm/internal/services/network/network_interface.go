@@ -22,7 +22,7 @@ func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) ne
 	var mapToSlice = func(input map[string]struct{}) []string {
 		output := make([]string, 0)
 
-		for id, _ := range input {
+		for id := range input {
 			output = append(output, id)
 		}
 
