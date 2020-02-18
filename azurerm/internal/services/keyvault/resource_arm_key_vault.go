@@ -248,7 +248,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+		if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 		}
 	}
@@ -390,7 +390,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 					}
 
 					virtualNetworkName := id.Path["virtualNetworks"]
-					if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+					if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 					}
 				}

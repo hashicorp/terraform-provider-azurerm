@@ -29,14 +29,14 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_runbook" "example" {
-  name                = "Get-AzureVMTutorial"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  account_name        = azurerm_automation_account.example.name
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an example runbook"
-  runbook_type        = "PowerShellWorkflow"
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is an example runbook"
+  runbook_type            = "PowerShellWorkflow"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
@@ -67,14 +67,14 @@ data "local_file" "example" {
 }
 
 resource "azurerm_automation_runbook" "example" {
-  name                = "Get-AzureVMTutorial"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  account_name        = azurerm_automation_account.example.name
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an example runbook"
-  runbook_type        = "PowerShell"
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is an example runbook"
+  runbook_type            = "PowerShell"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
+* `automation_account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
 
 * `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell` or `Script`.
 
