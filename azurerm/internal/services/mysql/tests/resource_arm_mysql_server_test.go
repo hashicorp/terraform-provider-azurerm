@@ -164,8 +164,8 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 				Config: testAccAzureRMMySQLServer_basicEightZero(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "51200"),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -173,7 +173,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "MO_Gen5_16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "4194304"),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
