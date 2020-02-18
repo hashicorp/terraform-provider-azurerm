@@ -10,6 +10,7 @@ FEATURES:
 
 * **Custom Timeouts:** - all resources within the Azure Provider now allow configuring custom timeouts - please [see Terraform's Timeout documentation](https://www.terraform.io/docs/configuration/resources.html#operation-timeouts) and the documentation in each data source resource for more information.
 * **Requires Import:** The Azure Provider now checks for the presence of an existing resource prior to creating it - which means that if you try and create a resource which already exists (without importing it) you'll be prompted to import this into the state.
+* **New Data Source:** `azurerm_eventhub_authorization_rule` [GH-5805]
 * **New Resource:** `azurerm_express_route_gateway` [GH-5523]
 * **New Resource:** `azurerm_linux_virtual_machine` [GH-5705]
 * **New Resource:** `azurerm_linux_virtual_machine_scale_set` [GH-5705]
