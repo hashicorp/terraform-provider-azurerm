@@ -78,13 +78,6 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Default:  false,
 			},
 
-			"kafka_enabled": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This field is now automatically set depending on the SKU used - as such it's no longer used and will be removed in 2.0 of the Azure Provider",
-			},
-
 			"maximum_throughput_units": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -314,9 +307,6 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
-
-		// TODO: remove me in 2.0
-		d.Set("kafka_enabled", props.KafkaEnabled)
 	}
 
 	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
