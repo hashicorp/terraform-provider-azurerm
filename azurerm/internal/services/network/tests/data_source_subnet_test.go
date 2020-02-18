@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
+func TestAccDataSourceSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMSubnet_basic(data),
+				Config: testAccDataSourceSubnet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
+func TestAccDataSourceSubnet_networkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,7 +38,11 @@ func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMSubnet_networkSecurityGroup(data),
+				// since the network security group association is a separate resource this forces it
+				Config: testAccDataSourceSubnet_networkSecurityGroupDependencies(data),
+			},
+			{
+				Config: testAccDataSourceSubnet_networkSecurityGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
@@ -52,7 +56,7 @@ func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSubnet_routeTable(t *testing.T) {
+func TestAccDataSourceSubnet_routeTable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,21 +64,25 @@ func TestAccDataSourceAzureRMSubnet_routeTable(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMSubnet_routeTable(data),
+				// since the route table association is a separate resource this forces it
+				Config: testAccDataSourceSubnet_routeTableDependencies(data),
+			},
+			{
+				Config: testAccDataSourceSubnet_routeTable(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefix"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "route_table_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMSubnet_serviceEndpoints(t *testing.T) {
+func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -82,7 +90,7 @@ func TestAccDataSourceAzureRMSubnet_serviceEndpoints(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMSubnet_serviceEndpoints(data),
+				Config: testAccDataSourceSubnet_serviceEndpoint(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
@@ -99,46 +107,35 @@ func TestAccDataSourceAzureRMSubnet_serviceEndpoints(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMSubnet_basic(data acceptance.TestData) string {
+func testAccDataSourceSubnet_basic(data acceptance.TestData) string {
+	template := testAccDataSourceSubnet_template(data)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctest%d-rg"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest%d-vn"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest%d-private"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.0.0/24"
-}
+%s
 
 data "azurerm_subnet" "test" {
-  name                 = "${azurerm_subnet.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  name                 = azurerm_subnet.test.name
+  virtual_network_name = azurerm_subnet.test.virtual_network_name
+  resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, template)
 }
 
-func testAccDataSourceAzureRMSubnet_networkSecurityGroup(data acceptance.TestData) string {
+func testAccDataSourceSubnet_networkSecurityGroupDependencies(data acceptance.TestData) string {
+	template := testAccDataSourceSubnet_template(data)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctest%d-rg"
-  location = "%s"
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.0.0/24"
 }
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -153,98 +150,96 @@ resource "azurerm_network_security_group" "test" {
   }
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest%d-vn"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+`, template, data.RandomInteger)
 }
 
-resource "azurerm_subnet" "test" {
-  name                      = "acctest%d-private"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.0.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
+func testAccDataSourceSubnet_networkSecurityGroup(data acceptance.TestData) string {
+	template := testAccDataSourceSubnet_networkSecurityGroupDependencies(data)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_subnet" "test" {
-  name                 = "${azurerm_subnet.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  name                 = azurerm_subnet.test.name
+  virtual_network_name = azurerm_subnet.test.virtual_network_name
+  resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template)
 }
 
-func testAccDataSourceAzureRMSubnet_routeTable(data acceptance.TestData) string {
+func testAccDataSourceSubnet_routeTableDependencies(data acceptance.TestData) string {
+	template := testAccDataSourceSubnet_template(data)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.0.0/24"
 }
 
 resource "azurerm_route_table" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestrt-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
-    name                   = "acctest-%d"
+    name                   = "first"
     address_prefix         = "10.100.0.0/14"
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = "10.10.1.1"
   }
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
+}
+`, template, data.RandomInteger)
 }
 
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
-}
+func testAccDataSourceSubnet_routeTable(data acceptance.TestData) string {
+	template := testAccDataSourceSubnet_routeTableDependencies(data)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_subnet" "test" {
-  name                 = "${azurerm_subnet.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  name                 = azurerm_subnet.test.name
+  virtual_network_name = azurerm_subnet.test.virtual_network_name
+  resource_group_name  = azurerm_subnet.test.resource_group_name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template)
 }
 
-func testAccDataSourceAzureRMSubnet_serviceEndpoints(data acceptance.TestData) string {
+func testAccDataSourceSubnet_serviceEndpoint(data acceptance.TestData) string {
+	template := testAccAzureRMSubnet_serviceEndpointsUpdated(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_subnet" "test" {
+  name                 = azurerm_subnet.test.name
+  virtual_network_name = azurerm_subnet.test.virtual_network_name
+  resource_group_name  = azurerm_subnet.test.resource_group_name
+}
+`, template)
+}
+
+func testAccDataSourceSubnet_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctest%d-rg"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctest%d-vn"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
 }
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
-}
-
-data "azurerm_subnet" "test" {
-  name                 = "${azurerm_subnet.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

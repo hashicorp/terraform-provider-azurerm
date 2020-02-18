@@ -53,41 +53,11 @@ func resourceArmDevSpaceController() *schema.Resource {
 
 			"sku_name": {
 				Type:     schema.TypeString,
-				Optional: true, // required in 2.0
-				Computed: true, // remove in 2.0
-				//ForceNew:      true, // uncomment in 2.0 - this should be fine as there is only 1 valid value
-				ConflictsWith: []string{"sku"},
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"S1",
 				}, false),
-			},
-
-			"sku": {
-				Type:     schema.TypeList,
-				Optional: true,
-				//ForceNew:      true, // uncomment in 2.0 - this should be fine as there is only 1 valid value
-				Computed:      true,
-				ConflictsWith: []string{"sku_name"},
-				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"S1",
-							}, false),
-						},
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devspaces.Standard),
-							}, false),
-						},
-					},
-				},
 			},
 
 			"target_container_host_resource_id": {
@@ -146,17 +116,9 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	var sku *devspaces.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandControllerSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for DevSpace Controller %s (Resource Group %q): %v", name, resourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandDevSpaceControllerSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for DevSpace Controller %q (Resource Group %q)", name, resourceGroup)
+	sku, err := expandControllerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding `sku_name` for DevSpace Controller %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	controller := devspaces.Controller{
@@ -250,10 +212,6 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 		d.Set("sku_name", sku.Name)
 	}
 
-	if err := d.Set("sku", flattenDevSpaceControllerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattenning `sku`: %+v", err)
-	}
-
 	if props := resp.ControllerProperties; props != nil {
 		d.Set("host_suffix", props.HostSuffix)
 		d.Set("data_plane_fqdn", props.DataPlaneFqdn)
@@ -298,35 +256,4 @@ func expandControllerSkuName(skuName string) (*devspaces.Sku, error) {
 		Name: utils.String(skuName),
 		Tier: tier,
 	}, nil
-}
-
-func expandDevSpaceControllerSku(d *schema.ResourceData) *devspaces.Sku {
-	if _, ok := d.GetOk("sku"); !ok {
-		return nil
-	}
-
-	skuConfigs := d.Get("sku").([]interface{})
-	skuConfig := skuConfigs[0].(map[string]interface{})
-	skuName := skuConfig["name"].(string)
-	skuTier := devspaces.SkuTier(skuConfig["tier"].(string))
-
-	return &devspaces.Sku{
-		Name: &skuName,
-		Tier: skuTier,
-	}
-}
-
-func flattenDevSpaceControllerSku(skuObj *devspaces.Sku) []interface{} {
-	if skuObj == nil {
-		return []interface{}{}
-	}
-
-	skuConfig := make(map[string]interface{})
-	if skuObj.Name != nil {
-		skuConfig["name"] = *skuObj.Name
-	}
-
-	skuConfig["tier"] = skuObj.Tier
-
-	return []interface{}{skuConfig}
 }

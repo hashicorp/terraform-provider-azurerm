@@ -308,10 +308,6 @@ resource "azurerm_subnet" "public" {
       ]
     }
   }
-
-  lifecycle {
-    ignore_changes = ["network_security_group_id"]
-  }
 }
 
 resource "azurerm_subnet" "private" {
@@ -332,10 +328,6 @@ resource "azurerm_subnet" "private" {
         "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
       ]
     }
-  }
-
-  lifecycle {
-    ignore_changes = ["network_security_group_id"]
   }
 }
 

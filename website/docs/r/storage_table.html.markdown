@@ -28,7 +28,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_table" "example" {
   name                 = "mysampletable"
-  resource_group_name  = azurerm_resource_group.example.name
   storage_account_name = azurerm_storage_account.example.name
 }
 ```
@@ -41,8 +40,6 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) Specifies the storage account in which to create the storage table.
  Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage table.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 

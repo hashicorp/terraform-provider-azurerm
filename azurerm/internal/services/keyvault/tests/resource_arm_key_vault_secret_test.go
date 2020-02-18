@@ -35,26 +35,6 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultSecret_basicClasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -174,6 +154,7 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 
 func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+	vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -182,8 +163,12 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			// key vault's been deleted
+			return nil
+		}
 
 		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
@@ -212,6 +197,7 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -220,10 +206,13 @@ func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 		name := rs.Primary.Attributes["name"]
-		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+		}
 
-		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -248,6 +237,7 @@ func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestChec
 func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -256,10 +246,13 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 		name := rs.Primary.Attributes["name"]
-		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+		}
 
-		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -322,51 +315,6 @@ resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%s"
   value        = "rick-and-morty"
   key_vault_id = "${azurerm_key_vault.test.id}"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-}
-
-func testAccAzureRMKeyVaultSecret_basicClasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-
-    key_permissions = [
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
-
-resource "azurerm_key_vault_secret" "test" {
-  name      = "secret-%s"
-  value     = "rick-and-morty"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
@@ -474,9 +422,9 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name      = "secret-%s"
-  value     = "szechuan"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "secret-%s"
+  value        = "szechuan"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
