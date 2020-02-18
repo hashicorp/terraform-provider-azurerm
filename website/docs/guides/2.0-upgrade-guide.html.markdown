@@ -161,6 +161,8 @@ The deprecated field `zone_type` will be removed. Private DNS Zones are now a se
 
 The deprecated block `agent_pool_profile` will be removed. This has been replaced by the `default_node_pool` block.
 
+A new `api_server_access_profile` block has been introduced to better align the resource with the Azure API for access controls currently in preview.  This block replaces `api_server_authorized_ip_ranges` and `private_link_enabled` from the top level.
+
 ### Data Source: `azurerm_network_interface`
 
 The deprecated field `internal_fqdn` will be removed.
@@ -334,6 +336,8 @@ The deprecated `dns_prefix` field in the `agent_pool_profile` block will be remo
 The deprecated `fqdn` field in the `agent_pool_profile` block will be removed. This has been replaced by the top-level field `fqdn`.
 
 The `service_principal` will be changing from a Set to a List,  which will allow Terraform to better detect when the values have changed locally and as such can detect when this needs to be recreated.
+
+A new `api_server_access_profile` block has been introduced to better align the resource with the Azure API for access controls currently in Preview.  This block replaces `api_server_authorized_ip_ranges` and `private_link_enabled` from the top level.
 
 ### Resource: `azurerm_lb_backend_address_pool`
 
