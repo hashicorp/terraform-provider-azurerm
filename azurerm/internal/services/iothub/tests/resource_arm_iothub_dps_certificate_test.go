@@ -173,7 +173,7 @@ func testAccAzureRMIotHubDPSCertificate_requiresImport(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_dps_certificate" "test" {
+resource "azurerm_iothub_dps_certificate" "import" {
   name                = "${azurerm_iothub_dps_certificate.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   iot_dps_name        = "${azurerm_iothub_dps.test.name}"
