@@ -59,18 +59,6 @@ func resourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"registration_virtual_network_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
-			"resolution_virtual_network_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -100,22 +88,14 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	location := "global"
 	t := d.Get("tags").(map[string]interface{})
 
-	registrationVirtualNetworkIds := expandDnsZoneRegistrationVirtualNetworkIds(d)
-	resolutionVirtualNetworkIds := expandDnsZoneResolutionVirtualNetworkIds(d)
-
 	parameters := dns.Zone{
 		Location: &location,
 		Tags:     tags.Expand(t),
-		ZoneProperties: &dns.ZoneProperties{
-			RegistrationVirtualNetworks: registrationVirtualNetworkIds,
-			ResolutionVirtualNetworks:   resolutionVirtualNetworkIds,
-		},
 	}
 
 	etag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
@@ -160,16 +140,6 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
 	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
 
-	registrationVirtualNetworks := flattenDnsZoneRegistrationVirtualNetworkIDs(resp.RegistrationVirtualNetworks)
-	if err := d.Set("registration_virtual_network_ids", registrationVirtualNetworks); err != nil {
-		return err
-	}
-
-	resolutionVirtualNetworks := flattenDnsZoneResolutionVirtualNetworkIDs(resp.ResolutionVirtualNetworks)
-	if err := d.Set("resolution_virtual_network_ids", resolutionVirtualNetworks); err != nil {
-		return err
-	}
-
 	nameServers := make([]string, 0)
 	if s := resp.NameServers; s != nil {
 		nameServers = *s
@@ -211,56 +181,4 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func expandDnsZoneResolutionVirtualNetworkIds(d *schema.ResourceData) *[]dns.SubResource {
-	resolutionVirtualNetworks := d.Get("resolution_virtual_network_ids").([]interface{})
-
-	resolutionVNetSubResources := make([]dns.SubResource, 0, len(resolutionVirtualNetworks))
-	for _, rvn := range resolutionVirtualNetworks {
-		id := rvn.(string)
-		resolutionVNetSubResources = append(resolutionVNetSubResources, dns.SubResource{
-			ID: &id,
-		})
-	}
-
-	return &resolutionVNetSubResources
-}
-
-func flattenDnsZoneRegistrationVirtualNetworkIDs(input *[]dns.SubResource) []string {
-	registrationVirtualNetworks := make([]string, 0)
-
-	if input != nil {
-		for _, rvn := range *input {
-			registrationVirtualNetworks = append(registrationVirtualNetworks, *rvn.ID)
-		}
-	}
-
-	return registrationVirtualNetworks
-}
-
-func expandDnsZoneRegistrationVirtualNetworkIds(d *schema.ResourceData) *[]dns.SubResource {
-	registrationVirtualNetworks := d.Get("registration_virtual_network_ids").([]interface{})
-
-	registrationVNetSubResources := make([]dns.SubResource, 0)
-	for _, rvn := range registrationVirtualNetworks {
-		id := rvn.(string)
-		registrationVNetSubResources = append(registrationVNetSubResources, dns.SubResource{
-			ID: &id,
-		})
-	}
-
-	return &registrationVNetSubResources
-}
-
-func flattenDnsZoneResolutionVirtualNetworkIDs(input *[]dns.SubResource) []string {
-	resolutionVirtualNetworks := make([]string, 0)
-
-	if input != nil {
-		for _, rvn := range *input {
-			resolutionVirtualNetworks = append(resolutionVirtualNetworks, *rvn.ID)
-		}
-	}
-
-	return resolutionVirtualNetworks
 }
