@@ -180,21 +180,6 @@ func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-//TODO: remove this once we remove the `record` attribute
-func flattenAzureRmDnsNsRecordsSet(records *[]dns.NsRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
-
-	if records != nil {
-		for _, record := range *records {
-			nsRecord := make(map[string]interface{})
-			nsRecord["nsdname"] = *record.Nsdname
-			results = append(results, nsRecord)
-		}
-	}
-
-	return results
-}
-
 func flattenAzureRmDnsNsRecords(records *[]dns.NsRecord) []string {
 	results := make([]string, 0, len(*records))
 
