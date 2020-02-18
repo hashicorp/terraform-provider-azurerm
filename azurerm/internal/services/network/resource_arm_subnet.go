@@ -22,9 +22,9 @@ var SubnetResourceName = "azurerm_subnet"
 
 func resourceArmSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetCreateUpdate,
+		Create: resourceArmSubnetCreate,
 		Read:   resourceArmSubnetRead,
-		Update: resourceArmSubnetCreateUpdate,
+		Update: resourceArmSubnetUpdate,
 		Delete: resourceArmSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -55,26 +55,6 @@ func resourceArmSubnet() *schema.Resource {
 			"address_prefix": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-
-			"network_security_group_id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "Use the `azurerm_subnet_network_security_group_association` resource instead.",
-			},
-
-			"route_table_id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "Use the `azurerm_subnet_route_table_association` resource instead.",
-			},
-
-			"ip_configurations": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			"service_endpoints": {
@@ -119,10 +99,10 @@ func resourceArmSubnet() *schema.Resource {
 											"Microsoft.Web/serverFarms",
 										}, false),
 									},
+
 									"actions": {
 										Type:       schema.TypeList,
 										Optional:   true,
-										Computed:   true,
 										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
@@ -157,7 +137,8 @@ func resourceArmSubnet() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+// TODO: refactor the create/flatten functions
+func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +149,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, vnetName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -186,71 +167,22 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	locks.ByName(vnetName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(vnetName, VirtualNetworkResourceName)
 
+	privateEndpointNetworkPolicies := d.Get("enforce_private_link_endpoint_network_policies").(bool)
+	privateLinkServiceNetworkPolicies := d.Get("enforce_private_link_service_network_policies").(bool)
+
+	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
 	properties := network.SubnetPropertiesFormat{
-		AddressPrefix: &addressPrefix,
+		AddressPrefix:    &addressPrefix,
+		ServiceEndpoints: expandSubnetServiceEndpoints(serviceEndpointsRaw),
+
+		// To enable private endpoints you must disable the network policies for the subnet because
+		// Network policies like network security groups are not supported by private endpoints.
+		PrivateEndpointNetworkPolicies:    expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPolicies),
+		PrivateLinkServiceNetworkPolicies: expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPolicies),
 	}
 
-	if v, ok := d.GetOk("enforce_private_link_service_network_policies"); ok {
-		// To enable private endpoints you must disable the network policies for the
-		// subnet because Network policies like network security groups are not
-		// supported by private endpoints.
-		if v.(bool) {
-			properties.PrivateLinkServiceNetworkPolicies = utils.String("Disabled")
-		}
-	}
-
-	if v, ok := d.GetOk("network_security_group_id"); ok {
-		nsgId := v.(string)
-		properties.NetworkSecurityGroup = &network.SecurityGroup{
-			ID: &nsgId,
-		}
-
-		parsedNsgId, err := ParseNetworkSecurityGroupID(nsgId)
-		if err != nil {
-			return err
-		}
-
-		locks.ByName(parsedNsgId.Name, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(parsedNsgId.Name, networkSecurityGroupResourceName)
-	} else {
-		properties.NetworkSecurityGroup = nil
-	}
-
-	if v, ok := d.GetOk("route_table_id"); ok {
-		rtId := v.(string)
-		properties.RouteTable = &network.RouteTable{
-			ID: &rtId,
-		}
-
-		parsedRouteTableId, err := ParseRouteTableID(rtId)
-		if err != nil {
-			return err
-		}
-
-		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
-		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
-	} else {
-		properties.RouteTable = nil
-	}
-
-	if v, ok := d.GetOk("enforce_private_link_endpoint_network_policies"); ok {
-		// This is strange logic, but to get the schema to make sense for the end user
-		// I exposed it with the same name that the Azure CLI does to be consistent
-		// between the tool sets, which means true == Disabled.
-		//
-		// To enable private endpoints you must disable the network policies for the
-		// subnet because Network policies like network security groups are not
-		// supported by private endpoints.
-		if v.(bool) {
-			properties.PrivateEndpointNetworkPolicies = utils.String("Disabled")
-		}
-	}
-
-	serviceEndpoints := expandSubnetServiceEndpoints(d)
-	properties.ServiceEndpoints = &serviceEndpoints
-
-	delegations := expandSubnetDelegation(d)
-	properties.Delegations = &delegations
+	delegationsRaw := d.Get("delegation").([]interface{})
+	properties.Delegations = expandSubnetDelegation(delegationsRaw)
 
 	subnet := network.Subnet{
 		Name:                   &name,
@@ -279,6 +211,73 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceArmSubnetRead(d, meta)
 }
 
+func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resourceGroup := id.ResourceGroup
+	networkName := id.Path["virtualNetworks"]
+	name := id.Path["subnets"]
+
+	existing, err := client.Get(ctx, resourceGroup, networkName, name, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+	}
+
+	if existing.SubnetPropertiesFormat == nil {
+		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): `properties` was nil", name, networkName, resourceGroup)
+	}
+
+	// TODO: locking on the NSG/Route Table if applicable
+
+	props := *existing.SubnetPropertiesFormat
+
+	if d.HasChange("address_prefix") {
+		props.AddressPrefix = utils.String(d.Get("address_prefix").(string))
+	}
+
+	if d.HasChange("delegation") {
+		delegationsRaw := d.Get("delegation").([]interface{})
+		props.Delegations = expandSubnetDelegation(delegationsRaw)
+	}
+
+	if d.HasChange("enforce_private_link_endpoint_network_policies") {
+		v := d.Get("enforce_private_link_endpoint_network_policies").(bool)
+		props.PrivateEndpointNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(v)
+	}
+
+	if d.HasChange("enforce_private_link_service_network_policies") {
+		v := d.Get("enforce_private_link_service_network_policies").(bool)
+		props.PrivateLinkServiceNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(v)
+	}
+
+	if d.HasChange("service_endpoints") {
+		serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
+		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+	}
+
+	subnet := network.Subnet{
+		Name:                   utils.String(name),
+		SubnetPropertiesFormat: &props,
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkName, name, subnet)
+	if err != nil {
+		return fmt.Errorf("Error updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+	}
+
+	return resourceArmSubnetRead(d, meta)
+}
+
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -288,71 +287,38 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	vnetName := id.Path["virtualNetworks"]
+	resourceGroup := id.ResourceGroup
+	networkName := id.Path["virtualNetworks"]
 	name := id.Path["subnets"]
 
-	resp, err := client.Get(ctx, resGroup, vnetName, name, "")
+	resp, err := client.Get(ctx, resourceGroup, networkName, name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Subnet %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("virtual_network_name", vnetName)
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("virtual_network_name", networkName)
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
-		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
-			// To enable private endpoints you must disable the network policies for the
-			// subnet because Network policies like network security groups are not
-			// supported by private endpoints.
-
-			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *p))
-		}
-
-		var securityGroupId *string
-		if props.NetworkSecurityGroup != nil {
-			securityGroupId = props.NetworkSecurityGroup.ID
-		}
-		d.Set("network_security_group_id", securityGroupId)
-
-		var routeTableId string
-		if props.RouteTable != nil && props.RouteTable.ID != nil {
-			routeTableId = *props.RouteTable.ID
-		}
-		d.Set("route_table_id", routeTableId)
-
-		ips := flattenSubnetIPConfigurations(props.IPConfigurations)
-		if err := d.Set("ip_configurations", ips); err != nil {
-			return err
-		}
-
-		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
-			return err
-		}
-
-		// This is strange logic, but to get the schema to make sense for the end user
-		// I exposed it with the same name that the Azure CLI does to be consistent
-		// between the tool sets, which means true == Disabled.
-		//
-		// To enable private endpoints you must disable the network policies for the
-		// subnet because Network policies like network security groups are not
-		// supported by private endpoints.
-		if privateEndpointNetworkPolicies := props.PrivateEndpointNetworkPolicies; privateEndpointNetworkPolicies != nil {
-			d.Set("enforce_private_link_endpoint_network_policies", *privateEndpointNetworkPolicies == "Disabled")
-		}
-
 		delegation := flattenSubnetDelegation(props.Delegations)
 		if err := d.Set("delegation", delegation); err != nil {
 			return fmt.Errorf("Error flattening `delegation`: %+v", err)
+		}
+
+		d.Set("enforce_private_link_endpoint_network_policies", flattenSubnetPrivateLinkNetworkPolicy(props.PrivateEndpointNetworkPolicies))
+		d.Set("enforce_private_link_service_network_policies", flattenSubnetPrivateLinkNetworkPolicy(props.PrivateLinkServiceNetworkPolicies))
+
+		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
+		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
+			return fmt.Errorf("Error setting `service_endpoints`: %+v", err)
 		}
 	}
 
@@ -368,55 +334,32 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["subnets"]
-	vnetName := id.Path["virtualNetworks"]
+	networkName := id.Path["virtualNetworks"]
 
-	if v, ok := d.GetOk("network_security_group_id"); ok {
-		networkSecurityGroupId := v.(string)
-		parsedNetworkSecurityGroupId, err2 := ParseNetworkSecurityGroupID(networkSecurityGroupId)
-		if err2 != nil {
-			return err2
-		}
-
-		locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
-	}
-
-	if v, ok := d.GetOk("route_table_id"); ok {
-		rtId := v.(string)
-		parsedRouteTableId, err2 := ParseRouteTableID(rtId)
-		if err2 != nil {
-			return err2
-		}
-
-		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
-		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
-	}
-
-	locks.ByName(vnetName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(vnetName, VirtualNetworkResourceName)
+	locks.ByName(networkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(networkName, VirtualNetworkResourceName)
 
 	locks.ByName(name, SubnetResourceName)
 	defer locks.UnlockByName(name, SubnetResourceName)
 
-	future, err := client.Delete(ctx, resGroup, vnetName, name)
+	future, err := client.Delete(ctx, resourceGroup, networkName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("Error deleting Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion for Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpointPropertiesFormat {
-	serviceEndpoints := d.Get("service_endpoints").([]interface{})
+func expandSubnetServiceEndpoints(input []interface{}) *[]network.ServiceEndpointPropertiesFormat {
 	endpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
 
-	for _, svcEndpointRaw := range serviceEndpoints {
+	for _, svcEndpointRaw := range input {
 		if svc, ok := svcEndpointRaw.(string); ok {
 			endpoint := network.ServiceEndpointPropertiesFormat{
 				Service: &svc,
@@ -425,7 +368,7 @@ func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpo
 		}
 	}
 
-	return endpoints
+	return &endpoints
 }
 
 func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
@@ -444,23 +387,10 @@ func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPr
 	return endpoints
 }
 
-func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) []string {
-	ips := make([]string, 0)
-
-	if ipConfigurations != nil {
-		for _, ip := range *ipConfigurations {
-			ips = append(ips, *ip.ID)
-		}
-	}
-
-	return ips
-}
-
-func expandSubnetDelegation(d *schema.ResourceData) []network.Delegation {
-	delegations := d.Get("delegation").([]interface{})
+func expandSubnetDelegation(input []interface{}) *[]network.Delegation {
 	retDelegations := make([]network.Delegation, 0)
 
-	for _, deleValue := range delegations {
+	for _, deleValue := range input {
 		deleData := deleValue.(map[string]interface{})
 		deleName := deleData["name"].(string)
 		srvDelegations := deleData["service_delegation"].([]interface{})
@@ -485,7 +415,7 @@ func expandSubnetDelegation(d *schema.ResourceData) []network.Delegation {
 		retDelegations = append(retDelegations, retDelegation)
 	}
 
-	return retDelegations
+	return &retDelegations
 }
 
 func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
@@ -521,4 +451,28 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 	}
 
 	return retDeles
+}
+
+// TODO: confirm this logic below
+
+func expandSubnetPrivateLinkNetworkPolicy(enabled bool) *string {
+	// This is strange logic, but to get the schema to make sense for the end user
+	// I exposed it with the same name that the Azure CLI does to be consistent
+	// between the tool sets, which means true == Disabled.
+	if enabled {
+		return utils.String("Disabled")
+	}
+
+	return utils.String("Enabled")
+}
+
+func flattenSubnetPrivateLinkNetworkPolicy(input *string) bool {
+	// This is strange logic, but to get the schema to make sense for the end user
+	// I exposed it with the same name that the Azure CLI does to be consistent
+	// between the tool sets, which means true == Disabled.
+	if input == nil {
+		return false
+	}
+
+	return strings.EqualFold(*input, "Disabled")
 }

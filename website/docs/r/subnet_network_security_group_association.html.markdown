@@ -11,8 +11,6 @@ description: |-
 
 Associates a [Network Security Group](network_security_group.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
 
--> **NOTE:** Subnet `<->` Network Security Group associations currently need to be configured on both this resource and using the `network_security_group_id` field on the `azurerm_subnet` resource. The next major version of the AzureRM Provider (2.0) will remove the `network_security_group_id` field from the `azurerm_subnet` resource such that this resource is used to link resources in future.
-
 ## Example Usage
 
 ```hcl
@@ -29,11 +27,10 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                      = "frontend"
-  resource_group_name       = azurerm_resource_group.example.name
-  virtual_network_name      = azurerm_virtual_network.example.name
-  address_prefix            = "10.0.2.0/24"
-  network_security_group_id = azurerm_network_security_group.example.id
+  name                 = "frontend"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_security_group" "example" {

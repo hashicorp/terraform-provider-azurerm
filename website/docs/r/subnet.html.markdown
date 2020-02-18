@@ -59,25 +59,19 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
-
--> **NOTE:** At this time Subnet `<->` Network Security Group associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_subnet_network_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
-
-* `route_table_id` - (Optional / **Deprecated**) The ID of the Route Table to associate with the subnet.
-
--> **NOTE:** At this time Subnet `<->` Route Table associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_subnet_route_table_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
-
-* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage` and `Microsoft.Web`.
+---
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
 * `enforce_private_link_endpoint_network_policies` - (Optional) Enable or Disable network policies for the private link endpoint on the subnet. Default valule is `false`. Conflicts with enforce_private_link_service_network_policies.
 
--> **NOTE:** Network policies, like network security groups (NSG), are not supported for Private Link Endpoints or Private Link Services. In order to deploy a Private Link Endpoint on a given subnet, you must set the `enforce_private_link_endpoint_network_policies` attribute to `true`. This setting is only applicable for the Private Link Endpoint, for all other resources in the subnet access is controlled based on the `network_security_group_id`.
+-> **NOTE:** Network policies, like network security groups (NSG), are not supported for Private Link Endpoints or Private Link Services. In order to deploy a Private Link Endpoint on a given subnet, you must set the `enforce_private_link_endpoint_network_policies` attribute to `true`. This setting is only applicable for the Private Link Endpoint, for all other resources in the subnet access is controlled based via the Network Security Group which can be configured using the `azurerm_subnet_network_security_group_association` resource.
 
-* `enforce_private_link_service_network_policies` - (Optional) Enable or Disable network policies for the private link service on the subnet. Default valule is `false`. Conflicts with enforce_private_link_endpoint_network_policies.
+* `enforce_private_link_service_network_policies` - (Optional) Enable or Disable network policies for the private link service on the subnet. Default valule is `false`. Conflicts with `enforce_private_link_endpoint_network_policies`.
 
--> **NOTE:** In order to deploy a Private Link Service on a given subnet, you must set the `enforce_private_link_service_network_policies` attribute to `true`. This setting is only applicable for the Private Link Service, for all other resources in the subnet access is controlled based on the `network_security_group_id`.
+-> **NOTE:** In order to deploy a Private Link Service on a given subnet, you must set the `enforce_private_link_service_network_policies` attribute to `true`. This setting is only applicable for the Private Link Service, for all other resources in the subnet access is controlled based on the Network Security Group which can be configured using the `azurerm_subnet_network_security_group_association` resource.
+
+* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage` and `Microsoft.Web`.
 
 ---
 
@@ -104,7 +98,6 @@ A `service_delegation` block supports the following:
 The following attributes are exported:
 
 * `id` - The subnet ID.
-* `ip_configurations` - The collection of IP Configurations with IPs within this subnet.
 * `name` - The name of the subnet.
 * `resource_group_name` - The name of the resource group in which the subnet is created in.
 * `virtual_network_name` - The name of the virtual network in which the subnet is created in
