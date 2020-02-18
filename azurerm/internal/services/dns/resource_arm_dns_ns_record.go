@@ -208,7 +208,6 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 		if err := d.Set("records", flattenAzureRmDnsNsRecords(props.NsRecords)); err != nil {
 			return fmt.Errorf("Error settings `records`: %+v", err)
 		}
-
 	}
 
 	return tags.FlattenAndSet(d, resp.Metadata)
