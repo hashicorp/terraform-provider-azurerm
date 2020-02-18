@@ -35,6 +35,7 @@ BREAKING CHANGES:
 * `azurerm_azuread_service_principal` - This resource has been removed since it was deprecated [GH-5748]
 * `azurerm_cognitive_account` - removing the deprecated `sku_name` block [GH-5797]
 * `azurerm_container_service` - This resource has been removed since it was deprecated [GH-5709]
+* `azurerm_devspace_controller` - removing the deprecated `sku` block [GH-5795]
 * `azurerm_iot_dps` - This resource has been removed since it was deprecated [GH-5753]
 * `azurerm_iot_dps_certificate` - This resource has been removed since it was deprecated [GH-5753]
 * `azurerm_key_vault` - removing the `sku` block since this has been deprecated in favour of the `sku_name` field [GH-5774]
