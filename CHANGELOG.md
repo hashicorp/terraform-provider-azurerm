@@ -48,7 +48,6 @@ BREAKING CHANGES:
 * `azurerm_maps_account` - the `sku_name` field is now case-sensitive [GH-5776]
 * `azurerm_mariadb_server` - removing the `sku` block since it's been deprecated in favour of the `sku_name` field [GH-5777]
 * `azurerm_mssql_elasticpool` - removing the deprecated `elastic_pool_properties` block [GH-5744]
-* `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
 * `azurerm_network_interface` - removing the deprecated `application_gateway_backend_address_pools_ids` field from the `ip_configurations` block [GH-5784]
 * `azurerm_network_interface` - removing the deprecated `application_security_group_ids ` field from the `ip_configurations` block [GH-5784]
 * `azurerm_network_interface` - removing the deprecated `load_balancer_backend_address_pools_ids ` field from the `ip_configurations` block [GH-5784]
@@ -83,6 +82,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
+* `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
 * `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]
 * `azurerm_role_assignment` - validating that the `name` is a UUID [GH-5624]
 * `azurerm_signalr_service` - ensuring the SignalR segment is parsed in the correct case [GH-5737]
