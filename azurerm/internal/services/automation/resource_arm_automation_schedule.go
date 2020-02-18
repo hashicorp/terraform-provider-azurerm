@@ -52,7 +52,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
