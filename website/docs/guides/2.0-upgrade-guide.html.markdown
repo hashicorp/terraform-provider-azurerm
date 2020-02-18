@@ -225,6 +225,10 @@ The deprecated `ip_address_list` field in the `backend_address_pool` block will 
 
 The default value for the `body` field within the `match` block will change from `*` to an empty string.
 
+### Resource: `azurerm_automation_account`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
 ### Resource: `azurerm_automation_credential`
 
 The deprecated `account_name` field will be removed. This has been deprecated in favour of the `automation_account_name` field.
