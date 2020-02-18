@@ -169,7 +169,7 @@ resource "azurerm_iothub_dps_certificate" "test" {
 }
 
 func testAccAzureRMIotHubDPSCertificate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubDPS_basic(data)
+	template := testAccAzureRMIotHubDPSCertificate_basic(data)
 	return fmt.Sprintf(`
 %s
 

@@ -56,7 +56,7 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPS_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps"),
 			},
 		},
 	})

@@ -149,7 +149,7 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 }
 
 func testAccAzureRMIotHubFallbackRoute_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHub_basic(data)
+	template := testAccAzureRMIotHubFallbackRoute_basic(data)
 	return fmt.Sprintf(`
 %s
 
