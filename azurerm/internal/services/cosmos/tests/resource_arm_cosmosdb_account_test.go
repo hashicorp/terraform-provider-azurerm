@@ -108,7 +108,7 @@ func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, "", documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", documentdb.Eventual),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 				),
@@ -524,6 +524,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level    = "%[4]s"
+    max_interval_seconds = 300
     max_staleness_prefix = 170000
   }
 
