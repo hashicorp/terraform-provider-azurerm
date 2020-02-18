@@ -847,7 +847,7 @@ func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
 
 	return fmt.Sprintf(`
 access_policy {
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = "%s"
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
@@ -878,9 +878,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_key_vault" "test" {
   name                     = "vault%d"
   provider                 = azurerm.keyVault
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  tenant_id                = "${data.azurerm_client_config.current.tenant_id}"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
   soft_delete_enabled      = true
   purge_protection_enabled = false
 

@@ -34,18 +34,18 @@ func schemaFeatures() *schema.Schema {
 						Required: true,
 					},
 				},
+			},
+		},
 
-				"key_vault": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"purge_soft_delete_on_destroy": {
-								Type:     schema.TypeBool,
-								Required: true,
-							},
-						},
+		"key_vault": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"purge_soft_delete_on_destroy": {
+						Type:     schema.TypeBool,
+						Required: true,
 					},
 				},
 			},

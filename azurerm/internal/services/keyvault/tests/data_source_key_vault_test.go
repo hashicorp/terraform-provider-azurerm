@@ -108,7 +108,7 @@ func TestAccDataSourceAzureRMKeyVault_softDelete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.0.secret_permissions.0", "set"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_acls.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_acls.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0")
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
