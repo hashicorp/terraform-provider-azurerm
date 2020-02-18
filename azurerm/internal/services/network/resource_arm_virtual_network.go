@@ -178,7 +178,7 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 
 			networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
-			if !SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
+			if !azure.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
 				networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
 			}
 		}
@@ -480,7 +480,7 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *schema.Resou
 
 				networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
-				if !SliceContainsValue(nsgNames, networkSecurityGroupName) {
+				if !azure.SliceContainsValue(nsgNames, networkSecurityGroupName) {
 					nsgNames = append(nsgNames, networkSecurityGroupName)
 				}
 			}
