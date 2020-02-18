@@ -180,7 +180,7 @@ func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "record"),
+					resource.TestCheckResourceAttr(data.ResourceName, "record", ""),
 				),
 			},
 			data.ImportStep(),
@@ -208,7 +208,7 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 				Config: testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "target_resource_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "target_resource_id", ""),
 				),
 			},
 			data.ImportStep(),
