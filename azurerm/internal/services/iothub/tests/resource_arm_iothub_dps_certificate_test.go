@@ -52,7 +52,7 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPSCertificate_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps_certificate"),
 			},
 		},
 	})
