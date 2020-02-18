@@ -32,6 +32,7 @@ BREAKING CHANGES:
 * Data Source: `azurerm_key_vault_secret` - removing the deprecated `vault_uri` field [GH-5774]
 * Data Source: `azurerm_role_definition` - removing the alias `VirtualMachineContributor` which has been deprecated in favour of the full name `Virtual Machine Contributor` [GH-5733]
 * Data Source: `azurerm_scheduler_job_collection` - This data source has been removed since it was deprecated [GH-5712]
+* Data Source: `azurerm_subnet` - removing the deprecated `ip_configuration` field [GH-5801]
 * `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * `azurerm_application_gateway` - updating the default value for the `body` field within the `match` block from `*` to an empty string [GH-5752]
 * `azurerm_availability_set` - updating the default value for `managed` from `false` to `true` [GH-5724]
@@ -87,6 +88,10 @@ BREAKING CHANGES:
 * `azurerm_storage_queue` - removing the deprecated `resource_group_name` field [GH-5710]
 * `azurerm_storage_share` - removing the deprecated `resource_group_name` field [GH-5710]
 * `azurerm_storage_table` - removing the deprecated `resource_group_name` field [GH-5710]
+* `azurerm_subnet` - removing the deprecated `ip_configuration` field [GH-5801]
+* `azurerm_subnet` - removing the deprecated `network_security_group_id` field [GH-5801]
+* `azurerm_subnet` - removing the deprecated `route_table_id` field [GH-5801]
+* `azurerm_subnet` - making the `actions` list within the `service_delegation` block within the `service_endpoints` block non-computed [GH-5801]
 
 IMPROVEMENTS:
 
@@ -94,6 +99,7 @@ IMPROVEMENTS:
 * `azurerm_dedicated_host` - support for setting `sku_name` to `DSv3-Type2` and `ESv3-Type2` [GH-5768]
 * `azurerm_storage_account` - support for configuring the `static_website` block [GH-5649]
 * `azurerm_storage_account` - support for configuring `cors_rules` within the `blob_properties` block [GH-5425]
+* `azurerm_subnet` - support for delta updates [GH-5801]
 * `azurerm_windows_virtual_machine` - fixing a bug when provisioning from a Shared Gallery image [GH-5661]
 
 BUG FIXES:
@@ -103,6 +109,8 @@ BUG FIXES:
 * `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]
 * `azurerm_role_assignment` - validating that the `name` is a UUID [GH-5624]
 * `azurerm_signalr_service` - ensuring the SignalR segment is parsed in the correct case [GH-5737]
+* `azurerm_subnet` - supporting updating of the `enforce_private_link_endpoint_network_policies` field [GH-5801]
+* `azurerm_subnet` - supporting updating of the `enforce_private_link_service_network_policies` field [GH-5801]
 * `azurerm_windows_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
 
 ---
