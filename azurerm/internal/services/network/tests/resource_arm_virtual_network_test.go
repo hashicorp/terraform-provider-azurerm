@@ -163,24 +163,6 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualNetwork_bug373(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetwork_bug373(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
@@ -415,70 +397,4 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMVirtualNetwork_bug373(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-variable "environment" {
-  default = "TestVirtualNetworkBug373"
-}
-
-variable "network_cidr" {
-  default = "10.0.0.0/16"
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "${azurerm_resource_group.test.name}-vnet"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["${var.network_cidr}"]
-  location            = "${azurerm_resource_group.test.location}"
-
-  tags = {
-    environment = "${var.environment}"
-  }
-}
-
-resource "azurerm_subnet" "public" {
-  name                      = "${azurerm_resource_group.test.name}-subnet-public"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.1.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-
-resource "azurerm_subnet" "private" {
-  name                      = "${azurerm_resource_group.test.name}-subnet-private"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.2.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "default-network-sg"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  security_rule {
-    name                       = "default-allow-all"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "${var.network_cidr}"
-    destination_address_prefix = "*"
-  }
-
-  tags = {
-    environment = "${var.environment}"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
