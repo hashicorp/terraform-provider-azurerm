@@ -404,6 +404,14 @@ This resource has been renamed to `azurerm_log_analytics_linked_service` which i
 
 The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
 
+### Resource: `azurerm_managed_disk`
+
+The `storage_account_type` property is now case sensitive.
+
+The `create_option` property is now case sensitive.
+
+The `disk_size_gb` property minimum is now `1` instead of `0`.
+
 ### Resource: `azurerm_maps_account`
 
 The `sku_name` field is now case sensitive.
@@ -535,6 +543,10 @@ The `azurerm_virtual_machine` resource will be deprecated in favour of two new r
 Splitting the Virtual Machine resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
 The existing `azurerm_virtual_machine` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_virtual_machine_extension`
+
+The deprecated `virtual_machine_name`, `location`, and `resource_group_name` field will be removed in favor of `virtual_machine_id`.
 
 ### Resource: `azurerm_virtual_machine_scale_set`
 
