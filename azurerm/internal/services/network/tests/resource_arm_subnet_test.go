@@ -373,7 +373,7 @@ resource "azurerm_subnet" "test" {
     name = "first"
 
     service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
+      name = "Microsoft.ContainerInstance/containerGroups"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/action",
       ]
@@ -398,7 +398,7 @@ resource "azurerm_subnet" "test" {
     name = "first"
 
     service_delegation {
-      name    = "Microsoft.Databricks/workspaces"
+      name = "Microsoft.Databricks/workspaces"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
         "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
