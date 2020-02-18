@@ -524,7 +524,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level    = "%[4]s"
-    max_interval_seconds = 300
+    max_interval_in_seconds = 300
     max_staleness_prefix = 170000
   }
 
