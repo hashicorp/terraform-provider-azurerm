@@ -112,6 +112,11 @@ func dataSourceArmKeyVault() *schema.Resource {
 				Computed: true,
 			},
 
+			"enable_soft_delete": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"network_acls": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -175,6 +180,7 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enable_soft_delete", props.EnableSoftDelete)
 		d.Set("vault_uri", props.VaultURI)
 
 		if sku := props.Sku; sku != nil {
