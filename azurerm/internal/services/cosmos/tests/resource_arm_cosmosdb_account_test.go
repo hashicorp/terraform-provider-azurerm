@@ -523,9 +523,9 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "%[3]s"
 
   consistency_policy {
-    consistency_level    = "%[4]s"
+    consistency_level       = "%[4]s"
     max_interval_in_seconds = 300
-    max_staleness_prefix = 170000
+    max_staleness_prefix    = 170000
   }
 
   is_virtual_network_filter_enabled = true
