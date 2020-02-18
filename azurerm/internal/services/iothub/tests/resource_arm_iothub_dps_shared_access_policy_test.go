@@ -240,7 +240,7 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy(s *terraform.State) erro
 
 		for _, sharedAccessPolicy := range *resp.Properties.AuthorizationPolicies {
 			if *sharedAccessPolicy.KeyName == keyName {
-				return fmt.Errorf("Bad: Shared Access Policy %s still exists on IoTHb DPS %s", keyName, iothubDpsName)
+				return fmt.Errorf("Bad: Shared Access Policy %s still exists on IoTHub DPS %s", keyName, iothubDpsName)
 			}
 		}
 	}
