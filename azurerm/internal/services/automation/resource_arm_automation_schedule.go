@@ -49,23 +49,11 @@ func resourceArmAutomationSchedule() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			//this is AutomationAccountName in the SDK
-			"account_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
-				ConflictsWith: []string{"automation_account_name"},
-				ValidateFunc:  azure.ValidateAutomationAccountName(),
-			},
-
 			"automation_account_name": {
-				Type:     schema.TypeString,
-				Optional: true, //todo change to required once account_name has been removed
-				Computed: true,
-				//ForceNew:      true, //todo this needs to come back once account_name has been removed
-				ConflictsWith: []string{"account_name"},
-				ValidateFunc:  azure.ValidateAutomationAccountName(),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"frequency": {
@@ -206,24 +194,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				return fmt.Errorf("`monthly_occurrence` can only be set when frequency is `Month`")
 			}
 
-			_, hasAccount := diff.GetOk("automation_account_name")
-			_, hasAutomationAccountWeb := diff.GetOk("account_name")
-			if !hasAccount && !hasAutomationAccountWeb {
-				return fmt.Errorf("`automation_account_name` must be set")
-			}
-
-			//if automation_account_name changed or account_name changed to or from nil force a new resource
-			//remove once we remove the deprecated property
-			oAan, nAan := diff.GetChange("automation_account_name")
-			if oAan != "" && nAan != "" {
-				diff.ForceNew("automation_account_name")
-			}
-
-			oAn, nAn := diff.GetChange("account_name")
-			if oAn != "" && nAn != "" {
-				diff.ForceNew("account_name")
-			}
-
 			return nil
 		},
 	}
@@ -238,14 +208,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	//CustomizeDiff should ensure one of these two is set
-	// todo remove this once `account_name` is removed
-	accountName := ""
-	if v, ok := d.GetOk("automation_account_name"); ok {
-		accountName = v.(string)
-	} else if v, ok := d.GetOk("account_name"); ok {
-		accountName = v.(string)
-	}
+	accountName := d.Get("automation_account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accountName, name)
@@ -350,7 +313,6 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accountName)
-	d.Set("account_name", accountName) // todo remove once `account_name` is removed
 	d.Set("frequency", string(resp.Frequency))
 
 	if v := resp.StartTime; v != nil {

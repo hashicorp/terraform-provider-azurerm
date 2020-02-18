@@ -112,7 +112,7 @@ func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
 		}
 		jobScheduleID := id.Path["jobSchedules"]
 		jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -183,22 +183,18 @@ resource "azurerm_automation_account" "test" {
   name                = "acctestAA-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name = "Basic"
-  }
+  sku_name            = "Basic"
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                = "Output-HelloWorld"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  account_name = "${azurerm_automation_account.test.name}"
-  log_verbose  = "true"
-  log_progress = "true"
-  description  = "This is a test runbook for terraform acceptance test"
-  runbook_type = "PowerShell"
+  name                    = "Output-HelloWorld"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is a test runbook for terraform acceptance test"
+  runbook_type            = "PowerShell"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
@@ -303,6 +299,7 @@ resource "azurerm_automation_job_schedule" "import" {
   automation_account_name = "${azurerm_automation_job_schedule.test.automation_account_name}"
   schedule_name           = "${azurerm_automation_job_schedule.test.schedule_name}"
   runbook_name            = "${azurerm_automation_job_schedule.test.runbook_name}"
+  job_schedule_id         = "${azurerm_automation_job_schedule.test.job_schedule_id}"
 }
 `, template)
 }
