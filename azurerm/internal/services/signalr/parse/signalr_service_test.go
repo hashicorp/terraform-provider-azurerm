@@ -32,20 +32,20 @@ func TestSignalRServiceId(t *testing.T) {
 		},
 		{
 			Name:     "Missing SignalR Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SignalRService/signalR/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SignalRService/SignalR/",
 			Expected: nil,
 		},
 		{
 			Name:  "SignalR Service ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SignalRService/signalR/Service1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SignalRService/SignalR/service1",
 			Expected: &SignalRServiceId{
-				Name:          "Service1",
+				Name:          "service1",
 				ResourceGroup: "resGroup1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SignalRService/SignalR/Service1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SignalRService/signalR/service1",
 			Expected: nil,
 		},
 	}

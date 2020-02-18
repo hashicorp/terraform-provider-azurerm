@@ -1,5 +1,5 @@
 ---
-subcategory: "Beta"
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_windows_virtual_machine_scale_set"
 description: |-
@@ -11,8 +11,6 @@ description: |-
 Manages a Windows Virtual Machine Scale Set.
 
 ## Disclaimers
-
-~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider. You can find out [how to opt into the Beta in this guide](https://terraform.io/docs/providers/azurerm/guides/2.0-beta.html)
 
 ~> **Note**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -399,8 +397,6 @@ An `identity` block exports the following:
 * `principal_id` - The ID of the System Managed Service Principal.
 
 ## Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -122,11 +122,6 @@ func dataSourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	// search by name
 	var role authorization.RoleDefinition
 	if name != "" {
-		// TODO: remove this in 2.0
-		if name == "VirtualMachineContributor" {
-			name = "Virtual Machine Contributor"
-		}
-
 		roleDefinitions, err := client.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", name))
 		if err != nil {
 			return fmt.Errorf("Error loading Role Definition List: %+v", err)

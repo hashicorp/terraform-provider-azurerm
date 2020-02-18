@@ -266,7 +266,6 @@ func testAccAzureRMStorageShare_basic(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, template, data.RandomString)
@@ -279,7 +278,6 @@ func testAccAzureRMStorageShare_metaData(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
   metadata = {
@@ -296,7 +294,6 @@ func testAccAzureRMStorageShare_metaDataUpdated(data acceptance.TestData) string
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
   metadata = {
@@ -314,7 +311,6 @@ func testAccAzureRMStorageShare_acl(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
   acl {
@@ -337,7 +333,6 @@ func testAccAzureRMStorageShare_aclUpdated(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
   acl {
@@ -368,7 +363,6 @@ func testAccAzureRMStorageShare_requiresImport(data acceptance.TestData) string 
 
 resource "azurerm_storage_share" "import" {
   name                 = "${azurerm_storage_share.test.name}"
-  resource_group_name  = "${azurerm_storage_share.test.resource_group_name}"
   storage_account_name = "${azurerm_storage_share.test.storage_account_name}"
 }
 `, template)
@@ -381,7 +375,6 @@ func testAccAzureRMStorageShare_updateQuota(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
   quota                = 5
 }

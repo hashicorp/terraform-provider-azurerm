@@ -8,12 +8,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -256,6 +258,48 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testGeneralizeWindowsVMImage(resourceGroup string, name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		command := []string{
+			"$cmd = \"$Env:SystemRoot\\system32\\sysprep\\sysprep.exe\"",
+			"$args = \"/generalize /oobe /mode:vm /quit\"",
+			"Start-Process powershell -Argument \"$cmd $args\" -Wait",
+		}
+		runCommand := compute.RunCommandInput{
+			CommandID: utils.String("RunPowerShellScript"),
+			Script:    &command,
+		}
+
+		future, err := client.RunCommand(ctx, resourceGroup, name, runCommand)
+		if err != nil {
+			return fmt.Errorf("Bad: Error in running sysprep: %+v", err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Bad: Error waiting for Windows VM to sysprep: %+v", err)
+		}
+
+		daFuture, err := client.Deallocate(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Deallocation error: %+v", err)
+		}
+
+		if err := daFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Bad: Deallocation error: %+v", err)
+		}
+
+		_, err = client.Generalize(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Generalizing error: %+v", err)
+		}
+
+		return nil
+	}
 }
 
 func testGeneralizeVMImage(resourceGroup string, vmName string, userName string, password string, hostName string, port string, location string) resource.TestCheckFunc {

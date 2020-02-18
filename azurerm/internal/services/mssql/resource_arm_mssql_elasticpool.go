@@ -129,45 +129,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				},
 			},
 
-			"elastic_pool_properties": {
-				Type:       schema.TypeList,
-				Computed:   true,
-				Deprecated: "These properties herein have been moved to the top level or removed",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"state": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This property has been removed",
-						},
-
-						"creation_date": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This property has been removed",
-						},
-
-						"max_size_bytes": {
-							Type:       schema.TypeInt,
-							Computed:   true,
-							Deprecated: "This property has been moved to the top level",
-						},
-
-						"zone_redundant": {
-							Type:       schema.TypeBool,
-							Computed:   true,
-							Deprecated: "This property has been moved to the top level",
-						},
-
-						"license_type": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This property has been removed",
-						},
-					},
-				},
-			},
-
 			"max_size_bytes": {
 				Type:          schema.TypeInt,
 				Optional:      true,
@@ -320,11 +281,6 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
 
-		// todo remove in 2.0
-		if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
-			return fmt.Errorf("Error setting `elastic_pool_properties`: %+v", err)
-		}
-
 		if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
 		}
@@ -410,23 +366,6 @@ func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
 	}
 
 	return []interface{}{values}
-}
-
-func flattenAzureRmMsSqlElasticPoolProperties(resp *sql.ElasticPoolProperties) []interface{} {
-	elasticPoolProperty := map[string]interface{}{}
-	elasticPoolProperty["state"] = string(resp.State)
-
-	if date := resp.CreationDate; date != nil {
-		elasticPoolProperty["creation_date"] = date.String()
-	}
-
-	if zoneRedundant := resp.ZoneRedundant; zoneRedundant != nil {
-		elasticPoolProperty["zone_redundant"] = *zoneRedundant
-	}
-
-	elasticPoolProperty["license_type"] = string(resp.LicenseType)
-
-	return []interface{}{elasticPoolProperty}
 }
 
 func flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {

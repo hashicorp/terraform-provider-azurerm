@@ -80,9 +80,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
-* `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
+* `sku_name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
@@ -109,11 +107,7 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
-A `sku` block supports the following:
 
-* `name` - (Required)  The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
-
----
 A `access_policy` block supports the following:
 
 Elements of `access_policy` support:
@@ -153,8 +147,6 @@ The following attributes are exported:
 * `vault_uri` - The URI of the Key Vault, used for performing operations on keys and secrets.
 
 ## Timeouts
-
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

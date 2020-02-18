@@ -48,15 +48,9 @@ The following arguments are supported:
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `records` - (Optional) A list of values that make up the NS record. *WARNING*: Either `records` or `record` is required.
-
-* `record` - (Optional) A list of values that make up the NS record. Each `record` block supports fields documented below. This field has been deprecated and will be removed in a future release.
+* `records` - (Required) A list of values that make up the NS record. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-The `record` block supports:
-
-* `nsdname` - (Required) The value of the record.
 
 ## Attributes Reference
 
@@ -67,7 +61,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

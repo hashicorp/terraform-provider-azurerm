@@ -14,6 +14,7 @@ func (r Registration) Name() string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_eventhub_authorization_rule":           dataSourceEventHubAuthorizationRule(),
 		"azurerm_eventhub_consumer_group":               dataSourceEventHubConsumerGroup(),
 		"azurerm_eventhub_namespace":                    dataSourceEventHubNamespace(),
 		"azurerm_eventhub_namespace_authorization_rule": dataSourceEventHubNamespaceAuthorizationRule(),

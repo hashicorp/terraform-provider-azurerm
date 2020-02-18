@@ -219,12 +219,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, m
 		Delay:                     30 * time.Second,
 		PollInterval:              10 * time.Second,
 		ContinuousTargetOccurence: 10,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 30 * time.Minute
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
