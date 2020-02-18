@@ -239,7 +239,6 @@ resource "azurerm_api_management_api_operation" "test" {
 }
 
 func testAccAzureRMApiManagementApiOperation_requiresImport(data acceptance.TestData) string {
-	//template := testAccAzureRMApiManagementApiOperation_template(data)
 	template := testAccAzureRMApiManagementApiOperation_basic(data)
 	return fmt.Sprintf(`
 %s
