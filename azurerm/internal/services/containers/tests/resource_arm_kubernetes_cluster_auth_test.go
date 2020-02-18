@@ -40,7 +40,7 @@ func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "default_node_pool.0.max_pods"),
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.authorized_ip_ranges.#", "3"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -288,11 +288,13 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "Standard"
   }
 
-  api_server_authorized_ip_ranges = [
-    "8.8.8.8/32",
-    "8.8.4.4/32",
-    "8.8.2.0/24",
-  ]
+  api_server_access_profile {
+    authorized_ip_ranges = [
+      "8.8.8.8/32",
+      "8.8.4.4/32",
+      "8.8.2.0/24",
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }

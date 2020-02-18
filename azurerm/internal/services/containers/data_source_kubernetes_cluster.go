@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -193,17 +194,25 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeSet,
+			"api_server_access_profile": {
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"authorized_ip_ranges": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.CIDR,
+							},
+						},
+						"private_link_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
 				},
-			},
-
-			"private_link_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
 			},
 
 			"private_fqdn": {
@@ -475,14 +484,9 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 
-		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
-		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
-			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
-			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
-				return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
-			}
-
-			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
+		accessProfile := flattenKubernetesClusterDataSourceApiServerAccessProfile(props.APIServerAccessProfile)
+		if err := d.Set("api_server_access_profile", accessProfile); err != nil {
+			return fmt.Errorf("Error setting `api_server_access_profile`: %+v", err)
 		}
 
 		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
@@ -876,4 +880,22 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
 	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceApiServerAccessProfile(input *containerservice.ManagedClusterAPIServerAccessProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	apiServerAccessProfile := make(map[string]interface{})
+
+	apiServerAccessProfile["authorized_ip_ranges"] = []string{}
+	if ok := input.AuthorizedIPRanges; ok != nil {
+		apiServerAccessProfile["authorized_ip_ranges"] = *input.AuthorizedIPRanges
+	}
+	if ok := input.EnablePrivateCluster; ok != nil {
+		apiServerAccessProfile["private_link_enabled"] = *input.EnablePrivateCluster
+	}
+
+	return []interface{}{apiServerAccessProfile}
 }

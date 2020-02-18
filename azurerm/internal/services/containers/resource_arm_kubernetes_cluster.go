@@ -588,7 +588,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	windowsProfileRaw := d.Get("windows_profile").([]interface{})
 	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
-	apiAccessProfileRaw := d.Get("api_server_access_profile").(*schema.Set).List()
+	apiAccessProfileRaw := d.Get("api_server_access_profile").([]interface{})
 	apiAccessProfile := expandManagedClusterAPIServerAccessProfile(apiAccessProfileRaw)
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
@@ -893,7 +893,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
-		accessProfile := flattenManagedClusterAccessProfile(props.APIServerAccessProfile)
+		accessProfile := flattenManagedClusterApiServerAccessProfile(props.APIServerAccessProfile)
 		if err := d.Set("api_server_access_profile", accessProfile); err != nil {
 			return fmt.Errorf("Error setting `api_server_access_profile`: %+v", err)
 		}
@@ -1361,14 +1361,15 @@ func expandManagedClusterAPIServerAccessProfile(input []interface{}) *containers
 
 	val := input[0].(map[string]interface{})
 
-	apiServerAuthorizedRangesRaw := val["authorised_ip_ranges"].([]interface{})
-	apiServerAuthorizedRanges := utils.ExpandStringSlice(apiServerAuthorizedRangesRaw)
+	asap := containerservice.ManagedClusterAPIServerAccessProfile{}
 
-	privateLinkEnabled := val["private_link_enabled"].(bool)
+	if _, ok := val["authorized_ip_ranges"]; ok {
+		apiServerAuthorizedRangesRaw := val["authorized_ip_ranges"].(*schema.Set).List()
+		asap.AuthorizedIPRanges = utils.ExpandStringSlice(apiServerAuthorizedRangesRaw)
+	}
 
-	asap := containerservice.ManagedClusterAPIServerAccessProfile{
-		AuthorizedIPRanges:   apiServerAuthorizedRanges,
-		EnablePrivateCluster: &privateLinkEnabled,
+	if _, ok := val["private_link_enabled"]; ok {
+		asap.EnablePrivateCluster = utils.Bool(val["private_link_enabled"].(bool))
 	}
 
 	return &asap
@@ -1524,15 +1525,19 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 	return []interface{}{identity}
 }
 
-func flattenManagedClusterAccessProfile(input *containerservice.ManagedClusterAPIServerAccessProfile) []interface{} {
+func flattenManagedClusterApiServerAccessProfile(input *containerservice.ManagedClusterAPIServerAccessProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	apiServerAccessProfile := make(map[string]interface{})
 
 	apiServerAccessProfile["authorized_ip_ranges"] = []string{}
-	if input.AuthorizedIPRanges != nil && len(*input.AuthorizedIPRanges) != 0 {
-		apiServerAccessProfile["authorized_ip_ranges"] = input.AuthorizedIPRanges
+	if ok := input.AuthorizedIPRanges; ok != nil {
+		apiServerAccessProfile["authorized_ip_ranges"] = *input.AuthorizedIPRanges
 	}
-	if input.EnablePrivateCluster != nil {
-		apiServerAccessProfile["private_link_enabled"] = input.EnablePrivateCluster
+	if ok := input.EnablePrivateCluster; ok != nil {
+		apiServerAccessProfile["private_link_enabled"] = *input.EnablePrivateCluster
 	}
 
 	return []interface{}{apiServerAccessProfile}

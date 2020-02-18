@@ -66,8 +66,8 @@ func testAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.private_link_enabled", "true"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),

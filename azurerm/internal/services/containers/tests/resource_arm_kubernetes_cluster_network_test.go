@@ -326,8 +326,8 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.private_link_enabled", "true"),
 				),
 			},
 			{
@@ -335,8 +335,8 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.private_link_enabled", "true"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -366,15 +366,15 @@ func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, initialPrivateIpAddressCdir, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.private_link_enabled", "false"),
 				),
 			},
 			{
 				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, modifiedPrivateIpAddressCdir, false),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_access_profile.0.private_link_enabled", "false"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -968,8 +968,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 
-  api_server_authorized_ip_ranges = ["%s"]
-  private_link_enabled            = %t
+  api_server_access_profile {
+    authorized_ip_ranges = ["%s"]
+    private_link_enabled = %t
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, cdir, enablePrivateLink)
 }
