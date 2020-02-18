@@ -236,7 +236,7 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 	}
 	lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
 	if err != nil {
-		return fmt.Errorf("Error determing locking details: %+v", err)
+		return fmt.Errorf("Error determining locking details: %+v", err)
 	}
 
 	lockingDetails.lock()
@@ -344,7 +344,7 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 		lockingDetails, err := determineResourcesToLockFromIPConfiguration(ipConfigs)
 		if err != nil {
-			return fmt.Errorf("Error determing locking details: %+v", err)
+			return fmt.Errorf("Error determining locking details: %+v", err)
 		}
 
 		lockingDetails.lock()
@@ -501,7 +501,7 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 
 	lockingDetails, err := determineResourcesToLockFromIPConfiguration(props.IPConfigurations)
 	if err != nil {
-		return fmt.Errorf("Error determing locking details: %+v", err)
+		return fmt.Errorf("Error determining locking details: %+v", err)
 	}
 
 	lockingDetails.lock()
@@ -645,13 +645,9 @@ func expandNetworkInterfaceDnsServers(input []interface{}) []string {
 }
 
 func flattenNetworkInterfaceDnsServers(input *[]string) []string {
-	output := make([]string, 0)
 	if input == nil {
-		return output
+		return make([]string, 0)
 	}
 
-	for _, v := range *input {
-		output = append(output, v)
-	}
-	return output
+	return *input
 }

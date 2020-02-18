@@ -29,10 +29,10 @@ func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) ne
 		return output
 	}
 
-	applicationSecurityGroupIds := make(map[string]struct{}, 0)
-	applicationGatewayBackendAddressPoolIds := make(map[string]struct{}, 0)
-	loadBalancerBackendAddressPoolIds := make(map[string]struct{}, 0)
-	loadBalancerInboundNatRuleIds := make(map[string]struct{}, 0)
+	applicationSecurityGroupIds := make(map[string]struct{})
+	applicationGatewayBackendAddressPoolIds := make(map[string]struct{})
+	loadBalancerBackendAddressPoolIds := make(map[string]struct{})
+	loadBalancerInboundNatRuleIds := make(map[string]struct{})
 
 	if input.IPConfigurations != nil {
 		for _, v := range *input.IPConfigurations {
