@@ -321,7 +321,6 @@ func resourceArmSqlDatabase() *schema.Resource {
 			"zone_redundant": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"tags": tags.Schema(),
