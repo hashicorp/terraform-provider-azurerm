@@ -9,9 +9,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+// NOTE: this resource intentionally doesn't support Requires Import
+//       since a fallback route is created by default
 
 func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
@@ -28,33 +30,6 @@ func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMIotHubFallbackRoute_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_fallback_route"),
-			},
 		},
 	})
 }
@@ -148,23 +123,6 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMIotHubFallbackRoute_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHub_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_iothub_fallback_route" "import" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
-
-  source         = "DeviceMessages"
-  condition      = "true"
-  endpoint_names = ["${azurerm_iothub_endpoint_storage_container.test.name}"]
-  enabled        = true
-}
-`, template)
-}
-
 func testAccAzureRMIotHubFallbackRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -182,7 +140,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test-%[1]d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
@@ -243,7 +200,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test-%[1]d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
