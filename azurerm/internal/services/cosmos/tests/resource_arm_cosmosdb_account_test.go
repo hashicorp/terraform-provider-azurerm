@@ -108,7 +108,7 @@ func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, "", documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", documentdb.Eventual),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 				),
@@ -445,7 +445,7 @@ resource "azurerm_cosmosdb_account" "import" {
     failover_priority = "${azurerm_cosmosdb_account.geo_location.0.location}"
   }
 }
-`, testAccAzureRMCosmosDBAccount_basic(data, "", consistency))
+`, testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", consistency))
 }
 
 func testAccAzureRMCosmosDBAccount_consistency(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, interval, staleness int) string {
@@ -523,8 +523,9 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "%[3]s"
 
   consistency_policy {
-    consistency_level    = "%[4]s"
-    max_staleness_prefix = 170000
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
   }
 
   is_virtual_network_filter_enabled = true
