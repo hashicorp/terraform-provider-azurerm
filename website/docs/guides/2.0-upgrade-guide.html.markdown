@@ -466,6 +466,38 @@ The `sku_name` field will become Required.
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
 
+### Resource `azurerm_recovery_replicated_vm`
+
+This resource was deprecated in favor of `azurerm_site_recovery_replicated_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_fabric`
+
+The resource was deprecated in favor of `azurerm_site_recovery_fabric` and has been removed.
+
+### Resource `azurerm_recovery_services_network_mapping`
+
+This resource was deprecated in favor of `azurerm_site_recovery_network_mapping` and has been removed.
+
+### Resource `azurerm_recovery_services_protected_vm`
+
+This resource was deprecated in favor of `azurerm_backup_protected_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_container`
+
+This resource was deprecated in favor of `azurerm_site_recovery_protection_container` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_container_mapping`
+
+This resource was deprecated in favor of `azurerm_site_recovery_protection_container_mapping` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_policy_vm`
+
+This resource was deprecated in favor of `azurerm_backup_policy_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_replication_policy`
+
+This resource was deprecated in favor of `azurerm_site_recovery_replication_policy` and has been removed.
+
 ### Resource: `azurerm_relay_namespace`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.

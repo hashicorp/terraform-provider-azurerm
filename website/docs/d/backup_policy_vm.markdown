@@ -1,7 +1,7 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
+page_title: "Azure Resource Manager: azurerm_backup_policy_vm"
 description: |-
   Gets information about an existing Recovery Services VM Protection Policy.
 ---
@@ -13,7 +13,7 @@ Use this data source to access information about an existing Recovery Services V
 ## Example Usage
 
 ```hcl
-data "azurerm_recovery_services_protection_policy_vm" "policy" {
+data "azurerm_backup_policy_vm" "policy" {
   name                = "policy"
   recovery_vault_name = "recovery_vault"
   resource_group_name = "resource_group"
