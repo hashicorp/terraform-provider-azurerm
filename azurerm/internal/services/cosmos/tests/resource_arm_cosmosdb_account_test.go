@@ -445,7 +445,7 @@ resource "azurerm_cosmosdb_account" "import" {
     failover_priority = "${azurerm_cosmosdb_account.geo_location.0.location}"
   }
 }
-`, testAccAzureRMCosmosDBAccount_basic(data, "", consistency))
+`, testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", consistency))
 }
 
 func testAccAzureRMCosmosDBAccount_consistency(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, interval, staleness int) string {
