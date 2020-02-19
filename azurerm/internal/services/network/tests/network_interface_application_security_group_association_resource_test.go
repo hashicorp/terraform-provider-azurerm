@@ -32,6 +32,25 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(t *
 	})
 }
 
+func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_multipleIPConfigurations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_security_group_association", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_multipleIPConfigurations(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -242,11 +261,41 @@ func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresI
 %s
 
 resource "azurerm_network_interface_application_security_group_association" "import" {
-  network_interface_id          = "${azurerm_network_interface_application_security_group_association.test.network_interface_id}"
-  ip_configuration_name         = "${azurerm_network_interface_application_security_group_association.test.ip_configuration_name}"
-  application_security_group_id = "${azurerm_network_interface_application_security_group_association.test.application_security_group_id}"
+  network_interface_id          = azurerm_network_interface_application_security_group_association.test.network_interface_id
+  application_security_group_id = azurerm_network_interface_application_security_group_association.test.application_security_group_id
 }
 `, template)
+}
+
+func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_multipleIPConfigurations(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration2"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_network_interface_application_security_group_association" "test" {
+  network_interface_id          = azurerm_network_interface.test.id
+  ip_configuration_name         = "testconfiguration1"
+  application_security_group_id = azurerm_application_security_group.test.id
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(data acceptance.TestData) string {

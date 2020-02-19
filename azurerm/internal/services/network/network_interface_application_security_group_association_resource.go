@@ -6,13 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,6 +22,15 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Re
 		Delete: resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceNetworkInterfaceApplicationSecurityGroupAssociationUpgradeV0ToV1,
+				Version: 0,
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -40,13 +46,6 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Re
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"ip_configuration_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"application_security_group_id": {
@@ -67,7 +66,6 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Security Group Association creation.")
 
 	networkInterfaceId := d.Get("network_interface_id").(string)
-	ipConfigurationName := d.Get("ip_configuration_name").(string)
 	applicationSecurityGroupId := d.Get("application_security_group_id").(string)
 
 	id, err := azure.ParseAzureResourceID(networkInterfaceId)
@@ -94,49 +92,19 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 	if props == nil {
 		return fmt.Errorf("Error: `properties` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
-
-	ipConfigs := props.IPConfigurations
-	if ipConfigs == nil {
-		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
+	if props.IPConfigurations == nil {
+		return fmt.Errorf("Error: `properties.ipConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
-	if c == nil {
-		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
+	info := parseFieldsFromNetworkInterface(*props)
+	resourceId := fmt.Sprintf("%s|%s", networkInterfaceId, applicationSecurityGroupId)
+	if azure.SliceContainsValue(info.applicationSecurityGroupIDs, applicationSecurityGroupId) {
+		return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", resourceId)
 	}
 
-	config := *c
-	p := config.InterfaceIPConfigurationPropertiesFormat
-	if p == nil {
-		return fmt.Errorf("Error: `IPConfiguration.properties` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
-	}
+	info.applicationSecurityGroupIDs = append(info.applicationSecurityGroupIDs, applicationSecurityGroupId)
 
-	applicationSecurityGroups := make([]network.ApplicationSecurityGroup, 0)
-
-	// first double-check it doesn't exist
-	if p.ApplicationSecurityGroups != nil {
-		for _, existingGroup := range *p.ApplicationSecurityGroups {
-			if id := existingGroup.ID; id != nil {
-				if *id == applicationSecurityGroupId {
-					if features.ShouldResourcesBeImported() {
-						return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", *id)
-					}
-
-					continue
-				}
-
-				applicationSecurityGroups = append(applicationSecurityGroups, existingGroup)
-			}
-		}
-	}
-
-	group := network.ApplicationSecurityGroup{
-		ID: utils.String(applicationSecurityGroupId),
-	}
-	applicationSecurityGroups = append(applicationSecurityGroups, group)
-	p.ApplicationSecurityGroups = &applicationSecurityGroups
-
-	props.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
+	read.InterfacePropertiesFormat.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
@@ -147,7 +115,6 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 		return fmt.Errorf("Error waiting for completion of Application Security Group Association for NIC %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
-	resourceId := fmt.Sprintf("%s/ipConfigurations/%s|%s", networkInterfaceId, ipConfigurationName, applicationSecurityGroupId)
 	d.SetId(resourceId)
 
 	return resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d, meta)
@@ -160,7 +127,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 
 	splitId := strings.Split(d.Id(), "|")
 	if len(splitId) != 2 {
-		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{applicationSecurityGroupId} but got %q", d.Id())
+		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
 	nicID, err := azure.ParseAzureResourceID(splitId[0])
@@ -168,7 +135,6 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 		return err
 	}
 
-	ipConfigurationName := nicID.Path["ipConfigurations"]
 	networkInterfaceName := nicID.Path["networkInterfaces"]
 	resourceGroup := nicID.ResourceGroup
 	applicationSecurityGroupId := splitId[1]
@@ -187,43 +153,21 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 		return fmt.Errorf("Error: `properties` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	ipConfigs := nicProps.IPConfigurations
-	if ipConfigs == nil {
-		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
-	}
-
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
-	if c == nil {
-		log.Printf("IP Configuration %q was not found in Network Interface %q (Resource Group %q) - removing from state!", ipConfigurationName, networkInterfaceName, resourceGroup)
-		d.SetId("")
-		return nil
-	}
-	config := *c
-
-	found := false
-	if props := config.InterfaceIPConfigurationPropertiesFormat; props != nil {
-		if groups := props.ApplicationSecurityGroups; groups != nil {
-			for _, group := range *groups {
-				if group.ID == nil {
-					continue
-				}
-
-				if *group.ID == applicationSecurityGroupId {
-					found = true
-					break
-				}
-			}
+	info := parseFieldsFromNetworkInterface(*nicProps)
+	exists := false
+	for _, groupId := range info.applicationSecurityGroupIDs {
+		if groupId == applicationSecurityGroupId {
+			exists = true
 		}
 	}
 
-	if !found {
+	if !exists {
 		log.Printf("[DEBUG] Association between Network Interface %q (Resource Group %q) and Application Security Group %q was not found - removing from state!", networkInterfaceName, resourceGroup, applicationSecurityGroupId)
 		d.SetId("")
 		return nil
 	}
 
 	d.Set("application_security_group_id", applicationSecurityGroupId)
-	d.Set("ip_configuration_name", ipConfigurationName)
 	d.Set("network_interface_id", read.ID)
 
 	return nil
@@ -236,7 +180,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *sch
 
 	splitId := strings.Split(d.Id(), "|")
 	if len(splitId) != 2 {
-		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{applicationSecurityGroupId} but got %q", d.Id())
+		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
 	nicID, err := azure.ParseAzureResourceID(splitId[0])
@@ -244,7 +188,6 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *sch
 		return err
 	}
 
-	ipConfigurationName := nicID.Path["ipConfigurations"]
 	networkInterfaceName := nicID.Path["networkInterfaces"]
 	resourceGroup := nicID.ResourceGroup
 	applicationSecurityGroupId := splitId[1]
@@ -261,41 +204,25 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *sch
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
 	}
 
-	nicProps := read.InterfacePropertiesFormat
-	if nicProps == nil {
+	props := read.InterfacePropertiesFormat
+	if props == nil {
 		return fmt.Errorf("Error: `properties` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	ipConfigs := nicProps.IPConfigurations
-	if ipConfigs == nil {
-		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
+	if props.IPConfigurations == nil {
+		return fmt.Errorf("Error: `properties.ipConfigurations` was nil for Network Interface %q (Resource Group %q)", networkInterfaceName, resourceGroup)
 	}
 
-	c := azure.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, ipConfigurationName)
-	if c == nil {
-		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
-	}
-	config := *c
+	info := parseFieldsFromNetworkInterface(*props)
 
-	props := config.InterfaceIPConfigurationPropertiesFormat
-	if props == nil {
-		return fmt.Errorf("Error: Properties for IPConfiguration %q was nil for Network Interface %q (Resource Group %q)", ipConfigurationName, networkInterfaceName, resourceGroup)
-	}
-
-	applicationSecurityGroups := make([]network.ApplicationSecurityGroup, 0)
-	if groups := props.ApplicationSecurityGroups; groups != nil {
-		for _, pool := range *groups {
-			if pool.ID == nil {
-				continue
-			}
-
-			if *pool.ID != applicationSecurityGroupId {
-				applicationSecurityGroups = append(applicationSecurityGroups, pool)
-			}
+	applicationSecurityGroupIds := make([]string, 0)
+	for _, v := range info.applicationSecurityGroupIDs {
+		if v != applicationSecurityGroupId {
+			applicationSecurityGroupIds = append(applicationSecurityGroupIds, v)
 		}
 	}
-	props.ApplicationSecurityGroups = &applicationSecurityGroups
-	nicProps.IPConfigurations = azure.UpdateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
+	info.applicationSecurityGroupIDs = applicationSecurityGroupIds
+	read.InterfacePropertiesFormat.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkInterfaceName, read)
 	if err != nil {
