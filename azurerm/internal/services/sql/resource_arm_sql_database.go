@@ -356,6 +356,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
+	zoneRedundant := d.Get("zone_redundant").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -379,7 +380,8 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	properties := sql.Database{
 		Location: utils.String(location),
 		DatabaseProperties: &sql.DatabaseProperties{
-			CreateMode: sql.CreateMode(createMode),
+			CreateMode:    sql.CreateMode(createMode),
+			ZoneRedundant: utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -452,10 +454,6 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		properties.DatabaseProperties.ReadScale = sql.ReadScaleEnabled
 	} else {
 		properties.DatabaseProperties.ReadScale = sql.ReadScaleDisabled
-	}
-
-	if v, ok := d.GetOkExists("zone_redundant"); ok {
-		properties.DatabaseProperties.ZoneRedundant = utils.Bool(v.(bool))
 	}
 
 	// The requested Service Objective Name does not match the requested Service Objective Id.
@@ -580,8 +578,6 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("read_scale", false)
 		}
 
-		if zoneRedundant := props.ZoneRedundant; zoneRedundant != nil {
-			d.Set("zone_redundant", zoneRedundant)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
