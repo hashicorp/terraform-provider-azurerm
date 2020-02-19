@@ -100,7 +100,6 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 	if err != nil {
 		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-
 	virtualMachineName := virtualMachineId.Name
 	resourceGroup := virtualMachineId.ResourceGroup
 

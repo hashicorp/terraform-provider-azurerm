@@ -113,10 +113,10 @@ func resourceArmManagedDisk() *schema.Resource {
 			},
 
 			"disk_size_gb": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validateDiskSizeGB,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateManagedDiskSizeGB,
 			},
 
 			"disk_iops_read_write": {
@@ -179,14 +179,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	osType := d.Get("os_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
-
-	// TODO: simplify this to a cast in 2.0 once this becomes case-insensitive
-	var skuName compute.DiskStorageAccountTypes
-	for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
-		if strings.EqualFold(storageAccountType, string(v)) {
-			skuName = v
-		}
-	}
+	skuName := compute.DiskStorageAccountTypes(storageAccountType)
 
 	props := &compute.DiskProperties{
 		CreationData: &compute.CreationData{
@@ -203,8 +196,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		props.DiskSizeGB = &diskSize
 	}
 
-	// TODO: make this case-sensitive in 2.0
-	if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
+	if storageAccountType == string(compute.UltraSSDLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
