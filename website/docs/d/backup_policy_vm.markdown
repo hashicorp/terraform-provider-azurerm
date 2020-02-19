@@ -3,12 +3,12 @@ subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_backup_policy_vm"
 description: |-
-  Gets information about an existing Recovery Services VM Protection Policy.
+  Gets information about an existing existing VM Backup Policy.
 ---
 
-# Data Source: azurerm_recovery_services_protection_policy_vm
+# Data Source: azurerm_backup_policy_vm
 
-Use this data source to access information about an existing Recovery Services VM Protection Policy.
+Use this data source to access information about an existing VM Backup Policy.
 
 ## Example Usage
 
@@ -24,11 +24,11 @@ data "azurerm_backup_policy_vm" "policy" {
 
 The following arguments are supported:
 
-* `name` - Specifies the name of the Recovery Services VM Protection Policy.
+* `name` - Specifies the name of the VM Backup Policy.
 
 * `recovery_vault_name` - Specifies the name of the Recovery Services Vault.
 
-* `resource_group_name` - The name of the resource group in which the Recovery Services VM Protection Policy resides.
+* `resource_group_name` - The name of the resource group in which the VM Backup Policy resides.
 
 ## Attributes Reference
 

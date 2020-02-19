@@ -181,6 +181,10 @@ The deprecated field `internal_fqdn` will be removed.
 
 The deprecated field `network_interface_ids` will be removed.
 
+### Data Source: `azurerm_recovery_services_protection_policy_vm`
+
+This Data Source is renamed to `azurerm_backup_policy_vm` in line with the name that replaces the Deprecated resource.  
+
 ### Data Source: `azurerm_role_definition`
 
 The Data Source no longer supports the alias `VirtualMachineContributor` for the Built-in role `Virtual Machine Contributor`.
