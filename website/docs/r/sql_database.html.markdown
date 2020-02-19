@@ -76,6 +76,8 @@ The following arguments are supported:
 
 * `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-read-scale-out).
 
+* `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `import` supports the following:

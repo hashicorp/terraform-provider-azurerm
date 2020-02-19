@@ -55,8 +55,6 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku`  - (Deprecated) A `sku` block as documented below
-
 * `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The fist part is the `name`, valid values include: `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ---
@@ -229,16 +227,6 @@ A `security` block supports the following:
 * `disable_triple_des_ciphers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be disabled for alL TLS versions (1.0, 1.1 and 1.2)? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
 
 -> **Note:** This property has been deprecated in favour of the `enable_triple_des_ciphers` property and will be removed in version 2.0 of the provider.
-
----
-
-A `sku` block supports the following: (Deprecated)
-
-* `name` - (Required) Specifies the Pricing Tier for the API Management Service. Possible values include: Developer, Basic, Standard and Premium.
-
-* `capacity` - (Required) Specifies the Pricing Capacity for the API Management Service.
-
--> **Note:** This property has been deprecated in favour of the `sku_name` property and will be removed in version 2.0 of the provider.
 
 ---
 

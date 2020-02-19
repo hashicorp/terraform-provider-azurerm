@@ -27,9 +27,9 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_certificate" "example" {
-  name                = "certificate1"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
+  name                    = "certificate1"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  automation_account_name = "${azurerm_automation_account.example.name}"
 
   description = "This is an example certificate"
   base64      = base64encode(file("certificate.pfx"))
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Certificate is created. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the automation account in which the Certificate is created. Changing this forces a new resource to be created.
+* `automation_account_name` - (Required) The name of the automation account in which the Certificate is created. Changing this forces a new resource to be created.
 
 * `base64` - (Required) Base64 encoded value of the certificate.
 

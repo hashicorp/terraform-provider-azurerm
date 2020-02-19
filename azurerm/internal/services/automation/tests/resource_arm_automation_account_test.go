@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -32,47 +31,6 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMAutomationAccount_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationAccount_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Basic"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "dsc_server_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "dsc_primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "dsc_secondary_access_key"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMAutomationAccount_basicNotDefined(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMAutomationAccount_basicNotDefined(data),
-				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
-			},
 		},
 	})
 }
@@ -196,42 +154,6 @@ resource "azurerm_automation_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku_name = "Basic"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMAutomationAccount_basicClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_automation_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name = "Basic"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMAutomationAccount_basicNotDefined(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_automation_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

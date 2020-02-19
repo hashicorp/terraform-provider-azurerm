@@ -37,7 +37,7 @@ resource "azurerm_express_route_gateway" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   virtual_hub_id      = azurerm_virtual_hub.example.id
-  scale_unts          = 1
+  scale_units         = 1
 
   tags = {
     environment = "Production"

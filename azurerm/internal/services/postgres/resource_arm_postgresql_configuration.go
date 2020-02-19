@@ -73,6 +73,9 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
+	// NOTE: this resource intentionally doesn't support Requires Import
+	//       since a fallback route is created by default
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
 	if err != nil {
 		return err

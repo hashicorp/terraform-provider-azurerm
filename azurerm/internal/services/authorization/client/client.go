@@ -19,8 +19,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	roleDefinitionsClient := authorization.NewRoleDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&roleDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&servicePrincipalsClient.Client, o.ResourceManagerAuthorizer)
+	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(o.GraphEndpoint, o.TenantID)
+	o.ConfigureClient(&servicePrincipalsClient.Client, o.GraphAuthorizer)
 
 	return &Client{
 		RoleAssignmentsClient:   &roleAssignmentsClient,
