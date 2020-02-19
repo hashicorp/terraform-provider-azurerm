@@ -189,6 +189,10 @@ The Data Source no longer supports the alias `VirtualMachineContributor` for the
 
 Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Data Source will be removed.
 
+### Data Source: `azurerm_storage_account`
+
+The Data Source no longer supports the `enable_blob_encryption` and `enable_file_encryption` properties as encryption is now on by default and cannot be disabled ([More information can be found here](https://docs.microsoft.com/en-us/azure/storage/common/storage-service-encryption))
+
 ### Data Source: `azurerm_virtual_network`
 
 The deprecated field `address_space` will be removed.
@@ -507,6 +511,8 @@ The deprecated `account_type` field will be removed. This has been split into th
 The deprecated `enable_advanced_threat_protection` field will be removed. This functionality has been move in the more general `azurerm_advanced_threat_protection` resource.
 
 The default value for the field `enable_https_traffic_only` has changed from `false` to `true`. 
+
+The `enable_blob_encryption` and `enable_file_encryption` fields will be removed. Encryption is now on by default and can no longer be disabled making these fields redundant and potentially confusing. ([More information can be found here](https://docs.microsoft.com/en-us/azure/storage/common/storage-service-encryption))
 
 ### Resource: `azurerm_storage_blob`
 

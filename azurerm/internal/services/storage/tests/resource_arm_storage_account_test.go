@@ -3,16 +3,14 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"regexp"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -188,68 +186,6 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_blob_connection_string"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
-	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
-	if !exists {
-		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccount_blobEncryption(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_blob_encryption", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccount_blobEncryptionDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_blob_encryption", "false"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
-	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
-	if !exists {
-		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccount_fileEncryption(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_file_encryption", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccount_fileEncryptionDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_file_encryption", "false"),
 				),
 			},
 		},
@@ -800,98 +736,6 @@ resource "azurerm_storage_account" "test" {
 
   tags = {
     environment = "staging"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_blobEncryption(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  enable_blob_encryption   = true
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_blobEncryptionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  enable_blob_encryption   = false
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_fileEncryption(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  enable_file_encryption   = true
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_fileEncryptionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  enable_file_encryption   = false
-
-  tags = {
-    environment = "production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
