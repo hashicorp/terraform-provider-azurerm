@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -23,9 +25,9 @@ import (
 
 func resourceArmAppServiceEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceEnvironmentCreateOrUpdate,
+		Create: resourceArmAppServiceEnvironmentCreate,
 		Read:   resourceArmAppServiceEnvironmentRead,
-		Update: resourceArmAppServiceEnvironmentCreateOrUpdate,
+		Update: resourceArmAppServiceEnvironmentUpdate,
 		Delete: resourceArmAppServiceEnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceEnvironmentID(id)
@@ -48,6 +50,13 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				ValidateFunc: validate.AppServiceEnvironmentName,
 			},
 
+			"subnet_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
+
 			"internal_load_balancing_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -59,21 +68,6 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				}, false),
 			},
 
-			"subnet_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
-			},
-
-			// Note: This is currently 'multiSize' in the API for historic v1 reasons, may change in future?
-			"pricing_tier": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "I1",
-				ValidateFunc: validate.AppServiceEnvironmentPricingTier,
-			},
-
 			"front_end_scale_factor": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -81,6 +75,20 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				ValidateFunc: validation.IntBetween(5, 15),
 			},
 
+			"pricing_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "I1",
+				ValidateFunc: validation.StringInSlice([]string{
+					"I1",
+					"I2",
+					"I3",
+				}, false),
+			},
+
+			"tags": tags.ForceNewSchema(),
+
+			// Computed
 			"location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -90,14 +98,13 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
-func resourceArmAppServiceEnvironmentCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+
+func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
-	vnetClient := meta.(*clients.Client).Network.VnetClient
+	networksClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -108,56 +115,65 @@ func resourceArmAppServiceEnvironmentCreateOrUpdate(d *schema.ResourceData, meta
 	subnetId := d.Get("subnet_id").(string)
 	subnet, err := networkParse.SubnetID(subnetId)
 	if err != nil {
-		return fmt.Errorf("Error parsing subnet id %q: %+v", subnetId, err)
+		return err
 	}
 
 	resourceGroup := subnet.ResourceGroup
-
-	vnet, err := vnetClient.Get(ctx, resourceGroup, subnet.VirtualNetworkName, "")
+	vnet, err := networksClient.Get(ctx, resourceGroup, subnet.VirtualNetworkName, "")
 	if err != nil {
-		return fmt.Errorf("Error reading Virtual Network %q for App Service Environment %q: %+v", subnet.VirtualNetworkName, name, err)
+		return fmt.Errorf("Error retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, resourceGroup, err)
 	}
 
+	// the App Service Environment has to be in the same location as the Virtual netowrk -
 	var location string
-	if vnetLoc := vnet.Location; vnetLoc != nil {
-		location = azure.NormalizeLocation(*vnetLoc)
+	if loc := vnet.Location; loc != nil {
+		location = azure.NormalizeLocation(*loc)
 	} else {
-		return fmt.Errorf("Error determining Location from Virtual Network %s", *vnet.Name)
+		return fmt.Errorf("Error determining Location from Virtual Network %q (Resource Group %q): `location` was nil", subnet.VirtualNetworkName, resourceGroup)
+	}
+
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing App Service Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
+	}
+
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_app_service_environment", *existing.ID)
 	}
 
 	frontEndScaleFactor := d.Get("front_end_scale_factor").(int)
-
 	pricingTier := d.Get("pricing_tier").(string)
-
-	// the SDK is coded primarily for v1, which needs a non-null entry for workerpool, so we construct an empty slice for it
-	// TODO Submit change for SDK?
-	wp := []web.WorkerPool{{}}
 
 	envelope := web.AppServiceEnvironmentResource{
 		Location: utils.String(location),
 		Kind:     utils.String("ASEV2"),
 		AppServiceEnvironment: &web.AppServiceEnvironment{
-			FrontEndScaleFactor:       utils.Int32(int32(frontEndScaleFactor)),
-			MultiSize:                 utils.String(convertFromIsolatedSKU(pricingTier)),
 			Name:                      utils.String(name),
 			Location:                  utils.String(location),
 			InternalLoadBalancingMode: web.InternalLoadBalancingMode(internalLoadBalancingMode),
+			FrontEndScaleFactor:       utils.Int32(int32(frontEndScaleFactor)),
+			MultiSize:                 utils.String(convertFromIsolatedSKU(pricingTier)),
 			VirtualNetwork: &web.VirtualNetworkProfile{
 				ID:     utils.String(subnetId),
 				Subnet: utils.String(subnet.Name),
 			},
-			WorkerPools: &wp,
+
+			// the SDK is coded primarily for v1, which needs a non-null entry for workerpool, so we construct an empty slice for it
+			// TODO: remove this hack once https://github.com/Azure/azure-rest-api-specs/pull/8433 has been merged
+			WorkerPools: &[]web.WorkerPool{{}},
 		},
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, envelope)
-	if err != nil {
+	// whilst this returns a future go-autorest has a max number of retries
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, envelope); err != nil {
 		return fmt.Errorf("Error creating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	// as such we'll ignore it and use a custom poller instead
+	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, resourceGroup, name); err != nil {
 		return fmt.Errorf("Error waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -167,6 +183,49 @@ func resourceArmAppServiceEnvironmentCreateOrUpdate(d *schema.ResourceData, meta
 	}
 
 	d.SetId(*read.ID)
+
+	return resourceArmAppServiceEnvironmentRead(d, meta)
+}
+
+func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.AppServiceEnvironmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resourceGroup := id.ResourceGroup
+	name := id.Name
+
+	environment := web.AppServiceEnvironmentPatchResource{
+		AppServiceEnvironment: &web.AppServiceEnvironment{},
+	}
+
+	if d.HasChange("internal_load_balancing_mode") {
+		v := d.Get("internal_load_balancing_mode").(string)
+		environment.AppServiceEnvironment.InternalLoadBalancingMode = web.InternalLoadBalancingMode(v)
+	}
+
+	if d.HasChange("front_end_scale_factor") {
+		v := d.Get("front_end_scale_factor").(int)
+		environment.AppServiceEnvironment.FrontEndScaleFactor = utils.Int32(int32(v))
+	}
+
+	if d.HasChange("pricing_tier") {
+		v := d.Get("pricing_tier").(string)
+		environment.AppServiceEnvironment.MultiSize = utils.String(v)
+	}
+
+	if _, err := client.Update(ctx, resourceGroup, name, environment); err != nil {
+		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, resourceGroup, name); err != nil {
+		return fmt.Errorf("Error waiting for Update of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 
 	return resourceArmAppServiceEnvironmentRead(d, meta)
 }
@@ -184,10 +243,10 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 	resourceGroup := id.ResourceGroup
 	name := id.Name
 
-	appServiceEnvironment, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(appServiceEnvironment.Response) {
-			log.Printf("[DEBUG] App Service Environmment %q (Resource Group %q) was not found!", name, resourceGroup)
+		if utils.ResponseWasNotFound(existing.Response) {
+			log.Printf("[DEBUG] App Service Environmment %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -196,29 +255,34 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := appServiceEnvironment.Location; location != nil {
+
+	if location := existing.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := tags.FlattenAndSet(d, appServiceEnvironment.Tags); err != nil {
-		return fmt.Errorf("Error flattening and setting tags in App Service Environment %q (resource group %q): %+v", name, resourceGroup, err)
+	if props := existing.AppServiceEnvironment; props != nil {
+		d.Set("internal_load_balancing_mode", string(props.InternalLoadBalancingMode))
+
+		subnetId := ""
+		if props.VirtualNetwork != nil && props.VirtualNetwork.ID != nil {
+			subnetId = *props.VirtualNetwork.ID
+		}
+		d.Set("subnet_id", subnetId)
+
+		frontendScaleFactor := 0
+		if props.FrontEndScaleFactor != nil {
+			frontendScaleFactor = int(*props.FrontEndScaleFactor)
+		}
+		d.Set("front_end_scale_factor", frontendScaleFactor)
+
+		pricingTier := ""
+		if props.MultiSize != nil {
+			pricingTier = convertToIsolatedSKU(*props.MultiSize)
+		}
+		d.Set("pricing_tier", pricingTier)
 	}
 
-	ase := appServiceEnvironment.AppServiceEnvironment
-	if ase.InternalLoadBalancingMode != "" {
-		d.Set("internal_load_balancing_mode", ase.InternalLoadBalancingMode)
-	}
-	if ase.VirtualNetwork.ID != nil {
-		d.Set("subnet_id", ase.VirtualNetwork.ID)
-	}
-	if ase.FrontEndScaleFactor != nil {
-		d.Set("front_end_scale_factor", int(*ase.FrontEndScaleFactor))
-	}
-	if ase.MultiSize != nil {
-		d.Set("pricing_tier", convertToIsolatedSKU(*ase.MultiSize))
-	}
-
-	return nil
+	return tags.FlattenAndSet(d, existing.Tags)
 }
 
 func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
@@ -236,15 +300,15 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Deleting App Service Environment %q (Resource Group %q)", name, resGroup)
 
-	// `true` below deletes any child resources (e.g. App Services / Plans / Certificates etc)
-	// TODO: Add this to the provider 'Features' schema?
-	future, err := client.Delete(ctx, resGroup, name, utils.Bool(true))
+	// TODO: should this behaviour be added to the `features` block?
+	forceDeleteAllChildren := utils.Bool(false)
+	future, err := client.Delete(ctx, resGroup, name, forceDeleteAllChildren)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return err
+		return fmt.Errorf("Error deleting App Service Environment %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
@@ -253,7 +317,35 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return err
+		return fmt.Errorf("Error waiting for deletion of App Service Environment %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	return nil
+}
+
+func waitForAppServiceEnvironmentToStabilize(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) error {
+	for true {
+		time.Sleep(1 * time.Minute)
+
+		read, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+		if read.AppServiceEnvironment == nil {
+			return fmt.Errorf("`properties` was nil")
+		}
+
+		state := read.AppServiceEnvironment.ProvisioningState
+		if state == web.ProvisioningStateSucceeded {
+			return nil
+		}
+
+		if state == web.ProvisioningStateInProgress {
+			continue
+		}
+
+		return fmt.Errorf("Unexpected ProvisioningState: %q", state)
 	}
 
 	return nil

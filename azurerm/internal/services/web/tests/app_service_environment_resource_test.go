@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppServiceEnvironment_basicWindows(t *testing.T) {
+func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +74,7 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAppServiceEnvironment_update(data),
+				Config: testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "pricing_tier", "I2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "10"),
@@ -124,118 +124,6 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
-}
-
-func testAccAzureRMAppServiceEnvironment_basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.0.0.0/16"]
-
-  subnet {
-    name           = "asesubnet"
-    address_prefix = "10.0.1.0/24"
-  }
-
-  subnet {
-    name           = "gatewaysubnet"
-    address_prefix = "10.0.2.0/24"
-  }
-}
-
-data "azurerm_subnet" "test" {
-  name                 = "asesubnet"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_app_service_environment" "test" {
-  name      = "acctest-ase-%[1]d"
-  subnet_id = "${data.azurerm_subnet.test.id}"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func testAccAzureRMAppServiceEnvironment_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_app_service_environment" "import" {
-  name      = "${azurerm_app_service_environment.test.name}"
-  subnet_id = "${azurerm_app_service_environment.test.subnet_id}"
-
-}
-`, template)
-}
-
-func testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.0.0.0/16"]
-
-  subnet {
-    name           = "asesubnet"
-    address_prefix = "10.0.1.0/24"
-  }
-
-  subnet {
-    name           = "gatewaysubnet"
-    address_prefix = "10.0.2.0/24"
-  }
-}
-
-data "azurerm_subnet" "test" {
-  name                 = "asesubnet"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_app_service_environment" "test" {
-  name                   = "acctest-ase-%[1]d"
-  subnet_id              = "${data.azurerm_subnet.test.id}"
-  pricing_tier           = "I2"
-  front_end_scale_factor = 10
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func testAccAzureRMAppServiceEnvironment_update(data acceptance.TestData) string {
-	return testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data)
-}
-
-func testAccAzureRMAppServiceEnvironment_withAppServicePlan(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_app_service_plan" "test" {
-  name                       = "acctest-ASP-%d"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
-  app_service_environment_id = "${azurerm_app_service_environment.test.id}"
-
-  sku {
-    tier = "Basic"
-    size = "B1"
-  }
-}
-`, template, data.RandomInteger)
 }
 
 func testCheckAzureRMAppServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
@@ -335,4 +223,91 @@ func testCheckAppServicePlanMemberOfAppServiceEnvironment(ase string, asp string
 
 		return nil
 	}
+}
+
+func testAccAzureRMAppServiceEnvironment_basic(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name      = "acctest-ase-%d"
+  subnet_id = azurerm_subnet.ase.id
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMAppServiceEnvironment_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "import" {
+  name      = azurerm_app_service_environment.test.name
+  subnet_id = azurerm_app_service_environment.test.subnet_id
+}
+`, template)
+}
+
+func testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name                   = "acctest-ase-%d"
+  subnet_id              = azurerm_subnet.ase.id
+  pricing_tier           = "I2"
+  front_end_scale_factor = 10
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMAppServiceEnvironment_withAppServicePlan(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_plan" "test" {
+  name                       = "acctest-ASP-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_environment_id = azurerm_app_service_environment.test.id
+
+  sku {
+    tier = "Basic"
+    size = "B1"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMAppServiceEnvironment_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "ase" {
+  name                 = "asesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_subnet" "gateway" {
+  name                 = "gatewaysubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
