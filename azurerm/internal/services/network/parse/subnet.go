@@ -1,4 +1,4 @@
-package network
+package parse
 
 import (
 	"fmt"
@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SubnetID struct {
+type SubnetId struct {
 	ResourceGroup      string
 	VirtualNetworkName string
 	Name               string
 }
 
-func ParseSubnetID(input string) (*SubnetID, error) {
+func SubnetID(input string) (*SubnetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Subnet ID %q: %+v", input, err)
 	}
 
-	subnet := SubnetID{
+	subnet := SubnetId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -35,20 +35,4 @@ func ParseSubnetID(input string) (*SubnetID, error) {
 	}
 
 	return &subnet, nil
-}
-
-// ValidateSubnetID validates that the specified ID is a valid App Service ID
-func ValidateSubnetID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := ParseSubnetID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
-	return warnings, errors
 }

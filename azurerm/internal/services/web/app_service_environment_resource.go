@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -62,7 +63,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: network.ValidateSubnetID,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			// Note: This is currently 'multiSize' in the API for historic v1 reasons, may change in future?
@@ -105,7 +106,7 @@ func resourceArmAppServiceEnvironmentCreateOrUpdate(d *schema.ResourceData, meta
 	t := d.Get("tags").(map[string]interface{})
 
 	subnetId := d.Get("subnet_id").(string)
-	subnet, err := network.ParseSubnetID(subnetId)
+	subnet, err := networkParse.SubnetID(subnetId)
 	if err != nil {
 		return fmt.Errorf("Error parsing subnet id %q: %+v", subnetId, err)
 	}
