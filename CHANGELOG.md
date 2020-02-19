@@ -56,6 +56,7 @@ BREAKING CHANGES:
 * `azurerm_eventhub_consumer_group` - removing the deprecated `location` field [GH-5793]
 * `azurerm_eventhub_namespace` - removing the deprecated `kafka_enabled` field since this is now managed by Azure [GH-5793]
 * `azurerm_eventhub_namespace_authorization_rule` - removing the deprecated `location` field [GH-5793]
+* `azurerm_frontdoor` - The `forwarding_protocol` property now defaults to `HttpsOnly` [GH-5792]
 * `azurerm_iot_dps` - This resource has been removed since it was deprecated [GH-5753]
 * `azurerm_iot_dps_certificate` - This resource has been removed since it was deprecated [GH-5753]
 * `azurerm_iothub`- The deprecated `sku.tier` property will be removed. [GH-5790]
