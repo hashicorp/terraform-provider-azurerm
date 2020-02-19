@@ -41,6 +41,11 @@ func TestParseAppServiceEnvironmentID(t *testing.T) {
 				Name:          "TestASEv2",
 			},
 		},
+		{
+			Name:     "Wrong Case",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testGroup1/providers/Microsoft.Web/HostingEnvironments/TestASEv2",
+			Expected: nil,
+		},
 	}
 
 	for _, v := range testData {

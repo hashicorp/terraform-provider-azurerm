@@ -9,9 +9,7 @@ description: |-
 
 # azurerm_app_service_environment
 
-Manages a App Service Environment
-
-**WARNING** Deleting an App Service Environment resource will also delete App Service Plans and App Services associated with it. 
+Manages an App Service Environment.
 
 ## Example Usage
 
@@ -26,27 +24,25 @@ resource "azurerm_virtual_network" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   address_space       = ["10.0.0.0/16"]
-
-  subnet {
-    name           = "asesubnet"
-    address_prefix = "10.0.1.0/24"
-  }
-
-  subnet {
-    name           = "gatewaysubnet"
-    address_prefix = "10.0.2.0/24"
-  }
 }
 
-data "azurerm_subnet" "example" {
+resource "azurerm_subnet" "ase" {
   name                 = "asesubnet"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_subnet" "gateway" {
+  name                 = "gatewaysubnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_app_service_environment" "example" {
   name                   = "example-ase"
-  subnet_id              = "${data.azurerm_subnet.example.id}"
+  subnet_id              = azurerm_subnet.ase.id
   pricing_tier           = "I2"
   front_end_scale_factor = 10
 }
@@ -55,29 +51,23 @@ resource "azurerm_app_service_environment" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) name of the App Service Environment. 
+* `name` - (Required) The name of the App Service Environment. Changing this forces a new resource to be created. 
 
-~> **NOTE** Must meet DNS name specification.
-
-* `subnet_id` - (Required) Resource ID for the ASE subnet.
+* `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created.
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
 
-* `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1` (default), `I2` and `I3`. 
+* `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1`, `I2` and `I3`. Defaults to `I1`.
 
-~> **NOTE** Azure currently utilises Dv2 instances for Isolated SKUs, being `Standard_D1_V2`, `Standard_D2_V2`, and `Standard_D3_V2`.
-
-* `front_end_scale_factor` - (Optional) Scale factor for front end instances. Possible values are between `15` (default) and `5`.
-
-~> **NOTE** Lowering/changing this value has cost implications, see https://docs.microsoft.com/en-us/azure/app-service/environment/using-an-ase#front-end-scaling for details.
+* `front_end_scale_factor` - (Optional) Scale factor for front end instances. Possible values are between `5` and `15`. Defaults to `15`.
 
 ## Attribute Reference
 
-* `id` - The ID of the App Services Environment.
+* `id` - The ID of the App Service Environment.
 
-* `resource_group_name` - The name of the resource group.
+* `resource_group_name` - The name of the Resource Group where the App Service Environment exists.
 
-* `location` - The location the App Service Environment is deployed into.
+* `location` - The location where the App Service Environment exists.
 
 ## Import
 

@@ -31,17 +31,3 @@ func AppServiceEnvironmentName(v interface{}, k string) (warnings []string, erro
 
 	return warnings, errors
 }
-
-func AppServiceEnvironmentPricingTier(v interface{}, k string) (warnings []string, errors []error) {
-	tier := v.(string)
-
-	valid := []string{"I1", "I2", "I3"}
-
-	for _, val := range valid {
-		if val == tier {
-			return
-		}
-	}
-	errors = append(errors, fmt.Errorf("pricing_tier must be one of %q", valid))
-	return warnings, errors
-}
