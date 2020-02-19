@@ -58,6 +58,8 @@ BREAKING CHANGES:
 * `azurerm_eventhub_namespace_authorization_rule` - removing the deprecated `location` field [GH-5793]
 * `azurerm_iot_dps` - This resource has been removed since it was deprecated [GH-5753]
 * `azurerm_iot_dps_certificate` - This resource has been removed since it was deprecated [GH-5753]
+* `azurerm_iothub`- The deprecated `sku.tier` property will be removed. [GH-5790]
+* `azurerm_iothub_dps` - The deprecated `sku.tier` property will be removed. [GH-5790]
 * `azurerm_key_vault` - removing the `sku` block since this has been deprecated in favour of the `sku_name` field [GH-5774]
 * `azurerm_key_vault_access_policy` - removing the deprecated field `vault_name` which has been superseded by the `key_vault_id` field [GH-5774]
 * `azurerm_key_vault_access_policy` - removing the deprecated field `resource_group_name ` which has been superseded by the `key_vault_id` field [GH-5774]
