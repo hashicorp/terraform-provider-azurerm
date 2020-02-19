@@ -89,13 +89,6 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				Computed: true,
 			},
 
-			"network_interface_ids": {
-				Type:       schema.TypeList,
-				Computed:   true,
-				Deprecated: "This field has been deprecated and will be removed in version 2.0 of the Azure Provider",
-				Elem:       &schema.Schema{Type: schema.TypeString},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -147,11 +140,6 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		if props.LoadBalancerFrontendIPConfigurations != nil {
 			if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
-			}
-		}
-		if props.NetworkInterfaces != nil {
-			if err := d.Set("network_interface_ids", dataSourceFlattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
-				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 			}
 		}
 	}

@@ -60,8 +60,7 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.PremiumLRS),
 					string(compute.StandardSSDLRS),
 					string(compute.UltraSSDLRS),
-					// TODO: make this case-sensitive in 2.0
-				}, true),
+				}, false),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -75,8 +74,7 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.FromImage),
 					string(compute.Import),
 					string(compute.Restore),
-					// TODO: make this case-sensitive in 2.0
-				}, true),
+				}, false),
 			},
 
 			"source_uri": {
@@ -118,8 +116,6 @@ func resourceArmManagedDisk() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
-				// TODO: update this in 2.0 so that the minimum size is 1
-				// since users looking to use `0` should be using `null` instead
 				ValidateFunc: validateDiskSizeGB,
 			},
 

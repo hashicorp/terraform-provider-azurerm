@@ -225,6 +225,8 @@ The deprecated `ip_address_list` field in the `backend_address_pool` block will 
 
 The default value for the `body` field within the `match` block will change from `*` to an empty string.
 
+The deprecated `disabled_ssl_protocols` field will be removed in favour of `ssl_policy`.`disabled_protocols`
+
 ### Resource: `azurerm_automation_account`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
@@ -360,6 +362,10 @@ The deprecated `fqdn` field in the `agent_pool_profile` block will be removed. T
 The `service_principal` will be changing from a Set to a List,  which will allow Terraform to better detect when the values have changed locally and as such can detect when this needs to be recreated.
 
 ### Resource: `azurerm_lb_backend_address_pool`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_lb_nat_pool`
 
 The deprecated `location` field will be removed, since this is no longer used.
 

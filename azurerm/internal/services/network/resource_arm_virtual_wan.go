@@ -78,13 +78,6 @@ func resourceArmVirtualWan() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
-
-			// Remove in 2.0
-			"security_provider_name": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure and will be removed in version 2.0 of the Azure Provider",
-			},
 		},
 	}
 }

@@ -21,8 +21,6 @@ func ForceNewSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeMap,
 		Optional: true,
-		// TODO: remove "Computed" in 2.0
-		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: Validate,
 		Elem: &schema.Schema{
@@ -36,8 +34,6 @@ func Schema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeMap,
 		Optional: true,
-		// TODO: remove "Computed" in 2.0
-		Computed:     true,
 		ValidateFunc: Validate,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,

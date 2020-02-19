@@ -139,9 +139,6 @@ The following arguments are supported:
     create the virtual network. Changing this forces a new resource to be
     created.
 
-* `virtual_machine_name` - (Optional / **Deprecated**) The name of the virtual machine. Changing
-    this forces a new resource to be created.
-
 * `virtual_machine_id` - (Optional) The resource ID of the virtual machine. This value replaces
     `location`, `resource_group_name` and `virtual_machine_name`. Changing this forces a new
     resource to be created
