@@ -1,7 +1,7 @@
 ---
+subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
-sidebar_current: "docs-azurerm-resource-cosmosdb-account"
 description: |-
   Manages a CosmosDB (formally DocumentDB) Account.
 ---
@@ -14,8 +14,8 @@ Manages a CosmosDB (formally DocumentDB) Account.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.resource_group_name}"
-  location = "${var.resource_group_location}"
+  name     = var.resource_group_name
+  location = var.resource_group_location
 }
 
 resource "random_integer" "ri" {
@@ -25,8 +25,8 @@ resource "random_integer" "ri" {
 
 resource "azurerm_cosmosdb_account" "db" {
   name                = "tfex-cosmos-db-${random_integer.ri.result}"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
@@ -39,13 +39,13 @@ resource "azurerm_cosmosdb_account" "db" {
   }
 
   geo_location {
-    location          = "${var.failover_location}"
+    location          = var.failover_location
     failover_priority = 1
   }
 
   geo_location {
     prefix            = "tfex-cosmos-db-${random_integer.ri.result}-customid"
-    location          = "${azurerm_resource_group.rg.location}"
+    location          = azurerm_resource_group.rg.location
     failover_priority = 0
   }
 }
@@ -99,7 +99,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `EnableTable`, `EnableCassandra`, and `EnableGremlin`.
+* `name` - (Required) The capability to enable - Possible values are `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `MongoDBv3.4`, and `mongoEnableDocLevelTTL`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 
@@ -129,6 +129,14 @@ The following attributes are exported:
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account. If the kind is `GlobalDocumentDB`, this will be empty.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 180 minutes) Used when creating the CosmosDB Account.
+* `update` - (Defaults to 180 minutes) Used when updating the CosmosDB Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
+* `delete` - (Defaults to 180 minutes) Used when deleting the CosmosDB Account.
 
 ## Import
 

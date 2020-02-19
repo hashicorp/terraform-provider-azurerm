@@ -1,7 +1,7 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_metric_alertrule"
-sidebar_current: "docs-azurerm-resource-monitor-metric-alertrule"
 description: |-
   Manages a metric-based alert rule.
 
@@ -11,21 +11,21 @@ description: |-
 
 Manages a [metric-based alert rule](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitor-quick-resource-metric-alert-portal) in Azure Monitor.
 
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_monitor_metric_alertrule` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+~> **NOTE:** This resource has been [deprecated](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/monitoring-classic-retirement) in favour of the `azurerm_monitor_metric_alert` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 ## Example Usage (CPU Percentage of a virtual machine)
 
 ```hcl
-resource "azurerm_metric_alertrule" "test" {
-  name                = "${azurerm_virtual_machine.test.name}-cpu"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_metric_alertrule" "example" {
+  name                = "${azurerm_virtual_machine.example.name}-cpu"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   description = "An alert rule to watch the metric Percentage CPU"
 
   enabled = true
 
-  resource_id = "${azurerm_virtual_machine.test.id}"
+  resource_id = azurerm_virtual_machine.example.id
   metric_name = "Percentage CPU"
   operator    = "GreaterThan"
   threshold   = 75
@@ -54,16 +54,16 @@ resource "azurerm_metric_alertrule" "test" {
 ## Example Usage (Storage usage of a SQL Database)
 
 ```hcl
-resource "azurerm_metric_alertrule" "test" {
-  name                = "${azurerm_sql_database.test.name}-storage"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_metric_alertrule" "example" {
+  name                = "${azurerm_sql_database.example.name}-storage"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   description = "An alert rule to watch the metric Storage"
 
   enabled = true
 
-  resource_id = "${azurerm_sql_database.test.id}"
+  resource_id = azurerm_sql_database.example.id
   metric_name = "storage"
   operator    = "GreaterThan"
   threshold   = 1073741824
@@ -148,6 +148,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the alert rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Alert Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Alert Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Alert Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Alert Rule.
 
 ## Import
 

@@ -1,7 +1,7 @@
 ---
+subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_cluster"
-sidebar_current: "docs-azurerm-datasource-hdinsight-cluster"
 description: |-
   Gets information about an existing HDInsight Cluster.
 
@@ -20,15 +20,15 @@ data "azurerm_hdinsight_cluster" "example" {
 }
 
 output "https_endpoint" {
-  value = "${data.azurerm_hdinsight_cluster.example.https_endpoint}"
+  value = data.azurerm_hdinsight_cluster.example.https_endpoint
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of this HDInsight Cluster.
+* `name` - Specifies the name of this HDInsight Cluster.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group in which this HDInsight Cluster exists.
+* `resource_group_name` - Specifies the name of the Resource Group in which this HDInsight Cluster exists.
 
 ## Attributes Reference
 
@@ -61,3 +61,9 @@ A `gateway` block exports the following:
 * `username` - The username used for the Ambari Portal.
 
 * `password` - The password used for the Ambari Portal.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the HDInsight Cluster.

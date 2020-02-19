@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Active Directory: Migrating to the AzureAD Provider"
-sidebar_current: "docs-azurerm-migrating-to-azuread"
 description: |-
   This page documents how to migrate from using the AzureAD resources within this repository to the resources in the new split-out repository.
 
@@ -25,7 +24,7 @@ As the AzureAD and AzureRM Provider support the same authentication methods - it
 
 ```hcl
 provider "azurerm" {
-  version = "=1.28.0"
+  version = "=1.44.0"
 }
 ```
 
@@ -59,16 +58,16 @@ Once the Provider blocks have been updated, it should be possible to replace the
 For example the following Terraform Configuration:
 
 ```hcl
-resource "azurerm_azuread_application" "test" {
+resource "azurerm_azuread_application" "example" {
   name = "my-application"
 }
 
-resource "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_application.test.application_id}"
+resource "azurerm_azuread_service_principal" "example" {
+  application_id = azurerm_azuread_application.example.application_id
 }
 
-resource "azurerm_azuread_service_principal_password" "test" {
-  service_principal_id = "${azurerm_azuread_service_principal.test.id}"
+resource "azurerm_azuread_service_principal_password" "example" {
+  service_principal_id = azurerm_azuread_service_principal.example.id
   value                = "bd018069-622d-4b46-bcb9-2bbee49fe7d9"
   end_date             = "2020-01-01T01:02:03Z"
 }
@@ -77,16 +76,16 @@ resource "azurerm_azuread_service_principal_password" "test" {
 we can remove the `azurerm_` prefix from each of the resource names and interpolations to use the `AzureAD` provider instead by making this:
 
 ```hcl
-resource "azuread_application" "test" {
+resource "azuread_application" "example" {
   name = "my-application"
 }
 
-resource "azuread_service_principal" "test" {
-  application_id = "${azuread_application.test.application_id}"
+resource "azuread_service_principal" "example" {
+  application_id = azuread_application.example.application_id
 }
 
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = "${azuread_service_principal.test.id}"
+resource "azuread_service_principal_password" "example" {
+  service_principal_id = azuread_service_principal.example.id
   value                = "bd018069-622d-4b46-bcb9-2bbee49fe7d9"
   end_date             = "2020-01-01T01:02:03Z"
 }
@@ -102,17 +101,17 @@ Firstly, let's list the existing items in the state - we can do this by running 
 
 ```bash
 $ terraform state list
-azurerm_azuread_application.test
-azurerm_azuread_service_principal.test
+azurerm_azuread_application.example
+azurerm_azuread_service_principal.example
 azurerm_azuread_service_principal_password.import
-azurerm_azuread_service_principal_password.test
+azurerm_azuread_service_principal_password.example
 ```
 
 As the Terraform Configuration has been updated - we can move each of the resources in the state using the `terraform state mv` command, for example:
 
 ```shell
-$ terraform state mv azurerm_azuread_application.test azuread_application.test
-Moved azurerm_azuread_application.test to azuread_application.test
+$ terraform state mv azurerm_azuread_application.exampleazuread_application.example
+Moved azurerm_azuread_application.example to azuread_application.example
 ```
 
 This needs to be repeated for each of the Azure Active Directory resources which exist in the state.

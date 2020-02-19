@@ -1,7 +1,7 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_dsc_nodeconfiguration"
-sidebar_current: "docs-azurerm-resource-automation-dsc-nodeconfiguration"
 description: |-
   Manages a Automation DSC Node Configuration.
 ---
@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -30,17 +30,17 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_dsc_configuration" "example" {
   name                    = "test"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
-  location                = "${azurerm_resource_group.example.location}"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  location                = azurerm_resource_group.example.location
   content_embedded        = "configuration test {}"
 }
 
 resource "azurerm_automation_dsc_nodeconfiguration" "example" {
   name                    = "test.localhost"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
-  depends_on              = ["azurerm_automation_dsc_configuration.example"]
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  depends_on              = [azurerm_automation_dsc_configuration.example]
 
   content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
@@ -65,6 +65,7 @@ instance of OMI_ConfigurationDocument
   Name="test";
 };
 mofcontent
+
 }
 ```
 
@@ -85,3 +86,20 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The DSC Node Configuration ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation DSC Node Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation DSC Node Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation DSC Node Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation DSC Node Configuration.
+
+## Import
+
+Automation DSC Node Configuration's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_automation_dsc_nodeconfiguration.configuration1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/nodeConfigurations/configuration1
+```

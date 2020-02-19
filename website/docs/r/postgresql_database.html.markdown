@@ -1,7 +1,7 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_database"
-sidebar_current: "docs-azurerm-resource-database-postgresql-database"
 description: |-
   Manages a PostgreSQL Database within a PostgreSQL Server.
 ---
@@ -13,22 +13,17 @@ Manages a PostgreSQL Database within a PostgreSQL Server
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_postgresql_server" "test" {
+resource "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120
@@ -42,10 +37,10 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 
-resource "azurerm_postgresql_database" "test" {
+resource "azurerm_postgresql_database" "example" {
   name                = "exampledb"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_postgresql_server.example.name
   charset             = "UTF8"
   collation           = "English_United States.1252"
 }
@@ -71,6 +66,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the PostgreSQL Database.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the PostgreSQL Database.
+* `update` - (Defaults to 60 minutes) Used when updating the PostgreSQL Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Database.
+* `delete` - (Defaults to 60 minutes) Used when deleting the PostgreSQL Database.
 
 ## Import
 

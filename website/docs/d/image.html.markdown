@@ -1,7 +1,7 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
-sidebar_current: "docs-azurerm-datasource-image"
 description: |-
   Gets information about an existing Image
 
@@ -20,7 +20,7 @@ data "azurerm_image" "search" {
 }
 
 output "image_id" {
-  value = "${data.azurerm_image.search.id}"
+  value = data.azurerm_image.search.id
 }
 ```
 
@@ -29,7 +29,7 @@ output "image_id" {
 * `name` - (Optional) The name of the Image.
 * `name_regex` - (Optional) Regex pattern of the image to match.
 * `sort_descending` - (Optional) By default when matching by regex, images are sorted by name in ascending order and the first match is chosen, to sort descending, set this flag.
-* `resource_group_name` - (Required) The Name of the Resource Group where this Image exists.
+* `resource_group_name` - The Name of the Resource Group where this Image exists.
 
 ## Attributes Reference
 
@@ -56,3 +56,9 @@ output "image_id" {
 * `lun` - the logical unit number of the data disk.
 * `managed_disk_id` - the ID of the Managed Disk used as the Data Disk Image.
 * `size_gb` - the size of this Data Disk in GB.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Image.

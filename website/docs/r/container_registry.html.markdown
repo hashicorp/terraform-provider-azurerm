@@ -1,7 +1,7 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry"
-sidebar_current: "docs-azurerm-resource-container-registry"
 description: |-
   Manages an Azure Container Registry.
 
@@ -24,8 +24,8 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_container_registry" "acr" {
   name                     = "containerRegistry1"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
-  location                 = "${azurerm_resource_group.rg.location}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
   sku                      = "Premium"
   admin_enabled            = false
   georeplication_locations = ["East US", "West Europe"]
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
 
-* `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
+* `sku` - (Optional) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`. `Classic` (which was previously `Basic`) is supported only for existing resources.
 
 ~> **NOTE:** The `Classic` SKU is Deprecated and will no longer be available for new resources from the end of March 2019.
 
@@ -54,11 +54,39 @@ The following arguments are supported:
 
 * `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
 
+~> **NOTE:** The `georeplication_locations` is only supported on new resources with the `Premium` SKU.
+
+* `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
+
+`network_rule_set` supports the following:
+
+* `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+* `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
+
+~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+
+`ip_rule` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+`virtual_network` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `subnet_id` - (Required) The subnet id from which requests will match the rule.
+
+
+---
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Container Registry ID.
+* `id` - The ID of the Container Registry.
 
 * `login_server` - The URL that can be used to log into the container registry.
 
@@ -66,10 +94,19 @@ The following attributes are exported:
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry.
+
 ## Import
 
 Container Registries can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_registry.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
+terraform import azurerm_container_registry.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```

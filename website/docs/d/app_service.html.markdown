@@ -1,7 +1,7 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service"
-sidebar_current: "docs-azurerm-datasource-app-service-x"
 description: |-
   Gets information about an existing App Service.
 ---
@@ -13,21 +13,21 @@ Use this data source to access information about an existing App Service.
 ## Example Usage
 
 ```hcl
-data "azurerm_app_service" "test" {
+data "azurerm_app_service" "example" {
   name                = "search-app-service"
   resource_group_name = "search-service"
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.test.id}"
+  value = data.azurerm_app_service.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service.
+* `name` - The name of the App Service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service exists.
+* `resource_group_name` - The Name of the Resource Group where the App Service exists.
 
 ## Attributes Reference
 
@@ -52,6 +52,8 @@ output "app_service_id" {
 * `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
+
+* `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
@@ -134,3 +136,9 @@ A `ip_restriction` block exports the following:
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
 * `virtual_network_name` - The name of the Virtual Network which this App Service is attached to.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service.

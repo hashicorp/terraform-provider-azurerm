@@ -1,7 +1,7 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource manager: azurerm_sql_active_directory_administrator"
-sidebar_current: "docs-azurerm-resource-database-sql-administrator"
 description: |-
   Manages an Active Directory administrator on a SQL server
 ---
@@ -15,26 +15,26 @@ Allows you to set a user or group as the AD administrator for an Azure SQL serve
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = "${azurerm_resource_group.example.location}"
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
-resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = "${azurerm_sql_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_sql_active_directory_administrator" "example" {
+  server_name         = "${azurerm_sql_server.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   login               = "sqladmin"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  object_id           = "${data.azurerm_client_config.current.service_principal_object_id}"
+  object_id           = "${data.azurerm_client_config.current.object_id}"
 }
 ```
 
@@ -56,7 +56,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The SQL Active Directory Administrator ID.
+* `id` - The ID of the SQL Active Directory Administrator.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SQL Active Directory Administrator.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Active Directory Administrator.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Active Directory Administrator.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SQL Active Directory Administrator.
 
 ## Import
 

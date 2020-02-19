@@ -1,7 +1,7 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
-sidebar_current: "docs-azurerm-datasource-availability-set"
 description: |-
   Gets information about an existing Availability Set.
 ---
@@ -13,13 +13,13 @@ Use this data source to access information about an existing Availability Set.
 ## Example Usage
 
 ```hcl
-data "azurerm_availability_set" "test" {
+data "azurerm_availability_set" "example" {
   name                = "tf-appsecuritygroup"
   resource_group_name = "my-resource-group"
 }
 
 output "availability_set_id" {
-  value = "${data.azurerm_availability_set.test.id}"
+  value = data.azurerm_availability_set.example.id
 }
 ```
 
@@ -46,3 +46,9 @@ The following attributes are exported:
 * `platform_update_domain_count` - The number of update domains that are used.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Availability Set.

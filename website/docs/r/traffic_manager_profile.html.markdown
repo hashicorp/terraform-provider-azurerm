@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_profile"
-sidebar_current: "docs-azurerm-resource-network-traffic-manager-profile"
 description: |-
   Manages a Traffic Manager Profile.
 
@@ -23,25 +23,28 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "trafficmanagerProfile"
   location = "West US"
 }
 
-resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "${random_id.server.hex}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+resource "azurerm_traffic_manager_profile" "example" {
+  name                   = random_id.server.hex
+  resource_group_name    = azurerm_resource_group.example.name
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "${random_id.server.hex}"
+    relative_name = random_id.server.hex
     ttl           = 100
   }
 
   monitor_config {
-    protocol = "http"
-    port     = 80
-    path     = "/"
+    protocol                     = "http"
+    port                         = 80
+    path                         = "/"
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 9
+    tolerated_number_of_failures = 3
   }
 
   tags = {
@@ -90,28 +93,41 @@ The `dns_config` block supports:
 
 The `monitor_config` block supports:
 
-* `protocol` - (Required) The protocol used by the monitoring checks, supported
-    values are `HTTP`, `HTTPS` and `TCP`.
+* `protocol` - (Required) The protocol used by the monitoring checks, supported values are `HTTP`, `HTTPS` and `TCP`.
 
 * `port` - (Required) The port number used by the monitoring checks.
 
 * `path` - (Optional) The path used by the monitoring checks. Required when `protocol` is set to `HTTP` or `HTTPS` - cannot be set when `protocol` is set to `TCP`.
 
+* `expected_status_code_ranges` - (Optional) A list of status code ranges in the format of `100-101`.
+
+* `interval_in_seconds` - (Optional) The interval used to check the endpoint health from a Traffic Manager probing agent. You can specify two values here: `30` (normal probing) and `10` (fast probing). The default value is `30`.
+
+* `timeout_in_seconds` - (Optional) The amount of time the Traffic Manager probing agent should wait before considering that check a failure when a health check probe is sent to the endpoint. If `interval_in_seconds` is set to `30`, then `timeout_in_seconds` can be between `5` and `10`. The default value is `10`. If `interval_in_seconds` is set to `10`, then valid values are between `5` and `9` and `timeout_in_seconds` is required.
+
+* `tolerated_number_of_failures` - (Optional) The number of failures a Traffic Manager probing agent tolerates before marking that endpoint as unhealthy. Valid values are between `0` and `9`. The default value is `3`
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Traffic Manager Profile id.
+* `id` - The ID of the Traffic Manager Profile.
+
 * `fqdn` - The FQDN of the created Profile.
 
-## Notes
+## Timeouts
 
-The Traffic Manager is created with the location `global`.
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Traffic Manager Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Traffic Manager Profile.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Traffic Manager Profile.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Traffic Manager Profile.
 
 ## Import
 
 Traffic Manager Profiles can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_traffic_manager_profile.testProfile /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1
+terraform import azurerm_traffic_manager_profile.exampleProfile /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1
 ```

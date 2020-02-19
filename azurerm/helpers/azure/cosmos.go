@@ -90,6 +90,28 @@ func ParseCosmosDatabaseCollectionID(id string) (*CosmosDatabaseCollectionID, er
 	}, nil
 }
 
+type CosmosDatabaseContainerID struct {
+	CosmosDatabaseID
+	Container string
+}
+
+func ParseCosmosDatabaseContainerID(id string) (*CosmosDatabaseContainerID, error) {
+	subid, err := ParseCosmosDatabaseID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	container, ok := subid.Path["containers"]
+	if !ok {
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Database Container Resource ID: containers is missing from: %s", id)
+	}
+
+	return &CosmosDatabaseContainerID{
+		CosmosDatabaseID: *subid,
+		Container:        container,
+	}, nil
+}
+
 type CosmosKeyspaceID struct {
 	CosmosAccountID
 	Keyspace string
@@ -131,5 +153,27 @@ func ParseCosmosTableID(id string) (*CosmosTableID, error) {
 	return &CosmosTableID{
 		CosmosAccountID: *subid,
 		Table:           table,
+	}, nil
+}
+
+type CosmosGremlinGraphID struct {
+	CosmosDatabaseID
+	Graph string
+}
+
+func ParseCosmosGramlinGraphID(id string) (*CosmosGremlinGraphID, error) {
+	subid, err := ParseCosmosDatabaseID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	graph, ok := subid.Path["graphs"]
+	if !ok {
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Gremlin Graph Resource ID: Graph is missing from: %s", id)
+	}
+
+	return &CosmosGremlinGraphID{
+		CosmosDatabaseID: *subid,
+		Graph:            graph,
 	}, nil
 }

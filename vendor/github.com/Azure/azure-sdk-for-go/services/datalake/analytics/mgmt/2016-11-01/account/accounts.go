@@ -109,8 +109,8 @@ func (client AccountsClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
@@ -150,16 +150,16 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 					Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.DefaultDataLakeStoreAccount", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.DataLakeStoreAccounts", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxJobCount", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxJobCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxJobCount", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelism", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelism", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelism", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelismPerJob", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MinPriorityPerJob", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.InclusiveMaximum, Rule: int64(180), Chain: nil},
-								{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+								{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 							}},
 					}}}}}); err != nil {
 		return result, validation.NewError("account.AccountsClient", "Create", err.Error())
@@ -206,9 +206,9 @@ func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) CreateSender(req *http.Request) (future AccountsCreateFutureType, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -283,9 +283,9 @@ func (client AccountsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) DeleteSender(req *http.Request) (future AccountsDeleteFutureType, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -365,8 +365,8 @@ func (client AccountsClient) GetPreparer(ctx context.Context, resourceGroupName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -409,10 +409,10 @@ func (client AccountsClient) List(ctx context.Context, filter string, top *int32
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}},
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}},
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("account.AccountsClient", "List", err.Error())
 	}
 
@@ -478,8 +478,8 @@ func (client AccountsClient) ListPreparer(ctx context.Context, filter string, to
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -560,10 +560,10 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}},
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}},
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("account.AccountsClient", "ListByResourceGroup", err.Error())
 	}
 
@@ -630,8 +630,8 @@ func (client AccountsClient) ListByResourceGroupPreparer(ctx context.Context, re
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -745,9 +745,9 @@ func (client AccountsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) UpdateSender(req *http.Request) (future AccountsUpdateFutureType, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

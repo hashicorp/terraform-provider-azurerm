@@ -1,7 +1,7 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace-authorization-rule"
 description: |-
   Manages a ServiceBus Namespace authorization Rule within a ServiceBus.
 ---
@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -31,8 +31,8 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_namespace_authorization_rule" "example" {
   name                = "examplerule"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
 
   listen = true
   send   = true
@@ -71,6 +71,15 @@ The following attributes are exported:
 * `secondary_key` - The Secondary Key for the ServiceBus Namespace authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the ServiceBus Namespace authorization Rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace Authorization Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace Authorization Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Namespace Authorization Rule.
 
 ## Import
 

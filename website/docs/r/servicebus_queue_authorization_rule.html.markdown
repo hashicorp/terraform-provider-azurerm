@@ -1,7 +1,7 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue-authorization-rule"
 description: |-
   Manages an Authorization Rule for a ServiceBus Queue.
 ---
@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -31,17 +31,17 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_queue" "example" {
   name                = "tfex_servicebus_queue"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "example" {
   name                = "examplerule"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  queue_name          = "${azurerm_servicebus_queue.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  queue_name          = azurerm_servicebus_queue.example.name
+  resource_group_name = azurerm_resource_group.example.name
 
   listen = true
   send   = true
@@ -82,6 +82,15 @@ The following attributes are exported:
 * `secondary_key` - The Secondary Key for the Authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the Authorization Rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Queue Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Queue Authorization Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Queue Authorization Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Queue Authorization Rule.
 
 ## Import
 

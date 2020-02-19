@@ -1,7 +1,7 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_active_slot"
-sidebar_current: "docs-azurerm-resource-app-service-active-slot"
 description: |-
   Promotes an App Service Slot to Production within an App Service
 
@@ -20,26 +20,26 @@ resource "random_id" "server" {
   # ...
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   # ...
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   # ...
 }
 
-resource "azurerm_app_service" "test" {
+resource "azurerm_app_service" "example" {
   # ...
 }
 
-resource "azurerm_app_service_slot" "test" {
+resource "azurerm_app_service_slot" "example" {
   # ...
 }
 
-resource "azurerm_app_service_active_slot" "test" {
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  app_service_name      = "${azurerm_app_service.test.name}"
-  app_service_slot_name = "${azurerm_app_service_slot.test.name}"
+resource "azurerm_app_service_active_slot" "example" {
+  resource_group_name   = azurerm_resource_group.example.name
+  app_service_name      = azurerm_app_service.example.name
+  app_service_slot_name = azurerm_app_service_slot.example.name
 }
 ```
 
@@ -52,3 +52,12 @@ The following arguments are supported:
 * `app_service_name` - (Required) The name of the App Service within which the Slot exists.  Changing this forces a new resource to be created.
 
 * `app_service_slot_name` - (Required) The name of the App Service Slot which should be promoted to the Production Slot within the App Service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Active Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Active Slot.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Active Slot.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Active Slot.

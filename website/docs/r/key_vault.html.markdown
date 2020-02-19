@@ -1,7 +1,7 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
-sidebar_current: "docs-azurerm-resource-key-vault-x"
 description: |-
   Manages a Key Vault.
 ---
@@ -15,21 +15,19 @@ Manages a Key Vault.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                        = "testvault"
-  location                    = "${azurerm_resource_group.test.location}"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
@@ -69,7 +67,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Required) An SKU block as described below.
+* `sku_name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
@@ -88,6 +86,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
+
+A `access_policy` block supports the following:
 
 Elements of `access_policy` support:
 
@@ -113,16 +113,9 @@ A `network_acls` block supports the following:
 
 * `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_subnet_ids`. Possible values are `Allow` and `Deny`.
 
-* `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access thie Key Vault.
+* `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.
 
 * `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Key Vault.
-
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
-
 
 ## Attributes Reference
 
@@ -132,10 +125,19 @@ The following attributes are exported:
 
 * `vault_uri` - The URI of the Key Vault, used for performing operations on keys and secrets.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault.
+
 ## Import
 
 Key Vault's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/vault1
+terraform import azurerm_key_vault.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/vault1
 ```

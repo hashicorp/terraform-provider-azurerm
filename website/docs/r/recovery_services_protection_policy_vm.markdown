@@ -1,12 +1,14 @@
 ---
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
-sidebar_current: "docs-azurerm-recovery-services-protection-policy-vm"
 description: |-
   Manages an Recovery Services VM Protection Policy.
 ---
 
 # azurerm_recovery_services_protection_policy_vm
+
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_backup_policy_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 Manages an Recovery Services VM Protection Policy.
 
@@ -25,7 +27,7 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "test" {
+resource "azurerm_recovery_services_protection_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
@@ -71,7 +73,7 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
-* `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below. 
+* `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below.
 
 * `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
 
@@ -89,9 +91,9 @@ The following arguments are supported:
 
 The `backup` block supports:
 
-* `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`. 
+* `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`.
 
-* `times` - (Required) The time of day to preform the backup in 24hour format.
+* `times` - (Required) The time of day to perform the backup in 24hour format.
 
 * `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
@@ -99,13 +101,13 @@ The `backup` block supports:
 
 The `retention_daily` block supports:
 
-* `count` - (Required) The number of daily backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of daily backups to keep. Must be between `1` and `9999`
 
 ---
 
 The `retention_weekly` block supports:
 
-* `count` - (Required) The number of weekly backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of weekly backups to keep. Must be between `1` and `9999`
 
 * `weekdays` - (Required) The weekday backups to retain. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
@@ -113,7 +115,7 @@ The `retention_weekly` block supports:
 
 The `retention_monthly` block supports:
 
-* `count` - (Required) The number of monthly backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of monthly backups to keep. Must be between `1` and `9999`
 
 * `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
@@ -123,13 +125,13 @@ The `retention_monthly` block supports:
 
 The `retention_yearly` block supports:
 
-* `count` - (Required) The number of yearly backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of yearly backups to keep. Must be between `1` and `9999`
 
 * `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
 * `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
 
-* `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `Febuary`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
+* `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `February`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
 
 ---
 
@@ -139,6 +141,15 @@ The following attributes are exported:
 
 * `id` - The ID of the Recovery Services VM Protection Policy.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Recovery Services VM Protection Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Recovery Services VM Protection Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services VM Protection Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Recovery Services VM Protection Policy.
+
 ## Import
 
 Recovery Services VM Protection Policy can be imported using the `resource id`, e.g.
@@ -146,5 +157,3 @@ Recovery Services VM Protection Policy can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_recovery_services_protection_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
 ```
-
- 

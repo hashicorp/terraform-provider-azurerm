@@ -101,8 +101,8 @@ func (client ScriptExecutionHistoryClient) ListByClusterPreparer(ctx context.Con
 // ListByClusterSender sends the ListByCluster request. The method will close the
 // http.Response Body if it receives an error.
 func (client ScriptExecutionHistoryClient) ListByClusterSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByClusterResponder handles the response to the ListByCluster request. The method always
@@ -217,8 +217,8 @@ func (client ScriptExecutionHistoryClient) PromotePreparer(ctx context.Context, 
 // PromoteSender sends the Promote request. The method will close the
 // http.Response Body if it receives an error.
 func (client ScriptExecutionHistoryClient) PromoteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // PromoteResponder handles the response to the Promote request. The method always

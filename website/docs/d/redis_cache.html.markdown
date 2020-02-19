@@ -1,7 +1,7 @@
 ---
+subcategory: "Redis"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_cache"
-sidebar_current: "docs-azurerm-datasource-redis-cache"
 description: |-
   Gets information about an existing Azure Redis Cache.
 
@@ -19,13 +19,12 @@ data "azurerm_redis_cache" "example" {
 }
 
 output "primary_access_key" {
-  value = "${data.azurerm_redis_cache.example.primary_access_key}"
+  value = data.azurerm_redis_cache.example.primary_access_key
 }
 
 output "hostname" {
-  value = "${data.azurerm_redis_cache.example.hostname}"
+  value = data.azurerm_redis_cache.example.hostname
 }
-
 ```
 
 ## Argument Reference
@@ -68,7 +67,7 @@ output "hostname" {
 
 ---
 
-A `patch_schedule` block supports the following (Requires Premium SKU's, attempting to access this value on Basic or Standard SKU's will result in an errro):
+A `patch_schedule` block supports the following (Requires Premium SKU's, attempting to access this value on Basic or Standard SKU's will result in an error):
 
 * `day_of_week` - the Weekday name for the patch item
 
@@ -98,4 +97,10 @@ A `redis_configuration` block exports the following:
 
 * `rdb_storage_connection_string` - The Connection String to the Storage Account. Only supported for Premium SKU's.
 
-~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) e.g.:
+~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) e.g.:
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.

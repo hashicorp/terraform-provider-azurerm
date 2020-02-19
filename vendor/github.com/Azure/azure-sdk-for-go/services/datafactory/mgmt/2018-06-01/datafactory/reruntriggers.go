@@ -120,9 +120,9 @@ func (client RerunTriggersClient) CancelPreparer(ctx context.Context, resourceGr
 // CancelSender sends the Cancel request. The method will close the
 // http.Response Body if it receives an error.
 func (client RerunTriggersClient) CancelSender(req *http.Request) (future RerunTriggersCancelFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -182,7 +182,7 @@ func (client RerunTriggersClient) Create(ctx context.Context, resourceGroupName 
 				{Target: "rerunTumblingWindowTriggerActionParameters.EndTime", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.InclusiveMaximum, Rule: int64(50), Chain: nil},
-						{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+						{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 					}}}}}); err != nil {
 		return result, validation.NewError("datafactory.RerunTriggersClient", "Create", err.Error())
 	}
@@ -236,8 +236,8 @@ func (client RerunTriggersClient) CreatePreparer(ctx context.Context, resourceGr
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client RerunTriggersClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -332,8 +332,8 @@ func (client RerunTriggersClient) ListByTriggerPreparer(ctx context.Context, res
 // ListByTriggerSender sends the ListByTrigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client RerunTriggersClient) ListByTriggerSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByTriggerResponder handles the response to the ListByTrigger request. The method always
@@ -464,9 +464,9 @@ func (client RerunTriggersClient) StartPreparer(ctx context.Context, resourceGro
 // StartSender sends the Start request. The method will close the
 // http.Response Body if it receives an error.
 func (client RerunTriggersClient) StartSender(req *http.Request) (future RerunTriggersStartFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -564,9 +564,9 @@ func (client RerunTriggersClient) StopPreparer(ctx context.Context, resourceGrou
 // StopSender sends the Stop request. The method will close the
 // http.Response Body if it receives an error.
 func (client RerunTriggersClient) StopSender(req *http.Request) (future RerunTriggersStopFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

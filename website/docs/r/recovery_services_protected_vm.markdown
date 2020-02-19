@@ -1,12 +1,14 @@
 ---
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protected_vm"
-sidebar_current: "docs-azurerm-recovery-services-protected-vm"
 description: |-
   Manages an Recovery Services Protected VM.
 ---
 
 # azurerm_recovery_services_protected_vm
+
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_backup_protected_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 Manages an Recovery Protected VM.
 
@@ -54,7 +56,7 @@ The following arguments are supported:
 
 * `source_vm_id` - (Required) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
 
-* `backup_policy_id` - (Required) Specifies the id of the backup policy to use. Changing this forces a new resource to be created.
+* `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -62,7 +64,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Recovery Services Vault.
+* `id` - The ID of the Recovery Services Protected VM.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 80 minutes) Used when creating the Recovery Services Protected VM.
+* `update` - (Defaults to 80 minutes) Used when updating the Recovery Services Protected VM.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Protected VM.
+* `delete` - (Defaults to 80 minutes) Used when deleting the Recovery Services Protected VM.
 
 ## Import
 
@@ -73,4 +84,4 @@ terraform import azurerm_recovery_services_protected_vm.item1 "/subscriptions/00
 ```
 
 Note the ID requires quoting as there are semicolons
- 
+m

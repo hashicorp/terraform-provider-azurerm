@@ -1,7 +1,7 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_signalr_service"
-sidebar_current: "docs-azurerm-resource-messaging-signalr-service"
 description: |-
   Manages an Azure SignalR service.
 ---
@@ -20,12 +20,21 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_signalr_service" "example" {
   name                = "tfex-signalr"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Free_F1"
     capacity = 1
+  }
+
+  cors {
+    allowed_origins = ["http://www.example.com"]
+  }
+
+  features {
+    flag  = "ServiceMode"
+    value = "Default"
   }
 }
 ```
@@ -42,7 +51,25 @@ The following arguments are supported:
 
 * `sku` - A `sku` block as documented below.
 
+* `cors` - (Optional) A `cors` block as documented below.
+
+* `features` - (Optional) A `features` block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+
+---
+
+A `features` block supports the following:
+
+* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs` and `ServiceMode`.
+
+* `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
 ---
 
@@ -73,6 +100,15 @@ The following attributes are exported:
 * `secondary_access_key` - The secondary access key for the SignalR service.
 
 * `secondary_connection_string` - The secondary connection string for the SignalR service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SignalR Service.
+* `update` - (Defaults to 30 minutes) Used when updating the SignalR Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SignalR Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SignalR Service.
 
 ## Import
 

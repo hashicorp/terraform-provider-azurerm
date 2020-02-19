@@ -1,7 +1,7 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_windows_virtual_machine"
-sidebar_current: "docs-azurerm-resource-dev-test-windows-virtual-machine"
 description: |-
   Manages a Windows Virtual Machine within a Dev Test Lab.
 ---
@@ -13,25 +13,25 @@ Manages a Windows Virtual Machine within a Dev Test Lab.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_dev_test_lab" "test" {
+resource "azurerm_dev_test_lab" "example" {
   name                = "example-devtestlab"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     "Sydney" = "Australia"
   }
 }
 
-resource "azurerm_dev_test_virtual_network" "test" {
+resource "azurerm_dev_test_virtual_network" "example" {
   name                = "example-network"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.example.name
+  resource_group_name = azurerm_resource_group.example.name
 
   subnet {
     use_public_ip_address           = "Allow"
@@ -39,16 +39,16 @@ resource "azurerm_dev_test_virtual_network" "test" {
   }
 }
 
-resource "azurerm_dev_test_windows_virtual_machine" "test" {
+resource "azurerm_dev_test_windows_virtual_machine" "example" {
   name                   = "example-vm03"
-  lab_name               = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
+  lab_name               = azurerm_dev_test_lab.example.name
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
   size                   = "Standard_DS2"
   username               = "exampleuser99"
-  password               = "Pa$$w0rd1234!"
-  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  password               = "Pa$w0rd1234!"
+  lab_virtual_network_id = azurerm_dev_test_virtual_network.example.id
+  lab_subnet_name        = azurerm_dev_test_virtual_network.example.subnet[0].name
   storage_type           = "Premium"
   notes                  = "Some notes about this Virtual Machine."
 
@@ -141,9 +141,20 @@ A `inbound_nat_rule` block exports the following:
 
 * `frontend_port` - The frontend port associated with this Inbound NAT Rule.
 
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DevTest Windows Virtual Machine.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Windows Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Windows Virtual Machine.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Windows Virtual Machine.
+
 ## Import
 
-Dev Test Windows Virtual Machines can be imported using the `resource id`, e.g.
+DevTest Windows Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualmachines/machine1

@@ -1,7 +1,7 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_activity_log_alert"
-sidebar_current: "docs-azurerm-resource-monitor-activity-log-alert"
 description: |-
   Manages an Activity Log Alert within Azure Monitor
 ---
@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "main" {
 
 resource "azurerm_monitor_action_group" "main" {
   name                = "example-actiongroup"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  resource_group_name = azurerm_resource_group.main.name
   short_name          = "p0action"
 
   webhook_receiver {
@@ -31,26 +31,26 @@ resource "azurerm_monitor_action_group" "main" {
 
 resource "azurerm_storage_account" "to_monitor" {
   name                     = "examplesa"
-  resource_group_name      = "${azurerm_resource_group.main.name}"
-  location                 = "${azurerm_resource_group.main.location}"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_monitor_activity_log_alert" "main" {
   name                = "example-activitylogalert"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  scopes              = ["${azurerm_resource_group.main.id}"]
+  resource_group_name = azurerm_resource_group.main.name
+  scopes              = [azurerm_resource_group.main.id]
   description         = "This alert will monitor a specific storage account updates."
 
   criteria {
-    resource_id    = "${azurerm_storage_account.to_monitor.id}"
+    resource_id    = azurerm_storage_account.to_monitor.id
     operation_name = "Microsoft.Storage/storageAccounts/write"
     category       = "Recommendation"
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.main.id}"
+    action_group_id = azurerm_monitor_action_group.main.id
 
     webhook_properties = {
       from = "terraform"
@@ -83,7 +83,7 @@ An `action` block supports the following:
 
 A `criteria` block supports the following:
 
-* `category` - (Required) The category of the operation. Possible values are `Administrative`, `Autoscale`, `Policy`, `Recommendation`, `Security` and `Service Health`.
+* `category` - (Required) The category of the operation. Possible values are `Administrative`, `Autoscale`, `Policy`, `Recommendation`, `ResourceHealth`, `Security` and `ServiceHealth`.
 * `operation_name` - (Optional) The Resource Manager Role-Based Access Control operation name. Supported operation should be of the form: `<resourceProvider>/<resourceType>/<operation>`.
 * `resource_provider` - (Optional) The name of the resource provider monitored by the activity log alert.
 * `resource_type` - (Optional) The resource type monitored by the activity log alert.
@@ -100,10 +100,20 @@ The following attributes are exported:
 
 * `id` - The ID of the activity log alert.
 
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Activity Log Alert.
+* `update` - (Defaults to 30 minutes) Used when updating the Activity Log Alert.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Activity Log Alert.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Activity Log Alert.
+
 ## Import
 
 Activity log alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_activity_log_alert.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/activityLogAlerts/myalertname
+terraform import azurerm_monitor_activity_log_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/activityLogAlerts/myalertname
 ```

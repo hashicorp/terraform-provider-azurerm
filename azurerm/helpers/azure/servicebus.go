@@ -5,8 +5,8 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 )
@@ -102,7 +102,6 @@ func MergeSchema(a map[string]*schema.Schema, b map[string]*schema.Schema) map[s
 }
 
 func ServiceBusAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
-
 	authSchema := map[string]*schema.Schema{
 		"listen": {
 			Type:     schema.TypeBool,

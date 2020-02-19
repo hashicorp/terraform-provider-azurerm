@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func ExpandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsId string) *[]string {

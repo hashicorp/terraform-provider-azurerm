@@ -161,9 +161,9 @@ func (client PoolClient) CreatePreparer(ctx context.Context, resourceGroupName s
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client PoolClient) CreateSender(req *http.Request) (future PoolCreateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -252,9 +252,9 @@ func (client PoolClient) DeletePreparer(ctx context.Context, resourceGroupName s
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client PoolClient) DeleteSender(req *http.Request) (future PoolDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -348,8 +348,8 @@ func (client PoolClient) DisableAutoScalePreparer(ctx context.Context, resourceG
 // DisableAutoScaleSender sends the DisableAutoScale request. The method will close the
 // http.Response Body if it receives an error.
 func (client PoolClient) DisableAutoScaleSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DisableAutoScaleResponder handles the response to the DisableAutoScale request. The method always
@@ -439,8 +439,8 @@ func (client PoolClient) GetPreparer(ctx context.Context, resourceGroupName stri
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client PoolClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -550,8 +550,8 @@ func (client PoolClient) ListByBatchAccountPreparer(ctx context.Context, resourc
 // ListByBatchAccountSender sends the ListByBatchAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client PoolClient) ListByBatchAccountSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByBatchAccountResponder handles the response to the ListByBatchAccount request. The method always
@@ -682,8 +682,8 @@ func (client PoolClient) StopResizePreparer(ctx context.Context, resourceGroupNa
 // StopResizeSender sends the StopResize request. The method will close the
 // http.Response Body if it receives an error.
 func (client PoolClient) StopResizeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // StopResizeResponder handles the response to the StopResize request. The method always
@@ -783,8 +783,8 @@ func (client PoolClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client PoolClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always

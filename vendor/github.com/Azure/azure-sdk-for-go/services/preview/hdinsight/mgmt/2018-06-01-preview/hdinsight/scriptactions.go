@@ -102,8 +102,8 @@ func (client ScriptActionsClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ScriptActionsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -180,8 +180,8 @@ func (client ScriptActionsClient) GetExecutionDetailPreparer(ctx context.Context
 // GetExecutionDetailSender sends the GetExecutionDetail request. The method will close the
 // http.Response Body if it receives an error.
 func (client ScriptActionsClient) GetExecutionDetailSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetExecutionDetailResponder handles the response to the GetExecutionDetail request. The method always
@@ -258,8 +258,8 @@ func (client ScriptActionsClient) ListByClusterPreparer(ctx context.Context, res
 // ListByClusterSender sends the ListByCluster request. The method will close the
 // http.Response Body if it receives an error.
 func (client ScriptActionsClient) ListByClusterSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByClusterResponder handles the response to the ListByCluster request. The method always

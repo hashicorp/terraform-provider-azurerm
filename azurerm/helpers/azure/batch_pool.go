@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // FlattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
@@ -192,8 +195,7 @@ func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 }
 
 // FlattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
-func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.ContainerConfiguration) interface{} {
-
+func FlattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerConfiguration == nil {
@@ -203,8 +205,66 @@ func FlattenBatchPoolContainerConfiguration(armContainerConfiguration *batch.Con
 	if armContainerConfiguration.Type != nil {
 		result["type"] = *armContainerConfiguration.Type
 	}
+	result["container_registries"] = flattenBatchPoolContainerRegistries(d, armContainerConfiguration.ContainerRegistries)
 
 	return []interface{}{result}
+}
+
+func flattenBatchPoolContainerRegistries(d *schema.ResourceData, armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
+	results := make([]interface{}, 0)
+
+	if armContainerRegistries == nil {
+		return results
+	}
+	for _, armContainerRegistry := range *armContainerRegistries {
+		result := flattenBatchPoolContainerRegistry(d, &armContainerRegistry)
+		results = append(results, result)
+	}
+	return results
+}
+
+func flattenBatchPoolContainerRegistry(d *schema.ResourceData, armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if armContainerRegistry == nil {
+		return result
+	}
+	if registryServer := armContainerRegistry.RegistryServer; registryServer != nil {
+		result["registry_server"] = *registryServer
+	}
+	if userName := armContainerRegistry.UserName; userName != nil {
+		result["user_name"] = *userName
+	}
+
+	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
+	if len(result) != 2 {
+		return result
+	}
+
+	result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
+
+	return result
+}
+
+func findBatchPoolContainerRegistryPassword(d *schema.ResourceData, armServer string, armUsername string) interface{} {
+	numContainerRegistries := 0
+	if n, ok := d.GetOk("container_configuration.0.container_registries.#"); ok {
+		numContainerRegistries = n.(int)
+	} else {
+		return ""
+	}
+
+	for i := 0; i < numContainerRegistries; i++ {
+		if server, ok := d.GetOk(fmt.Sprintf("container_configuration.0.container_registries.%d.registry_server", i)); !ok || server != armServer {
+			continue
+		}
+		if username, ok := d.GetOk(fmt.Sprintf("container_configuration.0.container_registries.%d.user_name", i)); !ok || username != armUsername {
+			continue
+		}
+		return d.Get(fmt.Sprintf("container_configuration.0.container_registries.%d.password", i))
+	}
+
+	return ""
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference
@@ -214,17 +274,31 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	storageImageRef := list[0].(map[string]interface{})
+	imageRef := &batch.ImageReference{}
 
-	storageImageRefOffer := storageImageRef["offer"].(string)
-	storageImageRefPublisher := storageImageRef["publisher"].(string)
-	storageImageRefSku := storageImageRef["sku"].(string)
-	storageImageRefVersion := storageImageRef["version"].(string)
+	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
+		storageImageRefID := storageImageRef["id"].(string)
+		imageRef.ID = &storageImageRefID
+	}
 
-	imageRef := &batch.ImageReference{
-		Offer:     &storageImageRefOffer,
-		Publisher: &storageImageRefPublisher,
-		Sku:       &storageImageRefSku,
-		Version:   &storageImageRefVersion,
+	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
+		storageImageRefOffer := storageImageRef["offer"].(string)
+		imageRef.Offer = &storageImageRefOffer
+	}
+
+	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
+		storageImageRefPublisher := storageImageRef["publisher"].(string)
+		imageRef.Publisher = &storageImageRefPublisher
+	}
+
+	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
+		storageImageRefSku := storageImageRef["sku"].(string)
+		imageRef.Sku = &storageImageRefSku
+	}
+
+	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
+		storageImageRefVersion := storageImageRef["version"].(string)
+		imageRef.Version = &storageImageRefVersion
 	}
 
 	return imageRef, nil
@@ -238,17 +312,49 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.Container
 
 	containerConfiguration := list[0].(map[string]interface{})
 	containerType := containerConfiguration["type"].(string)
+	containerRegistries, err := expandBatchPoolContainerRegistries(containerConfiguration["container_registries"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
 
 	containerConf := &batch.ContainerConfiguration{
-		Type: &containerType,
+		Type:                &containerType,
+		ContainerRegistries: containerRegistries,
 	}
 
 	return containerConf, nil
 }
 
+func expandBatchPoolContainerRegistries(list []interface{}) (*[]batch.ContainerRegistry, error) {
+	result := []batch.ContainerRegistry{}
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		containerRegistry, err := expandBatchPoolContainerRegistry(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *containerRegistry)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.ContainerRegistry, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: container registry reference should be defined")
+	}
+
+	containerRegistry := batch.ContainerRegistry{
+		RegistryServer: utils.String(ref["registry_server"].(string)),
+		UserName:       utils.String(ref["user_name"].(string)),
+		Password:       utils.String(ref["password"].(string)),
+	}
+	return &containerRegistry, nil
+}
+
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
 func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]batch.CertificateReference, error) {
-	result := []batch.CertificateReference{}
+	var result []batch.CertificateReference
 
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
@@ -270,7 +376,7 @@ func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.Cer
 	storeLocation := ref["store_location"].(string)
 	storeName := ref["store_name"].(string)
 	visibilityRefs := ref["visibility"].(*schema.Set)
-	visibility := []batch.CertificateVisibility{}
+	var visibility []batch.CertificateVisibility
 	if visibilityRefs != nil {
 		for _, visibilityRef := range visibilityRefs.List() {
 			visibility = append(visibility, batch.CertificateVisibility(visibilityRef.(string)))
@@ -314,7 +420,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				ElevationLevel: batch.ElevationLevel(autoUserMap["elevation_level"].(string)),
 				Scope:          batch.AutoUserScope(autoUserMap["scope"].(string)),
 			}
-
 		}
 	} else if userNameValue, ok := userIdentityValue["username"]; ok {
 		userName := userNameValue.(string)
@@ -414,4 +519,185 @@ func ValidateAzureRMBatchPoolName(v interface{}, k string) (warnings []string, e
 	}
 
 	return warnings, errors
+}
+
+// ExpandBatchMetaData expands Batch pool metadata
+func ExpandBatchMetaData(input map[string]interface{}) *[]batch.MetadataItem {
+	output := []batch.MetadataItem{}
+
+	for k, v := range input {
+		name := k
+		value := v.(string)
+		output = append(output, batch.MetadataItem{
+			Name:  &name,
+			Value: &value,
+		})
+	}
+
+	return &output
+}
+
+// FlattenBatchMetaData flattens a Batch pool metadata
+func FlattenBatchMetaData(metadatas *[]batch.MetadataItem) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	if metadatas == nil {
+		return output
+	}
+
+	for _, metadata := range *metadatas {
+		if metadata.Name == nil || metadata.Value == nil {
+			continue
+		}
+
+		output[*metadata.Name] = *metadata.Value
+	}
+
+	return output
+}
+
+// ExpandBatchPoolNetworkConfiguration expands Batch pool network configuration
+func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConfiguration, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	networkConfigValue := list[0].(map[string]interface{})
+	networkConfiguration := &batch.NetworkConfiguration{}
+
+	if v, ok := networkConfigValue["subnet_id"]; ok {
+		if value := v.(string); value != "" {
+			networkConfiguration.SubnetID = &value
+		}
+	}
+
+	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
+		endpoint, err := ExpandBatchPoolEndpointConfiguration(v.([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		networkConfiguration.EndpointConfiguration = endpoint
+	}
+
+	return networkConfiguration, nil
+}
+
+//ExpandBatchPoolEndpointConfiguration expands Batch pool endpoint configuration
+func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	inboundNatPools := make([]batch.InboundNatPool, len(list))
+
+	for i, inboundNatPoolsValue := range list {
+		inboundNatPool := inboundNatPoolsValue.(map[string]interface{})
+
+		name := inboundNatPool["name"].(string)
+		protocol := batch.InboundEndpointProtocol(inboundNatPool["protocol"].(string))
+		backendPort := int32(inboundNatPool["backend_port"].(int))
+		frontendPortRange := inboundNatPool["frontend_port_range"].(string)
+		parts := strings.Split(frontendPortRange, "-")
+		frontendPortRangeStart, _ := strconv.Atoi(parts[0])
+		frontendPortRangeEnd, _ := strconv.Atoi(parts[1])
+
+		networkSecurityGroupRules, err := ExpandBatchPoolNetworkSecurityGroupRule(inboundNatPool["network_security_group_rules"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+
+		inboundNatPools[i] = batch.InboundNatPool{
+			Name:                      &name,
+			Protocol:                  protocol,
+			BackendPort:               &backendPort,
+			FrontendPortRangeStart:    utils.Int32(int32(frontendPortRangeStart)),
+			FrontendPortRangeEnd:      utils.Int32(int32(frontendPortRangeEnd)),
+			NetworkSecurityGroupRules: &networkSecurityGroupRules,
+		}
+	}
+
+	return &batch.PoolEndpointConfiguration{
+		InboundNatPools: &inboundNatPools,
+	}, nil
+}
+
+//ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
+func ExpandBatchPoolNetworkSecurityGroupRule(list []interface{}) ([]batch.NetworkSecurityGroupRule, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	networkSecurityGroupRule := make([]batch.NetworkSecurityGroupRule, len(list))
+
+	for i, groupRule := range list {
+		groupRuleMap := groupRule.(map[string]interface{})
+
+		priority := int32(groupRuleMap["priority"].(int))
+		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
+		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
+
+		networkSecurityGroupRule[i] = batch.NetworkSecurityGroupRule{
+			Priority:            &priority,
+			SourceAddressPrefix: &sourceAddressPrefix,
+			Access:              access,
+		}
+	}
+
+	return networkSecurityGroupRule, nil
+}
+
+// FlattenBatchPoolNetworkConfiguration flattens the network configuration for a Batch pool
+func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+
+	if networkConfig == nil {
+		log.Printf("[DEBUG] networkConfgiuration is nil")
+		return nil
+	}
+
+	result := make(map[string]interface{})
+
+	if networkConfig.SubnetID != nil {
+		result["subnet_id"] = *networkConfig.SubnetID
+	}
+
+	if cfg := networkConfig.EndpointConfiguration; cfg != nil && cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
+		endpointConfigs := make([]interface{}, len(*cfg.InboundNatPools))
+
+		for i, inboundNatPool := range *cfg.InboundNatPools {
+			inboundNatPoolMap := make(map[string]interface{})
+			if inboundNatPool.Name != nil {
+				inboundNatPoolMap["name"] = *inboundNatPool.Name
+			}
+			if inboundNatPool.BackendPort != nil {
+				inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
+			}
+			if inboundNatPool.FrontendPortRangeStart != nil && inboundNatPool.FrontendPortRangeEnd != nil {
+				inboundNatPoolMap["frontend_port_range"] = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, inboundNatPool.FrontendPortRangeEnd)
+			}
+			inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
+
+			if sgRules := inboundNatPool.NetworkSecurityGroupRules; sgRules != nil && len(*sgRules) != 0 {
+				networkSecurities := make([]interface{}, len(*sgRules))
+				for j, networkSecurity := range *sgRules {
+					networkSecurityMap := make(map[string]interface{})
+
+					if networkSecurity.Priority != nil {
+						networkSecurityMap["priority"] = *networkSecurity.Priority
+					}
+					if networkSecurity.SourceAddressPrefix != nil {
+						networkSecurityMap["source_address_prefix"] = *networkSecurity.SourceAddressPrefix
+					}
+					networkSecurityMap["access"] = networkSecurity.Access
+					networkSecurities[j] = networkSecurityMap
+				}
+				inboundNatPoolMap["network_security_group_rules"] = networkSecurities
+			}
+			endpointConfigs[i] = inboundNatPoolMap
+		}
+
+		result["endpoint_configuration"] = endpointConfigs
+	}
+
+	return append(results, result)
 }
