@@ -21,6 +21,7 @@ FEATURES:
 
 BREAKING CHANGES:
 
+* Data Source: `azurerm_api_management` - removing the deprecated `sku` block [GH-5725]
 * Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * Data Source: `azurerm_azuread_application` - This data source has been removed since it was deprecated [GH-5748]
 * Data Source: `azurerm_azuread_service_principal` - This data source has been removed since it was deprecated [GH-5748]
@@ -33,6 +34,8 @@ BREAKING CHANGES:
 * Data Source: `azurerm_role_definition` - removing the alias `VirtualMachineContributor` which has been deprecated in favour of the full name `Virtual Machine Contributor` [GH-5733]
 * Data Source: `azurerm_scheduler_job_collection` - This data source has been removed since it was deprecated [GH-5712]
 * Data Source: `azurerm_subnet` - removing the deprecated `ip_configuration` field [GH-5801]
+* `azurerm_api_management` - removing the deprecated `sku` block [GH-5725]
+* `azurerm_api_management` - removing the deprecated fields in the `security` block [GH-5725]
 * `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * `azurerm_application_gateway` - updating the default value for the `body` field within the `match` block from `*` to an empty string [GH-5752]
 * `azurerm_automation_account` - removing the `sku` block which has been deprecated in favour of the `sku_name` field [GH-5781]
