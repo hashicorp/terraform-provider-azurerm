@@ -68,7 +68,9 @@ func resourceArmDedicatedHost() *schema.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"DSv3-Type1",
+					"DSv3-Type2",
 					"ESv3-Type1",
+					"ESv3-Type2",
 					"FSv2-Type2",
 				}, false),
 			},
@@ -272,12 +274,7 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 10 * time.Minute
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {

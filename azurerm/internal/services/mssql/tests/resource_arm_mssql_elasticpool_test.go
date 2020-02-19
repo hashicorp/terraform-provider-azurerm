@@ -329,18 +329,27 @@ func testAccAzureRMMsSqlElasticPool_basic_DTU(data acceptance.TestData) string {
 }
 
 func testAccAzureRMMsSqlElasticPool_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlElasticPool_DTU_Template(data, "BasicPool", "Basic", 50, 5242880000, 0, 5, false)
+	template := testAccAzureRMMsSqlElasticPool_DTU_Template(data, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_mssql_elasticpool" "import" {
-  name                  = "${azurerm_mssql_elasticpool.test.name}"
-  resource_group_name   = "${azurerm_mssql_elasticpool.test.resource_group_name}"
-  location              = "${azurerm_mssql_elasticpool.test.location}"
-  server_name           = "${azurerm_mssql_elasticpool.test.server_name}"
-  max_size_bytes        = "${azurerm_mssql_elasticpool.test.max_size_bytes}"
-  sku                   = "${azurerm_mssql_elasticpool.test.sku}"
-  per_database_settings = "${azurerm_mssql_elasticpool.test.per_database_settings}"
+  name                = "${azurerm_mssql_elasticpool.test.name}"
+  resource_group_name = "${azurerm_mssql_elasticpool.test.resource_group_name}"
+  location            = "${azurerm_mssql_elasticpool.test.location}"
+  server_name         = "${azurerm_mssql_elasticpool.test.server_name}"
+  max_size_gb         = 4.8828125
+
+  sku {
+    name     = "BasicPool"
+    tier     = "Basic"
+    capacity = 50
+  }
+
+  per_database_settings {
+    min_capacity = 0
+    max_capacity = 5
+  }
 }
 `, template)
 }

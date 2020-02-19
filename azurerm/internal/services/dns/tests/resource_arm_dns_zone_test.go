@@ -58,25 +58,6 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsZone_withVNets(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
 
@@ -185,30 +166,6 @@ resource "azurerm_dns_zone" "import" {
   resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
 }
 `, template)
-}
-
-func testAccAzureRMDnsZone_withVNets(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet%d"
-  location            = "%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.0.0.0/16"]
-  dns_servers         = ["168.63.129.16"]
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                             = "acctestzone%d.com"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  zone_type                        = "Private"
-  registration_virtual_network_ids = ["${azurerm_virtual_network.test.id}"]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMDnsZone_withTags(data acceptance.TestData) string {

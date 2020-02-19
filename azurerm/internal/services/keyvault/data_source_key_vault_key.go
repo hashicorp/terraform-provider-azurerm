@@ -107,6 +107,8 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id)
+	d.Set("key_vault_id", keyVaultId)
+
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))
 

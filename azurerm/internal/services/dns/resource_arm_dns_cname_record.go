@@ -47,12 +47,6 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Required: true,
 			},
 
-			"records": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Removed:  "Use `record` instead. This attribute will be removed in a future version",
-			},
-
 			"record": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -73,7 +67,7 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"records"},
+				ConflictsWith: []string{"record"},
 			},
 
 			"tags": tags.Schema(),

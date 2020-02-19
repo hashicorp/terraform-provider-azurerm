@@ -54,8 +54,6 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
-			"location": azure.SchemaLocationDeprecated(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_delete_on_idle": {
@@ -106,13 +104,6 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 			"forward_dead_lettered_messages_to": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-
-			// TODO: remove in the next major version
-			"dead_lettering_on_filter_evaluation_exceptions": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been deprecated by Azure",
 			},
 		},
 	}

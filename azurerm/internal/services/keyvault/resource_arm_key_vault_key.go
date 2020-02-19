@@ -349,7 +349,8 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", id.Name)
 	d.Set("key_vault_access_policy_id", keyVaultAccessPolicyId)
-	if key := resp.Key; key != nil {
+
+  if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))
 
 		options := flattenKeyVaultKeyOptions(key.KeyOps)

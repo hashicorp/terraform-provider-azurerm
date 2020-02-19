@@ -473,14 +473,6 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 			return err2
 		}
 
-		// TODO: remove me in 2.0
-		if !features.SupportsCustomTimeouts() {
-			// this is set in config.go, but something sets
-			// it back to 15 minutes, which isn't long enough
-			// for most imports
-			client.Client.PollingDuration = 60 * time.Minute
-		}
-
 		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return err
 		}

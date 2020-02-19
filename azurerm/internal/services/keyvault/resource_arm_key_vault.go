@@ -68,8 +68,7 @@ func resourceArmKeyVault() *schema.Resource {
 
 			"sku_name": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
@@ -286,7 +285,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+		if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 		}
 	}
@@ -319,12 +318,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
-				}
-
-				if features.SupportsCustomTimeouts() {
-					stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-				} else {
-					stateConf.Timeout = 30 * time.Minute
+					Timeout:                   d.Timeout(schema.TimeoutCreate),
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
@@ -445,7 +439,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 					}
 
 					virtualNetworkName := id.Path["virtualNetworks"]
-					if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+					if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 					}
 				}

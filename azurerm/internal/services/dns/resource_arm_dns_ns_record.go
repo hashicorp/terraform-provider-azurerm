@@ -18,9 +18,9 @@ import (
 
 func resourceArmDnsNsRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsNsRecordCreateUpdate,
+		Create: resourceArmDnsNsRecordCreate,
 		Read:   resourceArmDnsNsRecordRead,
-		Update: resourceArmDnsNsRecordCreateUpdate,
+		Update: resourceArmDnsNsRecordUpdate,
 		Delete: resourceArmDnsNsRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -45,30 +45,14 @@ func resourceArmDnsNsRecord() *schema.Resource {
 			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"records": {
-				Type: schema.TypeList,
-				//TODO: add `Required: true` once we remove the `record` attribute
-				Optional:      true,
-				Computed:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				ConflictsWith: []string{"record"},
-			},
-
-			"record": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "This field has been replaced by `records`",
-				ConflictsWith: []string{"records"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"nsdname": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
@@ -87,16 +71,16 @@ func resourceArmDnsNsRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsNsRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -112,19 +96,22 @@ func resourceArmDnsNsRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 	ttl := int64(d.Get("ttl").(int))
 	t := d.Get("tags").(map[string]interface{})
 
+	recordsRaw := d.Get("records").([]interface{})
+	records := expandAzureRmDnsNsRecords(recordsRaw)
+
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:  tags.Expand(t),
 			TTL:       &ttl,
-			NsRecords: expandAzureRmDnsNsRecords(d),
+			NsRecords: records,
 		},
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("Error creating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
@@ -137,6 +124,53 @@ func resourceArmDnsNsRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(*resp.ID)
+
+	return resourceArmDnsNsRecordRead(d, meta)
+}
+
+func resourceArmDnsNsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Dns.RecordSetsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resGroup := id.ResourceGroup
+	name := id.Path["NS"]
+	zoneName := id.Path["dnszones"]
+
+	existing, err := client.Get(ctx, resGroup, zoneName, name, dns.NS)
+	if err != nil {
+		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
+	}
+
+	if existing.RecordSetProperties == nil {
+		return fmt.Errorf("Error retrieving NS %q (DNS Zone %q / Resource Group %q): `properties` was nil", name, zoneName, resGroup)
+	}
+
+	if d.HasChange("records") {
+		recordsRaw := d.Get("records").([]interface{})
+		records := expandAzureRmDnsNsRecords(recordsRaw)
+		existing.RecordSetProperties.NsRecords = records
+	}
+
+	if d.HasChange("tags") {
+		t := d.Get("tags").(map[string]interface{})
+		existing.RecordSetProperties.Metadata = tags.Expand(t)
+	}
+
+	if d.HasChange("ttl") {
+		existing.RecordSetProperties.TTL = utils.Int64(int64(d.Get("ttl").(int)))
+	}
+
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.NS, existing, eTag, ifNoneMatch); err != nil {
+		return fmt.Errorf("Error updating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	}
 
 	return resourceArmDnsNsRecordRead(d, meta)
 }
@@ -170,13 +204,10 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
-	if err := d.Set("records", flattenAzureRmDnsNsRecords(resp.NsRecords)); err != nil {
-		return fmt.Errorf("Error settings `records`: %+v", err)
-	}
-
-	//TODO: remove this once we remove the `record` attribute
-	if err := d.Set("record", flattenAzureRmDnsNsRecordsSet(resp.NsRecords)); err != nil {
-		return fmt.Errorf("Error settings `record`: %+v", err)
+	if props := resp.RecordSetProperties; props != nil {
+		if err := d.Set("records", flattenAzureRmDnsNsRecords(props.NsRecords)); err != nil {
+			return fmt.Errorf("Error settings `records`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Metadata)
@@ -204,63 +235,33 @@ func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-//TODO: remove this once we remove the `record` attribute
-func flattenAzureRmDnsNsRecordsSet(records *[]dns.NsRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
+func flattenAzureRmDnsNsRecords(records *[]dns.NsRecord) []interface{} {
+	if records == nil {
+		return []interface{}{}
+	}
 
-	if records != nil {
-		for _, record := range *records {
-			nsRecord := make(map[string]interface{})
-			nsRecord["nsdname"] = *record.Nsdname
-			results = append(results, nsRecord)
+	results := make([]interface{}, 0)
+	for _, record := range *records {
+		if record.Nsdname == nil {
+			continue
 		}
+
+		results = append(results, *record.Nsdname)
 	}
 
 	return results
 }
 
-func flattenAzureRmDnsNsRecords(records *[]dns.NsRecord) []string {
-	results := make([]string, 0, len(*records))
+func expandAzureRmDnsNsRecords(input []interface{}) *[]dns.NsRecord {
+	records := make([]dns.NsRecord, len(input))
+	for i, v := range input {
+		record := v.(string)
 
-	if records != nil {
-		for _, record := range *records {
-			results = append(results, *record.Nsdname)
+		nsRecord := dns.NsRecord{
+			Nsdname: &record,
 		}
-	}
 
-	return results
-}
-
-func expandAzureRmDnsNsRecords(d *schema.ResourceData) *[]dns.NsRecord {
-	var records []dns.NsRecord
-
-	//TODO: remove this once we remove the `record` attribute
-	if d.HasChange("records") || !d.HasChange("record") {
-		recordStrings := d.Get("records").([]interface{})
-		records = make([]dns.NsRecord, len(recordStrings))
-		for i, v := range recordStrings {
-			record := v.(string)
-
-			nsRecord := dns.NsRecord{
-				Nsdname: &record,
-			}
-
-			records[i] = nsRecord
-		}
-	} else {
-		recordList := d.Get("record").(*schema.Set).List()
-		if len(recordList) != 0 {
-			records = make([]dns.NsRecord, len(recordList))
-			for i, v := range recordList {
-				record := v.(map[string]interface{})
-				nsdname := record["nsdname"].(string)
-				nsRecord := dns.NsRecord{
-					Nsdname: &nsdname,
-				}
-
-				records[i] = nsRecord
-			}
-		}
+		records[i] = nsRecord
 	}
 	return &records
 }

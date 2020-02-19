@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -390,17 +391,18 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		poolName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["account_name"]
+		id, err := parse.BatchPoolID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on batchPoolClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", poolName, accountName, resourceGroup)
+			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", id.Name, id.AccountName, id.ResourceGroup)
 		}
 
 		return nil
@@ -416,11 +418,11 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 			continue
 		}
 
-		poolName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["account_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
+		id, err := parse.BatchPoolID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

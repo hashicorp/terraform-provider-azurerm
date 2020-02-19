@@ -100,6 +100,7 @@ func TestAccDataSourceAzureRMKeyVault_softDelete(t *testing.T) {
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{

@@ -27,6 +27,7 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(t *
 					testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -75,6 +76,32 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_deleted(t
 				),
 				ExpectNonEmptyPlan: true,
 			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_security_group_association", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -185,6 +212,76 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 }
 
 func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_network_interface_application_security_group_association" "test" {
+  network_interface_id          = azurerm_network_interface.test.id
+  ip_configuration_name         = "testconfiguration1"
+  application_security_group_id = azurerm_application_security_group.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface_application_security_group_association" "import" {
+  network_interface_id          = "${azurerm_network_interface_application_security_group_association.test.network_interface_id}"
+  ip_configuration_name         = "${azurerm_network_interface_application_security_group_association.test.ip_configuration_name}"
+  application_security_group_id = "${azurerm_network_interface_application_security_group_association.test.application_security_group_id}"
+}
+`, template)
+}
+
+func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration2"
+    private_ip_address_version    = "IPv6"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+
+resource "azurerm_network_interface_application_security_group_association" "test" {
+  network_interface_id          = azurerm_network_interface.test.id
+  ip_configuration_name         = "testconfiguration1"
+  application_security_group_id = azurerm_application_security_group.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -210,37 +307,5 @@ resource "azurerm_application_security_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctestni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name                           = "testconfiguration1"
-    subnet_id                      = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation  = "Dynamic"
-    application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
-  }
-}
-
-resource "azurerm_network_interface_application_security_group_association" "test" {
-  network_interface_id          = "${azurerm_network_interface.test.id}"
-  ip_configuration_name         = "testconfiguration1"
-  application_security_group_id = "${azurerm_application_security_group.test.id}"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_network_interface_application_security_group_association" "import" {
-  network_interface_id          = "${azurerm_network_interface_application_security_group_association.test.network_interface_id}"
-  ip_configuration_name         = "${azurerm_network_interface_application_security_group_association.test.ip_configuration_name}"
-  application_security_group_id = "${azurerm_network_interface_application_security_group_association.test.application_security_group_id}"
-}
-`, template)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

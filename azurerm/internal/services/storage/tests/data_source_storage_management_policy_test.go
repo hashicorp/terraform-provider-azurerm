@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_management_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
