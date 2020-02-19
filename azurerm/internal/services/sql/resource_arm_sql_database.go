@@ -582,7 +582,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 
 		if zoneRedundant := props.ZoneRedundant; zoneRedundant != nil {
 			d.Set("zone_redundant", zoneRedundant)
-		}
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
