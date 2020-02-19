@@ -56,16 +56,31 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: App Service Environment %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making read request on Azure App Service Environment %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("front_end_scale_factor", int(*resp.FrontEndScaleFactor))
-	d.Set("pricing_tier", convertToIsolatedSKU(*resp.MultiSize))
-	d.Set("location", azure.NormalizeLocation(*resp.Location))
+
+	if loc := resp.Location; loc != nil {
+		d.Set("location", azure.NormalizeLocation(*loc))
+	}
+
+	if props := resp.AppServiceEnvironment; props != nil {
+		frontendScaleFactor := 0
+		if props.FrontEndScaleFactor != nil {
+			frontendScaleFactor = int(*props.FrontEndScaleFactor)
+		}
+		d.Set("front_end_scale_factor", frontendScaleFactor)
+
+		pricingTier := ""
+		if props.MultiSize != nil {
+			pricingTier = convertFromIsolatedSKU(*props.MultiSize)
+		}
+		d.Set("pricing_tier", pricingTier)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
