@@ -163,9 +163,7 @@ The `features` block supports the following:
 
 The `key_vault` block supports the following:
 
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
-
-~> **Note:** When purge protection is enabled, a vault or an object in the deleted state cannot be purged until the retention period has passed.
+* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Key Vault which has previously been Soft Deleted? Defaults to `true`.
 
 ---
 
