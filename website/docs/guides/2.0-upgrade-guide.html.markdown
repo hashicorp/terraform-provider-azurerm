@@ -450,6 +450,10 @@ The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` bl
 
 The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
 
+### Resource: `azurerm_network_interface_application_security_group_association`
+
+The field `ip_configuration_name` has been removed since the same Application Security Group must now be assigned to all (IPv4) IP Configurations.
+
 ### Resource: `azurerm_notification_hub_namespace`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
