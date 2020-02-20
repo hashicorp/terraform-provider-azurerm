@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
@@ -59,7 +59,7 @@ func resourceArmKeyVault() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateKeyVaultName,
+				ValidateFunc: validate.KeyVaultName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -529,15 +529,6 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
 
 	return []interface{}{output}
-}
-
-func ValidateKeyVaultName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
-	}
-
-	return warnings, errors
 }
 
 func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
