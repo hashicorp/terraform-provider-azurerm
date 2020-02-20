@@ -70,6 +70,5 @@ func TestDatabaseMigrationServiceID(t *testing.T) {
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
-
 	}
 }
