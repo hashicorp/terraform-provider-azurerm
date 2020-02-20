@@ -957,28 +957,6 @@ func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_multipleAssignedIdentities(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceSlot_multipleAssignedIdentities(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
@@ -3287,52 +3265,6 @@ resource "azurerm_app_service_slot" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppServiceSlot_multipleAssignedIdentities(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acct-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-
-  identity {
-    type         = "SystemAssigned, UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 }
