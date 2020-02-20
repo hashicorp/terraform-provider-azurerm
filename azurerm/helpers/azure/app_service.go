@@ -1548,11 +1548,12 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		for _, v := range *vs {
 			block := make(map[string]interface{})
 
-			if ip := v.IPAddress; *ip == "Any" {
-				continue
-			}
 			if ip := v.IPAddress; ip != nil {
-				block["ip_address"] = *ip
+				if *ip == "Any" {
+					continue
+				} else {
+					block["ip_address"] = *ip
+				}
 			}
 			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
 				block["virtual_network_subnet_id"] = *vNetSubnetID

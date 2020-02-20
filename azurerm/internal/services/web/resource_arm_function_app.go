@@ -843,6 +843,10 @@ func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestrict
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
+		if ipAddress == "Any" {
+			continue
+		}
+
 		if ipAddress != "" {
 			ipSecurityRestriction.IPAddress = &ipAddress
 		}
@@ -900,6 +904,10 @@ func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []inter
 
 	for _, v := range *input {
 		ipAddress := ""
+		if *v.IPAddress == "Any" {
+			continue
+		}
+
 		if v.IPAddress != nil {
 			ipAddress = *v.IPAddress
 		}
