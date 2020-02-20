@@ -154,6 +154,8 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
+* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
 ---
 
 A `cors` block supports the following:
@@ -164,9 +166,13 @@ A `cors` block supports the following:
 
 ---
 
-`identity` supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Function App. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Function App has been created. More details are available below.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
 ---
 
@@ -242,6 +248,16 @@ A `microsoft` block supports the following:
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
 
+---
+
+A `ip_restriction` block supports the following:
+
+* `ip_address` - (Optional) The IP Address CIDR notation used for this IP Restriction.
+
+* `subnet_id` - (Optional) The Subnet ID used for this IP Restriction.
+
+-> **NOTE:** One of either `ip_address` or `subnet_id` must be specified
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -274,9 +290,7 @@ The `site_credential` block exports the following:
 * `username` - The username which can be used to publish to this App Service
 * `password` - The password associated with the username, which can be used to publish to this App Service.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

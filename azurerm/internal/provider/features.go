@@ -1,59 +1,66 @@
 package provider
 
 import (
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func schemaFeatures() *schema.Schema {
-	return &schema.Schema{
-		Type: schema.TypeList,
-		// TODO: make this Required in 2.0
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"virtual_machine": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"delete_os_disk_on_deletion": {
-								Type:     schema.TypeBool,
-								Required: true,
-							},
-						},
+	features := map[string]*schema.Schema{
+		"virtual_machine": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"delete_os_disk_on_deletion": {
+						Type:     schema.TypeBool,
+						Required: true,
 					},
 				},
+			},
+		},
 
-				"virtual_machine_scale_set": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"roll_instances_when_required": {
-								Type:     schema.TypeBool,
-								Required: true,
-							},
-						},
+		"virtual_machine_scale_set": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"roll_instances_when_required": {
+						Type:     schema.TypeBool,
+						Required: true,
 					},
 				},
 			},
 		},
 	}
+
+	runningAcceptanceTests := os.Getenv("TF_ACC") != ""
+	if runningAcceptanceTests {
+		return &schema.Schema{
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: features,
+			},
+		}
+	}
+
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		MaxItems: 1,
+		MinItems: 1,
+		Elem: &schema.Resource{
+			Schema: features,
+		},
+	}
 }
 
 func expandFeatures(input []interface{}) features.UserFeatures {
-	// TODO: in 2.0 when Required this can become:
-	//val := input[0].(map[string]interface{})
-
-	var val map[string]interface{}
-	if len(input) > 0 {
-		val = input[0].(map[string]interface{})
-	}
-
 	// these are the defaults if omitted from the config
 	features := features.UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
@@ -64,6 +71,12 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			RollInstancesWhenRequired: true,
 		},
 	}
+
+	if len(input) == 0 || input[0] == nil {
+		return features
+	}
+
+	val := input[0].(map[string]interface{})
 
 	if raw, ok := val["virtual_machine"]; ok {
 		items := raw.([]interface{})

@@ -115,11 +115,15 @@ func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, m
 			return fmt.Errorf("Storage Account %q (Resource Group %q) was not found", storageAccountName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		if checkForNonDefaultStorageAccountNetworkRule(storageAccount.NetworkRuleSet) {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		if storageAccount.AccountProperties == nil {
+			return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountName, resourceGroup)
+		}
+
+		if checkForNonDefaultStorageAccountNetworkRule(storageAccount.AccountProperties.NetworkRuleSet) {
 			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", *storageAccount.ID)
 		}
 	}
@@ -247,8 +251,8 @@ func checkForNonDefaultStorageAccountNetworkRule(rule *storage.NetworkRuleSet) b
 		return false
 	}
 
-	if rule.IPRules != nil || len(*rule.IPRules) != 0 ||
-		rule.VirtualNetworkRules != nil || len(*rule.VirtualNetworkRules) == 0 ||
+	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
+		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
 		rule.Bypass != "AzureServices" || rule.DefaultAction != "Allow" {
 		return true
 	}

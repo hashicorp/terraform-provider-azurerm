@@ -318,6 +318,11 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Default:  false,
 			},
 
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -351,6 +356,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
+	zoneRedundant := d.Get("zone_redundant").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -374,7 +380,8 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	properties := sql.Database{
 		Location: utils.String(location),
 		DatabaseProperties: &sql.DatabaseProperties{
-			CreateMode: sql.CreateMode(createMode),
+			CreateMode:    sql.CreateMode(createMode),
+			ZoneRedundant: utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -471,14 +478,6 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		importFuture, err2 := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
 		if err2 != nil {
 			return err2
-		}
-
-		// TODO: remove me in 2.0
-		if !features.SupportsCustomTimeouts() {
-			// this is set in config.go, but something sets
-			// it back to 15 minutes, which isn't long enough
-			// for most imports
-			client.Client.PollingDuration = 60 * time.Minute
 		}
 
 		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -578,6 +577,8 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		} else {
 			d.Set("read_scale", false)
 		}
+
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

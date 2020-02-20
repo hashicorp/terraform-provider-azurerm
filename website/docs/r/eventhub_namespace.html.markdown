@@ -49,10 +49,6 @@ The following arguments are supported:
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
-* `kafka_enabled` - (Optional / **Deprecated**) Is Kafka enabled for the EventHub Namespace? Defaults to `false`.
-
--> **NOTE:** `kafka_enabled` is now configured depending on the `sku` being provisioned, where this is Disabled for a `Basic` sku and Enabled for a Standard sku.  
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
@@ -102,9 +98,9 @@ The following attributes are exported only if there is an authorization rule nam
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

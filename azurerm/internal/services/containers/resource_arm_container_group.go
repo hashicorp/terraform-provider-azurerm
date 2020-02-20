@@ -664,12 +664,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, resourceGroup, name),
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
-		}
-
-		if features.SupportsCustomTimeouts() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-		} else {
-			stateConf.Timeout = 10 * time.Minute
+			Timeout:                   d.Timeout(schema.TimeoutDelete),
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {

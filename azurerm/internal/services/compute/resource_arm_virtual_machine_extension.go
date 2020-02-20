@@ -41,19 +41,9 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				ForceNew: true,
 			},
 
-			// TODO: Remove in 2.0
-			"virtual_machine_name": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				ForceNew:   true,
-				Deprecated: "This field has been deprecated in favor of `virtual_machine_id` - will be removed in 2.0 of the Azure Provider",
-			},
-
 			"virtual_machine_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: ValidateVirtualMachineID,
 			},
@@ -94,19 +84,6 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
-			// TODO: Remove location and resource_group_name in 2.0
-			"location": {
-				Type:             schema.TypeString,
-				ForceNew:         true,
-				Optional:         true,
-				Computed:         true,
-				StateFunc:        azure.NormalizeLocation,
-				DiffSuppressFunc: azure.SuppressLocationDiff,
-				Deprecated:       "location is no longer used",
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -119,39 +96,26 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 	defer cancel()
 
 	name := d.Get("name").(string)
-	var virtualMachineName, resourceGroup, location string
-	if virtualMachineId, ok := d.GetOk("virtual_machine_id"); ok {
-		v, err := ParseVirtualMachineID(virtualMachineId.(string))
-		if err != nil {
-			return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
-		}
+	virtualMachineId := d.Get("virtual_machine_id").(string)
+	v, err := ParseVirtualMachineID(virtualMachineId)
+	if err != nil {
+		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
+	}
 
-		virtualMachineName = v.Name
-		resourceGroup = v.ResourceGroup
+	virtualMachineName := v.Name
+	resourceGroup := v.ResourceGroup
 
-		virtualMachine, err := vmClient.Get(ctx, resourceGroup, virtualMachineName, "")
-		if err != nil {
-			return fmt.Errorf("Error getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+	virtualMachine, err := vmClient.Get(ctx, resourceGroup, virtualMachineName, "")
+	if err != nil {
+		return fmt.Errorf("Error getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 
-		if location = *virtualMachine.Location; location == "" {
-			return fmt.Errorf("Error reading location of Virtual Machine %q", virtualMachineName)
-		}
-	} else {
-		if vm, ok := d.GetOk("virtual_machine_name"); !ok {
-			return fmt.Errorf("Error, one of `virtual_machine_name` (deprecated) or `virtual_machine_id` (preferred) required.")
-		} else {
-			virtualMachineName = vm.(string)
-			resourceGroup = d.Get("resource_group_name").(string)
-			if resourceGroup == "" {
-				return fmt.Errorf("`resource_group_name` must be specified if `virtual_machine_id` is not used")
-			}
-
-			location = azure.NormalizeLocation(d.Get("location").(string))
-			if location == "" {
-				return fmt.Errorf("`location` must be specified if `virtual_machine_id` is not used")
-			}
-		}
+	location := ""
+	if virtualMachine.Location != nil {
+		location = *virtualMachine.Location
+	}
+	if location == "" {
+		return fmt.Errorf("Error reading location of Virtual Machine %q", virtualMachineName)
 	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -247,9 +211,6 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("virtual_machine_id", virtualMachine.ID)
-	if location := virtualMachine.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
 	resp, err := vmExtensionClient.Get(ctx, resourceGroup, vmName, name, "")
 	if err != nil {
@@ -261,8 +222,6 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("virtual_machine_name", vmName)
-	d.Set("resource_group_name", resourceGroup)
 
 	if props := resp.VirtualMachineExtensionProperties; props != nil {
 		d.Set("publisher", props.Publisher)

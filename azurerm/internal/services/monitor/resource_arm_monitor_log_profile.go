@@ -145,23 +145,18 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, err)
 	}
 
-	duration := 600 * time.Second
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			duration = d.Timeout(schema.TimeoutCreate)
-		} else {
-			duration = d.Timeout(schema.TimeoutUpdate)
-		}
-	}
-
 	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", name)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Available"},
 		Refresh:                   logProfilesCreateRefreshFunc(ctx, client, name),
-		Timeout:                   duration,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
+	}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {

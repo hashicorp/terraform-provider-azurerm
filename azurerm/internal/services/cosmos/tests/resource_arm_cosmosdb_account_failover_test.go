@@ -153,9 +153,9 @@ resource "azurerm_cosmosdb_account" "test" {
     consistency_level = "BoundedStaleness"
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -180,9 +180,9 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 200
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -205,9 +205,9 @@ resource "azurerm_cosmosdb_account" "test" {
     consistency_level = "Eventual"
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -230,9 +230,9 @@ resource "azurerm_cosmosdb_account" "test" {
     consistency_level = "Session"
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -256,9 +256,9 @@ resource "azurerm_cosmosdb_account" "test" {
     consistency_level = "BoundedStaleness"
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -281,9 +281,9 @@ resource "azurerm_cosmosdb_account" "test" {
     consistency_level = "Strong"
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -308,14 +308,14 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 101101
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 
-  failover_policy {
-    location = "%s"
-    priority = 1
+  geo_location {
+    location          = "%s"
+    failover_priority = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)

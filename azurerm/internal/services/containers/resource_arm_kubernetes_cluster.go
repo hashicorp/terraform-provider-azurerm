@@ -407,8 +407,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(containerservice.Basic),
+							Default:  string(containerservice.Standard),
 							ForceNew: true,
+							// TODO: fix the casing in the Swagger
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Basic),
 								string(containerservice.Standard),

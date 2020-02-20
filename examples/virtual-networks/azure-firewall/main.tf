@@ -89,7 +89,6 @@ resource "azurerm_subnet" "azusubnet" {
   resource_group_name      = "${azurerm_resource_group.azurg.name}"
   virtual_network_name = "${azurerm_virtual_network.azuvnet.name}"
   address_prefix       = "10.0.2.0/24"
-  route_table_id       = "${azurerm_route_table.azurt.id}"
 }
 
 resource "azurerm_subnet_route_table_association" "azurtassoc" {

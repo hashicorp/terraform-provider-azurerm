@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -93,13 +92,13 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(scheduler.Monday),
-									string(scheduler.Tuesday),
-									string(scheduler.Wednesday),
-									string(scheduler.Thursday),
-									string(scheduler.Friday),
-									string(scheduler.Saturday),
-									string(scheduler.Sunday),
+									"Monday",
+									"Tuesday",
+									"Wednesday",
+									"Thursday",
+									"Friday",
+									"Saturday",
+									"Sunday",
 								}, false),
 							},
 						},

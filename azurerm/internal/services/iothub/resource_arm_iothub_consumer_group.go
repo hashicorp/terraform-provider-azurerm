@@ -69,7 +69,7 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %s", name, endpointName, iotHubName, resourceGroup, err)

@@ -18,24 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestValidateArmStorageAccountType(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"standard_lrs", false},
-		{"invalid", true},
-	}
-
-	for _, test := range testCases {
-		_, es := storage.ValidateArmStorageAccountType(test.input, "account_type")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating account_type %q to fail", test.input)
-		}
-	}
-}
-
 func TestValidateArmStorageAccountName(t *testing.T) {
 	testCases := []struct {
 		input       string
@@ -571,34 +553,6 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_advanced_threat_protection", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_advanced_threat_protection", "false"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
@@ -611,6 +565,7 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_blobProperties(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.cors_rule.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.delete_retention_policy.0.days", "300"),
 				),
 			},
@@ -619,6 +574,7 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_blobPropertiesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.cors_rule.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.delete_retention_policy.0.days", "7"),
 				),
 			},
@@ -644,6 +600,32 @@ func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMStorageAccount_queuePropertiesUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_staticWebsiteProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_staticWebsiteProperties(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_staticWebsitePropertiesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
@@ -1339,42 +1321,6 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                              = "unlikely23exst2acct%s"
-  resource_group_name               = "${azurerm_resource_group.test.name}"
-  location                          = "${azurerm_resource_group.test.location}"
-  account_tier                      = "Standard"
-  account_replication_type          = "LRS"
-  enable_advanced_threat_protection = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                              = "unlikely23exst2acct%s"
-  resource_group_name               = "${azurerm_resource_group.test.name}"
-  location                          = "${azurerm_resource_group.test.location}"
-  account_tier                      = "Standard"
-  account_replication_type          = "LRS"
-  enable_advanced_threat_protection = false
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
 func testAccAzureRMStorageAccount_blobProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1391,6 +1337,14 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   blob_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+    }
+
     delete_retention_policy {
       days = 300
     }
@@ -1415,6 +1369,22 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   blob_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*", "x-method-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET"]
+      max_age_in_seconds = "2000000000"
+    }
+
+    cors_rule {
+      allowed_origins    = ["http://www.test.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["PUT"]
+      max_age_in_seconds = "1000"
+    }
+
     delete_retention_policy {
     }
   }
@@ -1521,6 +1491,54 @@ resource "azurerm_storage_account" "test" {
       include_apis          = false
       retention_policy_days = 7
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_staticWebsiteProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  static_website {
+    index_document     = "index.html"
+    error_404_document = "404.html"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_staticWebsitePropertiesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  static_website {
+    index_document     = "index-2.html"
+    error_404_document = "404-2.html"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

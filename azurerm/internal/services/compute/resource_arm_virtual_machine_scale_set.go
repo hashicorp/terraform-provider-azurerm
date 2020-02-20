@@ -24,6 +24,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
+//       `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources
+//       and as such this resource is feature-frozen and new functionality will be added to these new resources instead.
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
 		Create:        resourceArmVirtualMachineScaleSetCreateUpdate,
