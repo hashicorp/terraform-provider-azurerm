@@ -1,6 +1,6 @@
 ## Website Categories
 
-This tool generates files necessary for the website from the provide registrations which already exist in code.
+This tool generates files necessary for the website from the service registrations which already exist in code.
 
 This is run via go:generate whenever the "SupportedServices" array is changed so that this is kept up-to-date.
 
