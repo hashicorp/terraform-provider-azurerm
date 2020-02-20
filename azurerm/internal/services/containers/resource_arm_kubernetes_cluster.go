@@ -709,7 +709,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
-	networkProfile, err := expandKubernetesClusterNetworkProfile(d, networkProfileRaw)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
 	if err != nil {
 		return err
 	}
@@ -906,7 +906,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("network_profile") {
 		updateCluster = true
 		networkProfileRaw := d.Get("network_profile").([]interface{})
-		networkProfile, err := expandKubernetesClusterNetworkProfile(d, networkProfileRaw)
+		networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
 		if err != nil {
 			return err
 		}
@@ -1442,7 +1442,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(d *schema.ResourceData, input []interface{}) (*containerservice.NetworkProfileType, error) {
+func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfileType, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1453,7 +1453,7 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData, input []inter
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerSku := config["load_balancer_sku"].(string)
 
-	loadBalancerProfile, err := expandLoadBalancerProfile(d, config["load_balancer_profile"].([]interface{}), loadBalancerSku)
+	loadBalancerProfile, err := expandLoadBalancerProfile(config["load_balancer_profile"].([]interface{}), loadBalancerSku)
 	if err != nil {
 		return nil, err
 	}
@@ -1488,8 +1488,8 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData, input []inter
 	return &networkProfile, nil
 }
 
-func expandLoadBalancerProfile(d *schema.ResourceData, input []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
-	if len(input) == 0 || input[0] == nil {
+func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+	if len(d) == 0 || d[0] == nil {
 		return nil, nil
 	}
 
@@ -1497,7 +1497,7 @@ func expandLoadBalancerProfile(d *schema.ResourceData, input []interface{}, load
 		return nil, fmt.Errorf("Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
 	}
 
-	config := input[0].(map[string]interface{})
+	config := d[0].(map[string]interface{})
 
 	loadBalancerProfile := &containerservice.ManagedClusterLoadBalancerProfile{}
 
