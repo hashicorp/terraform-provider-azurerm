@@ -103,9 +103,11 @@ func resourceArmEventHubNamespace() *schema.Resource {
 							}, false),
 						},
 
+						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"virtual_network_rule": {
 							Type:       schema.TypeList,
 							Optional:   true,
+							MaxItems:   128,
 							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -127,10 +129,11 @@ func resourceArmEventHubNamespace() *schema.Resource {
 							},
 						},
 
+						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"ip_rule": {
 							Type:       schema.TypeList,
 							Optional:   true,
-							MaxItems:   1,
+							MaxItems:   128,
 							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
