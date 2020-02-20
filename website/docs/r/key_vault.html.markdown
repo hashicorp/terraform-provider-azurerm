@@ -10,21 +10,15 @@ description: |-
 
 Manages a Key Vault.
 
-~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+## Disclaimers
+
+~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+
+~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  alias = "keyVault"
-
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy = true
-    }
-  }
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
@@ -32,7 +26,6 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_key_vault" "example" {
   name                        = "testvault"
-  provider                    = azurerm.keyVault
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
@@ -84,6 +77,8 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
+---
+
 * `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of up to 16 objects describing access policies, as described below.
 
 ~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
@@ -94,23 +89,23 @@ The following arguments are supported:
 
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault. Defaults to `false`.
 
-* `soft_delete_enabled` - (Optional) Should Soft Delete be enabled for this Key Vault?
-
--> **NOTE:** Once `soft_delete_enabled` has been enabled it is an **irreversible** action. If you want to destroy this key vault before the 90 day purge policy expires you must set the `purge_soft_delete_on_destroy` to **true** in the `key_vault` section of the azure provider `features` block.
-
-* `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault?
-
--> **NOTE:** Once `purge_protection_enabled` has been enabled it is an **irreversible** action. - [support for this is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075)
-
 * `network_acls` - (Optional) A `network_acls` block as defined below.
+
+* `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault? Defaults to `false`.
+
+!> **Note:** Once Purge Protection has been Enabled it's not possible to Disable it. Support for [disabling purge protection is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075).
+
+* `soft_delete_enabled` - (Optional) Should Soft Delete be enabled for this Key Vault? Defaults to `false`.
+
+!> **Note:** Once Soft Delete has been Enabled it's not possible to Disable it.
+
+~> **Note:** Terraform will check when creating a Key Vault for a previous soft-deleted Key Vault and recover it if one exists. You can configure this behaviour using the `features` block within the `provider` block.  
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 A `access_policy` block supports the following:
-
-Elements of `access_policy` support:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Must match the `tenant_id` used above.
 
