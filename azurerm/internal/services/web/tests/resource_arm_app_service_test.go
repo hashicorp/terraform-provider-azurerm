@@ -2500,7 +2500,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10"
+      ip_address = "10.10.10.10/32"
     }
   }
 }
