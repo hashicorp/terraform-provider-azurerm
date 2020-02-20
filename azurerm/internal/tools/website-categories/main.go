@@ -64,7 +64,7 @@ func run(outputFileName string) error {
 
 	// dump them to a file
 	for _, category := range websiteCategories {
-		file.WriteString(fmt.Sprintf("%s\n", category))
+		_, _ = file.WriteString(fmt.Sprintf("%s\n", category))
 	}
 
 	return file.Sync()
