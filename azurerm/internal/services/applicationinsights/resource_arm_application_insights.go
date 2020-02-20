@@ -162,11 +162,9 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		Tags:                                   tags.Expand(t),
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
 	if err != nil {
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
-		}
+		return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
