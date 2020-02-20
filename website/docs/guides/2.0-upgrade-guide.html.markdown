@@ -227,6 +227,10 @@ The default value for the `body` field within the `match` block will change from
 
 The deprecated `disabled_ssl_protocols` field will be removed in favour of `ssl_policy`.`disabled_protocols`
 
+### Resource: `azurerm_application_insights`
+
+The `application_type` field now has strict case sensitivity in line with the API. 
+
 ### Resource: `azurerm_automation_account`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
@@ -455,6 +459,10 @@ The `application_security_group_ids` field in the `ip_configuration` block will 
 The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_backend_address_pool_association` resource.
 
 The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
+
+### Resource: `azurerm_network_interface_application_security_group_association`
+
+The field `ip_configuration_name` has been removed since the same Application Security Group must now be assigned to all (IPv4) IP Configurations.
 
 ### Resource: `azurerm_notification_hub_namespace`
 

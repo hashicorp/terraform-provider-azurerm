@@ -83,6 +83,7 @@ BREAKING CHANGES:
 * `azurerm_network_interface` - removing the deprecated `load_balancer_inbound_nat_rules_ids ` field from the `ip_configurations` block [GH-5784]
 * `azurerm_network_interface` - removing the deprecated `internal_fqdn` field [GH-5784]
 * `azurerm_network_interface` - removing the `network_security_group_id` field in favour of a new split-out resource `azurerm_network_interface_security_group_association` [GH-5784]
+* `azurerm_network_interface_application_security_group_association` - removing the `ip_configuration_name` field associations between Network Interfaces and Application Security Groups now need to be made to all IP Configurations [GH-5815]
 * `azurerm_network_interface` - the `virtual_machine_id` field is now computed-only since it's not setable [GH-5784]
 * `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
 * `azurerm_postgresql_server` - removing the `sku` block which has been deprecated in favour of the `sku_name` field [GH-5721]
@@ -117,6 +118,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights` - the `application_type` field is now case sensitive as documented [GH-5817]
 * `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
 * `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
 * `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]

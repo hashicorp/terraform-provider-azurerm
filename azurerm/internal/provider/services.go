@@ -63,6 +63,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
+//go:generate go run ../tools/website-categories/main.go -path=../../../website/allowed-subcategories
+
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
 		analysisservices.Registration{},
