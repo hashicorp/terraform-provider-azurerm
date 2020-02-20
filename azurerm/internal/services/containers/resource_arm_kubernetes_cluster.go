@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -423,6 +423,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"allocated_outbound_port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(0, 64000),
+									},
+									"idle_timeout_in_minutes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      -1,
+										ValidateFunc: validation.IntBetween(4, 120),
+									},
 									"managed_outbound_ip_count": {
 										Type:          schema.TypeInt,
 										Optional:      true,
@@ -696,7 +708,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
-	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(d, networkProfileRaw)
 	if err != nil {
 		return err
 	}
@@ -893,7 +905,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("network_profile") {
 		updateCluster = true
 		networkProfileRaw := d.Get("network_profile").([]interface{})
-		networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+		networkProfile, err := expandKubernetesClusterNetworkProfile(d, networkProfileRaw)
 		if err != nil {
 			return err
 		}
@@ -1429,7 +1441,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfileType, error) {
+func expandKubernetesClusterNetworkProfile(d *schema.ResourceData, input []interface{}) (*containerservice.NetworkProfileType, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1440,7 +1452,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerSku := config["load_balancer_sku"].(string)
 
-	loadBalancerProfile, err := expandLoadBalancerProfile(config["load_balancer_profile"].([]interface{}), loadBalancerSku)
+	loadBalancerProfile, err := expandLoadBalancerProfile(d, config["load_balancer_profile"].([]interface{}), loadBalancerSku)
 	if err != nil {
 		return nil, err
 	}
@@ -1475,8 +1487,8 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	return &networkProfile, nil
 }
 
-func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
-	if len(d) == 0 || d[0] == nil {
+func expandLoadBalancerProfile(d *schema.ResourceData, input []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
@@ -1484,31 +1496,33 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 		return nil, fmt.Errorf("Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
 	}
 
-	config := d[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
 
-	var managedOutboundIps *containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs
-	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
-	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
+	loadBalancerProfile := &containerservice.ManagedClusterLoadBalancerProfile{}
+
+	if port := config["allocated_outbound_port"].(int); port >= 0 {
+		loadBalancerProfile.AllocatedOutboundPorts = utils.Int32(int32(port))
+	}
+
+	if idleTimeout := config["idle_timeout_in_minutes"].(int); idleTimeout >= 0 {
+		loadBalancerProfile.IdleTimeoutInMinutes = utils.Int32(int32(idleTimeout))
+	}
 
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int32(ipCount.(int)); c > 0 {
-			managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+			loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
 		}
 	}
 
 	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
-		outboundIpPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
+		loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
 	}
 
 	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil {
-		outboundIps = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
+		loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
-	return &containerservice.ManagedClusterLoadBalancerProfile{
-		ManagedOutboundIPs: managedOutboundIps,
-		OutboundIPPrefixes: outboundIpPrefixes,
-		OutboundIPs:        outboundIps,
-	}, nil
+	return loadBalancerProfile, nil
 }
 
 func idsToResourceReferences(set interface{}) *[]containerservice.ResourceReference {
@@ -1579,6 +1593,18 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	lbProfiles := make([]interface{}, 0)
 	if lbp := profile.LoadBalancerProfile; lbp != nil {
 		lb := make(map[string]interface{})
+
+		port := int32(-1)
+		if v := lbp.AllocatedOutboundPorts; v != nil {
+			port = *v
+		}
+		lb["allocated_outbound_port"] = port
+
+		idleTimeout := int32(-1)
+		if v := lbp.IdleTimeoutInMinutes; v != nil {
+			idleTimeout = *v
+		}
+		lb["idle_timeout_in_minutes"] = idleTimeout
 
 		if ips := lbp.ManagedOutboundIPs; ips != nil {
 			if count := ips.Count; count != nil {
