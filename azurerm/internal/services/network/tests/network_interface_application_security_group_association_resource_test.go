@@ -249,7 +249,6 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_network_interface_application_security_group_association" "test" {
   network_interface_id          = azurerm_network_interface.test.id
-  ip_configuration_name         = "testconfiguration1"
   application_security_group_id = azurerm_application_security_group.test.id
 }
 `, template, data.RandomInteger)
@@ -292,7 +291,6 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_network_interface_application_security_group_association" "test" {
   network_interface_id          = azurerm_network_interface.test.id
-  ip_configuration_name         = "testconfiguration1"
   application_security_group_id = azurerm_application_security_group.test.id
 }
 `, template, data.RandomInteger)
@@ -324,7 +322,6 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_network_interface_application_security_group_association" "test" {
   network_interface_id          = azurerm_network_interface.test.id
-  ip_configuration_name         = "testconfiguration1"
   application_security_group_id = azurerm_application_security_group.test.id
 }
 `, template, data.RandomInteger)
