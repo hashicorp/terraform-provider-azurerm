@@ -2,12 +2,12 @@ package azure
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
-	"net"
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -225,7 +225,6 @@ func SchemaAppServiceIdentity() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedServiceIdentityTypeNone),
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
-						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
@@ -304,22 +303,12 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 							"ip_address": {
 								Type:     schema.TypeString,
 								Optional: true,
+								ValidateFunc: validate.CIDR,
 							},
 							"virtual_network_subnet_id": {
 								Type:         schema.TypeString,
 								Optional:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"subnet_mask": {
-								Type:     schema.TypeString,
-								Optional: true,
-								Computed: true,
-								// TODO we should fix this in 2.0
-								// This attribute was made with the assumption that `ip_address` was the only valid option
-								// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
-								// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
-								// and `subnet_mask` is not.
-								// Default:  "255.255.255.255",
 							},
 						},
 					},
@@ -475,11 +464,6 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.OneFullStopOne),
 						string(web.OneFullStopTwo),
 					}, false),
-				},
-
-				"virtual_network_name": {
-					Type:     schema.TypeString,
-					Optional: true,
 				},
 
 				"cors": SchemaWebCorsSettings(),
@@ -689,10 +673,6 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
-							"subnet_mask": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
 						},
 					},
 				},
@@ -773,11 +753,6 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 				},
 
 				"min_tls_version": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"virtual_network_name": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -1334,7 +1309,7 @@ func ExpandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
 		Type: identityType,
 	}
 
-	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned {
 		managedServiceIdentity.UserAssignedIdentities = identityIds
 	}
 
@@ -1439,31 +1414,16 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			ipAddress := restriction["ip_address"].(string)
 			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
 			if vNetSubnetID != "" && ipAddress != "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			if vNetSubnetID == "" && ipAddress == "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			ipSecurityRestriction := web.IPSecurityRestriction{}
 			if ipAddress != "" {
-				mask := restriction["subnet_mask"].(string)
-				if mask == "" {
-					mask = "255.255.255.255"
-				}
-				// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
-				// so translate the IP and mask if necessary
-				restrictionMask := ""
-				cidrAddress := ipAddress
-				if mask != "" {
-					ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
-					cidrAddress = ipNet.String()
-				} else if !strings.Contains(ipAddress, "/") {
-					cidrAddress += "/32"
-				}
-				ipSecurityRestriction.IPAddress = &cidrAddress
-				ipSecurityRestriction.SubnetMask = &restrictionMask
+				ipSecurityRestriction.IPAddress = &ipAddress
 			}
 
 			if vNetSubnetID != "" {
@@ -1517,10 +1477,6 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
-	}
-
-	if v, ok := config["virtual_network_name"]; ok {
-		siteConfig.VnetName = utils.String(v.(string))
 	}
 
 	if v, ok := config["cors"]; ok {
@@ -1588,18 +1544,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		for _, v := range *vs {
 			block := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
-				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
-				if strings.Contains(*ip, "/") {
-					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
-					block["ip_address"] = ipAddr.String()
-					mask := net.IP(ipNet.Mask)
-					block["subnet_mask"] = mask.String()
-				} else {
 					block["ip_address"] = *ip
-				}
-			}
-			if subnet := v.SubnetMask; subnet != nil {
-				block["subnet_mask"] = *subnet
 			}
 			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
 				block["virtual_network_subnet_id"] = *vNetSubnetID
@@ -1641,10 +1586,6 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.WindowsFxVersion != nil {
 		result["windows_fx_version"] = *input.WindowsFxVersion
-	}
-
-	if input.VnetName != nil {
-		result["virtual_network_name"] = *input.VnetName
 	}
 
 	result["scm_type"] = string(input.ScmType)

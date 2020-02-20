@@ -41,7 +41,7 @@ func NewResourceHealthMetadataClientWithBaseURI(baseURI string, subscriptionID s
 	return ResourceHealthMetadataClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// GetBySite gets the category of ResourceHealthMetadata to use for the given site
+// GetBySite description for Gets the category of ResourceHealthMetadata to use for the given site
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of web app
@@ -93,7 +93,7 @@ func (client ResourceHealthMetadataClient) GetBySitePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -126,7 +126,7 @@ func (client ResourceHealthMetadataClient) GetBySiteResponder(resp *http.Respons
 	return
 }
 
-// GetBySiteSlot gets the category of ResourceHealthMetadata to use for the given site
+// GetBySiteSlot description for Gets the category of ResourceHealthMetadata to use for the given site
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of web app
@@ -180,7 +180,7 @@ func (client ResourceHealthMetadataClient) GetBySiteSlotPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -213,7 +213,7 @@ func (client ResourceHealthMetadataClient) GetBySiteSlotResponder(resp *http.Res
 	return
 }
 
-// List list all ResourceHealthMetadata for all sites in the subscription.
+// List description for List all ResourceHealthMetadata for all sites in the subscription.
 func (client ResourceHealthMetadataClient) List(ctx context.Context) (result ResourceHealthMetadataCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceHealthMetadataClient.List")
@@ -253,7 +253,7 @@ func (client ResourceHealthMetadataClient) ListPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -323,7 +323,8 @@ func (client ResourceHealthMetadataClient) ListComplete(ctx context.Context) (re
 	return
 }
 
-// ListByResourceGroup list all ResourceHealthMetadata for all sites in the resource group in the subscription.
+// ListByResourceGroup description for List all ResourceHealthMetadata for all sites in the resource group in the
+// subscription.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 func (client ResourceHealthMetadataClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ResourceHealthMetadataCollectionPage, err error) {
@@ -374,7 +375,7 @@ func (client ResourceHealthMetadataClient) ListByResourceGroupPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -444,7 +445,7 @@ func (client ResourceHealthMetadataClient) ListByResourceGroupComplete(ctx conte
 	return
 }
 
-// ListBySite gets the category of ResourceHealthMetadata to use for the given site as a collection
+// ListBySite description for Gets the category of ResourceHealthMetadata to use for the given site as a collection
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of web app.
@@ -497,7 +498,7 @@ func (client ResourceHealthMetadataClient) ListBySitePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -567,7 +568,7 @@ func (client ResourceHealthMetadataClient) ListBySiteComplete(ctx context.Contex
 	return
 }
 
-// ListBySiteSlot gets the category of ResourceHealthMetadata to use for the given site as a collection
+// ListBySiteSlot description for Gets the category of ResourceHealthMetadata to use for the given site as a collection
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of web app.
@@ -622,7 +623,7 @@ func (client ResourceHealthMetadataClient) ListBySiteSlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

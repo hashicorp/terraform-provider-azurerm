@@ -31,7 +31,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 
 // AccessControlEntryAction enumerates the values for access control entry action.
 type AccessControlEntryAction string
@@ -373,6 +373,32 @@ const (
 // PossibleComputeModeOptionsValues returns an array of possible values for the ComputeModeOptions const type.
 func PossibleComputeModeOptionsValues() []ComputeModeOptions {
 	return []ComputeModeOptions{ComputeModeOptionsDedicated, ComputeModeOptionsDynamic, ComputeModeOptionsShared}
+}
+
+// ConfigReferenceLocation enumerates the values for config reference location.
+type ConfigReferenceLocation string
+
+const (
+	// ApplicationSetting ...
+	ApplicationSetting ConfigReferenceLocation = "ApplicationSetting"
+)
+
+// PossibleConfigReferenceLocationValues returns an array of possible values for the ConfigReferenceLocation const type.
+func PossibleConfigReferenceLocationValues() []ConfigReferenceLocation {
+	return []ConfigReferenceLocation{ApplicationSetting}
+}
+
+// ConfigReferenceSource enumerates the values for config reference source.
+type ConfigReferenceSource string
+
+const (
+	// KeyVault ...
+	KeyVault ConfigReferenceSource = "KeyVault"
+)
+
+// PossibleConfigReferenceSourceValues returns an array of possible values for the ConfigReferenceSource const type.
+func PossibleConfigReferenceSourceValues() []ConfigReferenceSource {
+	return []ConfigReferenceSource{KeyVault}
 }
 
 // ConnectionStringType enumerates the values for connection string type.
@@ -810,15 +836,13 @@ const (
 	ManagedServiceIdentityTypeNone ManagedServiceIdentityType = "None"
 	// ManagedServiceIdentityTypeSystemAssigned ...
 	ManagedServiceIdentityTypeSystemAssigned ManagedServiceIdentityType = "SystemAssigned"
-	// ManagedServiceIdentityTypeSystemAssignedUserAssigned ...
-	ManagedServiceIdentityTypeSystemAssignedUserAssigned ManagedServiceIdentityType = "SystemAssigned, UserAssigned"
 	// ManagedServiceIdentityTypeUserAssigned ...
 	ManagedServiceIdentityTypeUserAssigned ManagedServiceIdentityType = "UserAssigned"
 )
 
 // PossibleManagedServiceIdentityTypeValues returns an array of possible values for the ManagedServiceIdentityType const type.
 func PossibleManagedServiceIdentityTypeValues() []ManagedServiceIdentityType {
-	return []ManagedServiceIdentityType{ManagedServiceIdentityTypeNone, ManagedServiceIdentityTypeSystemAssigned, ManagedServiceIdentityTypeSystemAssignedUserAssigned, ManagedServiceIdentityTypeUserAssigned}
+	return []ManagedServiceIdentityType{ManagedServiceIdentityTypeNone, ManagedServiceIdentityTypeSystemAssigned, ManagedServiceIdentityTypeUserAssigned}
 }
 
 // MSDeployLogEntryType enumerates the values for ms deploy log entry type.
@@ -1009,6 +1033,35 @@ func PossibleRenderingTypeValues() []RenderingType {
 	return []RenderingType{NoGraph, Table, TimeSeries, TimeSeriesPerInstance}
 }
 
+// ResolveStatus enumerates the values for resolve status.
+type ResolveStatus string
+
+const (
+	// AccessToKeyVaultDenied ...
+	AccessToKeyVaultDenied ResolveStatus = "AccessToKeyVaultDenied"
+	// Initialized ...
+	Initialized ResolveStatus = "Initialized"
+	// InvalidSyntax ...
+	InvalidSyntax ResolveStatus = "InvalidSyntax"
+	// MSINotEnabled ...
+	MSINotEnabled ResolveStatus = "MSINotEnabled"
+	// OtherReasons ...
+	OtherReasons ResolveStatus = "OtherReasons"
+	// Resolved ...
+	Resolved ResolveStatus = "Resolved"
+	// SecretNotFound ...
+	SecretNotFound ResolveStatus = "SecretNotFound"
+	// SecretVersionNotFound ...
+	SecretVersionNotFound ResolveStatus = "SecretVersionNotFound"
+	// VaultNotFound ...
+	VaultNotFound ResolveStatus = "VaultNotFound"
+)
+
+// PossibleResolveStatusValues returns an array of possible values for the ResolveStatus const type.
+func PossibleResolveStatusValues() []ResolveStatus {
+	return []ResolveStatus{AccessToKeyVaultDenied, Initialized, InvalidSyntax, MSINotEnabled, OtherReasons, Resolved, SecretNotFound, SecretVersionNotFound, VaultNotFound}
+}
+
 // ResourceScopeType enumerates the values for resource scope type.
 type ResourceScopeType string
 
@@ -1073,11 +1126,13 @@ const (
 	ScmTypeTfs ScmType = "Tfs"
 	// ScmTypeVSO ...
 	ScmTypeVSO ScmType = "VSO"
+	// ScmTypeVSTSRM ...
+	ScmTypeVSTSRM ScmType = "VSTSRM"
 )
 
 // PossibleScmTypeValues returns an array of possible values for the ScmType const type.
 func PossibleScmTypeValues() []ScmType {
-	return []ScmType{ScmTypeBitbucketGit, ScmTypeBitbucketHg, ScmTypeCodePlexGit, ScmTypeCodePlexHg, ScmTypeDropbox, ScmTypeExternalGit, ScmTypeExternalHg, ScmTypeGitHub, ScmTypeLocalGit, ScmTypeNone, ScmTypeOneDrive, ScmTypeTfs, ScmTypeVSO}
+	return []ScmType{ScmTypeBitbucketGit, ScmTypeBitbucketHg, ScmTypeCodePlexGit, ScmTypeCodePlexHg, ScmTypeDropbox, ScmTypeExternalGit, ScmTypeExternalHg, ScmTypeGitHub, ScmTypeLocalGit, ScmTypeNone, ScmTypeOneDrive, ScmTypeTfs, ScmTypeVSO, ScmTypeVSTSRM}
 }
 
 // SiteAvailabilityState enumerates the values for site availability state.
@@ -1131,6 +1186,23 @@ const (
 // PossibleSiteLoadBalancingValues returns an array of possible values for the SiteLoadBalancing const type.
 func PossibleSiteLoadBalancingValues() []SiteLoadBalancing {
 	return []SiteLoadBalancing{LeastRequests, LeastResponseTime, RequestHash, WeightedRoundRobin, WeightedTotalTraffic}
+}
+
+// SiteRuntimeState enumerates the values for site runtime state.
+type SiteRuntimeState string
+
+const (
+	// READY ...
+	READY SiteRuntimeState = "READY"
+	// STOPPED ...
+	STOPPED SiteRuntimeState = "STOPPED"
+	// UNKNOWN ...
+	UNKNOWN SiteRuntimeState = "UNKNOWN"
+)
+
+// PossibleSiteRuntimeStateValues returns an array of possible values for the SiteRuntimeState const type.
+func PossibleSiteRuntimeStateValues() []SiteRuntimeState {
+	return []SiteRuntimeState{READY, STOPPED, UNKNOWN}
 }
 
 // SkuName enumerates the values for sku name.
@@ -1310,13 +1382,15 @@ const (
 	WorkerSizeOptionsLarge WorkerSizeOptions = "Large"
 	// WorkerSizeOptionsMedium ...
 	WorkerSizeOptionsMedium WorkerSizeOptions = "Medium"
+	// WorkerSizeOptionsNestedSmall ...
+	WorkerSizeOptionsNestedSmall WorkerSizeOptions = "NestedSmall"
 	// WorkerSizeOptionsSmall ...
 	WorkerSizeOptionsSmall WorkerSizeOptions = "Small"
 )
 
 // PossibleWorkerSizeOptionsValues returns an array of possible values for the WorkerSizeOptions const type.
 func PossibleWorkerSizeOptionsValues() []WorkerSizeOptions {
-	return []WorkerSizeOptions{WorkerSizeOptionsD1, WorkerSizeOptionsD2, WorkerSizeOptionsD3, WorkerSizeOptionsDefault, WorkerSizeOptionsLarge, WorkerSizeOptionsMedium, WorkerSizeOptionsSmall}
+	return []WorkerSizeOptions{WorkerSizeOptionsD1, WorkerSizeOptionsD2, WorkerSizeOptionsD3, WorkerSizeOptionsDefault, WorkerSizeOptionsLarge, WorkerSizeOptionsMedium, WorkerSizeOptionsNestedSmall, WorkerSizeOptionsSmall}
 }
 
 // AbnormalTimePeriod class representing Abnormal Time Period identified in diagnosis
@@ -1350,6 +1424,92 @@ type Address struct {
 // AddressResponse describes main public IP address and any extra virtual IPs.
 type AddressResponse struct {
 	autorest.Response `json:"-"`
+	// AddressResponseProperties - AddressResponse resource specific properties
+	*AddressResponseProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AddressResponse.
+func (ar AddressResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ar.AddressResponseProperties != nil {
+		objectMap["properties"] = ar.AddressResponseProperties
+	}
+	if ar.Kind != nil {
+		objectMap["kind"] = ar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AddressResponse struct.
+func (ar *AddressResponse) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var addressResponseProperties AddressResponseProperties
+				err = json.Unmarshal(*v, &addressResponseProperties)
+				if err != nil {
+					return err
+				}
+				ar.AddressResponseProperties = &addressResponseProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AddressResponseProperties addressResponse resource specific properties
+type AddressResponseProperties struct {
 	// ServiceIPAddress - Main public virtual IP.
 	ServiceIPAddress *string `json:"serviceIpAddress,omitempty"`
 	// InternalIPAddress - Virtual Network internal IP address of the App Service Environment if it is in internal load-balancing mode.
@@ -1376,6 +1536,7 @@ type AnalysisData struct {
 
 // AnalysisDefinition definition of Analysis
 type AnalysisDefinition struct {
+	autorest.Response `json:"-"`
 	// AnalysisDefinitionProperties - AnalysisDefinition resource specific properties
 	*AnalysisDefinitionProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id.
@@ -1470,6 +1631,29 @@ type AnalysisDefinitionProperties struct {
 type APIDefinitionInfo struct {
 	// URL - The URL of the API definition.
 	URL *string `json:"url,omitempty"`
+}
+
+// APIKVReference description of site key vault references.
+type APIKVReference struct {
+	Reference *string `json:"reference,omitempty"`
+	// Status - Possible values include: 'Initialized', 'Resolved', 'InvalidSyntax', 'MSINotEnabled', 'VaultNotFound', 'SecretNotFound', 'SecretVersionNotFound', 'AccessToKeyVaultDenied', 'OtherReasons'
+	Status        ResolveStatus `json:"status,omitempty"`
+	VaultName     *string       `json:"vaultName,omitempty"`
+	SecretName    *string       `json:"secretName,omitempty"`
+	SecretVersion *string       `json:"secretVersion,omitempty"`
+	// IdentityType - Possible values include: 'ManagedServiceIdentityTypeNone', 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned'
+	IdentityType ManagedServiceIdentityType `json:"identityType,omitempty"`
+	Details      *string                    `json:"details,omitempty"`
+	// Source - Possible values include: 'KeyVault'
+	Source ConfigReferenceSource `json:"source,omitempty"`
+	// Location - Possible values include: 'ApplicationSetting'
+	Location ConfigReferenceLocation `json:"location,omitempty"`
+}
+
+// APIManagementConfig azure API management (APIM) configuration linked to the app.
+type APIManagementConfig struct {
+	// ID - APIM-Api Identifier.
+	ID *string `json:"id,omitempty"`
 }
 
 // AppCollection collection of App Service apps.
@@ -1792,12 +1976,13 @@ type ApplicationStack struct {
 type ApplicationStackCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of resources.
-	Value *[]ApplicationStack `json:"value,omitempty"`
+	Value *[]ApplicationStackResource `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to next page of resources.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ApplicationStackCollectionIterator provides access to a complete listing of ApplicationStack values.
+// ApplicationStackCollectionIterator provides access to a complete listing of ApplicationStackResource
+// values.
 type ApplicationStackCollectionIterator struct {
 	i    int
 	page ApplicationStackCollectionPage
@@ -1848,9 +2033,9 @@ func (iter ApplicationStackCollectionIterator) Response() ApplicationStackCollec
 
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter ApplicationStackCollectionIterator) Value() ApplicationStack {
+func (iter ApplicationStackCollectionIterator) Value() ApplicationStackResource {
 	if !iter.page.NotDone() {
-		return ApplicationStack{}
+		return ApplicationStackResource{}
 	}
 	return iter.page.Values()[iter.i]
 }
@@ -1877,7 +2062,7 @@ func (asc ApplicationStackCollection) applicationStackCollectionPreparer(ctx con
 		autorest.WithBaseURL(to.String(asc.NextLink)))
 }
 
-// ApplicationStackCollectionPage contains a page of ApplicationStack values.
+// ApplicationStackCollectionPage contains a page of ApplicationStackResource values.
 type ApplicationStackCollectionPage struct {
 	fn  func(context.Context, ApplicationStackCollection) (ApplicationStackCollection, error)
 	asc ApplicationStackCollection
@@ -1922,7 +2107,7 @@ func (page ApplicationStackCollectionPage) Response() ApplicationStackCollection
 }
 
 // Values returns the slice of values for the current page or nil if there are no values.
-func (page ApplicationStackCollectionPage) Values() []ApplicationStack {
+func (page ApplicationStackCollectionPage) Values() []ApplicationStackResource {
 	if page.asc.IsEmpty() {
 		return nil
 	}
@@ -1932,6 +2117,138 @@ func (page ApplicationStackCollectionPage) Values() []ApplicationStack {
 // Creates a new instance of the ApplicationStackCollectionPage type.
 func NewApplicationStackCollectionPage(getNextPage func(context.Context, ApplicationStackCollection) (ApplicationStackCollection, error)) ApplicationStackCollectionPage {
 	return ApplicationStackCollectionPage{fn: getNextPage}
+}
+
+// ApplicationStackResource ARM resource for a ApplicationStack.
+type ApplicationStackResource struct {
+	// ApplicationStack - Core resource properties
+	*ApplicationStack `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationStackResource.
+func (asr ApplicationStackResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asr.ApplicationStack != nil {
+		objectMap["properties"] = asr.ApplicationStack
+	}
+	if asr.Kind != nil {
+		objectMap["kind"] = asr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ApplicationStackResource struct.
+func (asr *ApplicationStackResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var applicationStack ApplicationStack
+				err = json.Unmarshal(*v, &applicationStack)
+				if err != nil {
+					return err
+				}
+				asr.ApplicationStack = &applicationStack
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				asr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				asr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				asr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				asr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AppsCopyProductionSlotFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type AppsCopyProductionSlotFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsCopyProductionSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsCopyProductionSlotFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsCopyProductionSlotFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// AppsCopySlotSlotFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type AppsCopySlotSlotFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsCopySlotSlotFuture) Result(client AppsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsCopySlotSlotFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsCopySlotSlotFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // AppsCreateFunctionFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -6194,6 +6511,8 @@ type CertificatePatchResourceProperties struct {
 	KeyVaultSecretStatus KeyVaultSecretStatus `json:"keyVaultSecretStatus,omitempty"`
 	// ServerFarmID - Resource ID of the associated App Service plan, formatted as: "/subscriptions/{subscriptionID}/resourceGroups/{groupName}/providers/Microsoft.Web/serverfarms/{appServicePlanName}".
 	ServerFarmID *string `json:"serverFarmId,omitempty"`
+	// CanonicalName - CNAME of the certificate to be issued via free certificate
+	CanonicalName *string `json:"canonicalName,omitempty"`
 }
 
 // CertificateProperties certificate resource specific properties
@@ -6236,6 +6555,8 @@ type CertificateProperties struct {
 	KeyVaultSecretStatus KeyVaultSecretStatus `json:"keyVaultSecretStatus,omitempty"`
 	// ServerFarmID - Resource ID of the associated App Service plan, formatted as: "/subscriptions/{subscriptionID}/resourceGroups/{groupName}/providers/Microsoft.Web/serverfarms/{appServicePlanName}".
 	ServerFarmID *string `json:"serverFarmId,omitempty"`
+	// CanonicalName - CNAME of the certificate to be issued via free certificate
+	CanonicalName *string `json:"canonicalName,omitempty"`
 }
 
 // CloningInfo information needed for cloning operation.
@@ -6375,6 +6696,60 @@ type Contact struct {
 	Organization *string `json:"organization,omitempty"`
 	// Phone - Phone number.
 	Phone *string `json:"phone,omitempty"`
+}
+
+// ContainerCPUStatistics ...
+type ContainerCPUStatistics struct {
+	CPUUsage       *ContainerCPUUsage       `json:"cpuUsage,omitempty"`
+	SystemCPUUsage *int64                   `json:"systemCpuUsage,omitempty"`
+	OnlineCPUCount *int32                   `json:"onlineCpuCount,omitempty"`
+	ThrottlingData *ContainerThrottlingData `json:"throttlingData,omitempty"`
+}
+
+// ContainerCPUUsage ...
+type ContainerCPUUsage struct {
+	TotalUsage      *int64   `json:"totalUsage,omitempty"`
+	PerCPUUsage     *[]int64 `json:"perCpuUsage,omitempty"`
+	KernelModeUsage *int64   `json:"kernelModeUsage,omitempty"`
+	UserModeUsage   *int64   `json:"userModeUsage,omitempty"`
+}
+
+// ContainerInfo ...
+type ContainerInfo struct {
+	CurrentTimeStamp  *date.Time                           `json:"currentTimeStamp,omitempty"`
+	PreviousTimeStamp *date.Time                           `json:"previousTimeStamp,omitempty"`
+	CurrentCPUStats   *ContainerCPUStatistics              `json:"currentCpuStats,omitempty"`
+	PreviousCPUStats  *ContainerCPUStatistics              `json:"previousCpuStats,omitempty"`
+	MemoryStats       *ContainerMemoryStatistics           `json:"memoryStats,omitempty"`
+	Name              *string                              `json:"name,omitempty"`
+	ID                *string                              `json:"id,omitempty"`
+	Eth0              *ContainerNetworkInterfaceStatistics `json:"eth0,omitempty"`
+}
+
+// ContainerMemoryStatistics ...
+type ContainerMemoryStatistics struct {
+	Usage    *int64 `json:"usage,omitempty"`
+	MaxUsage *int64 `json:"maxUsage,omitempty"`
+	Limit    *int64 `json:"limit,omitempty"`
+}
+
+// ContainerNetworkInterfaceStatistics ...
+type ContainerNetworkInterfaceStatistics struct {
+	RxBytes   *int64 `json:"rxBytes,omitempty"`
+	RxPackets *int64 `json:"rxPackets,omitempty"`
+	RxErrors  *int64 `json:"rxErrors,omitempty"`
+	RxDropped *int64 `json:"rxDropped,omitempty"`
+	TxBytes   *int64 `json:"txBytes,omitempty"`
+	TxPackets *int64 `json:"txPackets,omitempty"`
+	TxErrors  *int64 `json:"txErrors,omitempty"`
+	TxDropped *int64 `json:"txDropped,omitempty"`
+}
+
+// ContainerThrottlingData ...
+type ContainerThrottlingData struct {
+	Periods          *int32 `json:"periods,omitempty"`
+	ThrottledPeriods *int32 `json:"throttledPeriods,omitempty"`
+	ThrottledTime    *int32 `json:"throttledTime,omitempty"`
 }
 
 // ContinuousWebJob continuous Web Job Information.
@@ -6679,6 +7054,17 @@ type CorsSettings struct {
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Requests_with_credentials
 	// for more details.
 	SupportCredentials *bool `json:"supportCredentials,omitempty"`
+}
+
+// CsmCopySlotEntity copy deployment slot parameters.
+type CsmCopySlotEntity struct {
+	// TargetSlot - Destination deployment slot during copy operation.
+	TargetSlot *string `json:"targetSlot,omitempty"`
+	// SiteConfig - The site object which will be merged with the source slot site
+	// to produce new destination slot site object.
+	// <code>null</code> to just copy source slot content. Otherwise a <code>Site</code>
+	// object with properties to override source slot site.
+	SiteConfig *SiteConfig `json:"siteConfig,omitempty"`
 }
 
 // CsmMoveResourceEnvelope object with a list of the resources that need to be moved and the resource group
@@ -7858,6 +8244,7 @@ type DetectorAbnormalTimePeriod struct {
 
 // DetectorDefinition class representing detector definition
 type DetectorDefinition struct {
+	autorest.Response `json:"-"`
 	// DetectorDefinitionProperties - DetectorDefinition resource specific properties
 	*DetectorDefinitionProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id.
@@ -9113,8 +9500,8 @@ func (d *Domain) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DomainAvailablilityCheckResult domain availability check result.
-type DomainAvailablilityCheckResult struct {
+// DomainAvailabilityCheckResult domain availability check result.
+type DomainAvailabilityCheckResult struct {
 	autorest.Response `json:"-"`
 	// Name - Name of the domain.
 	Name *string `json:"name,omitempty"`
@@ -9767,8 +10154,8 @@ type EndpointDetail struct {
 	Port *int32 `json:"port,omitempty"`
 	// Latency - The time in milliseconds it takes for a TCP connection to be created from the App Service Environment to this IpAddress at this Port.
 	Latency *float64 `json:"latency,omitempty"`
-	// IsAccessable - Whether it is possible to create a TCP connection from the App Service Environment to this IpAddress at this Port.
-	IsAccessable *bool `json:"isAccessable,omitempty"`
+	// IsAccessible - Whether it is possible to create a TCP connection from the App Service Environment to this IpAddress at this Port.
+	IsAccessible *bool `json:"isAccessible,omitempty"`
 }
 
 // ErrorEntity body of the error response returned from the API.
@@ -10072,7 +10459,7 @@ type FunctionEnvelopeProperties struct {
 	InvokeURLTemplate *string `json:"invoke_url_template,omitempty"`
 	// Language - The function language
 	Language *string `json:"language,omitempty"`
-	// IsDisabled - Value indicating whether the function is disabled
+	// IsDisabled - Gets or sets a value indicating whether the function is disabled
 	IsDisabled *bool `json:"isDisabled,omitempty"`
 }
 
@@ -10214,14 +10601,6 @@ type FunctionSecretsProperties struct {
 	Key *string `json:"key,omitempty"`
 	// TriggerURL - Trigger URL.
 	TriggerURL *string `json:"trigger_url,omitempty"`
-}
-
-// GeoDistribution a global distribution definition.
-type GeoDistribution struct {
-	// Location - Location.
-	Location *string `json:"location,omitempty"`
-	// NumberOfWorkers - NumberOfWorkers.
-	NumberOfWorkers *int32 `json:"numberOfWorkers,omitempty"`
 }
 
 // GeoRegion geographical region.
@@ -10462,6 +10841,8 @@ type GeoRegionProperties struct {
 	Description *string `json:"description,omitempty"`
 	// DisplayName - READ-ONLY; Display name for region.
 	DisplayName *string `json:"displayName,omitempty"`
+	// OrgDomain - READ-ONLY; Display name for region.
+	OrgDomain *string `json:"orgDomain,omitempty"`
 }
 
 // GlobalCsmSkuDescription a Global SKU Description.
@@ -10508,8 +10889,8 @@ type HostingEnvironmentDiagnostics struct {
 	autorest.Response `json:"-"`
 	// Name - Name/identifier of the diagnostics.
 	Name *string `json:"name,omitempty"`
-	// DiagnosicsOutput - Diagnostics output.
-	DiagnosicsOutput *string `json:"diagnosicsOutput,omitempty"`
+	// DiagnosticsOutput - Diagnostics output.
+	DiagnosticsOutput *string `json:"diagnosticsOutput,omitempty"`
 }
 
 // HostingEnvironmentProfile specification for an App Service Environment to use for this resource.
@@ -10520,32 +10901,6 @@ type HostingEnvironmentProfile struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type of the App Service Environment.
 	Type *string `json:"type,omitempty"`
-}
-
-// HostKeys functions host level keys.
-type HostKeys struct {
-	autorest.Response `json:"-"`
-	// MasterKey - Secret key.
-	MasterKey *string `json:"masterKey,omitempty"`
-	// FunctionKeys - Host level function keys.
-	FunctionKeys map[string]*string `json:"functionKeys"`
-	// SystemKeys - System keys.
-	SystemKeys map[string]*string `json:"systemKeys"`
-}
-
-// MarshalJSON is the custom marshaler for HostKeys.
-func (hk HostKeys) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if hk.MasterKey != nil {
-		objectMap["masterKey"] = hk.MasterKey
-	}
-	if hk.FunctionKeys != nil {
-		objectMap["functionKeys"] = hk.FunctionKeys
-	}
-	if hk.SystemKeys != nil {
-		objectMap["systemKeys"] = hk.SystemKeys
-	}
-	return json.Marshal(objectMap)
 }
 
 // HostName details of a hostname derived from a domain.
@@ -11524,8 +11879,8 @@ func NewIdentifierCollectionPage(getNextPage func(context.Context, IdentifierCol
 
 // IdentifierProperties identifier resource specific properties
 type IdentifierProperties struct {
-	// ID - String representation of the identity.
-	ID *string `json:"id,omitempty"`
+	// Value - String representation of the identity.
+	Value *string `json:"id,omitempty"`
 }
 
 // InboundEnvironmentEndpoint the IP Addresses and Ports that require inbound network access to and within
@@ -11991,13 +12346,192 @@ func (j JobProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// KeyInfo function key info.
-type KeyInfo struct {
+// KeyVaultReferenceCollection web app key vault reference and status ARM resource.
+type KeyVaultReferenceCollection struct {
 	autorest.Response `json:"-"`
-	// Name - Key name
+	// KeyVaultReferenceCollectionProperties - KeyVaultReferenceCollection resource specific properties
+	*KeyVaultReferenceCollectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
 	Name *string `json:"name,omitempty"`
-	// Value - Key value
-	Value *string `json:"value,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KeyVaultReferenceCollection.
+func (kvrc KeyVaultReferenceCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kvrc.KeyVaultReferenceCollectionProperties != nil {
+		objectMap["properties"] = kvrc.KeyVaultReferenceCollectionProperties
+	}
+	if kvrc.Kind != nil {
+		objectMap["kind"] = kvrc.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for KeyVaultReferenceCollection struct.
+func (kvrc *KeyVaultReferenceCollection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var keyVaultReferenceCollectionProperties KeyVaultReferenceCollectionProperties
+				err = json.Unmarshal(*v, &keyVaultReferenceCollectionProperties)
+				if err != nil {
+					return err
+				}
+				kvrc.KeyVaultReferenceCollectionProperties = &keyVaultReferenceCollectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				kvrc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				kvrc.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				kvrc.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				kvrc.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// KeyVaultReferenceCollectionProperties keyVaultReferenceCollection resource specific properties
+type KeyVaultReferenceCollectionProperties struct {
+	KeyToReferenceStatuses map[string]*APIKVReference `json:"keyToReferenceStatuses"`
+}
+
+// MarshalJSON is the custom marshaler for KeyVaultReferenceCollectionProperties.
+func (kvrc KeyVaultReferenceCollectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kvrc.KeyToReferenceStatuses != nil {
+		objectMap["keyToReferenceStatuses"] = kvrc.KeyToReferenceStatuses
+	}
+	return json.Marshal(objectMap)
+}
+
+// KeyVaultReferenceResource web app key vault reference and status ARM resource.
+type KeyVaultReferenceResource struct {
+	autorest.Response `json:"-"`
+	// APIKVReference - Core resource properties
+	*APIKVReference `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KeyVaultReferenceResource.
+func (kvrr KeyVaultReferenceResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kvrr.APIKVReference != nil {
+		objectMap["properties"] = kvrr.APIKVReference
+	}
+	if kvrr.Kind != nil {
+		objectMap["kind"] = kvrr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for KeyVaultReferenceResource struct.
+func (kvrr *KeyVaultReferenceResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var aPIKVReference APIKVReference
+				err = json.Unmarshal(*v, &aPIKVReference)
+				if err != nil {
+					return err
+				}
+				kvrr.APIKVReference = &aPIKVReference
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				kvrr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				kvrr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				kvrr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				kvrr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
 }
 
 // ListCapability ...
@@ -12065,7 +12599,7 @@ type LogSpecification struct {
 
 // ManagedServiceIdentity managed service identity.
 type ManagedServiceIdentity struct {
-	// Type - Type of managed service identity. Possible values include: 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned', 'ManagedServiceIdentityTypeSystemAssignedUserAssigned', 'ManagedServiceIdentityTypeNone'
+	// Type - Type of managed service identity. Possible values include: 'ManagedServiceIdentityTypeNone', 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned'
 	Type ManagedServiceIdentityType `json:"type,omitempty"`
 	// TenantID - READ-ONLY; Tenant of managed service identity.
 	TenantID *string `json:"tenantId,omitempty"`
@@ -12095,117 +12629,10 @@ type ManagedServiceIdentityUserAssignedIdentitiesValue struct {
 	ClientID *string `json:"clientId,omitempty"`
 }
 
-// MetricAvailabilily metric availability and retention.
-type MetricAvailabilily struct {
-	// TimeGrain - Time grain.
-	TimeGrain *string `json:"timeGrain,omitempty"`
-	// Retention - Retention period for the current time grain.
-	Retention *string `json:"retention,omitempty"`
-}
-
 // MetricAvailability retention policy of a resource metric.
 type MetricAvailability struct {
 	TimeGrain    *string `json:"timeGrain,omitempty"`
 	BlobDuration *string `json:"blobDuration,omitempty"`
-}
-
-// MetricDefinition metadata for a metric.
-type MetricDefinition struct {
-	autorest.Response `json:"-"`
-	// MetricDefinitionProperties - MetricDefinition resource specific properties
-	*MetricDefinitionProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name.
-	Name *string `json:"name,omitempty"`
-	// Kind - Kind of resource.
-	Kind *string `json:"kind,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for MetricDefinition.
-func (md MetricDefinition) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if md.MetricDefinitionProperties != nil {
-		objectMap["properties"] = md.MetricDefinitionProperties
-	}
-	if md.Kind != nil {
-		objectMap["kind"] = md.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for MetricDefinition struct.
-func (md *MetricDefinition) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var metricDefinitionProperties MetricDefinitionProperties
-				err = json.Unmarshal(*v, &metricDefinitionProperties)
-				if err != nil {
-					return err
-				}
-				md.MetricDefinitionProperties = &metricDefinitionProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				md.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				md.Name = &name
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				md.Kind = &kind
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				md.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// MetricDefinitionProperties metricDefinition resource specific properties
-type MetricDefinitionProperties struct {
-	// Unit - READ-ONLY; Unit of the metric.
-	Unit *string `json:"unit,omitempty"`
-	// PrimaryAggregationType - READ-ONLY; Primary aggregation type.
-	PrimaryAggregationType *string `json:"primaryAggregationType,omitempty"`
-	// MetricAvailabilities - READ-ONLY; List of time grains supported for the metric together with retention period.
-	MetricAvailabilities *[]MetricAvailabilily `json:"metricAvailabilities,omitempty"`
-	// DisplayName - READ-ONLY; Friendly name shown in the UI.
-	DisplayName *string `json:"displayName,omitempty"`
 }
 
 // MetricSpecification definition of a single resource metric.
@@ -12225,6 +12652,7 @@ type MetricSpecification struct {
 	Dimensions                       *[]Dimension          `json:"dimensions,omitempty"`
 	Category                         *string               `json:"category,omitempty"`
 	Availabilities                   *[]MetricAvailability `json:"availabilities,omitempty"`
+	SupportedTimeGrainTypes          *[]string             `json:"supportedTimeGrainTypes,omitempty"`
 }
 
 // MigrateMySQLRequest mySQL migration request.
@@ -14677,7 +15105,6 @@ type ProcessModuleInfoProperties struct {
 
 // ProcessThreadInfo process Thread Information.
 type ProcessThreadInfo struct {
-	autorest.Response `json:"-"`
 	// ProcessThreadInfoProperties - ProcessThreadInfo resource specific properties
 	*ProcessThreadInfoProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id.
@@ -14930,8 +15357,6 @@ type ProcessThreadInfoProperties struct {
 	TotalProcessorTime *string `json:"total_processor_time,omitempty"`
 	// UserProcessorTime - User processor time.
 	UserProcessorTime *string `json:"user_processor_time,omitempty"`
-	// PriviledgedProcessorTime - Privileged processor time.
-	PriviledgedProcessorTime *string `json:"priviledged_processor_time,omitempty"`
 	// State - Thread state.
 	State *string `json:"state,omitempty"`
 	// WaitReason - Wait reason.
@@ -15302,9 +15727,9 @@ type RampUpRule struct {
 	ActionHostName *string `json:"actionHostName,omitempty"`
 	// ReroutePercentage - Percentage of the traffic which will be redirected to <code>ActionHostName</code>.
 	ReroutePercentage *float64 `json:"reroutePercentage,omitempty"`
-	// ChangeStep - In auto ramp up scenario this is the step to add/remove from <code>ReroutePercentage</code> until it reaches
-	// <code>MinReroutePercentage</code> or <code>MaxReroutePercentage</code>. Site metrics are checked every N minutes specified in <code>ChangeIntervalInMinutes</code>.
-	// Custom decision algorithm can be provided in TiPCallback site extension which URL can be specified in <code>ChangeDecisionCallbackUrl</code>.
+	// ChangeStep - In auto ramp up scenario this is the step to add/remove from <code>ReroutePercentage</code> until it reaches \n<code>MinReroutePercentage</code> or
+	// <code>MaxReroutePercentage</code>. Site metrics are checked every N minutes specified in <code>ChangeIntervalInMinutes</code>.\nCustom decision algorithm
+	// can be provided in TiPCallback site extension which URL can be specified in <code>ChangeDecisionCallbackUrl</code>.
 	ChangeStep *float64 `json:"changeStep,omitempty"`
 	// ChangeIntervalInMinutes - Specifies interval in minutes to reevaluate ReroutePercentage.
 	ChangeIntervalInMinutes *int32 `json:"changeIntervalInMinutes,omitempty"`
@@ -16454,180 +16879,12 @@ type ResourceHealthMetadataProperties struct {
 	SignalAvailability *bool `json:"signalAvailability,omitempty"`
 }
 
-// ResourceMetric object representing a metric for any resource .
-type ResourceMetric struct {
-	// Name - READ-ONLY; Name of metric.
-	Name *ResourceMetricName `json:"name,omitempty"`
-	// Unit - READ-ONLY; Metric unit.
-	Unit *string `json:"unit,omitempty"`
-	// TimeGrain - READ-ONLY; Metric granularity. E.g PT1H, PT5M, P1D
-	TimeGrain *string `json:"timeGrain,omitempty"`
-	// StartTime - READ-ONLY; Metric start time.
-	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - READ-ONLY; Metric end time.
-	EndTime *date.Time `json:"endTime,omitempty"`
-	// ResourceID - READ-ONLY; Metric resource Id.
-	ResourceID *string `json:"resourceId,omitempty"`
-	// ID - READ-ONLY; Resource Id.
-	ID *string `json:"id,omitempty"`
-	// MetricValues - READ-ONLY; Metric values.
-	MetricValues *[]ResourceMetricValue `json:"metricValues,omitempty"`
-	// Properties - READ-ONLY; Resource metric properties collection.
-	Properties *[]ResourceMetricProperty `json:"properties,omitempty"`
-}
-
 // ResourceMetricAvailability metrics availability and retention.
 type ResourceMetricAvailability struct {
 	// TimeGrain - READ-ONLY; Time grain .
 	TimeGrain *string `json:"timeGrain,omitempty"`
 	// Retention - READ-ONLY; Retention period for the current time grain.
 	Retention *string `json:"retention,omitempty"`
-}
-
-// ResourceMetricCollection collection of metric responses.
-type ResourceMetricCollection struct {
-	autorest.Response `json:"-"`
-	// Value - Collection of resources.
-	Value *[]ResourceMetric `json:"value,omitempty"`
-	// NextLink - READ-ONLY; Link to next page of resources.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// ResourceMetricCollectionIterator provides access to a complete listing of ResourceMetric values.
-type ResourceMetricCollectionIterator struct {
-	i    int
-	page ResourceMetricCollectionPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *ResourceMetricCollectionIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceMetricCollectionIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *ResourceMetricCollectionIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter ResourceMetricCollectionIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter ResourceMetricCollectionIterator) Response() ResourceMetricCollection {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter ResourceMetricCollectionIterator) Value() ResourceMetric {
-	if !iter.page.NotDone() {
-		return ResourceMetric{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the ResourceMetricCollectionIterator type.
-func NewResourceMetricCollectionIterator(page ResourceMetricCollectionPage) ResourceMetricCollectionIterator {
-	return ResourceMetricCollectionIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (rmc ResourceMetricCollection) IsEmpty() bool {
-	return rmc.Value == nil || len(*rmc.Value) == 0
-}
-
-// resourceMetricCollectionPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (rmc ResourceMetricCollection) resourceMetricCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if rmc.NextLink == nil || len(to.String(rmc.NextLink)) < 1 {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(rmc.NextLink)))
-}
-
-// ResourceMetricCollectionPage contains a page of ResourceMetric values.
-type ResourceMetricCollectionPage struct {
-	fn  func(context.Context, ResourceMetricCollection) (ResourceMetricCollection, error)
-	rmc ResourceMetricCollection
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *ResourceMetricCollectionPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceMetricCollectionPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	next, err := page.fn(ctx, page.rmc)
-	if err != nil {
-		return err
-	}
-	page.rmc = next
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *ResourceMetricCollectionPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page ResourceMetricCollectionPage) NotDone() bool {
-	return !page.rmc.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page ResourceMetricCollectionPage) Response() ResourceMetricCollection {
-	return page.rmc
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page ResourceMetricCollectionPage) Values() []ResourceMetric {
-	if page.rmc.IsEmpty() {
-		return nil
-	}
-	return *page.rmc.Value
-}
-
-// Creates a new instance of the ResourceMetricCollectionPage type.
-func NewResourceMetricCollectionPage(getNextPage func(context.Context, ResourceMetricCollection) (ResourceMetricCollection, error)) ResourceMetricCollectionPage {
-	return ResourceMetricCollectionPage{fn: getNextPage}
 }
 
 // ResourceMetricDefinition metadata for the metrics.
@@ -16881,40 +17138,6 @@ type ResourceMetricDefinitionProperties struct {
 func (rmd ResourceMetricDefinitionProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	return json.Marshal(objectMap)
-}
-
-// ResourceMetricName name of a metric for any resource .
-type ResourceMetricName struct {
-	// Value - READ-ONLY; metric name value.
-	Value *string `json:"value,omitempty"`
-	// LocalizedValue - READ-ONLY; Localized metric name value.
-	LocalizedValue *string `json:"localizedValue,omitempty"`
-}
-
-// ResourceMetricProperty resource metric property.
-type ResourceMetricProperty struct {
-	// Key - Key for resource metric property.
-	Key *string `json:"key,omitempty"`
-	// Value - Value of pair.
-	Value *string `json:"value,omitempty"`
-}
-
-// ResourceMetricValue value of resource metric.
-type ResourceMetricValue struct {
-	// Timestamp - READ-ONLY; Value timestamp.
-	Timestamp *string `json:"timestamp,omitempty"`
-	// Average - READ-ONLY; Value average.
-	Average *float64 `json:"average,omitempty"`
-	// Minimum - READ-ONLY; Value minimum.
-	Minimum *float64 `json:"minimum,omitempty"`
-	// Maximum - READ-ONLY; Value maximum.
-	Maximum *float64 `json:"maximum,omitempty"`
-	// Total - READ-ONLY; Value total.
-	Total *float64 `json:"total,omitempty"`
-	// Count - READ-ONLY; Value count.
-	Count *float64 `json:"count,omitempty"`
-	// Properties - READ-ONLY; Resource metric properties collection.
-	Properties *[]ResourceMetricProperty `json:"properties,omitempty"`
 }
 
 // ResourceNameAvailability information regarding availability of a resource name.
@@ -17440,8 +17663,6 @@ type SiteConfig struct {
 	PublishingUsername *string `json:"publishingUsername,omitempty"`
 	// AppSettings - Application settings.
 	AppSettings *[]NameValuePair `json:"appSettings,omitempty"`
-	// AzureStorageAccounts - User-provided Azure storage accounts.
-	AzureStorageAccounts map[string]*AzureStorageInfoValue `json:"azureStorageAccounts"`
 	// ConnectionStrings - Connection strings.
 	ConnectionStrings *[]ConnStringInfo `json:"connectionStrings,omitempty"`
 	// MachineKey - READ-ONLY; Site MachineKey.
@@ -17450,7 +17671,7 @@ type SiteConfig struct {
 	HandlerMappings *[]HandlerMapping `json:"handlerMappings,omitempty"`
 	// DocumentRoot - Document root.
 	DocumentRoot *string `json:"documentRoot,omitempty"`
-	// ScmType - SCM type. Possible values include: 'ScmTypeNone', 'ScmTypeDropbox', 'ScmTypeTfs', 'ScmTypeLocalGit', 'ScmTypeGitHub', 'ScmTypeCodePlexGit', 'ScmTypeCodePlexHg', 'ScmTypeBitbucketGit', 'ScmTypeBitbucketHg', 'ScmTypeExternalGit', 'ScmTypeExternalHg', 'ScmTypeOneDrive', 'ScmTypeVSO'
+	// ScmType - SCM type. Possible values include: 'ScmTypeNone', 'ScmTypeDropbox', 'ScmTypeTfs', 'ScmTypeLocalGit', 'ScmTypeGitHub', 'ScmTypeCodePlexGit', 'ScmTypeCodePlexHg', 'ScmTypeBitbucketGit', 'ScmTypeBitbucketHg', 'ScmTypeExternalGit', 'ScmTypeExternalHg', 'ScmTypeOneDrive', 'ScmTypeVSO', 'ScmTypeVSTSRM'
 	ScmType ScmType `json:"scmType,omitempty"`
 	// Use32BitWorkerProcess - <code>true</code> to use 32-bit worker process; otherwise, <code>false</code>.
 	Use32BitWorkerProcess *bool `json:"use32BitWorkerProcess,omitempty"`
@@ -17490,6 +17711,8 @@ type SiteConfig struct {
 	Push *PushSettings `json:"push,omitempty"`
 	// APIDefinition - Information about the formal API definition for the app.
 	APIDefinition *APIDefinitionInfo `json:"apiDefinition,omitempty"`
+	// APIManagementConfig - Azure API management settings linked to the app.
+	APIManagementConfig *APIManagementConfig `json:"apiManagementConfig,omitempty"`
 	// AutoSwapSlotName - Auto-swap slot name.
 	AutoSwapSlotName *string `json:"autoSwapSlotName,omitempty"`
 	// LocalMySQLEnabled - <code>true</code> to enable local MySQL; otherwise, <code>false</code>.
@@ -17510,171 +17733,11 @@ type SiteConfig struct {
 	MinTLSVersion SupportedTLSVersions `json:"minTlsVersion,omitempty"`
 	// FtpsState - State of FTP / FTPS service. Possible values include: 'AllAllowed', 'FtpsOnly', 'Disabled'
 	FtpsState FtpsState `json:"ftpsState,omitempty"`
-	// ReservedInstanceCount - Number of reserved instances.
-	// This setting only applies to the Consumption Plan
-	ReservedInstanceCount *int32 `json:"reservedInstanceCount,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for SiteConfig.
-func (sc SiteConfig) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sc.NumberOfWorkers != nil {
-		objectMap["numberOfWorkers"] = sc.NumberOfWorkers
-	}
-	if sc.DefaultDocuments != nil {
-		objectMap["defaultDocuments"] = sc.DefaultDocuments
-	}
-	if sc.NetFrameworkVersion != nil {
-		objectMap["netFrameworkVersion"] = sc.NetFrameworkVersion
-	}
-	if sc.PhpVersion != nil {
-		objectMap["phpVersion"] = sc.PhpVersion
-	}
-	if sc.PythonVersion != nil {
-		objectMap["pythonVersion"] = sc.PythonVersion
-	}
-	if sc.NodeVersion != nil {
-		objectMap["nodeVersion"] = sc.NodeVersion
-	}
-	if sc.LinuxFxVersion != nil {
-		objectMap["linuxFxVersion"] = sc.LinuxFxVersion
-	}
-	if sc.WindowsFxVersion != nil {
-		objectMap["windowsFxVersion"] = sc.WindowsFxVersion
-	}
-	if sc.RequestTracingEnabled != nil {
-		objectMap["requestTracingEnabled"] = sc.RequestTracingEnabled
-	}
-	if sc.RequestTracingExpirationTime != nil {
-		objectMap["requestTracingExpirationTime"] = sc.RequestTracingExpirationTime
-	}
-	if sc.RemoteDebuggingEnabled != nil {
-		objectMap["remoteDebuggingEnabled"] = sc.RemoteDebuggingEnabled
-	}
-	if sc.RemoteDebuggingVersion != nil {
-		objectMap["remoteDebuggingVersion"] = sc.RemoteDebuggingVersion
-	}
-	if sc.HTTPLoggingEnabled != nil {
-		objectMap["httpLoggingEnabled"] = sc.HTTPLoggingEnabled
-	}
-	if sc.LogsDirectorySizeLimit != nil {
-		objectMap["logsDirectorySizeLimit"] = sc.LogsDirectorySizeLimit
-	}
-	if sc.DetailedErrorLoggingEnabled != nil {
-		objectMap["detailedErrorLoggingEnabled"] = sc.DetailedErrorLoggingEnabled
-	}
-	if sc.PublishingUsername != nil {
-		objectMap["publishingUsername"] = sc.PublishingUsername
-	}
-	if sc.AppSettings != nil {
-		objectMap["appSettings"] = sc.AppSettings
-	}
-	if sc.AzureStorageAccounts != nil {
-		objectMap["azureStorageAccounts"] = sc.AzureStorageAccounts
-	}
-	if sc.ConnectionStrings != nil {
-		objectMap["connectionStrings"] = sc.ConnectionStrings
-	}
-	if sc.HandlerMappings != nil {
-		objectMap["handlerMappings"] = sc.HandlerMappings
-	}
-	if sc.DocumentRoot != nil {
-		objectMap["documentRoot"] = sc.DocumentRoot
-	}
-	if sc.ScmType != "" {
-		objectMap["scmType"] = sc.ScmType
-	}
-	if sc.Use32BitWorkerProcess != nil {
-		objectMap["use32BitWorkerProcess"] = sc.Use32BitWorkerProcess
-	}
-	if sc.WebSocketsEnabled != nil {
-		objectMap["webSocketsEnabled"] = sc.WebSocketsEnabled
-	}
-	if sc.AlwaysOn != nil {
-		objectMap["alwaysOn"] = sc.AlwaysOn
-	}
-	if sc.JavaVersion != nil {
-		objectMap["javaVersion"] = sc.JavaVersion
-	}
-	if sc.JavaContainer != nil {
-		objectMap["javaContainer"] = sc.JavaContainer
-	}
-	if sc.JavaContainerVersion != nil {
-		objectMap["javaContainerVersion"] = sc.JavaContainerVersion
-	}
-	if sc.AppCommandLine != nil {
-		objectMap["appCommandLine"] = sc.AppCommandLine
-	}
-	if sc.ManagedPipelineMode != "" {
-		objectMap["managedPipelineMode"] = sc.ManagedPipelineMode
-	}
-	if sc.VirtualApplications != nil {
-		objectMap["virtualApplications"] = sc.VirtualApplications
-	}
-	if sc.LoadBalancing != "" {
-		objectMap["loadBalancing"] = sc.LoadBalancing
-	}
-	if sc.Experiments != nil {
-		objectMap["experiments"] = sc.Experiments
-	}
-	if sc.Limits != nil {
-		objectMap["limits"] = sc.Limits
-	}
-	if sc.AutoHealEnabled != nil {
-		objectMap["autoHealEnabled"] = sc.AutoHealEnabled
-	}
-	if sc.AutoHealRules != nil {
-		objectMap["autoHealRules"] = sc.AutoHealRules
-	}
-	if sc.TracingOptions != nil {
-		objectMap["tracingOptions"] = sc.TracingOptions
-	}
-	if sc.VnetName != nil {
-		objectMap["vnetName"] = sc.VnetName
-	}
-	if sc.Cors != nil {
-		objectMap["cors"] = sc.Cors
-	}
-	if sc.Push != nil {
-		objectMap["push"] = sc.Push
-	}
-	if sc.APIDefinition != nil {
-		objectMap["apiDefinition"] = sc.APIDefinition
-	}
-	if sc.AutoSwapSlotName != nil {
-		objectMap["autoSwapSlotName"] = sc.AutoSwapSlotName
-	}
-	if sc.LocalMySQLEnabled != nil {
-		objectMap["localMySqlEnabled"] = sc.LocalMySQLEnabled
-	}
-	if sc.ManagedServiceIdentityID != nil {
-		objectMap["managedServiceIdentityId"] = sc.ManagedServiceIdentityID
-	}
-	if sc.XManagedServiceIdentityID != nil {
-		objectMap["xManagedServiceIdentityId"] = sc.XManagedServiceIdentityID
-	}
-	if sc.IPSecurityRestrictions != nil {
-		objectMap["ipSecurityRestrictions"] = sc.IPSecurityRestrictions
-	}
-	if sc.ScmIPSecurityRestrictions != nil {
-		objectMap["scmIpSecurityRestrictions"] = sc.ScmIPSecurityRestrictions
-	}
-	if sc.ScmIPSecurityRestrictionsUseMain != nil {
-		objectMap["scmIpSecurityRestrictionsUseMain"] = sc.ScmIPSecurityRestrictionsUseMain
-	}
-	if sc.HTTP20Enabled != nil {
-		objectMap["http20Enabled"] = sc.HTTP20Enabled
-	}
-	if sc.MinTLSVersion != "" {
-		objectMap["minTlsVersion"] = sc.MinTLSVersion
-	}
-	if sc.FtpsState != "" {
-		objectMap["ftpsState"] = sc.FtpsState
-	}
-	if sc.ReservedInstanceCount != nil {
-		objectMap["reservedInstanceCount"] = sc.ReservedInstanceCount
-	}
-	return json.Marshal(objectMap)
+	// PreWarmedInstanceCount - Number of preWarmed instances.
+	// This setting only applies to the Consumption and Elastic Plans
+	PreWarmedInstanceCount *int32 `json:"preWarmedInstanceCount,omitempty"`
+	// HealthCheckPath - Health check path
+	HealthCheckPath *string `json:"healthCheckPath,omitempty"`
 }
 
 // SiteConfigResource web app configuration ARM resource.
@@ -18520,6 +18583,127 @@ type SiteInstanceProperties struct {
 	SiteInstanceName *string `json:"siteInstanceName,omitempty"`
 }
 
+// SiteInstanceStatus ...
+type SiteInstanceStatus struct {
+	autorest.Response `json:"-"`
+	// SiteInstanceStatusProperties - WebSiteInstanceStatus resource specific properties
+	*SiteInstanceStatusProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SiteInstanceStatus.
+func (sis SiteInstanceStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sis.SiteInstanceStatusProperties != nil {
+		objectMap["properties"] = sis.SiteInstanceStatusProperties
+	}
+	if sis.Kind != nil {
+		objectMap["kind"] = sis.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SiteInstanceStatus struct.
+func (sis *SiteInstanceStatus) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var siteInstanceStatusProperties SiteInstanceStatusProperties
+				err = json.Unmarshal(*v, &siteInstanceStatusProperties)
+				if err != nil {
+					return err
+				}
+				sis.SiteInstanceStatusProperties = &siteInstanceStatusProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sis.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sis.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sis.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sis.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// SiteInstanceStatusProperties webSiteInstanceStatus resource specific properties
+type SiteInstanceStatusProperties struct {
+	// State - Possible values include: 'READY', 'STOPPED', 'UNKNOWN'
+	State SiteRuntimeState `json:"state,omitempty"`
+	// StatusURL - Link to the GetStatusApi in Kudu
+	StatusURL *string `json:"statusUrl,omitempty"`
+	// DetectorURL - Link to the Diagnose and Solve Portal
+	DetectorURL *string `json:"detectorUrl,omitempty"`
+	// ConsoleURL - Link to the Diagnose and Solve Portal
+	ConsoleURL *string                   `json:"consoleUrl,omitempty"`
+	Containers map[string]*ContainerInfo `json:"containers"`
+}
+
+// MarshalJSON is the custom marshaler for SiteInstanceStatusProperties.
+func (sis SiteInstanceStatusProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sis.State != "" {
+		objectMap["state"] = sis.State
+	}
+	if sis.StatusURL != nil {
+		objectMap["statusUrl"] = sis.StatusURL
+	}
+	if sis.DetectorURL != nil {
+		objectMap["detectorUrl"] = sis.DetectorURL
+	}
+	if sis.ConsoleURL != nil {
+		objectMap["consoleUrl"] = sis.ConsoleURL
+	}
+	if sis.Containers != nil {
+		objectMap["containers"] = sis.Containers
+	}
+	return json.Marshal(objectMap)
+}
+
 // SiteLimits metric limits set on an app.
 type SiteLimits struct {
 	// MaxPercentageCPU - Maximum allowed CPU usage percentage.
@@ -18790,7 +18974,7 @@ type SitePatchResourceProperties struct {
 	HostNamesDisabled *bool `json:"hostNamesDisabled,omitempty"`
 	// OutboundIPAddresses - READ-ONLY; List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from tenants that site can be hosted with current settings. Read-only.
 	OutboundIPAddresses *string `json:"outboundIpAddresses,omitempty"`
-	// PossibleOutboundIPAddresses - READ-ONLY; List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from all tenants. Read-only.
+	// PossibleOutboundIPAddresses - READ-ONLY; List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from all tenants except dataComponent. Read-only.
 	PossibleOutboundIPAddresses *string `json:"possibleOutboundIpAddresses,omitempty"`
 	// ContainerSize - Size of the function container.
 	ContainerSize *int32 `json:"containerSize,omitempty"`
@@ -18818,8 +19002,6 @@ type SitePatchResourceProperties struct {
 	RedundancyMode RedundancyMode `json:"redundancyMode,omitempty"`
 	// InProgressOperationID - READ-ONLY; Specifies an operation id if this site has a pending operation.
 	InProgressOperationID *uuid.UUID `json:"inProgressOperationId,omitempty"`
-	// GeoDistributions - GeoDistributions for this site
-	GeoDistributions *[]GeoDistribution `json:"geoDistributions,omitempty"`
 }
 
 // SitePhpErrorLogFlag used for getting PHP error logging flag.
@@ -18971,7 +19153,7 @@ type SiteProperties struct {
 	HostNamesDisabled *bool `json:"hostNamesDisabled,omitempty"`
 	// OutboundIPAddresses - READ-ONLY; List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from tenants that site can be hosted with current settings. Read-only.
 	OutboundIPAddresses *string `json:"outboundIpAddresses,omitempty"`
-	// PossibleOutboundIPAddresses - READ-ONLY; List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from all tenants. Read-only.
+	// PossibleOutboundIPAddresses - READ-ONLY; List of IP addresses that the app uses for outbound connections (e.g. database access). Includes VIPs from all tenants except dataComponent. Read-only.
 	PossibleOutboundIPAddresses *string `json:"possibleOutboundIpAddresses,omitempty"`
 	// ContainerSize - Size of the function container.
 	ContainerSize *int32 `json:"containerSize,omitempty"`
@@ -18999,8 +19181,6 @@ type SiteProperties struct {
 	RedundancyMode RedundancyMode `json:"redundancyMode,omitempty"`
 	// InProgressOperationID - READ-ONLY; Specifies an operation id if this site has a pending operation.
 	InProgressOperationID *uuid.UUID `json:"inProgressOperationId,omitempty"`
-	// GeoDistributions - GeoDistributions for this site
-	GeoDistributions *[]GeoDistribution `json:"geoDistributions,omitempty"`
 }
 
 // SiteSeal site seal
@@ -20313,6 +20493,12 @@ type StackMajorVersion struct {
 	MinorVersions *[]StackMinorVersion `json:"minorVersions,omitempty"`
 	// ApplicationInsights - <code>true</code> if this supports Application Insights; otherwise, <code>false</code>.
 	ApplicationInsights *bool `json:"applicationInsights,omitempty"`
+	// IsPreview - <code>true</code> if this stack is in Preview, otherwise <code>false</code>.
+	IsPreview *bool `json:"isPreview,omitempty"`
+	// IsDeprecated - <code>true</code> if this stack has been deprecated, otherwise <code>false</code>.
+	IsDeprecated *bool `json:"isDeprecated,omitempty"`
+	// IsHidden - <code>true</code> if this stack should be hidden for new customers on portal, otherwise <code>false</code>.
+	IsHidden *bool `json:"isHidden,omitempty"`
 }
 
 // StackMinorVersion application stack minor version.
@@ -20339,7 +20525,7 @@ type StampCapacity struct {
 	Unit *string `json:"unit,omitempty"`
 	// ComputeMode - Shared/dedicated workers. Possible values include: 'ComputeModeOptionsShared', 'ComputeModeOptionsDedicated', 'ComputeModeOptionsDynamic'
 	ComputeMode ComputeModeOptions `json:"computeMode,omitempty"`
-	// WorkerSize - Size of the machines. Possible values include: 'WorkerSizeOptionsSmall', 'WorkerSizeOptionsMedium', 'WorkerSizeOptionsLarge', 'WorkerSizeOptionsD1', 'WorkerSizeOptionsD2', 'WorkerSizeOptionsD3', 'WorkerSizeOptionsDefault'
+	// WorkerSize - Size of the machines. Possible values include: 'WorkerSizeOptionsSmall', 'WorkerSizeOptionsMedium', 'WorkerSizeOptionsLarge', 'WorkerSizeOptionsD1', 'WorkerSizeOptionsD2', 'WorkerSizeOptionsD3', 'WorkerSizeOptionsNestedSmall', 'WorkerSizeOptionsDefault'
 	WorkerSize WorkerSizeOptions `json:"workerSize,omitempty"`
 	// WorkerSizeID - Size ID of machines:
 	// 0 - Small
@@ -22240,22 +22426,6 @@ type UserProperties struct {
 	ScmURI *string `json:"scmUri,omitempty"`
 }
 
-// ValidateContainerSettingsRequest container settings validation request context
-type ValidateContainerSettingsRequest struct {
-	// BaseURL - Base URL of the container registry
-	BaseURL *string `json:"baseUrl,omitempty"`
-	// Username - Username for to access the container registry
-	Username *string `json:"username,omitempty"`
-	// Password - Password for to access the container registry
-	Password *string `json:"password,omitempty"`
-	// Repository - Repository name (image name)
-	Repository *string `json:"repository,omitempty"`
-	// Tag - Image tag
-	Tag *string `json:"tag,omitempty"`
-	// Platform - Platform (windows or linux)
-	Platform *string `json:"platform,omitempty"`
-}
-
 // ValidateProperties app properties used for validation.
 type ValidateProperties struct {
 	// ServerFarmID - ARM resource ID of an App Service plan that would host the app.
@@ -22272,6 +22442,18 @@ type ValidateProperties struct {
 	HostingEnvironment *string `json:"hostingEnvironment,omitempty"`
 	// IsXenon - <code>true</code> if App Service plan is running as a windows container
 	IsXenon *bool `json:"isXenon,omitempty"`
+	// ContainerRegistryBaseURL - Base URL of the container registry
+	ContainerRegistryBaseURL *string `json:"containerRegistryBaseUrl,omitempty"`
+	// ContainerRegistryUsername - Username for to access the container registry
+	ContainerRegistryUsername *string `json:"containerRegistryUsername,omitempty"`
+	// ContainerRegistryPassword - Password for to access the container registry
+	ContainerRegistryPassword *string `json:"containerRegistryPassword,omitempty"`
+	// ContainerImageRepository - Repository name (image name)
+	ContainerImageRepository *string `json:"containerImageRepository,omitempty"`
+	// ContainerImageTag - Image tag
+	ContainerImageTag *string `json:"containerImageTag,omitempty"`
+	// ContainerImagePlatform - Platform (windows or linux)
+	ContainerImagePlatform *string `json:"containerImagePlatform,omitempty"`
 }
 
 // ValidateRequest resource validation request content.
@@ -22402,6 +22584,8 @@ type VirtualIPMapping struct {
 	InternalHTTPSPort *int32 `json:"internalHttpsPort,omitempty"`
 	// InUse - Is virtual IP mapping in use.
 	InUse *bool `json:"inUse,omitempty"`
+	// ServiceName - name of the service that virtual IP is assigned to
+	ServiceName *string `json:"serviceName,omitempty"`
 }
 
 // VirtualNetworkProfile specification for using a Virtual Network.
