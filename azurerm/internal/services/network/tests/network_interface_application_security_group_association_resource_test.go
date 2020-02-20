@@ -144,25 +144,20 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 		nicName := nicID.Path["networkInterfaces"]
 		resourceGroup := nicID.ResourceGroup
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
-		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
 			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 		}
 
-		c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-		if c == nil {
-			return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
-		}
-		config := *c
-
 		found := false
-		if config.InterfaceIPConfigurationPropertiesFormat.ApplicationSecurityGroups != nil {
-			for _, group := range *config.InterfaceIPConfigurationPropertiesFormat.ApplicationSecurityGroups {
-				if *group.ID == applicationSecurityGroupId {
-					found = true
-					break
+		for _, config := range *read.InterfacePropertiesFormat.IPConfigurations {
+			if config.ApplicationSecurityGroups != nil {
+				for _, group := range *config.ApplicationSecurityGroups {
+					if *group.ID == applicationSecurityGroupId {
+						found = true
+						break
+					}
 				}
 			}
 		}
@@ -194,28 +189,26 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 		nicName := nicID.Path["networkInterfaces"]
 		resourceGroup := nicID.ResourceGroup
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
-		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
 			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 		}
 
-		c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-		if c == nil {
-			return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
-		}
-		config := *c
-
-		updatedGroups := make([]network.ApplicationSecurityGroup, 0)
-		if config.InterfaceIPConfigurationPropertiesFormat.ApplicationSecurityGroups != nil {
-			for _, group := range *config.InterfaceIPConfigurationPropertiesFormat.ApplicationSecurityGroups {
-				if *group.ID != applicationSecurityGroupId {
-					updatedGroups = append(updatedGroups, group)
+		configs := *read.InterfacePropertiesFormat.IPConfigurations
+		for _, config := range configs {
+			if config.ApplicationSecurityGroups != nil {
+				groups := make([]network.ApplicationSecurityGroup, 0)
+				for _, group := range *config.ApplicationSecurityGroups {
+					if *group.ID != applicationSecurityGroupId {
+						groups = append(groups, group)
+					}
 				}
+				config.ApplicationSecurityGroups = &groups
 			}
 		}
-		config.InterfaceIPConfigurationPropertiesFormat.ApplicationSecurityGroups = &updatedGroups
+
+		read.InterfacePropertiesFormat.IPConfigurations = &configs
 
 		future, err := client.CreateOrUpdate(ctx, resourceGroup, nicName, read)
 		if err != nil {
