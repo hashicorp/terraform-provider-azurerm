@@ -45,19 +45,19 @@ func run(outputFileName string) error {
 
 	outputPath, err := filepath.Abs(outputFileName)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// output that string to the file
 	file, err := os.Create(outputPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if os.IsExist(err) {
 		os.Remove(outputPath)
 		file, err = os.Create(outputPath)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 	defer file.Close()
