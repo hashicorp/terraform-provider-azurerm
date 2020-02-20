@@ -438,21 +438,6 @@ func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.Fronte
 	return results
 }
 
-func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) *schema.Set {
-	results := &schema.Set{F: schema.HashString}
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if id := item.ID; id != nil {
-			results.Add(*id)
-		}
-	}
-
-	return results
-}
-
 func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *network.PrivateLinkServicesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name, "")

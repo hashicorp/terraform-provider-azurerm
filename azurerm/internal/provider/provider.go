@@ -136,8 +136,8 @@ func AzureProvider() terraform.ResourceProvider {
 			},
 
 			"disable_correlation_request_id": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_CORRELATION_REQUEST_ID", false),
 				Description: "This will disable the x-ms-correlation-request-id header.",
 			},

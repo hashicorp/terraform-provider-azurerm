@@ -2194,19 +2194,6 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 	return results
 }
 
-func flattenApplicationGatewayDisabledSSLProtocols(input *network.ApplicationGatewaySslPolicy) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil || input.DisabledSslProtocols == nil {
-		return results
-	}
-
-	for _, v := range *input.DisabledSslProtocols {
-		results = append(results, string(v))
-	}
-
-	return results
-}
-
 func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayHTTPListener {
 	vs := d.Get("http_listener").([]interface{})
 	results := make([]network.ApplicationGatewayHTTPListener, 0)

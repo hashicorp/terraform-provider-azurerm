@@ -243,7 +243,6 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							ForceNew: true,
-							Computed: true, // TODO does this still need to be computed?
 							Set:      resourceArmContainerGroupPortsHash,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -251,7 +250,6 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ForceNew:     true,
-										Computed:     true, // TODO does this still need to be computed?
 										ValidateFunc: validate.PortNumber,
 									},
 
@@ -259,7 +257,6 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ForceNew: true,
-										Computed: true, // TODO does this still need to be computed?
 										Default:  string(containerinstance.TCP),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerinstance.TCP),

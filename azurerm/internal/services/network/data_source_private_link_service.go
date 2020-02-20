@@ -166,18 +166,3 @@ func dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]netw
 
 	return results
 }
-
-func dataSourceFlattenArmPrivateLinkServiceInterface(input *[]network.Interface) []string {
-	results := make([]string, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if id := item.ID; id != nil {
-			results = append(results, *id)
-		}
-	}
-
-	return results
-}
