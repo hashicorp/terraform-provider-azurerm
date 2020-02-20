@@ -789,10 +789,6 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
 
-	if input.VnetName != nil {
-		result["virtual_network_name"] = *input.VnetName
-	}
-
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
