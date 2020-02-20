@@ -3,10 +3,8 @@ package azure
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -119,47 +117,4 @@ func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVault
 	}
 
 	return true, nil
-}
-
-func KeyVaultCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
-	if d.HasChange("soft_delete_enabled") {
-		if old, new := d.GetChange("soft_delete_enabled"); old.(bool) && !new.(bool) {
-			return fmt.Errorf("the property 'soft_delete_enabled' cannot be set to false, enabling the soft delete for a vault is an irreversible action")
-		}
-	}
-
-	if d.HasChange("purge_protection_enabled") {
-		if old, new := d.GetChange("purge_protection_enabled"); old.(bool) && !new.(bool) {
-			return fmt.Errorf("the property 'purge_protection_enabled' cannot be set to false, enabling the purge protection for a vault is an irreversible action")
-		}
-	}
-
-	return nil
-}
-
-func KeyVaultGetSoftDeletedState(ctx context.Context, client *keyvault.VaultsClient, name string, location string) (deleteDate interface{}, purgeDate interface{}, err error) {
-	softDel, err := client.GetDeleted(ctx, name, location)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to get soft delete state information: %+v", err)
-	}
-
-	// the logic is this way because the GetDeleted call will return an existing key vault
-	// that is not soft deleted, but the Deleted Vault properties will be nil
-	if props := softDel.Properties; props != nil {
-		var delDate interface{}
-		var purgeDate interface{}
-
-		if dd := props.DeletionDate; dd != nil {
-			delDate = (*dd).Format(time.RFC3339)
-		}
-		if pg := props.ScheduledPurgeDate; pg != nil {
-			purgeDate = (*pg).Format(time.RFC3339)
-		}
-		if delDate != nil && purgeDate != nil {
-			return delDate, purgeDate, nil
-		}
-	}
-
-	// this means we found an existing key vault that is not soft deleted
-	return nil, nil, nil
 }

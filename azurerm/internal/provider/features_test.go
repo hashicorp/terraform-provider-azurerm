@@ -18,14 +18,14 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
+				KeyVault: features.KeyVaultFeatures{
+					RecoverSoftDeletedKeyVaults: true,
+				},
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
-				},
-				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: true,
 				},
 			},
 		},
@@ -45,20 +45,21 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy": true,
+							"purge_soft_delete_on_destroy":    true,
+							"recover_soft_deleted_key_vaults": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
+				KeyVault: features.KeyVaultFeatures{
+					RecoverSoftDeletedKeyVaults: true,
+				},
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
-				},
-				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: true,
 				},
 			},
 		},
@@ -78,20 +79,21 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy": false,
+							"purge_soft_delete_on_destroy":    false,
+							"recover_soft_deleted_key_vaults": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
+				KeyVault: features.KeyVaultFeatures{
+					RecoverSoftDeletedKeyVaults: false,
+				},
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: false,
-				},
-				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: false,
 				},
 			},
 		},
@@ -122,41 +124,41 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: true,
+					RecoverSoftDeletedKeyVaults: true,
 				},
 			},
 		},
 		{
-			Name: "Purge Soft Delete On Destroy Enabled",
+			Name: "Recover Soft Deleted Key Vaults Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy": true,
+							"recover_soft_deleted_key_vaults": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: true,
+					RecoverSoftDeletedKeyVaults: true,
 				},
 			},
 		},
 		{
-			Name: "Purge Soft Delete On Destroy Disabled",
+			Name: "Recover Soft Deleted Key Vaults Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_delete_on_destroy": false,
+							"recover_soft_deleted_key_vaults": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: false,
+					RecoverSoftDeletedKeyVaults: false,
 				},
 			},
 		},
