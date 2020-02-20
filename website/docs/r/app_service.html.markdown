@@ -25,8 +25,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_app_service_plan" "example" {
   name                = "example-appserviceplan"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -36,9 +36,9 @@ resource "azurerm_app_service_plan" "example" {
 
 resource "azurerm_app_service" "example" {
   name                = "example-app-service"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 
   site_config {
     dotnet_framework_version = "v4.0"
@@ -74,6 +74,8 @@ The following arguments are supported:
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
+* `backup` - (Optional) A `backup` block as defined below.
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
@@ -249,7 +251,7 @@ A `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
-~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 
@@ -307,7 +309,7 @@ A `ip_restriction` block supports the following:
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
-* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction. 
+* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction.
 
 -> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
@@ -390,6 +392,15 @@ A `source_control` block exports the following:
 
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service.
 
 ## Import
 

@@ -21,20 +21,20 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_watcher" "test" {
   name                = "acctestnw"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_storage_account" "test" {
   name                = "acctestsa"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   account_tier              = "Standard"
   account_replication_type  = "LRS"
@@ -43,17 +43,17 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestlaw"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_watcher_flow_log" "test" {
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
 
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-  storage_account_id        = "${azurerm_storage_account.test.id}"
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id        = azurerm_storage_account.test.id
   enabled                   = true
 
   retention_policy {
@@ -63,9 +63,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
 
   traffic_analytics {
     enabled               = true
-    workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
-    workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
-    workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+    workspace_id          = azurerm_log_analytics_workspace.test.workspace_id
+    workspace_region      = azurerm_log_analytics_workspace.test.location
+    workspace_resource_id = azurerm_log_analytics_workspace.test.id
   }
 }
 ```
@@ -79,9 +79,9 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
 * `network_security_group_id` - (Required) The ID of the Network Security Group for which to enable flow logs for. Changing this forces a new resource to be created.
-  
+
 * `storage_account_id` - (Required) The ID of the Storage Account where flow logs are stored.
-  
+
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
@@ -110,7 +110,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Network Watcher ID.
+* `id` - The ID of the Network Watcher.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Watcher Flow Log.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Watcher Flow Log.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Watcher Flow Log.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Watcher Flow Log.
 
 ## Import
 

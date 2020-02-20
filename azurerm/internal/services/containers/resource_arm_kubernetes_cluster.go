@@ -87,7 +87,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -105,7 +105,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"default_node_pool": SchemaDefaultNodePool(),
@@ -186,7 +186,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.NoEmptyStrings,
+							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 
 						"os_disk_size_gb": {
@@ -246,14 +246,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"client_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"client_secret": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -334,7 +334,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -407,8 +407,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(containerservice.Basic),
+							Default:  string(containerservice.Standard),
 							ForceNew: true,
+							// TODO: fix the casing in the Swagger
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Basic),
 								string(containerservice.Standard),
@@ -501,20 +502,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"client_app_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.UUID,
+										ValidateFunc: validation.IsUUID,
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.UUID,
+										ValidateFunc: validation.IsUUID,
 									},
 
 									"server_app_secret": {
 										Type:         schema.TypeString,
 										Required:     true,
 										Sensitive:    true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"tenant_id": {
@@ -522,7 +523,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Optional: true,
 										Computed: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
-										ValidateFunc: validate.UUIDOrEmpty,
+										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 									},
 								},
 							},
@@ -548,7 +549,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -563,7 +564,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_admin_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {
@@ -605,7 +605,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {

@@ -22,8 +22,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -33,8 +33,8 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "example" {
   name                = "tfex_sevicebus_topic"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
@@ -49,9 +49,6 @@ The following arguments are supported:
 
 * `namespace_name` - (Required) The name of the ServiceBus Namespace to create
     this topic in. Changing this forces a new resource to be created.
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
-    Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
@@ -96,6 +93,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ServiceBus Topic ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Topic.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Topic.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Topic.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Topic.
 
 ## Import
 

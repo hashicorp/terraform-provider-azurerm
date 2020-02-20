@@ -22,8 +22,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_container_group" "example" {
   name                = "example-continst"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   ip_address_type     = "public"
   dns_name_label      = "aci-label"
   os_type             = "Linux"
@@ -247,11 +247,20 @@ The `http_get` block supports:
 
 The following attributes are exported:
 
-* `id` - The container group ID.
+* `id` - The ID of the Container Group.
 
 * `ip_address` - The IP address allocated to the container group.
 
 * `fqdn` - The FQDN of the container group derived from `dns_name_label`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Container Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 
 ## Import
 

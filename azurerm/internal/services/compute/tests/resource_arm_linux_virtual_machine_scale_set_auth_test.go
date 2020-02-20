@@ -24,7 +24,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authPassword(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -44,9 +43,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(
-				"terraform_should_roll_instances_when_required",
-			),
+			data.ImportStep(),
 		},
 	})
 }
@@ -67,7 +64,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyAndPassword(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -87,9 +83,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authMultipleSSHKeys(t *testing.T)
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(
-				"terraform_should_roll_instances_when_required",
-			),
+			data.ImportStep(),
 		},
 	})
 }
@@ -108,18 +102,14 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T)
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(
-				"terraform_should_roll_instances_when_required",
-			),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(
-				"terraform_should_roll_instances_when_required",
-			),
+			data.ImportStep(),
 		},
 	})
 }
@@ -141,7 +131,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// enable it
@@ -152,7 +141,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// disable it
@@ -163,7 +151,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})

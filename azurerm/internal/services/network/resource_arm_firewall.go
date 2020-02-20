@@ -8,9 +8,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -58,7 +58,7 @@ func resourceArmFirewall() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,
@@ -267,12 +267,12 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 				}
 				subnetName := parsedSubnetId.Path["subnets"]
 
-				if !SliceContainsValue(subnetNamesToLock, subnetName) {
+				if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
 					subnetNamesToLock = append(subnetNamesToLock, subnetName)
 				}
 
 				virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
-				if !SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+				if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 				}
 			}
@@ -338,11 +338,11 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 			subnetName := subnetID.Path["subnets"]
 			virtualNetworkName := subnetID.Path["virtualNetworks"]
 
-			if !SliceContainsValue(subnetNamesToLock, subnetName) {
+			if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
 				subnetNamesToLock = append(subnetNamesToLock, subnetName)
 			}
 
-			if !SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+			if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 			}
 

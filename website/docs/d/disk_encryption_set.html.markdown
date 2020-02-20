@@ -14,9 +14,9 @@ Use this data source to access information about an existing Disk Encryption Set
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Disk Encryption Set exists.
+* `name` - The name of the Disk Encryption Set exists.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Disk Encryption Set exists.
+* `resource_group_name` - The name of the Resource Group where the Disk Encryption Set exists.
 
 ## Attributes Reference
 
@@ -27,3 +27,9 @@ The following attributes are exported:
 * `location` - The location where the Disk Encryption Set exists.
 
 * `tags` - A mapping of tags assigned to the Disk Encryption Set.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Disk Encryption Set.

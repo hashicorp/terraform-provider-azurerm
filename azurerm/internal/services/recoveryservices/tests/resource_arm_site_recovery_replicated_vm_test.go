@@ -33,12 +33,12 @@ func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
 func testAccAzureRMSiteRecoveryReplicatedVm_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery1-%d"
+  name     = "acctestRG-recovery-%d-1"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery2-%d"
+  name     = "acctestRG-recovery-%d-2"
   location = "%s"
 }
 
@@ -47,6 +47,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test2.location}"
   resource_group_name = "${azurerm_resource_group.test2.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {

@@ -22,8 +22,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_key_vault" "example" {
   name                        = "testvault"
-  location                    = "${azurerm_resource_group.example.location}"
-  resource_group_name         = "${azurerm_resource_group.example.name}"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
 
@@ -67,9 +67,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
-* `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
+* `sku_name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
@@ -88,11 +86,7 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
-A `sku` block supports the following:
 
-* `name` - (Required)  The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
-
----
 A `access_policy` block supports the following:
 
 Elements of `access_policy` support:
@@ -130,6 +124,15 @@ The following attributes are exported:
 * `id` - The ID of the Key Vault.
 
 * `vault_uri` - The URI of the Key Vault, used for performing operations on keys and secrets.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault.
 
 ## Import
 

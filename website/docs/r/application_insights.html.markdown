@@ -21,16 +21,16 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
 
 output "instrumentation_key" {
-  value = "${azurerm_application_insights.example.instrumentation_key}"
+  value = azurerm_application_insights.example.instrumentation_key
 }
 
 output "app_id" {
-  value = "${azurerm_application_insights.example.app_id}"
+  value = azurerm_application_insights.example.app_id
 }
 ```
 
@@ -48,6 +48,10 @@ The following arguments are supported:
 
 * `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `ios` for _iOS_, `java` for _Java web_, `MobileCenter` for _App Center_, `Node.JS` for _Node.js_, `other` for _General_, `phone` for _Windows Phone_, `store` for _Windows Store_ and `web` for _ASP.NET_. Please note these values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure. Changing this forces a new resource to be created.
 
+* `daily_data_cap_in_gb` - (Optional) Specifies the Application Insights component daily data volume cap in GB.
+
+* `daily_data_cap_notifications_disabled` - (Optional) Specifies if a notification email will be send when the daily data volume cap is met.
+
 * `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`.
 
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
@@ -64,6 +68,14 @@ The following attributes are exported:
 
 * `instrumentation_key` - The Instrumentation Key for this Application Insights component.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Application Insights Component.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Component.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Component.
 
 ## Import
 

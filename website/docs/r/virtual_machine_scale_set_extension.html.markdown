@@ -1,14 +1,12 @@
 ---
 layout: "azurerm"
-subcategory: "Beta"
+subcategory: "Compute"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set_extension"
 description: |-
   Manages an Extension for a Virtual Machine Scale Set.
 ---
 
 # azurerm_virtual_machine_scale_set_extension
-
-~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
 
 Manages an Extension for a Virtual Machine Scale Set.
 
@@ -70,6 +68,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Machine Scale Set Extension.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Scale Set Extension.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Scale Set Extension.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set Extension.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Scale Set Extension.
 
 ## Import
 

@@ -88,7 +88,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Azure Backup protected item.
+* `id` - The ID of the Backup File Share.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 80 minutes) Used when creating the Backup File Share.
+* `update` - (Defaults to 80 minutes) Used when updating the Backup File Share.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Backup File Share.
+* `delete` - (Defaults to 80 minutes) Used when deleting the Backup File Share.
 
 ## Import
 

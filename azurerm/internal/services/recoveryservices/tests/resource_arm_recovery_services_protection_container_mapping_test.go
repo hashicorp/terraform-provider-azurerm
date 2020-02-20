@@ -33,7 +33,7 @@ func TestAccAzureRMRecoveryProtectionContainerMapping_basic(t *testing.T) {
 func testAccAzureRMRecoveryProtectionContainerMapping_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG-recovery1-%d"
+  name     = "acctestRG-recovery-%d-1"
   location = "%s"
 }
 
@@ -42,6 +42,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 
 resource "azurerm_recovery_services_fabric" "test1" {

@@ -20,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "contoso.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -81,7 +81,16 @@ A `record` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Private DNS PTR Record ID.
+* `id` - The Private DNS SRV Record ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Private DNS SRV Record.
+* `update` - (Defaults to 30 minutes) Used when updating the Private DNS SRV Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS SRV Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Private DNS SRV Record.
 
 ## Import
 

@@ -20,16 +20,16 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
-  location                 = "${azurerm_resource_group.example.location}"
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "example" {
-  storage_account_id = "${azurerm_storage_account.example.id}"
+  storage_account_id = azurerm_storage_account.example.id
 
   rule {
     name    = "rule1"
@@ -120,6 +120,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Storage Account Management Policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Account Management Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Management Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Management Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Management Policy.
 
 ## Import
 

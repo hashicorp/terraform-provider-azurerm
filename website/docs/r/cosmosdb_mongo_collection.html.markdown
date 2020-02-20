@@ -20,15 +20,15 @@ data "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_mongo_database" "example" {
   name                = "tfex-cosmos-mongo-db"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
 }
 
 resource "azurerm_cosmosdb_mongo_collection" "example" {
   name                = "tfex-cosmos-mongo-db"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
-  database_name       = "${azurerm_cosmosdb_mongo_database.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
+  database_name       = azurerm_cosmosdb_mongo_database.example.name
 
   default_ttl_seconds = "777"
   shard_key           = "uniqueKey"
@@ -69,11 +69,20 @@ An `indexes` block supports the following:
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Mongo Collection ID.
+* `id` - The ID of the Cosmos DB Mongo Collection.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Mongo Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Mongo Collection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Mongo Collection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Mongo Collection.
 
 ## Import
 
-Cosmos DB Mongo Collection can be imported using the `resource id`, e.g.
+CosmosDB Mongo Collection can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cosmosdb_mongo_collection.collection1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/mongodb/databases/db1/collections/collection1

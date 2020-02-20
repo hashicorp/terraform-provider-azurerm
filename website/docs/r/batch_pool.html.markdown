@@ -21,18 +21,18 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "testaccsa"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "example" {
   name                 = "testaccbatch"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  location             = "${azurerm_resource_group.example.location}"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.example.id}"
+  storage_account_id   = azurerm_storage_account.example.id
 
   tags = {
     env = "test"
@@ -40,9 +40,9 @@ resource "azurerm_batch_account" "example" {
 }
 
 resource "azurerm_batch_certificate" "example" {
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  account_name         = "${azurerm_batch_account.example.name}"
-  certificate          = "${filebase64("certificate.cer")}"
+  resource_group_name  = azurerm_resource_group.example.name
+  account_name         = azurerm_batch_account.example.name
+  certificate          = filebase64("certificate.cer")
   format               = "Cer"
   thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
@@ -50,8 +50,8 @@ resource "azurerm_batch_certificate" "example" {
 
 resource "azurerm_batch_pool" "example" {
   name                = "testaccpool"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_batch_account.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_batch_account.example.name
   display_name        = "Test Acc Pool Auto"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
@@ -66,6 +66,7 @@ resource "azurerm_batch_pool" "example" {
       pendingTaskSamples = pendingTaskSamplePercent < 70 ? startingNumberOfVMs : avg($PendingTasks.GetSample(180 *   TimeInterval_Second));
       $TargetDedicatedNodes=min(maxNumberofVMs, pendingTaskSamples);
 EOF
+
   }
 
   storage_image_reference {
@@ -77,13 +78,11 @@ EOF
 
   container_configuration {
     type = "DockerCompatible"
-    container_registries = [
-      {
-        registry_server = "docker.io"
-        user_name       = "login"
-        password        = "apassword"
-      },
-    ]
+    container_registries {
+      registry_server = "docker.io"
+      user_name       = "login"
+      password        = "apassword"
+    }
   }
 
   start_task {
@@ -104,7 +103,7 @@ EOF
   }
 
   certificate {
-    id         = "${azurerm_batch_certificate.example.id}"
+    id         = azurerm_batch_certificate.example.id
     visibility = ["StartTask"]
   }
 }
@@ -306,11 +305,21 @@ A `network_security_group_rules` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Batch pool ID.
+* `id` - The ID of the Batch Pool.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Batch Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Batch Pool.
 
 ## Import
-Batch pools can be imported using the `resource id`, e.g.
+
+Batch Pools can be imported using the `resource id`, e.g.
+
 ```shell
  terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
 ```

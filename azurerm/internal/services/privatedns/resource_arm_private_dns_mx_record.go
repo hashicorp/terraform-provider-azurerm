@@ -52,7 +52,7 @@ func resourceArmPrivateDnsMxRecord() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"record": {
@@ -69,7 +69,7 @@ func resourceArmPrivateDnsMxRecord() *schema.Resource {
 						"exchange": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},

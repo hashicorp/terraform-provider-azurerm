@@ -18,15 +18,15 @@ func DedicatedHostID(input string) (*DedicatedHostId, error) {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Dedicated Host ID %q: %+v", input, err)
 	}
 
-	server := DedicatedHostId{
+	host := DedicatedHostId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if server.HostGroup, err = id.PopSegment("hostGroups"); err != nil {
+	if host.HostGroup, err = id.PopSegment("hostGroups"); err != nil {
 		return nil, err
 	}
 
-	if server.Name, err = id.PopSegment("hosts"); err != nil {
+	if host.Name, err = id.PopSegment("hosts"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +34,5 @@ func DedicatedHostID(input string) (*DedicatedHostId, error) {
 		return nil, err
 	}
 
-	return &server, nil
+	return &host, nil
 }

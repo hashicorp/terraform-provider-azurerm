@@ -14,28 +14,32 @@ Assigns a given Principal (User or Application) to a given Role.
 ## Example Usage (using a built-in Role)
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "primary" {
+}
 
-data "azurerm_client_config" "example" {}
+data "azurerm_client_config" "example" {
+}
 
 resource "azurerm_role_assignment" "example" {
-  scope                = "${data.azurerm_subscription.primary.id}"
+  scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Reader"
-  principal_id         = "${data.azurerm_client_config.example.service_principal_object_id}"
+  principal_id         = data.azurerm_client_config.example.service_principal_object_id
 }
 ```
 
 ## Example Usage (Custom Role & Service Principal)
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "primary" {
+}
 
-data "azurerm_client_config" "example" {}
+data "azurerm_client_config" "example" {
+}
 
 resource "azurerm_role_definition" "example" {
   role_definition_id = "00000000-0000-0000-0000-000000000000"
   name               = "my-custom-role-definition"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
 
   permissions {
     actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
@@ -43,29 +47,31 @@ resource "azurerm_role_definition" "example" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 
 resource "azurerm_role_assignment" "example" {
   name               = "00000000-0000-0000-0000-000000000000"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${azurerm_role_definition.example.id}"
-  principal_id       = "${data.azurerm_client_config.example.service_principal_object_id}"
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = azurerm_role_definition.example.id
+  principal_id       = data.azurerm_client_config.example.service_principal_object_id
 }
 ```
 
 ## Example Usage (Custom Role & User)
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "primary" {
+}
 
-data "azurerm_client_config" "example" {}
+data "azurerm_client_config" "example" {
+}
 
 resource "azurerm_role_definition" "example" {
   role_definition_id = "00000000-0000-0000-0000-000000000000"
   name               = "my-custom-role-definition"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
 
   permissions {
     actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
@@ -73,31 +79,34 @@ resource "azurerm_role_definition" "example" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 
 resource "azurerm_role_assignment" "example" {
   name               = "00000000-0000-0000-0000-000000000000"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${azurerm_role_definition.example.id}"
-  principal_id       = "${data.azurerm_client_config.example.client_id}"
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = azurerm_role_definition.example.id
+  principal_id       = data.azurerm_client_config.example.client_id
 }
 ```
 
 ## Example Usage (Custom Role & Management Group)
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "primary" {
+}
 
-data "azurerm_client_config" "example" {}
+data "azurerm_client_config" "example" {
+}
 
-data "azurerm_management_group" "example" {}
+data "azurerm_management_group" "example" {
+}
 
 resource "azurerm_role_definition" "example" {
   role_definition_id = "00000000-0000-0000-0000-000000000000"
   name               = "my-custom-role-definition"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
 
   permissions {
     actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
@@ -105,15 +114,15 @@ resource "azurerm_role_definition" "example" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 
 resource "azurerm_role_assignment" "example" {
   name               = "00000000-0000-0000-0000-000000000000"
-  scope              = "${data.azurerm_management_group.primary.id}"
-  role_definition_id = "${azurerm_role_definition.example.id}"
-  principal_id       = "${data.azurerm_client_config.example.client_id}"
+  scope              = data.azurerm_management_group.primary.id
+  role_definition_id = azurerm_role_definition.example.id
+  principal_id       = data.azurerm_client_config.example.client_id
 }
 ```
 
@@ -129,7 +138,7 @@ The following arguments are supported:
 
 * `role_definition_name` - (Optional) The name of a built-in Role. Changing this forces a new resource to be created. Conflicts with `role_definition_id`.
 
-* `principal_id` - (Required) The ID of the Principal (User, Group, Service Principal, or Application) to assign the Role Definition to. Changing this forces a new resource to be created. 
+* `principal_id` - (Required) The ID of the Principal (User, Group, Service Principal, or Application) to assign the Role Definition to. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
@@ -142,6 +151,15 @@ The following attributes are exported:
 * `id` - The Role Assignment ID.
 
 * `principal_type` - The type of the `principal_id`, e.g. User, Group, Service Principal, Application, etc.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Role Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Role Assignment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Role Assignment.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Role Assignment.
 
 ## Import
 

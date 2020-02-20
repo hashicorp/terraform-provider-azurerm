@@ -20,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_private_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_private_dns_cname_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_private_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_private_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
   record              = "contoso.com"
 }
@@ -53,6 +53,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Private DNS CNAME Record ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Private DNS CNAME Record.
+* `update` - (Defaults to 30 minutes) Used when updating the Private DNS CNAME Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS CNAME Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Private DNS CNAME Record.
 
 ## Import
 

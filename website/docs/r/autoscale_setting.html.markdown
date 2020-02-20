@@ -26,9 +26,9 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 resource "azurerm_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
 
   profile {
     name = "defaultProfile"
@@ -42,7 +42,7 @@ resource "azurerm_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -62,7 +62,7 @@ resource "azurerm_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -191,9 +191,9 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 resource "azurerm_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
   enabled             = true
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.example.id
 
   profile {
     name = "forJuly"
@@ -207,7 +207,7 @@ resource "azurerm_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -227,7 +227,7 @@ resource "azurerm_autoscale_setting" "example" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.example.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -402,6 +402,15 @@ A `webhook` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the AutoScale Setting.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the AutoScale Setting.
+* `update` - (Defaults to 30 minutes) Used when updating the AutoScale Setting.
+* `read` - (Defaults to 5 minutes) Used when retrieving the AutoScale Setting.
+* `delete` - (Defaults to 30 minutes) Used when deleting the AutoScale Setting.
 
 ## Import
 

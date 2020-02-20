@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -29,23 +28,9 @@ func dataSourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"key_vault_id": {
-				Type:          schema.TypeString,
-				Optional:      true, //todo required in 2.0
-				Computed:      true, //todo removed in 2.0
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"vault_uri"},
-			},
-
-			// todo remove in 2.0
-			"vault_uri": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				Deprecated:    "This property has been deprecated in favour of the key_vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
-				ValidateFunc:  validate.URLIsHTTPS,
-				ConflictsWith: []string{"key_vault_id"},
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"key_type": {
@@ -92,31 +77,12 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	keyVaultBaseUri := d.Get("vault_uri").(string)
 	name := d.Get("name").(string)
 	keyVaultId := d.Get("key_vault_id").(string)
 
-	if keyVaultBaseUri == "" {
-		if keyVaultId == "" {
-			return fmt.Errorf("one of `key_vault_id` or `vault_uri` must be set")
-		}
-
-		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-		if err != nil {
-			return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
-		}
-
-		keyVaultBaseUri = pKeyVaultBaseUrl
-		d.Set("vault_uri", keyVaultBaseUri)
-	} else {
-		id, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUri)
-		if err != nil {
-			return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultBaseUri, err)
-		}
-		if id == nil {
-			return fmt.Errorf("Unable to locate the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUri, err)
-		}
-		d.Set("key_vault_id", id)
+	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
 	resp, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
@@ -135,6 +101,8 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id)
+	d.Set("key_vault_id", keyVaultId)
+
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))
 

@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iothub" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -31,8 +31,8 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_shared_access_policy" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iothub_name         = "${azurerm_iothub.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iothub_name         = azurerm_iothub.example.name
 
   registry_read  = true
   registry_write = true
@@ -74,6 +74,17 @@ The following attributes are exported:
 * `secondary_key` - The secondary key used to create the authentication token.
 
 * `secondary_connection_string` - The secondary connection string of the Shared Access Policy.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub Shared Access Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Shared Access Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Shared Access Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Shared Access Policy.
 
 ## Import
 

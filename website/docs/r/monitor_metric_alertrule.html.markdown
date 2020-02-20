@@ -16,14 +16,14 @@ Manages a [metric-based alert rule](https://docs.microsoft.com/en-us/azure/monit
 ```hcl
 resource "azurerm_monitor_metric_alertrule" "example" {
   name                = "${azurerm_virtual_machine.example.name}-cpu"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   description = "An alert rule to watch the metric Percentage CPU"
 
   enabled = true
 
-  resource_id = "${azurerm_virtual_machine.example.id}"
+  resource_id = azurerm_virtual_machine.example.id
   metric_name = "Percentage CPU"
   operator    = "GreaterThan"
   threshold   = 75
@@ -54,14 +54,14 @@ resource "azurerm_monitor_metric_alertrule" "example" {
 ```hcl
 resource "azurerm_monitor_metric_alertrule" "example" {
   name                = "${azurerm_sql_database.example.name}-storage"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   description = "An alert rule to watch the metric Storage"
 
   enabled = true
 
-  resource_id = "${azurerm_sql_database.example.id}"
+  resource_id = azurerm_sql_database.example.id
   metric_name = "storage"
   operator    = "GreaterThan"
   threshold   = 1073741824
@@ -146,6 +146,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the alert rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Metric Alert Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Metric Alert Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Metric Alert Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Metric Alert Rule.
 
 ## Import
 

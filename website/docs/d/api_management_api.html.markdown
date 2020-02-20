@@ -21,19 +21,19 @@ data "azurerm_api_management_api" "example" {
 }
 
 output "api_management_api_id" {
-  value = "${data.azurerm_api_management_api.example.id}"
+  value = data.azurerm_api_management_api.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the API Management API.
+* `name` - The name of the API Management API.
 
-* `api_management_name` - (Required) The name of the API Management Service in which the API Management API exists.
+* `api_management_name` - The name of the API Management Service in which the API Management API exists.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
-* `revision` - (Required) The Revision of the API Management API.
+* `revision` - The Revision of the API Management API.
 
 ## Attributes Reference
 
@@ -76,3 +76,9 @@ A `wsdl_selector` block exports the following:
 * `service_name` - The name of service to import from WSDL.
 
 * `endpoint_name` - The name of endpoint (port) to import from WSDL.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.

@@ -64,7 +64,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Recovery Services Vault.
+* `id` - The ID of the Recovery Services Protected VM.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 80 minutes) Used when creating the Recovery Services Protected VM.
+* `update` - (Defaults to 80 minutes) Used when updating the Recovery Services Protected VM.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Protected VM.
+* `delete` - (Defaults to 80 minutes) Used when deleting the Recovery Services Protected VM.
 
 ## Import
 
@@ -75,4 +84,4 @@ terraform import azurerm_recovery_services_protected_vm.item1 "/subscriptions/00
 ```
 
 Note the ID requires quoting as there are semicolons
- 
+m

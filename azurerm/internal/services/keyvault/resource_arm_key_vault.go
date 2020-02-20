@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -67,37 +66,13 @@ func resourceArmKeyVault() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			// Remove in 2.0
-			"sku": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
-				ConflictsWith: []string{"sku_name"},
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(keyvault.Standard),
-								string(keyvault.Premium),
-							}, false),
-						},
-					},
-				},
-			},
-
 			"sku_name": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-					// TODO: revert this in 2.0
-				}, true),
+				}, false),
 			},
 
 			"vault_uri": {
@@ -108,7 +83,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"access_policy": {
@@ -122,17 +97,17 @@ func resourceArmKeyVault() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"application_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
@@ -206,27 +181,9 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// Remove in 2.0
-	var sku keyvault.Sku
-
-	if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
-		input := inputs[0].(map[string]interface{})
-		v := input["name"].(string)
-
-		sku = keyvault.Sku{
-			Family: &armKeyVaultSkuFamily,
-			Name:   keyvault.SkuName(v),
-		}
-	} else {
-		// Keep in 2.0
-		sku = keyvault.Sku{
-			Family: &armKeyVaultSkuFamily,
-			Name:   keyvault.SkuName(d.Get("sku_name").(string)),
-		}
-	}
-
-	if sku.Name == "" {
-		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+	sku := keyvault.Sku{
+		Family: &armKeyVaultSkuFamily,
+		Name:   keyvault.SkuName(d.Get("sku_name").(string)),
 	}
 
 	log.Printf("[INFO] preparing arguments for Azure ARM KeyVault creation.")
@@ -291,7 +248,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+		if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 		}
 	}
@@ -324,12 +281,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
-				}
-
-				if features.SupportsCustomTimeouts() {
-					stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-				} else {
-					stateConf.Timeout = 30 * time.Minute
+					Timeout:                   d.Timeout(schema.TimeoutCreate),
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
@@ -378,11 +330,6 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("vault_uri", props.VaultURI)
 
 		if sku := props.Sku; sku != nil {
-			// Remove in 2.0
-			if err := d.Set("sku", flattenKeyVaultSku(sku)); err != nil {
-				return fmt.Errorf("Error setting 'sku' for KeyVault %q: %+v", *resp.Name, err)
-			}
-
 			if err := d.Set("sku_name", string(sku.Name)); err != nil {
 				return fmt.Errorf("Error setting 'sku_name' for KeyVault %q: %+v", *resp.Name, err)
 			}
@@ -443,7 +390,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 					}
 
 					virtualNetworkName := id.Path["virtualNetworks"]
-					if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+					if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 					}
 				}
@@ -462,15 +409,6 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-// Remove in 2.0
-func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
-	result := map[string]interface{}{
-		"name": string(sku.Name),
-	}
-
-	return []interface{}{result}
 }
 
 func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {

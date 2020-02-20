@@ -277,7 +277,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
@@ -290,7 +289,6 @@ func testAccAzureRMStorageTable_requiresImport(data acceptance.TestData) string 
 
 resource "azurerm_storage_table" "import" {
   name                 = "${azurerm_storage_table.test.name}"
-  resource_group_name  = "${azurerm_storage_table.test.resource_group_name}"
   storage_account_name = "${azurerm_storage_table.test.storage_account_name}"
 }
 `, template)
@@ -317,7 +315,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -353,7 +350,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
   acl {

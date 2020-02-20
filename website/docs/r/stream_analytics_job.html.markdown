@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_stream_analytics_job" "example" {
   name                                     = "example-job"
-  resource_group_name                      = "${azurerm_resource_group.example.name}"
-  location                                 = "${azurerm_resource_group.example.location}"
+  resource_group_name                      = azurerm_resource_group.example.name
+  location                                 = azurerm_resource_group.example.location
   compatibility_level                      = "1.1"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -39,6 +39,7 @@ resource "azurerm_stream_analytics_job" "example" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 ```
 
@@ -52,7 +53,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region in which the Resource Group exists. Changing this forces a new resource to be created.
 
-* `compatibility_level` - (Required) Specifies the compatibility level for this job - which controls certain runtime behaviors of the streaming job. Possible values are `1.0` and 1.1`.
+* `compatibility_level` - (Required) Specifies the compatibility level for this job - which controls certain runtime behaviors of the streaming job. Possible values are `1.0` and `1.1`.
 
 -> **NOTE:** Support for Compatibility Level 1.2 is dependent on a new version of the Stream Analytics API, which [being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/5604).
 
@@ -69,7 +70,7 @@ The following arguments are supported:
 * `streaming_units` - (Required) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`.
 
 * `transformation_query` - (Required) Specifies the query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
-  
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Attributes Reference
@@ -79,6 +80,15 @@ The following attributes are exported in addition to the arguments listed above:
 * `id` - The ID of the Stream Analytics Job.
 
 * `job_id` - The Job ID assigned by the Stream Analytics Job.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Job.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Job.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Job.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Job.
 
 ## Import
 

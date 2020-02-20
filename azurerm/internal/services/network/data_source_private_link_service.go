@@ -52,7 +52,6 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {

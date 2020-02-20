@@ -68,7 +68,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Bot Connection ID.
+* `id` - The ID of the Bot Connection.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Bot Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Bot Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Bot Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Bot Connection.
 
 ## Import
 

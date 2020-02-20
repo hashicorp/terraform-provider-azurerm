@@ -188,7 +188,7 @@ func testCheckAzureRMFrontDoorFirewallPolicyAttrNotExists(name string, attribute
 func testAccAzureRMFrontDoorFirewallPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRG-%d"
+  name     = "testaccRG-%d"
   location = "%s"
 }
 
@@ -217,7 +217,7 @@ func testAccAzureRMFrontDoorFirewallPolicy_update(data acceptance.TestData, upda
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRG-%d"
+  name     = "testaccRG-%d"
   location = "%s"
 }
 
@@ -273,7 +273,7 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
 func testAccAzureRMFrontDoorFirewallPolicy_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRG-%d"
+  name     = "testaccRG-%d"
   location = "%[2]s"
 }
 

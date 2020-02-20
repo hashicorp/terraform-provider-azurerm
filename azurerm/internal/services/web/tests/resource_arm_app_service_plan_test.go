@@ -165,8 +165,8 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 				Config: testAccAzureRMAppServicePlan_completeWindows(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.per_site_scaling", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.reserved", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_site_scaling", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "reserved", "false"),
 				),
 			},
 			{

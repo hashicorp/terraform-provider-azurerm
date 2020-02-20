@@ -19,14 +19,14 @@ data "azurerm_application_insights" "example" {
 }
 
 output "application_insights_instrumentation_key" {
-  value = "${data.azurerm_application_insights.example.instrumentation_key}"
+  value = data.azurerm_application_insights.example.instrumentation_key
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Application Insights component.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Application Insights component is located in.
+* `name` - Specifies the name of the Application Insights component.
+* `resource_group_name` - Specifies the name of the resource group the Application Insights component is located in.
 
 ## Attributes Reference
 
@@ -37,3 +37,9 @@ output "application_insights_instrumentation_key" {
 * `location` - The Azure location where the component exists.
 * `retention_in_days` - The retention period in days.
 * `tags` - Tags applied to the component.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights component.

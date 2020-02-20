@@ -1,10 +1,5 @@
 package features
 
-import (
-	"os"
-	"strings"
-)
-
 // SupportsTwoPointZeroResources returns whether the new VM and VMSS resources from 2.0
 // should be supported
 //
@@ -24,5 +19,5 @@ import (
 // Operators wishing to beta-test these resources can opt-into them in 1.x versions of the
 // Azure Provider by setting the Environment Variable 'ARM_PROVIDER_TWOPOINTZERO_RESOURCES' to 'true'
 func SupportsTwoPointZeroResources() bool {
-	return strings.EqualFold(os.Getenv("ARM_PROVIDER_TWOPOINTZERO_RESOURCES"), "true")
+	return true
 }

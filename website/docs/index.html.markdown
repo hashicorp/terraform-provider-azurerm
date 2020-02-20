@@ -31,20 +31,21 @@ We recommend using either a Service Principal or Managed Service Identity when r
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=1.38.0"
+  version = "=2.0.0"
+  features {}
 }
 
 # Create a resource group
 resource "azurerm_resource_group" "example" {
-  name     = "production"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 # Create a virtual network within the resource group
 resource "azurerm_virtual_network" "example" {
-  name                = "production-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  name                = "example-network"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
 }
 ```
@@ -80,10 +81,11 @@ If you have configuration questions, or general questions about using the provid
 * [Terraform's community resources](https://www.terraform.io/docs/extend/community/index.html)
 * [HashiCorp support](https://support.hashicorp.com) for Terraform Enterprise customers
 
-
 ## Argument Reference
 
 The following arguments are supported:
+
+* `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
 
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
@@ -135,4 +137,36 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 -> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
 
+* `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue API's, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
+
+~> **Note:** This requires that the User/Service Principal being used has the associated `Storage` roles - which are added to new Contributor/Owner role-assignments, but **have not** been backported by Azure to existing role-assignments.
+
+~> **Note:** The Files & Table Storage API's do not support authenticating via AzureAD and will continue to use a SharedKey to access the API's.
+
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
+
+## Features
+
+It's possible to configure the behaviour of certain resources using the `features` block - more details can be found below.
+
+## Features
+
+The `features` block supports the following:
+
+* `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
+
+* `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
+---
+
+The `virtual_machine` block supports the following:
+
+* `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
+
+~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has it's own flags for managing this within the resource.
+
+---
+
+The `virtual_machine_scale_set` block supports the following:
+
+* `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.

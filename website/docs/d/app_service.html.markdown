@@ -19,15 +19,15 @@ data "azurerm_app_service" "example" {
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.example.id}"
+  value = data.azurerm_app_service.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service.
+* `name` - The name of the App Service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service exists.
+* `resource_group_name` - The Name of the Resource Group where the App Service exists.
 
 ## Attributes Reference
 
@@ -136,3 +136,9 @@ A `ip_restriction` block exports the following:
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
 * `virtual_network_name` - The name of the Virtual Network which this App Service is attached to.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service.

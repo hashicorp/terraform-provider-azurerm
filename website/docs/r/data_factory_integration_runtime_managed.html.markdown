@@ -20,15 +20,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_data_factory_integration_runtime_managed" "example" {
   name                = "example"
-  data_factory_name   = "${azurerm_data_factory.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  data_factory_name   = azurerm_data_factory.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   node_size = "Standard_D8_v3"
 }
@@ -90,18 +90,25 @@ A `vnet_integration` block supports the following:
 
 * `subnet_name` - (Required) Name of the subnet to which the nodes of the Managed Integration Runtime will be added.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Managed Integration Runtime ID.
+* `id` - The ID of the Data Factory Integration Managed Runtime.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Integration Managed Runtime.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Integration Managed Runtime.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Integration Managed Runtime.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Integration Managed Runtime.
 
 ## Import
 
-Managed Integration Runtime can be imported using the `resource id`, e.g.
+Data Factory Integration Managed Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
+terraform import azurerm_data_factory_integration_runtime_managed.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
 ```

@@ -27,23 +27,23 @@ resource "azurerm_resource_group" "secondary" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.secondary.location}"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
   sku                 = "Standard"
 }
 
 resource "azurerm_recovery_services_fabric" "fabric" {
   name                = "primary-fabric"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  location            = "${azurerm_resource_group.primary.location}"
+  resource_group_name = azurerm_resource_group.secondary.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  location            = azurerm_resource_group.primary.location
 }
 
 resource "azurerm_recovery_services_protection_container" "protection-container" {
   name                 = "protection-container"
-  resource_group_name  = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name  = "${azurerm_recovery_services_vault.vault.name}"
-  recovery_fabric_name = "${azurerm_recovery_services_fabric.fabric.name}"
+  resource_group_name  = azurerm_resource_group.secondary.name
+  recovery_vault_name  = azurerm_recovery_services_vault.vault.name
+  recovery_fabric_name = azurerm_recovery_services_fabric.fabric.name
 }
 ```
 
@@ -63,11 +63,20 @@ The following arguments are supported:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource ID.
+* `id` - The ID of the Recovery Services Protection Container.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Recovery Services Protection Container.
+* `update` - (Defaults to 30 minutes) Used when updating the Recovery Services Protection Container.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Protection Container.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Recovery Services Protection Container.
 
 ## Import
 
-Site recovery recovery vault fabric can be imported using the `resource id`, e.g.
+Recovery Services Protection Containers can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_recovery_services_protection_container.mycontainer /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name/replicationProtectionContainers/protection-container-name
