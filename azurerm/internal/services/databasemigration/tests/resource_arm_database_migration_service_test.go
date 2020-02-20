@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,17 +16,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataMigrationService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_migration_service", "test")
+func TestAccAzureRMDatabaseMigrationService_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataMigrationServiceDestroy,
+		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataMigrationService_basic(data),
+				Config: testAccAzureRMDatabaseMigrationService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
+					testCheckAzureRMDatabaseMigrationServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
 				),
@@ -35,17 +36,17 @@ func TestAccAzureRMDataMigrationService_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataMigrationService_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_migration_service", "test")
-	resource.Test(t, resource.TestCase{
+func TestAccAzureRMDatabaseMigrationService_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataMigrationServiceDestroy,
+		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataMigrationService_complete(data),
+				Config: testAccAzureRMDatabaseMigrationService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
+					testCheckAzureRMDatabaseMigrationServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
@@ -56,48 +57,48 @@ func TestAccAzureRMDataMigrationService_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataMigrationService_requiresImport(t *testing.T) {
+func TestAccAzureRMDatabaseMigrationService_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_data_migration_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataMigrationServiceDestroy,
+		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataMigrationService_basic(data),
+				Config: testAccAzureRMDatabaseMigrationService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
+					testCheckAzureRMDatabaseMigrationServiceExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMDataMigrationService_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMDatabaseMigrationService_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMDataMigrationService_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_migration_service", "test")
-	resource.Test(t, resource.TestCase{
+func TestAccAzureRMDatabaseMigrationService_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataMigrationServiceDestroy,
+		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataMigrationService_basic(data),
+				Config: testAccAzureRMDatabaseMigrationService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
+					testCheckAzureRMDatabaseMigrationServiceExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataMigrationService_complete(data),
+				Config: testAccAzureRMDatabaseMigrationService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
+					testCheckAzureRMDatabaseMigrationServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
 				),
 			},
@@ -106,22 +107,24 @@ func TestAccAzureRMDataMigrationService_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataMigrationServiceExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMDatabaseMigrationServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Data Migration Service not found: %s", resourceName)
 		}
 
-		groupName := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.DatabaseMigrationServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataMigration.ServicesClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DatabaseMigration.ServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, groupName, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Data Migration Service (Service Name %q / Group Name %q) does not exist", name, groupName)
+				return fmt.Errorf("Bad: Data Migration Service (Service Name %q / Group Name %q) does not exist", id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on ServicesClient: %+v", err)
 		}
@@ -130,19 +133,21 @@ func testCheckAzureRMDataMigrationServiceExists(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureRMDataMigrationServiceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataMigration.ServicesClient
+func testCheckAzureRMDatabaseMigrationServiceDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DatabaseMigration.ServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_migration_service" {
+		if rs.Type != "azurerm_database_migration_service" {
 			continue
 		}
 
-		groupName := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.DatabaseMigrationServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, groupName, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on ServicesClient: %+v", err)
 			}
@@ -154,7 +159,7 @@ func testCheckAzureRMDataMigrationServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataMigrationService_base(data acceptance.TestData) string {
+func testAccAzureRMDatabaseMigrationService_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-dms-%d"
@@ -177,13 +182,13 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataMigrationService_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDataMigrationService_base(data)
+func testAccAzureRMDatabaseMigrationService_basic(data acceptance.TestData) string {
+	template := testAccAzureRMDatabaseMigrationService_base(data)
 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_migration_service" "test" {
+resource "azurerm_database_migration_service" "test" {
   name                = "acctestDms-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -193,13 +198,13 @@ resource "azurerm_data_migration_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataMigrationService_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDataMigrationService_base(data)
+func testAccAzureRMDatabaseMigrationService_complete(data acceptance.TestData) string {
+	template := testAccAzureRMDatabaseMigrationService_base(data)
 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_migration_service" "test" {
+resource "azurerm_database_migration_service" "test" {
   name                = "acctestDms-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -212,17 +217,17 @@ resource "azurerm_data_migration_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataMigrationService_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDataMigrationService_basic(data)
+func testAccAzureRMDatabaseMigrationService_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDatabaseMigrationService_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_migration_service" "import" {
-  name                = azurerm_data_migration_service.test.name
-  location            = azurerm_data_migration_service.test.location
-  resource_group_name = azurerm_data_migration_service.test.resource_group_name
-  subnet_id           = azurerm_data_migration_service.test.subnet_id
-  sku_name            = azurerm_data_migration_service.test.sku_name
+resource "azurerm_database_migration_service" "import" {
+  name                = azurerm_database_migration_service.test.name
+  location            = azurerm_database_migration_service.test.location
+  resource_group_name = azurerm_database_migration_service.test.resource_group_name
+  subnet_id           = azurerm_database_migration_service.test.subnet_id
+  sku_name            = azurerm_database_migration_service.test.sku_name
 }
 `, template)
 }

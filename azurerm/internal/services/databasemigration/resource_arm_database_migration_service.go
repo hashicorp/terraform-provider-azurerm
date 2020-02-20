@@ -1,4 +1,4 @@
-package datamigration
+package databasemigration
 
 import (
 	"fmt"
@@ -14,21 +14,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataMigrationService() *schema.Resource {
+func resourceArmDatabaseMigrationService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataMigrationServiceCreate,
-		Read:   resourceArmDataMigrationServiceRead,
-		Update: resourceArmDataMigrationServiceUpdate,
-		Delete: resourceArmDataMigrationServiceDelete,
+		Create: resourceArmDatabaseMigrationServiceCreate,
+		Read:   resourceArmDatabaseMigrationServiceRead,
+		Update: resourceArmDatabaseMigrationServiceUpdate,
+		Delete: resourceArmDatabaseMigrationServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DatabaseMigrationServiceID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -75,8 +78,8 @@ func resourceArmDataMigrationService() *schema.Resource {
 	}
 }
 
-func resourceArmDataMigrationServiceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataMigration.ServicesClient
+func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -130,37 +133,35 @@ func resourceArmDataMigrationServiceCreate(d *schema.ResourceData, meta interfac
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDataMigrationServiceRead(d, meta)
+	return resourceArmDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataMigration.ServicesClient
+func resourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseMigrationServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["services"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Data Migration Service %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("name", name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.Name)
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
 		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
 	}
@@ -171,58 +172,54 @@ func resourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDataMigrationServiceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataMigration.ServicesClient
+func resourceArmDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseMigrationServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["services"]
 
 	parameters := datamigration.Service{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, parameters, resourceGroup, name)
+	future, err := client.Update(ctx, parameters, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error updating Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error updating Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmDataMigrationServiceRead(d, meta)
+	return resourceArmDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceArmDataMigrationServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataMigration.ServicesClient
+func resourceArmDatabaseMigrationServiceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseMigrationServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["services"]
 
 	// Always leave outstanding migration tasks untouched when deleting DMS. This is to avoid unexpectedly delete any tasks managed out of terraform.
 	toDeleteRunningTasks := false
-	future, err := client.Delete(ctx, resourceGroup, name, &toDeleteRunningTasks)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, &toDeleteRunningTasks)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

@@ -1,4 +1,4 @@
-package datamigration
+package databasemigration
 
 import (
 	"fmt"

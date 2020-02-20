@@ -1,4 +1,4 @@
-package datamigration
+package databasemigration
 
 import (
 	"fmt"
@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDataMigrationService() *schema.Resource {
+func dataSourceArmDatabaseMigrationService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataMigrationServiceRead,
+		Read: dataSourceArmDatabaseMigrationServiceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -47,8 +47,8 @@ func dataSourceArmDataMigrationService() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataMigration.ServicesClient
+func dataSourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
