@@ -1422,6 +1422,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			}
 
 			ipSecurityRestriction := web.IPSecurityRestriction{}
+			if ipAddress == "Any" {
+				continue
+			}
+
 			if ipAddress != "" {
 				ipSecurityRestriction.IPAddress = &ipAddress
 			}
@@ -1543,6 +1547,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	if vs := input.IPSecurityRestrictions; vs != nil {
 		for _, v := range *vs {
 			block := make(map[string]interface{})
+
+			if ip := v.IPAddress; *ip == "Any" {
+				continue
+			}
 			if ip := v.IPAddress; ip != nil {
 				block["ip_address"] = *ip
 			}
