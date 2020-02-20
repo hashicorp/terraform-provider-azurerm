@@ -2682,7 +2682,7 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10"
+      ip_address = "10.10.10.10/32"
     }
   }
 }
@@ -2821,15 +2821,15 @@ resource "azurerm_app_service_slot" "test" {
     }
 
     ip_restriction {
-      ip_address  = "20.20.20.0/24"
+      ip_address = "20.20.20.0/24"
     }
 
     ip_restriction {
-      ip_address  = "30.30.0.0/16"
+      ip_address = "30.30.0.0/16"
     }
 
     ip_restriction {
-      ip_address  = "192.168.1.2/24"
+      ip_address = "192.168.1.2/24"
     }
   }
 }

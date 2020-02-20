@@ -192,10 +192,6 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"virtual_network_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"http2_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
