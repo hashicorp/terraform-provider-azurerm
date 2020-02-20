@@ -118,6 +118,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights` - the `application_type` field is now case sensitive as documented [GH-5817]
 * `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
 * `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
 * `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]
