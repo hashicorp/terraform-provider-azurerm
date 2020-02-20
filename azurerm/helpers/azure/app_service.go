@@ -2,15 +2,16 @@ package azure
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
 	"regexp"
 	"strings"
+
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -301,8 +302,8 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
-								Type:     schema.TypeString,
-								Optional: true,
+								Type:         schema.TypeString,
+								Optional:     true,
 								ValidateFunc: validate.CIDR,
 							},
 							"virtual_network_subnet_id": {
@@ -1544,7 +1545,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		for _, v := range *vs {
 			block := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
-					block["ip_address"] = *ip
+				block["ip_address"] = *ip
 			}
 			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
 				block["virtual_network_subnet_id"] = *vNetSubnetID
