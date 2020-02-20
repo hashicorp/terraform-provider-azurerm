@@ -904,12 +904,11 @@ func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []inter
 
 	for _, v := range *input {
 		ipAddress := ""
-		if *v.IPAddress == "Any" {
-			continue
-		}
-
 		if v.IPAddress != nil {
 			ipAddress = *v.IPAddress
+			if ipAddress == "Any" {
+				continue
+			}
 		}
 
 		subnetId := ""
