@@ -39,7 +39,7 @@ func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
 		return
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "import")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
