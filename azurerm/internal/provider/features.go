@@ -47,7 +47,12 @@ func schemaFeatures() *schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"recover_soft_deleted_key_vaults": {
 						Type:     schema.TypeBool,
-						Required: true,
+						Optional: true,
+					},
+
+					"purge_soft_delete_on_destroy": {
+						Type:     schema.TypeBool,
+						Optional: true,
 					},
 				},
 			},
@@ -87,6 +92,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			RollInstancesWhenRequired: true,
 		},
 		KeyVault: features.KeyVaultFeatures{
+			PurgeSoftDeleteOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults: true,
 		},
 	}
@@ -101,6 +107,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			keyVaultRaw := items[0].(map[string]interface{})
+			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
+				features.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
 			}

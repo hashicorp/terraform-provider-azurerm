@@ -570,8 +570,12 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	resourceGroup := id.ResourceGroup
 	name := id.Path["vaults"]
+	location := d.Get("location").(string)
+	purgeProtectionEnabled := false
+	softDeleteEnabled := false
 
 	locks.ByName(name, keyVaultResourceName)
 	defer locks.UnlockByName(name, keyVaultResourceName)
@@ -587,6 +591,16 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if read.Properties == nil {
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+	}
+
+	// Check to see if purge protection is enabled or not...
+	if read.Properties == nil {
+		if ppe := read.Properties.EnablePurgeProtection; ppe != nil {
+			purgeProtectionEnabled = *ppe
+		}
+		if sde := read.Properties.EnableSoftDelete; sde != nil {
+			softDeleteEnabled = *sde
+		}
 	}
 
 	// ensure we lock on the latest network names, to ensure we handle Azure's networking layer being limited to one change at a time
@@ -620,6 +634,35 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	// Purge the soft deleted key vault permanently if the feature flag is enabled
+	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
+		// Raise an error if the key vault is in the soft delete state and purge protection is enabled
+		if purgeProtectionEnabled {
+			delDate, purgeDate, err := azure.KeyVaultGetSoftDeletedState(ctx, client, name, location)
+			if err == nil {
+				if delDate != nil && purgeDate != nil {
+					return fmt.Errorf("unable to purge Key Vault %q (Resource Group %q) because it has purge protection enabled. The key vault was soft deleted on %s and is scheduled to be purged on %s", name, resourceGroup, delDate.(string), purgeDate.(string))
+				}
+
+				// I was unable to get the soft deleted and purge date information, error with a generic error as the key valit cannot be purged
+				return fmt.Errorf("unable to purge Key Vault %q (Resource Group %q) because it has purge protection enabled", name, resourceGroup)
+			}
+		}
+
+		log.Printf("[DEBUG] KeyVault %s marked for purge, executing purge", name)
+
+		future, err := client.PurgeDeleted(ctx, name, location)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Waiting for purge of KeyVault %s", name)
+		err = future.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error purging Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
