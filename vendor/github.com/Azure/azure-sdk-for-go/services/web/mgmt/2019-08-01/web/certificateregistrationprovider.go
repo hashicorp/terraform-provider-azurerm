@@ -41,7 +41,8 @@ func NewCertificateRegistrationProviderClientWithBaseURI(baseURI string, subscri
 	return CertificateRegistrationProviderClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ListOperations implements Csm operations Api to exposes the list of available Csm Apis under the resource provider
+// ListOperations description for Implements Csm operations Api to exposes the list of available Csm Apis under the
+// resource provider
 func (client CertificateRegistrationProviderClient) ListOperations(ctx context.Context) (result CsmOperationCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CertificateRegistrationProviderClient.ListOperations")
@@ -77,7 +78,7 @@ func (client CertificateRegistrationProviderClient) ListOperations(ctx context.C
 
 // ListOperationsPreparer prepares the ListOperations request.
 func (client CertificateRegistrationProviderClient) ListOperationsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

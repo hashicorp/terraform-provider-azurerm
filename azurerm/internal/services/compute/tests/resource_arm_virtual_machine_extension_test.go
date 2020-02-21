@@ -121,13 +121,12 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 		}
 
 		name := rs.Primary.Attributes["name"]
-		vmId := rs.Primary.Attributes["virtual_machine_id"]
-		v, err := compute.ParseVirtualMachineID(vmId)
+		virtualMachineId, err := compute.ParseVirtualMachineID(rs.Primary.Attributes["virtual_machine_id"])
 		if err != nil {
-			return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", vmId, err)
+			return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 		}
-		vmName := v.Name
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		vmName := virtualMachineId.Name
+		resourceGroup := virtualMachineId.ResourceGroup
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 		if err != nil {
@@ -152,13 +151,12 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		vmId := rs.Primary.Attributes["virtual_machine_id"]
-		v, err := compute.ParseVirtualMachineID(vmId)
+		virtualMachineId, err := compute.ParseVirtualMachineID(rs.Primary.Attributes["virtual_machine_id"])
 		if err != nil {
-			return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", vmId, err)
+			return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 		}
-		vmName := v.Name
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		vmName := virtualMachineId.Name
+		resourceGroup := virtualMachineId.ResourceGroup
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 

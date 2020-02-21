@@ -41,7 +41,7 @@ func NewAppServicePlansClientWithBaseURI(baseURI string, subscriptionID string) 
 	return AppServicePlansClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates an App Service Plan.
+// CreateOrUpdate description for Creates or updates an App Service Plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -88,7 +88,7 @@ func (client AppServicePlansClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -122,14 +122,14 @@ func (client AppServicePlansClient) CreateOrUpdateResponder(resp *http.Response)
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// CreateOrUpdateVnetRoute create or update a Virtual Network route in an App Service plan.
+// CreateOrUpdateVnetRoute description for Create or update a Virtual Network route in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -186,7 +186,7 @@ func (client AppServicePlansClient) CreateOrUpdateVnetRoutePreparer(ctx context.
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -221,7 +221,7 @@ func (client AppServicePlansClient) CreateOrUpdateVnetRouteResponder(resp *http.
 	return
 }
 
-// Delete delete an App Service plan.
+// Delete description for Delete an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -273,7 +273,7 @@ func (client AppServicePlansClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -305,7 +305,7 @@ func (client AppServicePlansClient) DeleteResponder(resp *http.Response) (result
 	return
 }
 
-// DeleteHybridConnection delete a Hybrid Connection in use in an App Service plan.
+// DeleteHybridConnection description for Delete a Hybrid Connection in use in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -361,7 +361,7 @@ func (client AppServicePlansClient) DeleteHybridConnectionPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -393,7 +393,7 @@ func (client AppServicePlansClient) DeleteHybridConnectionResponder(resp *http.R
 	return
 }
 
-// DeleteVnetRoute delete a Virtual Network route in an App Service plan.
+// DeleteVnetRoute description for Delete a Virtual Network route in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -449,7 +449,7 @@ func (client AppServicePlansClient) DeleteVnetRoutePreparer(ctx context.Context,
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -481,7 +481,7 @@ func (client AppServicePlansClient) DeleteVnetRouteResponder(resp *http.Response
 	return
 }
 
-// Get get an App Service plan.
+// Get description for Get an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -533,7 +533,7 @@ func (client AppServicePlansClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -566,7 +566,7 @@ func (client AppServicePlansClient) GetResponder(resp *http.Response) (result Ap
 	return
 }
 
-// GetHybridConnection retrieve a Hybrid Connection in use in an App Service plan.
+// GetHybridConnection description for Retrieve a Hybrid Connection in use in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -622,7 +622,7 @@ func (client AppServicePlansClient) GetHybridConnectionPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -655,7 +655,8 @@ func (client AppServicePlansClient) GetHybridConnectionResponder(resp *http.Resp
 	return
 }
 
-// GetHybridConnectionPlanLimit get the maximum number of Hybrid Connections allowed in an App Service plan.
+// GetHybridConnectionPlanLimit description for Get the maximum number of Hybrid Connections allowed in an App Service
+// plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -707,7 +708,7 @@ func (client AppServicePlansClient) GetHybridConnectionPlanLimitPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -740,7 +741,7 @@ func (client AppServicePlansClient) GetHybridConnectionPlanLimitResponder(resp *
 	return
 }
 
-// GetRouteForVnet get a Virtual Network route in an App Service plan.
+// GetRouteForVnet description for Get a Virtual Network route in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -796,7 +797,7 @@ func (client AppServicePlansClient) GetRouteForVnetPreparer(ctx context.Context,
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -829,7 +830,7 @@ func (client AppServicePlansClient) GetRouteForVnetResponder(resp *http.Response
 	return
 }
 
-// GetServerFarmSkus gets all selectable SKUs for a given App Service Plan
+// GetServerFarmSkus description for Gets all selectable SKUs for a given App Service Plan
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of App Service Plan
@@ -881,7 +882,7 @@ func (client AppServicePlansClient) GetServerFarmSkusPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -914,7 +915,7 @@ func (client AppServicePlansClient) GetServerFarmSkusResponder(resp *http.Respon
 	return
 }
 
-// GetVnetFromServerFarm get a Virtual Network associated with an App Service plan.
+// GetVnetFromServerFarm description for Get a Virtual Network associated with an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -968,7 +969,7 @@ func (client AppServicePlansClient) GetVnetFromServerFarmPreparer(ctx context.Co
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1001,7 +1002,7 @@ func (client AppServicePlansClient) GetVnetFromServerFarmResponder(resp *http.Re
 	return
 }
 
-// GetVnetGateway get a Virtual Network gateway.
+// GetVnetGateway description for Get a Virtual Network gateway.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -1057,7 +1058,7 @@ func (client AppServicePlansClient) GetVnetGatewayPreparer(ctx context.Context, 
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1090,7 +1091,7 @@ func (client AppServicePlansClient) GetVnetGatewayResponder(resp *http.Response)
 	return
 }
 
-// List get all App Service plans for a subscription.
+// List description for Get all App Service plans for a subscription.
 // Parameters:
 // detailed - specify <code>true</code> to return all App Service plan properties. The default is
 // <code>false</code>, which returns a subset of the properties.
@@ -1134,7 +1135,7 @@ func (client AppServicePlansClient) ListPreparer(ctx context.Context, detailed *
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1207,7 +1208,7 @@ func (client AppServicePlansClient) ListComplete(ctx context.Context, detailed *
 	return
 }
 
-// ListByResourceGroup get all App Service plans in a resource group.
+// ListByResourceGroup description for Get all App Service plans in a resource group.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 func (client AppServicePlansClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AppServicePlanCollectionPage, err error) {
@@ -1258,7 +1259,7 @@ func (client AppServicePlansClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1328,7 +1329,7 @@ func (client AppServicePlansClient) ListByResourceGroupComplete(ctx context.Cont
 	return
 }
 
-// ListCapabilities list all capabilities of an App Service plan.
+// ListCapabilities description for List all capabilities of an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -1380,7 +1381,7 @@ func (client AppServicePlansClient) ListCapabilitiesPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1413,7 +1414,7 @@ func (client AppServicePlansClient) ListCapabilitiesResponder(resp *http.Respons
 	return
 }
 
-// ListHybridConnectionKeys get the send key name and value of a Hybrid Connection.
+// ListHybridConnectionKeys description for Get the send key name and value of a Hybrid Connection.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -1469,7 +1470,7 @@ func (client AppServicePlansClient) ListHybridConnectionKeysPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1502,7 +1503,7 @@ func (client AppServicePlansClient) ListHybridConnectionKeysResponder(resp *http
 	return
 }
 
-// ListHybridConnections retrieve all Hybrid Connections in use in an App Service plan.
+// ListHybridConnections description for Retrieve all Hybrid Connections in use in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -1555,7 +1556,7 @@ func (client AppServicePlansClient) ListHybridConnectionsPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1625,263 +1626,7 @@ func (client AppServicePlansClient) ListHybridConnectionsComplete(ctx context.Co
 	return
 }
 
-// ListMetricDefintions get metrics that can be queried for an App Service plan, and their definitions.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service plan.
-func (client AppServicePlansClient) ListMetricDefintions(ctx context.Context, resourceGroupName string, name string) (result ResourceMetricDefinitionCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServicePlansClient.ListMetricDefintions")
-		defer func() {
-			sc := -1
-			if result.rmdc.Response.Response != nil {
-				sc = result.rmdc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServicePlansClient", "ListMetricDefintions", err.Error())
-	}
-
-	result.fn = client.listMetricDefintionsNextResults
-	req, err := client.ListMetricDefintionsPreparer(ctx, resourceGroupName, name)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListMetricDefintions", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListMetricDefintionsSender(req)
-	if err != nil {
-		result.rmdc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListMetricDefintions", resp, "Failure sending request")
-		return
-	}
-
-	result.rmdc, err = client.ListMetricDefintionsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListMetricDefintions", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListMetricDefintionsPreparer prepares the ListMetricDefintions request.
-func (client AppServicePlansClient) ListMetricDefintionsPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/serverfarms/{name}/metricdefinitions", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListMetricDefintionsSender sends the ListMetricDefintions request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServicePlansClient) ListMetricDefintionsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListMetricDefintionsResponder handles the response to the ListMetricDefintions request. The method always
-// closes the http.Response Body.
-func (client AppServicePlansClient) ListMetricDefintionsResponder(resp *http.Response) (result ResourceMetricDefinitionCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listMetricDefintionsNextResults retrieves the next set of results, if any.
-func (client AppServicePlansClient) listMetricDefintionsNextResults(ctx context.Context, lastResults ResourceMetricDefinitionCollection) (result ResourceMetricDefinitionCollection, err error) {
-	req, err := lastResults.resourceMetricDefinitionCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.AppServicePlansClient", "listMetricDefintionsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListMetricDefintionsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.AppServicePlansClient", "listMetricDefintionsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListMetricDefintionsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "listMetricDefintionsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListMetricDefintionsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AppServicePlansClient) ListMetricDefintionsComplete(ctx context.Context, resourceGroupName string, name string) (result ResourceMetricDefinitionCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServicePlansClient.ListMetricDefintions")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListMetricDefintions(ctx, resourceGroupName, name)
-	return
-}
-
-// ListMetrics get metrics for an App Service plan.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service plan.
-// details - specify <code>true</code> to include instance details. The default is <code>false</code>.
-// filter - return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example:
-// $filter=(name.value eq 'Metric1' or name.value eq 'Metric2') and startTime eq 2014-01-01T00:00:00Z and
-// endTime eq 2014-12-31T23:59:59Z and timeGrain eq duration'[Hour|Minute|Day]'.
-func (client AppServicePlansClient) ListMetrics(ctx context.Context, resourceGroupName string, name string, details *bool, filter string) (result ResourceMetricCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServicePlansClient.ListMetrics")
-		defer func() {
-			sc := -1
-			if result.rmc.Response.Response != nil {
-				sc = result.rmc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServicePlansClient", "ListMetrics", err.Error())
-	}
-
-	result.fn = client.listMetricsNextResults
-	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, name, details, filter)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListMetrics", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListMetricsSender(req)
-	if err != nil {
-		result.rmc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListMetrics", resp, "Failure sending request")
-		return
-	}
-
-	result.rmc, err = client.ListMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "ListMetrics", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListMetricsPreparer prepares the ListMetrics request.
-func (client AppServicePlansClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, name string, details *bool, filter string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if details != nil {
-		queryParameters["details"] = autorest.Encode("query", *details)
-	}
-	if len(filter) > 0 {
-		queryParameters["$filter"] = filter
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/serverfarms/{name}/metrics", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListMetricsSender sends the ListMetrics request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServicePlansClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListMetricsResponder handles the response to the ListMetrics request. The method always
-// closes the http.Response Body.
-func (client AppServicePlansClient) ListMetricsResponder(resp *http.Response) (result ResourceMetricCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listMetricsNextResults retrieves the next set of results, if any.
-func (client AppServicePlansClient) listMetricsNextResults(ctx context.Context, lastResults ResourceMetricCollection) (result ResourceMetricCollection, err error) {
-	req, err := lastResults.resourceMetricCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.AppServicePlansClient", "listMetricsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListMetricsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.AppServicePlansClient", "listMetricsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServicePlansClient", "listMetricsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListMetricsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AppServicePlansClient) ListMetricsComplete(ctx context.Context, resourceGroupName string, name string, details *bool, filter string) (result ResourceMetricCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServicePlansClient.ListMetrics")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListMetrics(ctx, resourceGroupName, name, details, filter)
-	return
-}
-
-// ListRoutesForVnet get all routes that are associated with a Virtual Network in an App Service plan.
+// ListRoutesForVnet description for Get all routes that are associated with a Virtual Network in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -1935,7 +1680,7 @@ func (client AppServicePlansClient) ListRoutesForVnetPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1968,7 +1713,7 @@ func (client AppServicePlansClient) ListRoutesForVnetResponder(resp *http.Respon
 	return
 }
 
-// ListUsages gets server farm usage information
+// ListUsages description for Gets server farm usage information
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of App Service Plan
@@ -2023,7 +1768,7 @@ func (client AppServicePlansClient) ListUsagesPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2096,7 +1841,7 @@ func (client AppServicePlansClient) ListUsagesComplete(ctx context.Context, reso
 	return
 }
 
-// ListVnets get all Virtual Networks associated with an App Service plan.
+// ListVnets description for Get all Virtual Networks associated with an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2148,7 +1893,7 @@ func (client AppServicePlansClient) ListVnetsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2181,7 +1926,7 @@ func (client AppServicePlansClient) ListVnetsResponder(resp *http.Response) (res
 	return
 }
 
-// ListWebApps get all apps associated with an App Service plan.
+// ListWebApps description for Get all apps associated with an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2239,7 +1984,7 @@ func (client AppServicePlansClient) ListWebAppsPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2318,7 +2063,7 @@ func (client AppServicePlansClient) ListWebAppsComplete(ctx context.Context, res
 	return
 }
 
-// ListWebAppsByHybridConnection get all apps that use a Hybrid Connection in an App Service Plan.
+// ListWebAppsByHybridConnection description for Get all apps that use a Hybrid Connection in an App Service Plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2375,7 +2120,7 @@ func (client AppServicePlansClient) ListWebAppsByHybridConnectionPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2445,7 +2190,7 @@ func (client AppServicePlansClient) ListWebAppsByHybridConnectionComplete(ctx co
 	return
 }
 
-// RebootWorker reboot a worker machine in an App Service plan.
+// RebootWorker description for Reboot a worker machine in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2499,7 +2244,7 @@ func (client AppServicePlansClient) RebootWorkerPreparer(ctx context.Context, re
 		"workerName":        autorest.Encode("path", workerName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2531,7 +2276,7 @@ func (client AppServicePlansClient) RebootWorkerResponder(resp *http.Response) (
 	return
 }
 
-// RestartWebApps restart all apps in an App Service plan.
+// RestartWebApps description for Restart all apps in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2586,7 +2331,7 @@ func (client AppServicePlansClient) RestartWebAppsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2621,7 +2366,7 @@ func (client AppServicePlansClient) RestartWebAppsResponder(resp *http.Response)
 	return
 }
 
-// Update creates or updates an App Service Plan.
+// Update description for Creates or updates an App Service Plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2674,7 +2419,7 @@ func (client AppServicePlansClient) UpdatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2709,7 +2454,7 @@ func (client AppServicePlansClient) UpdateResponder(resp *http.Response) (result
 	return
 }
 
-// UpdateVnetGateway update a Virtual Network gateway.
+// UpdateVnetGateway description for Update a Virtual Network gateway.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2769,7 +2514,7 @@ func (client AppServicePlansClient) UpdateVnetGatewayPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2804,7 +2549,7 @@ func (client AppServicePlansClient) UpdateVnetGatewayResponder(resp *http.Respon
 	return
 }
 
-// UpdateVnetRoute create or update a Virtual Network route in an App Service plan.
+// UpdateVnetRoute description for Create or update a Virtual Network route in an App Service plan.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service plan.
@@ -2861,7 +2606,7 @@ func (client AppServicePlansClient) UpdateVnetRoutePreparer(ctx context.Context,
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

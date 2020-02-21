@@ -41,7 +41,7 @@ func NewCertificatesClientWithBaseURI(baseURI string, subscriptionID string) Cer
 	return CertificatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update a certificate.
+// CreateOrUpdate description for Create or update a certificate.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the certificate.
@@ -97,7 +97,7 @@ func (client CertificatesClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -132,7 +132,7 @@ func (client CertificatesClient) CreateOrUpdateResponder(resp *http.Response) (r
 	return
 }
 
-// Delete delete a certificate.
+// Delete description for Delete a certificate.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the certificate.
@@ -184,7 +184,7 @@ func (client CertificatesClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -216,7 +216,7 @@ func (client CertificatesClient) DeleteResponder(resp *http.Response) (result au
 	return
 }
 
-// Get get a certificate.
+// Get description for Get a certificate.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the certificate.
@@ -268,7 +268,7 @@ func (client CertificatesClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -301,7 +301,7 @@ func (client CertificatesClient) GetResponder(resp *http.Response) (result Certi
 	return
 }
 
-// List get all certificates for a subscription.
+// List description for Get all certificates for a subscription.
 func (client CertificatesClient) List(ctx context.Context) (result CertificateCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CertificatesClient.List")
@@ -341,7 +341,7 @@ func (client CertificatesClient) ListPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -411,7 +411,7 @@ func (client CertificatesClient) ListComplete(ctx context.Context) (result Certi
 	return
 }
 
-// ListByResourceGroup get all certificates in a resource group.
+// ListByResourceGroup description for Get all certificates in a resource group.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 func (client CertificatesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result CertificateCollectionPage, err error) {
@@ -462,7 +462,7 @@ func (client CertificatesClient) ListByResourceGroupPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -532,7 +532,7 @@ func (client CertificatesClient) ListByResourceGroupComplete(ctx context.Context
 	return
 }
 
-// Update create or update a certificate.
+// Update description for Create or update a certificate.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the certificate.
@@ -585,7 +585,7 @@ func (client CertificatesClient) UpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

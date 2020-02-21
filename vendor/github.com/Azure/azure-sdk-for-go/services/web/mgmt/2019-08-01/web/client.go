@@ -1,4 +1,4 @@
-// Package web implements the Azure ARM Web service API version 2018-02-01.
+// Package web implements the Azure ARM Web service API version 2019-08-01.
 //
 // WebSite Management Client
 package web
@@ -55,7 +55,7 @@ func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 	}
 }
 
-// CheckNameAvailability check if a resource name is available.
+// CheckNameAvailability description for Check if a resource name is available.
 // Parameters:
 // request - name availability request.
 func (client BaseClient) CheckNameAvailability(ctx context.Context, request ResourceNameAvailabilityRequest) (result ResourceNameAvailability, err error) {
@@ -102,7 +102,7 @@ func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -137,7 +137,7 @@ func (client BaseClient) CheckNameAvailabilityResponder(resp *http.Response) (re
 	return
 }
 
-// GetPublishingUser gets publishing user
+// GetPublishingUser description for Gets publishing user
 func (client BaseClient) GetPublishingUser(ctx context.Context) (result User, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetPublishingUser")
@@ -172,7 +172,7 @@ func (client BaseClient) GetPublishingUser(ctx context.Context) (result User, er
 
 // GetPublishingUserPreparer prepares the GetPublishingUser request.
 func (client BaseClient) GetPublishingUserPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -205,7 +205,7 @@ func (client BaseClient) GetPublishingUserResponder(resp *http.Response) (result
 	return
 }
 
-// GetSourceControl gets source control token
+// GetSourceControl description for Gets source control token
 // Parameters:
 // sourceControlType - type of source control
 func (client BaseClient) GetSourceControl(ctx context.Context, sourceControlType string) (result SourceControl, err error) {
@@ -246,7 +246,7 @@ func (client BaseClient) GetSourceControlPreparer(ctx context.Context, sourceCon
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -279,7 +279,7 @@ func (client BaseClient) GetSourceControlResponder(resp *http.Response) (result 
 	return
 }
 
-// GetSubscriptionDeploymentLocations gets list of available geo regions plus ministamps
+// GetSubscriptionDeploymentLocations description for Gets list of available geo regions plus ministamps
 func (client BaseClient) GetSubscriptionDeploymentLocations(ctx context.Context) (result DeploymentLocations, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.GetSubscriptionDeploymentLocations")
@@ -318,7 +318,7 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsPreparer(ctx context.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -351,7 +351,7 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsResponder(resp *http.
 	return
 }
 
-// ListBillingMeters gets a list of meters for a given location.
+// ListBillingMeters description for Gets a list of meters for a given location.
 // Parameters:
 // billingLocation - azure Location of billable resource
 // osType - app Service OS type meters used for
@@ -394,7 +394,7 @@ func (client BaseClient) ListBillingMetersPreparer(ctx context.Context, billingL
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -470,7 +470,7 @@ func (client BaseClient) ListBillingMetersComplete(ctx context.Context, billingL
 	return
 }
 
-// ListGeoRegions get a list of available geographical regions.
+// ListGeoRegions description for Get a list of available geographical regions.
 // Parameters:
 // sku - name of SKU used to filter the regions.
 // linuxWorkersEnabled - specify <code>true</code> if you want to filter to only regions that support Linux
@@ -518,7 +518,7 @@ func (client BaseClient) ListGeoRegionsPreparer(ctx context.Context, sku SkuName
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -600,7 +600,7 @@ func (client BaseClient) ListGeoRegionsComplete(ctx context.Context, sku SkuName
 	return
 }
 
-// ListPremierAddOnOffers list all premier add-on offers.
+// ListPremierAddOnOffers description for List all premier add-on offers.
 func (client BaseClient) ListPremierAddOnOffers(ctx context.Context) (result PremierAddOnOfferCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ListPremierAddOnOffers")
@@ -640,7 +640,7 @@ func (client BaseClient) ListPremierAddOnOffersPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -710,7 +710,7 @@ func (client BaseClient) ListPremierAddOnOffersComplete(ctx context.Context) (re
 	return
 }
 
-// ListSiteIdentifiersAssignedToHostName list all apps that are assigned to a hostname.
+// ListSiteIdentifiersAssignedToHostName description for List all apps that are assigned to a hostname.
 // Parameters:
 // nameIdentifier - hostname information.
 func (client BaseClient) ListSiteIdentifiersAssignedToHostName(ctx context.Context, nameIdentifier NameIdentifier) (result IdentifierCollectionPage, err error) {
@@ -752,7 +752,7 @@ func (client BaseClient) ListSiteIdentifiersAssignedToHostNamePreparer(ctx conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -824,7 +824,7 @@ func (client BaseClient) ListSiteIdentifiersAssignedToHostNameComplete(ctx conte
 	return
 }
 
-// ListSkus list all SKUs.
+// ListSkus description for List all SKUs.
 func (client BaseClient) ListSkus(ctx context.Context) (result SkuInfos, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ListSkus")
@@ -863,7 +863,7 @@ func (client BaseClient) ListSkusPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -896,7 +896,7 @@ func (client BaseClient) ListSkusResponder(resp *http.Response) (result SkuInfos
 	return
 }
 
-// ListSourceControls gets the source controls available for Azure websites.
+// ListSourceControls description for Gets the source controls available for Azure websites.
 func (client BaseClient) ListSourceControls(ctx context.Context) (result SourceControlCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ListSourceControls")
@@ -932,7 +932,7 @@ func (client BaseClient) ListSourceControls(ctx context.Context) (result SourceC
 
 // ListSourceControlsPreparer prepares the ListSourceControls request.
 func (client BaseClient) ListSourceControlsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1002,7 +1002,7 @@ func (client BaseClient) ListSourceControlsComplete(ctx context.Context) (result
 	return
 }
 
-// Move move resources between resource groups.
+// Move description for Move resources between resource groups.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // moveResourceEnvelope - object that represents the resource to move.
@@ -1059,7 +1059,7 @@ func (client BaseClient) MovePreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1093,7 +1093,7 @@ func (client BaseClient) MoveResponder(resp *http.Response) (result autorest.Res
 	return
 }
 
-// UpdatePublishingUser updates publishing user
+// UpdatePublishingUser description for Updates publishing user
 // Parameters:
 // userDetails - details of publishing user
 func (client BaseClient) UpdatePublishingUser(ctx context.Context, userDetails User) (result User, err error) {
@@ -1137,7 +1137,7 @@ func (client BaseClient) UpdatePublishingUser(ctx context.Context, userDetails U
 
 // UpdatePublishingUserPreparer prepares the UpdatePublishingUser request.
 func (client BaseClient) UpdatePublishingUserPreparer(ctx context.Context, userDetails User) (*http.Request, error) {
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1172,7 +1172,7 @@ func (client BaseClient) UpdatePublishingUserResponder(resp *http.Response) (res
 	return
 }
 
-// UpdateSourceControl updates source control token
+// UpdateSourceControl description for Updates source control token
 // Parameters:
 // sourceControlType - type of source control
 // requestMessage - source control token information
@@ -1214,7 +1214,7 @@ func (client BaseClient) UpdateSourceControlPreparer(ctx context.Context, source
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1249,7 +1249,7 @@ func (client BaseClient) UpdateSourceControlResponder(resp *http.Response) (resu
 	return
 }
 
-// Validate validate if a resource can be created.
+// Validate description for Validate if a resource can be created.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // validateRequest - request with the resources to validate.
@@ -1307,7 +1307,7 @@ func (client BaseClient) ValidatePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1342,92 +1342,7 @@ func (client BaseClient) ValidateResponder(resp *http.Response) (result Validate
 	return
 }
 
-// ValidateContainerSettings validate if the container settings are correct.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-func (client BaseClient) ValidateContainerSettings(ctx context.Context, validateContainerSettingsRequest ValidateContainerSettingsRequest, resourceGroupName string) (result SetObject, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.ValidateContainerSettings")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.BaseClient", "ValidateContainerSettings", err.Error())
-	}
-
-	req, err := client.ValidateContainerSettingsPreparer(ctx, validateContainerSettingsRequest, resourceGroupName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.BaseClient", "ValidateContainerSettings", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ValidateContainerSettingsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.BaseClient", "ValidateContainerSettings", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ValidateContainerSettingsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.BaseClient", "ValidateContainerSettings", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ValidateContainerSettingsPreparer prepares the ValidateContainerSettings request.
-func (client BaseClient) ValidateContainerSettingsPreparer(ctx context.Context, validateContainerSettingsRequest ValidateContainerSettingsRequest, resourceGroupName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/validateContainerSettings", pathParameters),
-		autorest.WithJSON(validateContainerSettingsRequest),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ValidateContainerSettingsSender sends the ValidateContainerSettings request. The method will close the
-// http.Response Body if it receives an error.
-func (client BaseClient) ValidateContainerSettingsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ValidateContainerSettingsResponder handles the response to the ValidateContainerSettings request. The method always
-// closes the http.Response Body.
-func (client BaseClient) ValidateContainerSettingsResponder(resp *http.Response) (result SetObject, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Value),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// ValidateMove validate whether a resource can be moved.
+// ValidateMove description for Validate whether a resource can be moved.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // moveResourceEnvelope - object that represents the resource to move.
@@ -1484,7 +1399,7 @@ func (client BaseClient) ValidateMovePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1518,8 +1433,8 @@ func (client BaseClient) ValidateMoveResponder(resp *http.Response) (result auto
 	return
 }
 
-// VerifyHostingEnvironmentVnet verifies if this VNET is compatible with an App Service Environment by analyzing the
-// Network Security Group rules.
+// VerifyHostingEnvironmentVnet description for Verifies if this VNET is compatible with an App Service Environment by
+// analyzing the Network Security Group rules.
 // Parameters:
 // parameters - VNET information
 func (client BaseClient) VerifyHostingEnvironmentVnet(ctx context.Context, parameters VnetParameters) (result VnetValidationFailureDetails, err error) {
@@ -1560,7 +1475,7 @@ func (client BaseClient) VerifyHostingEnvironmentVnetPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

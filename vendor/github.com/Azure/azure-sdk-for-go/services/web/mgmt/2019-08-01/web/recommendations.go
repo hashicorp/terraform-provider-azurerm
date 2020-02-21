@@ -41,7 +41,7 @@ func NewRecommendationsClientWithBaseURI(baseURI string, subscriptionID string) 
 	return RecommendationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// DisableAllForHostingEnvironment disable all recommendations for an app.
+// DisableAllForHostingEnvironment description for Disable all recommendations for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // environmentName - name of the app.
@@ -93,7 +93,7 @@ func (client RecommendationsClient) DisableAllForHostingEnvironmentPreparer(ctx 
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version":     APIVersion,
 		"environmentName": autorest.Encode("query", environmentName),
@@ -126,7 +126,7 @@ func (client RecommendationsClient) DisableAllForHostingEnvironmentResponder(res
 	return
 }
 
-// DisableAllForWebApp disable all recommendations for an app.
+// DisableAllForWebApp description for Disable all recommendations for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - name of the app.
@@ -178,7 +178,7 @@ func (client RecommendationsClient) DisableAllForWebAppPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -210,7 +210,7 @@ func (client RecommendationsClient) DisableAllForWebAppResponder(resp *http.Resp
 	return
 }
 
-// DisableRecommendationForHostingEnvironment disables the specific rule for a web site permanently.
+// DisableRecommendationForHostingEnvironment description for Disables the specific rule for a web site permanently.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // environmentName - site name
@@ -264,7 +264,7 @@ func (client RecommendationsClient) DisableRecommendationForHostingEnvironmentPr
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version":     APIVersion,
 		"environmentName": autorest.Encode("query", environmentName),
@@ -297,7 +297,7 @@ func (client RecommendationsClient) DisableRecommendationForHostingEnvironmentRe
 	return
 }
 
-// DisableRecommendationForSite disables the specific rule for a web site permanently.
+// DisableRecommendationForSite description for Disables the specific rule for a web site permanently.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site name
@@ -351,7 +351,7 @@ func (client RecommendationsClient) DisableRecommendationForSitePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -383,8 +383,8 @@ func (client RecommendationsClient) DisableRecommendationForSiteResponder(resp *
 	return
 }
 
-// DisableRecommendationForSubscription disables the specified rule so it will not apply to a subscription in the
-// future.
+// DisableRecommendationForSubscription description for Disables the specified rule so it will not apply to a
+// subscription in the future.
 // Parameters:
 // name - rule name
 func (client RecommendationsClient) DisableRecommendationForSubscription(ctx context.Context, name string) (result autorest.Response, err error) {
@@ -426,7 +426,7 @@ func (client RecommendationsClient) DisableRecommendationForSubscriptionPreparer
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -458,7 +458,7 @@ func (client RecommendationsClient) DisableRecommendationForSubscriptionResponde
 	return
 }
 
-// GetRuleDetailsByHostingEnvironment get a recommendation rule for an app.
+// GetRuleDetailsByHostingEnvironment description for Get a recommendation rule for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // hostingEnvironmentName - name of the hosting environment.
@@ -515,7 +515,7 @@ func (client RecommendationsClient) GetRuleDetailsByHostingEnvironmentPreparer(c
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -554,7 +554,7 @@ func (client RecommendationsClient) GetRuleDetailsByHostingEnvironmentResponder(
 	return
 }
 
-// GetRuleDetailsByWebApp get a recommendation rule for an app.
+// GetRuleDetailsByWebApp description for Get a recommendation rule for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - name of the app.
@@ -611,7 +611,7 @@ func (client RecommendationsClient) GetRuleDetailsByWebAppPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -650,7 +650,7 @@ func (client RecommendationsClient) GetRuleDetailsByWebAppResponder(resp *http.R
 	return
 }
 
-// List list all recommendations for a subscription.
+// List description for List all recommendations for a subscription.
 // Parameters:
 // featured - specify <code>true</code> to return only the most critical recommendations. The default is
 // <code>false</code>, which returns all recommendations.
@@ -696,7 +696,7 @@ func (client RecommendationsClient) ListPreparer(ctx context.Context, featured *
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -772,7 +772,8 @@ func (client RecommendationsClient) ListComplete(ctx context.Context, featured *
 	return
 }
 
-// ListHistoryForHostingEnvironment get past recommendations for an app, optionally specified by the time range.
+// ListHistoryForHostingEnvironment description for Get past recommendations for an app, optionally specified by the
+// time range.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // hostingEnvironmentName - name of the hosting environment.
@@ -830,7 +831,7 @@ func (client RecommendationsClient) ListHistoryForHostingEnvironmentPreparer(ctx
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -906,7 +907,7 @@ func (client RecommendationsClient) ListHistoryForHostingEnvironmentComplete(ctx
 	return
 }
 
-// ListHistoryForWebApp get past recommendations for an app, optionally specified by the time range.
+// ListHistoryForWebApp description for Get past recommendations for an app, optionally specified by the time range.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - name of the app.
@@ -964,7 +965,7 @@ func (client RecommendationsClient) ListHistoryForWebAppPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1040,7 +1041,7 @@ func (client RecommendationsClient) ListHistoryForWebAppComplete(ctx context.Con
 	return
 }
 
-// ListRecommendedRulesForHostingEnvironment get all recommendations for an app.
+// ListRecommendedRulesForHostingEnvironment description for Get all recommendations for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // hostingEnvironmentName - name of the app.
@@ -1097,7 +1098,7 @@ func (client RecommendationsClient) ListRecommendedRulesForHostingEnvironmentPre
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1173,7 +1174,7 @@ func (client RecommendationsClient) ListRecommendedRulesForHostingEnvironmentCom
 	return
 }
 
-// ListRecommendedRulesForWebApp get all recommendations for an app.
+// ListRecommendedRulesForWebApp description for Get all recommendations for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - name of the app.
@@ -1230,7 +1231,7 @@ func (client RecommendationsClient) ListRecommendedRulesForWebAppPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1306,7 +1307,7 @@ func (client RecommendationsClient) ListRecommendedRulesForWebAppComplete(ctx co
 	return
 }
 
-// ResetAllFilters reset all recommendation opt-out settings for a subscription.
+// ResetAllFilters description for Reset all recommendation opt-out settings for a subscription.
 func (client RecommendationsClient) ResetAllFilters(ctx context.Context) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RecommendationsClient.ResetAllFilters")
@@ -1345,7 +1346,7 @@ func (client RecommendationsClient) ResetAllFiltersPreparer(ctx context.Context)
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1377,7 +1378,7 @@ func (client RecommendationsClient) ResetAllFiltersResponder(resp *http.Response
 	return
 }
 
-// ResetAllFiltersForHostingEnvironment reset all recommendation opt-out settings for an app.
+// ResetAllFiltersForHostingEnvironment description for Reset all recommendation opt-out settings for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // environmentName - name of the app.
@@ -1429,7 +1430,7 @@ func (client RecommendationsClient) ResetAllFiltersForHostingEnvironmentPreparer
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version":     APIVersion,
 		"environmentName": autorest.Encode("query", environmentName),
@@ -1462,7 +1463,7 @@ func (client RecommendationsClient) ResetAllFiltersForHostingEnvironmentResponde
 	return
 }
 
-// ResetAllFiltersForWebApp reset all recommendation opt-out settings for an app.
+// ResetAllFiltersForWebApp description for Reset all recommendation opt-out settings for an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - name of the app.
@@ -1514,7 +1515,7 @@ func (client RecommendationsClient) ResetAllFiltersForWebAppPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

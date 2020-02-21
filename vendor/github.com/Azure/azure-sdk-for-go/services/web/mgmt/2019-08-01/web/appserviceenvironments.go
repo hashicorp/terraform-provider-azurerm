@@ -41,7 +41,7 @@ func NewAppServiceEnvironmentsClientWithBaseURI(baseURI string, subscriptionID s
 	return AppServiceEnvironmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ChangeVnet move an App Service Environment to a different VNET.
+// ChangeVnet description for Move an App Service Environment to a different VNET.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -88,7 +88,7 @@ func (client AppServiceEnvironmentsClient) ChangeVnetPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -173,7 +173,7 @@ func (client AppServiceEnvironmentsClient) ChangeVnetComplete(ctx context.Contex
 	return
 }
 
-// CreateOrUpdate create or update an App Service Environment.
+// CreateOrUpdate description for Create or update an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -227,7 +227,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdatePreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -261,14 +261,14 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateResponder(resp *http.Re
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// CreateOrUpdateMultiRolePool create or update a multi-role pool.
+// CreateOrUpdateMultiRolePool description for Create or update a multi-role pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -315,7 +315,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePoolPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -349,14 +349,14 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePoolResponder(
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// CreateOrUpdateWorkerPool create or update a worker pool.
+// CreateOrUpdateWorkerPool description for Create or update a worker pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -405,7 +405,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateWorkerPoolPreparer(ctx 
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -439,14 +439,14 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateWorkerPoolResponder(res
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Delete delete an App Service Environment.
+// Delete description for Delete an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -494,7 +494,7 @@ func (client AppServiceEnvironmentsClient) DeletePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -529,13 +529,13 @@ func (client AppServiceEnvironmentsClient) DeleteResponder(resp *http.Response) 
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
 }
 
-// Get get the properties of an App Service Environment.
+// Get description for Get the properties of an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -587,7 +587,7 @@ func (client AppServiceEnvironmentsClient) GetPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -620,7 +620,7 @@ func (client AppServiceEnvironmentsClient) GetResponder(resp *http.Response) (re
 	return
 }
 
-// GetDiagnosticsItem get a diagnostics item for an App Service Environment.
+// GetDiagnosticsItem description for Get a diagnostics item for an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -674,7 +674,7 @@ func (client AppServiceEnvironmentsClient) GetDiagnosticsItemPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -707,8 +707,8 @@ func (client AppServiceEnvironmentsClient) GetDiagnosticsItemResponder(resp *htt
 	return
 }
 
-// GetInboundNetworkDependenciesEndpoints get the network endpoints of all inbound dependencies of an App Service
-// Environment.
+// GetInboundNetworkDependenciesEndpoints description for Get the network endpoints of all inbound dependencies of an
+// App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -761,7 +761,7 @@ func (client AppServiceEnvironmentsClient) GetInboundNetworkDependenciesEndpoint
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -831,7 +831,7 @@ func (client AppServiceEnvironmentsClient) GetInboundNetworkDependenciesEndpoint
 	return
 }
 
-// GetMultiRolePool get properties of a multi-role pool.
+// GetMultiRolePool description for Get properties of a multi-role pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -883,7 +883,7 @@ func (client AppServiceEnvironmentsClient) GetMultiRolePoolPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -916,8 +916,8 @@ func (client AppServiceEnvironmentsClient) GetMultiRolePoolResponder(resp *http.
 	return
 }
 
-// GetOutboundNetworkDependenciesEndpoints get the network endpoints of all outbound dependencies of an App Service
-// Environment.
+// GetOutboundNetworkDependenciesEndpoints description for Get the network endpoints of all outbound dependencies of an
+// App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -970,7 +970,7 @@ func (client AppServiceEnvironmentsClient) GetOutboundNetworkDependenciesEndpoin
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1040,7 +1040,92 @@ func (client AppServiceEnvironmentsClient) GetOutboundNetworkDependenciesEndpoin
 	return
 }
 
-// GetWorkerPool get properties of a worker pool.
+// GetVipInfo description for Get IP addresses assigned to an App Service Environment.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) GetVipInfo(ctx context.Context, resourceGroupName string, name string) (result AddressResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.GetVipInfo")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "GetVipInfo", err.Error())
+	}
+
+	req, err := client.GetVipInfoPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetVipInfo", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetVipInfoSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetVipInfo", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetVipInfoResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "GetVipInfo", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetVipInfoPreparer prepares the GetVipInfo request.
+func (client AppServiceEnvironmentsClient) GetVipInfoPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/capacities/virtualip", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetVipInfoSender sends the GetVipInfo request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) GetVipInfoSender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// GetVipInfoResponder handles the response to the GetVipInfo request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) GetVipInfoResponder(resp *http.Response) (result AddressResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetWorkerPool description for Get properties of a worker pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -1094,7 +1179,7 @@ func (client AppServiceEnvironmentsClient) GetWorkerPoolPreparer(ctx context.Con
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1127,7 +1212,7 @@ func (client AppServiceEnvironmentsClient) GetWorkerPoolResponder(resp *http.Res
 	return
 }
 
-// List get all App Service Environments for a subscription.
+// List description for Get all App Service Environments for a subscription.
 func (client AppServiceEnvironmentsClient) List(ctx context.Context) (result AppServiceEnvironmentCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.List")
@@ -1167,7 +1252,7 @@ func (client AppServiceEnvironmentsClient) ListPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1237,7 +1322,7 @@ func (client AppServiceEnvironmentsClient) ListComplete(ctx context.Context) (re
 	return
 }
 
-// ListAppServicePlans get all App Service plans in an App Service Environment.
+// ListAppServicePlans description for Get all App Service plans in an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -1290,7 +1375,7 @@ func (client AppServiceEnvironmentsClient) ListAppServicePlansPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1360,7 +1445,7 @@ func (client AppServiceEnvironmentsClient) ListAppServicePlansComplete(ctx conte
 	return
 }
 
-// ListByResourceGroup get all App Service Environments in a resource group.
+// ListByResourceGroup description for Get all App Service Environments in a resource group.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 func (client AppServiceEnvironmentsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AppServiceEnvironmentCollectionPage, err error) {
@@ -1411,7 +1496,7 @@ func (client AppServiceEnvironmentsClient) ListByResourceGroupPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1481,7 +1566,7 @@ func (client AppServiceEnvironmentsClient) ListByResourceGroupComplete(ctx conte
 	return
 }
 
-// ListCapacities get the used, available, and total worker capacity an App Service Environment.
+// ListCapacities description for Get the used, available, and total worker capacity an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -1534,7 +1619,7 @@ func (client AppServiceEnvironmentsClient) ListCapacitiesPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1604,7 +1689,7 @@ func (client AppServiceEnvironmentsClient) ListCapacitiesComplete(ctx context.Co
 	return
 }
 
-// ListDiagnostics get diagnostic information for an App Service Environment.
+// ListDiagnostics description for Get diagnostic information for an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -1656,7 +1741,7 @@ func (client AppServiceEnvironmentsClient) ListDiagnosticsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1689,225 +1774,8 @@ func (client AppServiceEnvironmentsClient) ListDiagnosticsResponder(resp *http.R
 	return
 }
 
-// ListMetricDefinitions get global metric definitions of an App Service Environment.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service Environment.
-func (client AppServiceEnvironmentsClient) ListMetricDefinitions(ctx context.Context, resourceGroupName string, name string) (result MetricDefinition, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListMetricDefinitions")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ListMetricDefinitions", err.Error())
-	}
-
-	req, err := client.ListMetricDefinitionsPreparer(ctx, resourceGroupName, name)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMetricDefinitions", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListMetricDefinitionsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMetricDefinitions", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ListMetricDefinitionsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMetricDefinitions", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListMetricDefinitionsPreparer prepares the ListMetricDefinitions request.
-func (client AppServiceEnvironmentsClient) ListMetricDefinitionsPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/metricdefinitions", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListMetricDefinitionsSender sends the ListMetricDefinitions request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServiceEnvironmentsClient) ListMetricDefinitionsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListMetricDefinitionsResponder handles the response to the ListMetricDefinitions request. The method always
-// closes the http.Response Body.
-func (client AppServiceEnvironmentsClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinition, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// ListMetrics get global metrics of an App Service Environment.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service Environment.
-// details - specify <code>true</code> to include instance details. The default is <code>false</code>.
-// filter - return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example:
-// $filter=(name.value eq 'Metric1' or name.value eq 'Metric2') and startTime eq 2014-01-01T00:00:00Z and
-// endTime eq 2014-12-31T23:59:59Z and timeGrain eq duration'[Hour|Minute|Day]'.
-func (client AppServiceEnvironmentsClient) ListMetrics(ctx context.Context, resourceGroupName string, name string, details *bool, filter string) (result ResourceMetricCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListMetrics")
-		defer func() {
-			sc := -1
-			if result.rmc.Response.Response != nil {
-				sc = result.rmc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ListMetrics", err.Error())
-	}
-
-	result.fn = client.listMetricsNextResults
-	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, name, details, filter)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMetrics", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListMetricsSender(req)
-	if err != nil {
-		result.rmc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMetrics", resp, "Failure sending request")
-		return
-	}
-
-	result.rmc, err = client.ListMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMetrics", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListMetricsPreparer prepares the ListMetrics request.
-func (client AppServiceEnvironmentsClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, name string, details *bool, filter string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if details != nil {
-		queryParameters["details"] = autorest.Encode("query", *details)
-	}
-	if len(filter) > 0 {
-		queryParameters["$filter"] = filter
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/metrics", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListMetricsSender sends the ListMetrics request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServiceEnvironmentsClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListMetricsResponder handles the response to the ListMetrics request. The method always
-// closes the http.Response Body.
-func (client AppServiceEnvironmentsClient) ListMetricsResponder(resp *http.Response) (result ResourceMetricCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listMetricsNextResults retrieves the next set of results, if any.
-func (client AppServiceEnvironmentsClient) listMetricsNextResults(ctx context.Context, lastResults ResourceMetricCollection) (result ResourceMetricCollection, err error) {
-	req, err := lastResults.resourceMetricCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMetricsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListMetricsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMetricsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMetricsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListMetricsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AppServiceEnvironmentsClient) ListMetricsComplete(ctx context.Context, resourceGroupName string, name string, details *bool, filter string) (result ResourceMetricCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListMetrics")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListMetrics(ctx, resourceGroupName, name, details, filter)
-	return
-}
-
-// ListMultiRoleMetricDefinitions get metric definitions for a multi-role pool of an App Service Environment.
+// ListMultiRoleMetricDefinitions description for Get metric definitions for a multi-role pool of an App Service
+// Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -1960,7 +1828,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleMetricDefinitionsPrepare
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2030,153 +1898,8 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleMetricDefinitionsComplet
 	return
 }
 
-// ListMultiRoleMetrics get metrics for a multi-role pool of an App Service Environment.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service Environment.
-// startTime - beginning time of the metrics query.
-// endTime - end time of the metrics query.
-// timeGrain - time granularity of the metrics query.
-// details - specify <code>true</code> to include instance details. The default is <code>false</code>.
-// filter - return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example:
-// $filter=(name.value eq 'Metric1' or name.value eq 'Metric2') and startTime eq 2014-01-01T00:00:00Z and
-// endTime eq 2014-12-31T23:59:59Z and timeGrain eq duration'[Hour|Minute|Day]'.
-func (client AppServiceEnvironmentsClient) ListMultiRoleMetrics(ctx context.Context, resourceGroupName string, name string, startTime string, endTime string, timeGrain string, details *bool, filter string) (result ResourceMetricCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListMultiRoleMetrics")
-		defer func() {
-			sc := -1
-			if result.rmc.Response.Response != nil {
-				sc = result.rmc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ListMultiRoleMetrics", err.Error())
-	}
-
-	result.fn = client.listMultiRoleMetricsNextResults
-	req, err := client.ListMultiRoleMetricsPreparer(ctx, resourceGroupName, name, startTime, endTime, timeGrain, details, filter)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMultiRoleMetrics", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListMultiRoleMetricsSender(req)
-	if err != nil {
-		result.rmc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMultiRoleMetrics", resp, "Failure sending request")
-		return
-	}
-
-	result.rmc, err = client.ListMultiRoleMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMultiRoleMetrics", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListMultiRoleMetricsPreparer prepares the ListMultiRoleMetrics request.
-func (client AppServiceEnvironmentsClient) ListMultiRoleMetricsPreparer(ctx context.Context, resourceGroupName string, name string, startTime string, endTime string, timeGrain string, details *bool, filter string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if len(startTime) > 0 {
-		queryParameters["startTime"] = autorest.Encode("query", startTime)
-	}
-	if len(endTime) > 0 {
-		queryParameters["endTime"] = autorest.Encode("query", endTime)
-	}
-	if len(timeGrain) > 0 {
-		queryParameters["timeGrain"] = autorest.Encode("query", timeGrain)
-	}
-	if details != nil {
-		queryParameters["details"] = autorest.Encode("query", *details)
-	}
-	if len(filter) > 0 {
-		queryParameters["$filter"] = filter
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/multiRolePools/default/metrics", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListMultiRoleMetricsSender sends the ListMultiRoleMetrics request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServiceEnvironmentsClient) ListMultiRoleMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListMultiRoleMetricsResponder handles the response to the ListMultiRoleMetrics request. The method always
-// closes the http.Response Body.
-func (client AppServiceEnvironmentsClient) ListMultiRoleMetricsResponder(resp *http.Response) (result ResourceMetricCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listMultiRoleMetricsNextResults retrieves the next set of results, if any.
-func (client AppServiceEnvironmentsClient) listMultiRoleMetricsNextResults(ctx context.Context, lastResults ResourceMetricCollection) (result ResourceMetricCollection, err error) {
-	req, err := lastResults.resourceMetricCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMultiRoleMetricsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListMultiRoleMetricsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMultiRoleMetricsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListMultiRoleMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMultiRoleMetricsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListMultiRoleMetricsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AppServiceEnvironmentsClient) ListMultiRoleMetricsComplete(ctx context.Context, resourceGroupName string, name string, startTime string, endTime string, timeGrain string, details *bool, filter string) (result ResourceMetricCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListMultiRoleMetrics")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListMultiRoleMetrics(ctx, resourceGroupName, name, startTime, endTime, timeGrain, details, filter)
-	return
-}
-
-// ListMultiRolePoolInstanceMetricDefinitions get metric definitions for a specific instance of a multi-role pool of an
-// App Service Environment.
+// ListMultiRolePoolInstanceMetricDefinitions description for Get metric definitions for a specific instance of a
+// multi-role pool of an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -2231,7 +1954,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricDefini
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2301,137 +2024,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricDefini
 	return
 }
 
-// ListMultiRolePoolInstanceMetrics get metrics for a specific instance of a multi-role pool of an App Service
-// Environment.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service Environment.
-// instance - name of the instance in the multi-role pool.
-// details - specify <code>true</code> to include instance details. The default is <code>false</code>.
-func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetrics(ctx context.Context, resourceGroupName string, name string, instance string, details *bool) (result ResourceMetricCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListMultiRolePoolInstanceMetrics")
-		defer func() {
-			sc := -1
-			if result.rmc.Response.Response != nil {
-				sc = result.rmc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ListMultiRolePoolInstanceMetrics", err.Error())
-	}
-
-	result.fn = client.listMultiRolePoolInstanceMetricsNextResults
-	req, err := client.ListMultiRolePoolInstanceMetricsPreparer(ctx, resourceGroupName, name, instance, details)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMultiRolePoolInstanceMetrics", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListMultiRolePoolInstanceMetricsSender(req)
-	if err != nil {
-		result.rmc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMultiRolePoolInstanceMetrics", resp, "Failure sending request")
-		return
-	}
-
-	result.rmc, err = client.ListMultiRolePoolInstanceMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListMultiRolePoolInstanceMetrics", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListMultiRolePoolInstanceMetricsPreparer prepares the ListMultiRolePoolInstanceMetrics request.
-func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricsPreparer(ctx context.Context, resourceGroupName string, name string, instance string, details *bool) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"instance":          autorest.Encode("path", instance),
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if details != nil {
-		queryParameters["details"] = autorest.Encode("query", *details)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/multiRolePools/default/instances/{instance}/metrics", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListMultiRolePoolInstanceMetricsSender sends the ListMultiRolePoolInstanceMetrics request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListMultiRolePoolInstanceMetricsResponder handles the response to the ListMultiRolePoolInstanceMetrics request. The method always
-// closes the http.Response Body.
-func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricsResponder(resp *http.Response) (result ResourceMetricCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listMultiRolePoolInstanceMetricsNextResults retrieves the next set of results, if any.
-func (client AppServiceEnvironmentsClient) listMultiRolePoolInstanceMetricsNextResults(ctx context.Context, lastResults ResourceMetricCollection) (result ResourceMetricCollection, err error) {
-	req, err := lastResults.resourceMetricCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMultiRolePoolInstanceMetricsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListMultiRolePoolInstanceMetricsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMultiRolePoolInstanceMetricsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListMultiRolePoolInstanceMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listMultiRolePoolInstanceMetricsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListMultiRolePoolInstanceMetricsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricsComplete(ctx context.Context, resourceGroupName string, name string, instance string, details *bool) (result ResourceMetricCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListMultiRolePoolInstanceMetrics")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListMultiRolePoolInstanceMetrics(ctx, resourceGroupName, name, instance, details)
-	return
-}
-
-// ListMultiRolePools get all multi-role pools.
+// ListMultiRolePools description for Get all multi-role pools.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -2484,7 +2077,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolsPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2554,7 +2147,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolsComplete(ctx contex
 	return
 }
 
-// ListMultiRolePoolSkus get available SKUs for scaling a multi-role pool.
+// ListMultiRolePoolSkus description for Get available SKUs for scaling a multi-role pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -2607,7 +2200,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolSkusPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2677,7 +2270,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolSkusComplete(ctx con
 	return
 }
 
-// ListMultiRoleUsages get usage metrics for a multi-role pool of an App Service Environment.
+// ListMultiRoleUsages description for Get usage metrics for a multi-role pool of an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -2730,7 +2323,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleUsagesPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2800,7 +2393,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleUsagesComplete(ctx conte
 	return
 }
 
-// ListOperations list all currently running operations on the App Service Environment.
+// ListOperations description for List all currently running operations on the App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -2852,7 +2445,7 @@ func (client AppServiceEnvironmentsClient) ListOperationsPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2885,7 +2478,7 @@ func (client AppServiceEnvironmentsClient) ListOperationsResponder(resp *http.Re
 	return
 }
 
-// ListUsages get global usage metrics of an App Service Environment.
+// ListUsages description for Get global usage metrics of an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -2941,7 +2534,7 @@ func (client AppServiceEnvironmentsClient) ListUsagesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3014,92 +2607,7 @@ func (client AppServiceEnvironmentsClient) ListUsagesComplete(ctx context.Contex
 	return
 }
 
-// ListVips get IP addresses assigned to an App Service Environment.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service Environment.
-func (client AppServiceEnvironmentsClient) ListVips(ctx context.Context, resourceGroupName string, name string) (result AddressResponse, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListVips")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ListVips", err.Error())
-	}
-
-	req, err := client.ListVipsPreparer(ctx, resourceGroupName, name)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListVips", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListVipsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListVips", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ListVipsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListVips", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListVipsPreparer prepares the ListVips request.
-func (client AppServiceEnvironmentsClient) ListVipsPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/capacities/virtualip", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListVipsSender sends the ListVips request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServiceEnvironmentsClient) ListVipsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListVipsResponder handles the response to the ListVips request. The method always
-// closes the http.Response Body.
-func (client AppServiceEnvironmentsClient) ListVipsResponder(resp *http.Response) (result AddressResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// ListWebApps get all apps in an App Service Environment.
+// ListWebApps description for Get all apps in an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -3153,7 +2661,7 @@ func (client AppServiceEnvironmentsClient) ListWebAppsPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3226,7 +2734,8 @@ func (client AppServiceEnvironmentsClient) ListWebAppsComplete(ctx context.Conte
 	return
 }
 
-// ListWebWorkerMetricDefinitions get metric definitions for a worker pool of an App Service Environment.
+// ListWebWorkerMetricDefinitions description for Get metric definitions for a worker pool of an App Service
+// Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -3281,7 +2790,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerMetricDefinitionsPrepare
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3351,142 +2860,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerMetricDefinitionsComplet
 	return
 }
 
-// ListWebWorkerMetrics get metrics for a worker pool of a AppServiceEnvironment (App Service Environment).
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service Environment.
-// workerPoolName - name of worker pool
-// details - specify <code>true</code> to include instance details. The default is <code>false</code>.
-// filter - return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example:
-// $filter=(name.value eq 'Metric1' or name.value eq 'Metric2') and startTime eq 2014-01-01T00:00:00Z and
-// endTime eq 2014-12-31T23:59:59Z and timeGrain eq duration'[Hour|Minute|Day]'.
-func (client AppServiceEnvironmentsClient) ListWebWorkerMetrics(ctx context.Context, resourceGroupName string, name string, workerPoolName string, details *bool, filter string) (result ResourceMetricCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListWebWorkerMetrics")
-		defer func() {
-			sc := -1
-			if result.rmc.Response.Response != nil {
-				sc = result.rmc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ListWebWorkerMetrics", err.Error())
-	}
-
-	result.fn = client.listWebWorkerMetricsNextResults
-	req, err := client.ListWebWorkerMetricsPreparer(ctx, resourceGroupName, name, workerPoolName, details, filter)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListWebWorkerMetrics", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListWebWorkerMetricsSender(req)
-	if err != nil {
-		result.rmc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListWebWorkerMetrics", resp, "Failure sending request")
-		return
-	}
-
-	result.rmc, err = client.ListWebWorkerMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListWebWorkerMetrics", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListWebWorkerMetricsPreparer prepares the ListWebWorkerMetrics request.
-func (client AppServiceEnvironmentsClient) ListWebWorkerMetricsPreparer(ctx context.Context, resourceGroupName string, name string, workerPoolName string, details *bool, filter string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workerPoolName":    autorest.Encode("path", workerPoolName),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if details != nil {
-		queryParameters["details"] = autorest.Encode("query", *details)
-	}
-	if len(filter) > 0 {
-		queryParameters["$filter"] = filter
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/workerPools/{workerPoolName}/metrics", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListWebWorkerMetricsSender sends the ListWebWorkerMetrics request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServiceEnvironmentsClient) ListWebWorkerMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListWebWorkerMetricsResponder handles the response to the ListWebWorkerMetrics request. The method always
-// closes the http.Response Body.
-func (client AppServiceEnvironmentsClient) ListWebWorkerMetricsResponder(resp *http.Response) (result ResourceMetricCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listWebWorkerMetricsNextResults retrieves the next set of results, if any.
-func (client AppServiceEnvironmentsClient) listWebWorkerMetricsNextResults(ctx context.Context, lastResults ResourceMetricCollection) (result ResourceMetricCollection, err error) {
-	req, err := lastResults.resourceMetricCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listWebWorkerMetricsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListWebWorkerMetricsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listWebWorkerMetricsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListWebWorkerMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listWebWorkerMetricsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListWebWorkerMetricsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AppServiceEnvironmentsClient) ListWebWorkerMetricsComplete(ctx context.Context, resourceGroupName string, name string, workerPoolName string, details *bool, filter string) (result ResourceMetricCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListWebWorkerMetrics")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListWebWorkerMetrics(ctx, resourceGroupName, name, workerPoolName, details, filter)
-	return
-}
-
-// ListWebWorkerUsages get usage metrics for a worker pool of an App Service Environment.
+// ListWebWorkerUsages description for Get usage metrics for a worker pool of an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -3541,7 +2915,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerUsagesPreparer(ctx conte
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3611,8 +2985,8 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerUsagesComplete(ctx conte
 	return
 }
 
-// ListWorkerPoolInstanceMetricDefinitions get metric definitions for a specific instance of a worker pool of an App
-// Service Environment.
+// ListWorkerPoolInstanceMetricDefinitions description for Get metric definitions for a specific instance of a worker
+// pool of an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -3669,7 +3043,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricDefinitio
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3739,144 +3113,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricDefinitio
 	return
 }
 
-// ListWorkerPoolInstanceMetrics get metrics for a specific instance of a worker pool of an App Service Environment.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of the App Service Environment.
-// workerPoolName - name of the worker pool.
-// instance - name of the instance in the worker pool.
-// details - specify <code>true</code> to include instance details. The default is <code>false</code>.
-// filter - return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example:
-// $filter=(name.value eq 'Metric1' or name.value eq 'Metric2') and startTime eq 2014-01-01T00:00:00Z and
-// endTime eq 2014-12-31T23:59:59Z and timeGrain eq duration'[Hour|Minute|Day]'.
-func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetrics(ctx context.Context, resourceGroupName string, name string, workerPoolName string, instance string, details *bool, filter string) (result ResourceMetricCollectionPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListWorkerPoolInstanceMetrics")
-		defer func() {
-			sc := -1
-			if result.rmc.Response.Response != nil {
-				sc = result.rmc.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ListWorkerPoolInstanceMetrics", err.Error())
-	}
-
-	result.fn = client.listWorkerPoolInstanceMetricsNextResults
-	req, err := client.ListWorkerPoolInstanceMetricsPreparer(ctx, resourceGroupName, name, workerPoolName, instance, details, filter)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListWorkerPoolInstanceMetrics", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListWorkerPoolInstanceMetricsSender(req)
-	if err != nil {
-		result.rmc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListWorkerPoolInstanceMetrics", resp, "Failure sending request")
-		return
-	}
-
-	result.rmc, err = client.ListWorkerPoolInstanceMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ListWorkerPoolInstanceMetrics", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListWorkerPoolInstanceMetricsPreparer prepares the ListWorkerPoolInstanceMetrics request.
-func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricsPreparer(ctx context.Context, resourceGroupName string, name string, workerPoolName string, instance string, details *bool, filter string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"instance":          autorest.Encode("path", instance),
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workerPoolName":    autorest.Encode("path", workerPoolName),
-	}
-
-	const APIVersion = "2018-02-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if details != nil {
-		queryParameters["details"] = autorest.Encode("query", *details)
-	}
-	if len(filter) > 0 {
-		queryParameters["$filter"] = filter
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/workerPools/{workerPoolName}/instances/{instance}/metrics", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListWorkerPoolInstanceMetricsSender sends the ListWorkerPoolInstanceMetrics request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListWorkerPoolInstanceMetricsResponder handles the response to the ListWorkerPoolInstanceMetrics request. The method always
-// closes the http.Response Body.
-func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricsResponder(resp *http.Response) (result ResourceMetricCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listWorkerPoolInstanceMetricsNextResults retrieves the next set of results, if any.
-func (client AppServiceEnvironmentsClient) listWorkerPoolInstanceMetricsNextResults(ctx context.Context, lastResults ResourceMetricCollection) (result ResourceMetricCollection, err error) {
-	req, err := lastResults.resourceMetricCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listWorkerPoolInstanceMetricsNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListWorkerPoolInstanceMetricsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listWorkerPoolInstanceMetricsNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListWorkerPoolInstanceMetricsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "listWorkerPoolInstanceMetricsNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListWorkerPoolInstanceMetricsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricsComplete(ctx context.Context, resourceGroupName string, name string, workerPoolName string, instance string, details *bool, filter string) (result ResourceMetricCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceEnvironmentsClient.ListWorkerPoolInstanceMetrics")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListWorkerPoolInstanceMetrics(ctx, resourceGroupName, name, workerPoolName, instance, details, filter)
-	return
-}
-
-// ListWorkerPools get all worker pools of an App Service Environment.
+// ListWorkerPools description for Get all worker pools of an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -3929,7 +3166,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3999,7 +3236,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolsComplete(ctx context.C
 	return
 }
 
-// ListWorkerPoolSkus get available SKUs for scaling a worker pool.
+// ListWorkerPoolSkus description for Get available SKUs for scaling a worker pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -4054,7 +3291,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolSkusPreparer(ctx contex
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4124,7 +3361,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolSkusComplete(ctx contex
 	return
 }
 
-// Reboot reboot all machines in an App Service Environment.
+// Reboot description for Reboot all machines in an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -4176,7 +3413,7 @@ func (client AppServiceEnvironmentsClient) RebootPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4202,13 +3439,13 @@ func (client AppServiceEnvironmentsClient) RebootResponder(resp *http.Response) 
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
 	return
 }
 
-// Resume resume an App Service Environment.
+// Resume description for Resume an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -4254,7 +3491,7 @@ func (client AppServiceEnvironmentsClient) ResumePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4335,7 +3572,7 @@ func (client AppServiceEnvironmentsClient) ResumeComplete(ctx context.Context, r
 	return
 }
 
-// Suspend suspend an App Service Environment.
+// Suspend description for Suspend an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -4381,7 +3618,7 @@ func (client AppServiceEnvironmentsClient) SuspendPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4462,7 +3699,7 @@ func (client AppServiceEnvironmentsClient) SuspendComplete(ctx context.Context, 
 	return
 }
 
-// Update create or update an App Service Environment.
+// Update description for Create or update an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -4515,7 +3752,7 @@ func (client AppServiceEnvironmentsClient) UpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4543,14 +3780,14 @@ func (client AppServiceEnvironmentsClient) UpdateResponder(resp *http.Response) 
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// UpdateMultiRolePool create or update a multi-role pool.
+// UpdateMultiRolePool description for Create or update a multi-role pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -4603,7 +3840,7 @@ func (client AppServiceEnvironmentsClient) UpdateMultiRolePoolPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4631,14 +3868,14 @@ func (client AppServiceEnvironmentsClient) UpdateMultiRolePoolResponder(resp *ht
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// UpdateWorkerPool create or update a worker pool.
+// UpdateWorkerPool description for Create or update a worker pool.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the App Service Environment.
@@ -4693,7 +3930,7 @@ func (client AppServiceEnvironmentsClient) UpdateWorkerPoolPreparer(ctx context.
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4721,7 +3958,7 @@ func (client AppServiceEnvironmentsClient) UpdateWorkerPoolResponder(resp *http.
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

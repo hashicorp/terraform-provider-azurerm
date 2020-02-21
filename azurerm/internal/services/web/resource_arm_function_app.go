@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -192,10 +192,6 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"virtual_network_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"http2_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -211,7 +207,7 @@ func resourceArmFunctionApp() *schema.Resource {
 									"ip_address": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validate.CIDR,
 									},
 									"subnet_id": {
 										Type:         schema.TypeString,
@@ -744,10 +740,6 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.Cors = &expand
 	}
 
-	if v, ok := config["virtual_network_name"]; ok {
-		siteConfig.VnetName = utils.String(v.(string))
-	}
-
 	if v, ok := config["http2_enabled"]; ok {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
@@ -795,10 +787,6 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
-	}
-
-	if input.VnetName != nil {
-		result["virtual_network_name"] = *input.VnetName
 	}
 
 	if input.HTTP20Enabled != nil {
@@ -855,6 +843,10 @@ func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestrict
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
+		if ipAddress == "Any" {
+			continue
+		}
+
 		if ipAddress != "" {
 			ipSecurityRestriction.IPAddress = &ipAddress
 		}
@@ -914,6 +906,9 @@ func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []inter
 		ipAddress := ""
 		if v.IPAddress != nil {
 			ipAddress = *v.IPAddress
+			if ipAddress == "Any" {
+				continue
+			}
 		}
 
 		subnetId := ""

@@ -173,6 +173,8 @@ The deprecated `vault_uri` field has been replaced by the `key_vault_id` field a
 
 The deprecated block `agent_pool_profile` will be removed. This has been replaced by the `default_node_pool` block.
 
+The deprecated `default_node_pool.dns_prefix` field has been removed
+
 ### Data Source: `azurerm_network_interface`
 
 The deprecated field `internal_fqdn` will be removed.
@@ -191,7 +193,7 @@ Azure Scheduler is being retired in favour of Logic Apps ([more information can 
 
 ### Data Source: `azurerm_virtual_network`
 
-The deprecated field `address_space` will be removed.
+The deprecated field `address_spaces` will be removed.
 
 ### Resource: `azurerm_api_management`
 
@@ -213,6 +215,16 @@ The deprecated field  `disable_triple_des_chipers` will be removed in favour of 
 
 The deprecated field  `disable_triple_des_ciphers` will be removed in favour of the `enable_triple_des_ciphers` property.
 
+### Resource: `azurerm_app_service`
+
+The `identity.type` field no longer supports the combined value `"SystemAssigned, UserAssigned"` as this has been removed from the API
+
+The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
+
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is not longer used.
+
+The `site_config.virtual_network_name` field has been removed as it it no longer used
+
 ### Resource: `azurerm_app_service_plan`
 
 The fields in the `properties` block (`app_service_environment_id`, `reserved` and `per_site_scaling`) have been moved to the top level - as such the `properties` block will be removed.
@@ -224,6 +236,8 @@ The deprecated `fqdn_list` field in the `backend_address_pool` block will be rem
 The deprecated `ip_address_list` field in the `backend_address_pool` block will be removed in favour of the `ip_addresses` field, which is available from v1.22 of the AzureRM Provider.
 
 The default value for the `body` field within the `match` block will change from `*` to an empty string.
+
+The deprecated `disabled_ssl_protocols` field will be removed in favour of `ssl_policy`.`disabled_protocols`
 
 ### Resource: `azurerm_application_insights`
 
@@ -337,6 +351,14 @@ The deprecated `internal_public_ip_address_id` field in the `ip_configuration` b
 
 The `forwarding_protocol` property now defaults to `HttpsOnly`
 
+### Resource: `azurerm_function_app`
+
+The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
+
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is not longer used.
+
+The `site_config.virtual_network_name` field has been removed as it it no longer used
+
 ### Resource: `azurerm_iothub`
 
 The deprecated `sku.tier` property will be remove.
@@ -366,6 +388,10 @@ The deprecated `fqdn` field in the `agent_pool_profile` block will be removed. T
 The `service_principal` will be changing from a Set to a List,  which will allow Terraform to better detect when the values have changed locally and as such can detect when this needs to be recreated.
 
 ### Resource: `azurerm_lb_backend_address_pool`
+
+The deprecated `location` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_lb_nat_pool`
 
 The deprecated `location` field will be removed, since this is no longer used.
 
@@ -405,10 +431,13 @@ The deprecated `vault_uri` field has been replaced by the `key_vault_id` field a
 
 The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
 
-
 ### Resource: `azurerm_key_vault_secret`
 
 The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
+
+### Resource: `azurerm_kubernetes_cluster`
+
+The deprecated `default_node_pool.dns_prefix` field has been removed
 
 ### Resource: `azurerm_log_analytics_linked_service`
 

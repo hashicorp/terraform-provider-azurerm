@@ -19,10 +19,8 @@ func SchemaDataSource() *schema.Schema {
 // require recreation of the resource
 func ForceNewSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeMap,
-		Optional: true,
-		// TODO: remove "Computed" in 2.0
-		Computed:     true,
+		Type:         schema.TypeMap,
+		Optional:     true,
 		ForceNew:     true,
 		ValidateFunc: Validate,
 		Elem: &schema.Schema{
@@ -34,10 +32,8 @@ func ForceNewSchema() *schema.Schema {
 // Schema returns the Schema used for Tags
 func Schema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeMap,
-		Optional: true,
-		// TODO: remove "Computed" in 2.0
-		Computed:     true,
+		Type:         schema.TypeMap,
+		Optional:     true,
 		ValidateFunc: Validate,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
