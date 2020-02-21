@@ -573,10 +573,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("kind", resp.Kind)
-
-	if notWindows := strings.HasPrefix(*resp.Kind, "functionapp,linux"); notWindows {
-		d.Set("os_type", utils.String("linux"))
+	osType := ""
+	if v := resp.Kind; v != nil && strings.Contains(*v, "linux") {
+		osType = "linux"
 	}
+	d.Set("os_type", osType)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
