@@ -216,6 +216,7 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("pricing_tier") {
 		v := d.Get("pricing_tier").(string)
+		v = convertFromIsolatedSKU(v)
 		environment.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
