@@ -105,6 +105,7 @@ BREAKING CHANGES:
 * `azurerm_subnet` - removing the deprecated `network_security_group_id` field [GH-5801]
 * `azurerm_subnet` - removing the deprecated `route_table_id` field [GH-5801]
 * `azurerm_subnet` - making the `actions` list within the `service_delegation` block within the `service_endpoints` block non-computed [GH-5801]
+* `azurerm_virtual_network_peering` - `allow_virtual_network_access` now defaults to true, matching the API and Portal behaviours.
 
 IMPROVEMENTS:
 
