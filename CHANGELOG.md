@@ -111,6 +111,8 @@ IMPROVEMENTS:
 
 * Data Source: `azurerm_kubernetes_service_version` - support for filtering of preview releases [GH-5662]
 * `azurerm_dedicated_host` - support for setting `sku_name` to `DSv3-Type2` and `ESv3-Type2` [GH-5768]
+* `azurerm_key_vault` - support for configuring `purge_protection_enabled` [GH-5344]
+* `azurerm_key_vault` - support for configuring `soft_delete_enabled` [GH-5344]
 * `azurerm_sql_database` - support for configuring `zone_redundant` [GH-5772]
 * `azurerm_storage_account` - support for configuring the `static_website` block [GH-5649]
 * `azurerm_storage_account` - support for configuring `cors_rules` within the `blob_properties` block [GH-5425]
