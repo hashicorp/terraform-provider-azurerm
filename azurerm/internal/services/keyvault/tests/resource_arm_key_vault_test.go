@@ -374,7 +374,6 @@ func TestAccAzureRMKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
 				Config:      testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data),
 				ExpectError: regexp.MustCompile("An existing soft-deleted Key Vault exists with the Name"),
 			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -470,7 +469,7 @@ func TestAccAzureRMKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
 			data.ImportStep(),
 			{
 				Config:      testAccAzureRMKeyVault_purgeProtection(data, false),
-				ExpectError: regexp.MustCompile("TODO"), // TODO: correct error message
+				ExpectError: regexp.MustCompile("once Purge Protection has been Enabled it's not possible to disable it"),
 			},
 		},
 	})
