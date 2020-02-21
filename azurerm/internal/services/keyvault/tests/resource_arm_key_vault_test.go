@@ -1035,12 +1035,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "vault%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "premium"
-  soft_delete_enabled      = %t
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+  soft_delete_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
@@ -1049,9 +1049,9 @@ func testAccAzureRMKeyVault_softDeleteAbsent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-	key_vault {
-	  recover_soft_deleted_key_vaults = false
-	}
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+    }
   }
 }
 
@@ -1068,9 +1068,9 @@ func testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data acceptance.TestData)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-	key_vault {
-	  recover_soft_deleted_key_vaults = false
-	}
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+    }
   }
 }
 
@@ -1082,12 +1082,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "vault%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "premium"
-  soft_delete_enabled      = true
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+  soft_delete_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
