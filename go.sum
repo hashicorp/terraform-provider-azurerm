@@ -301,8 +301,8 @@ github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/terraform-providers/terraform-provider-azuread v0.6.1-0.20191007035844-361c0a206ad4 h1:y/dkBZSHkz38ofRGgebSARSOdRzQsH6r0gQ0B46B+uU=
 github.com/terraform-providers/terraform-provider-azuread v0.6.1-0.20191007035844-361c0a206ad4/go.mod h1:nIkEKBYPFXH/yU7mY7lK5Om6Krga/aMdD/B/OEJpWzc=
-github.com/tombuildsstuff/giovanni v0.7.1 h1:QJG5TJNIjcRbMsaQGF1HtWEpZbu8xLAOmZuMIk7wf14=
-github.com/tombuildsstuff/giovanni v0.7.1/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.8.0 h1:bk6ACG7a3pwaFEnq+5cvtUrn9pDt1p3zToDSMyXrSs8=
+github.com/tombuildsstuff/giovanni v0.8.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 h1:3SVOIvH7Ae1KRYyQWRjXWJEA9sS/c/pjvH++55Gr648=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ulikunitz/xz v0.5.5 h1:pFrO0lVpTBXLpYw+pnLj6TbvHuyjXMfjGeCwSqCVwok=
