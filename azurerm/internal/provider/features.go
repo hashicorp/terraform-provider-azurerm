@@ -8,6 +8,8 @@ import (
 )
 
 func schemaFeatures() *schema.Schema {
+	// NOTE: if there's only one nested field these want to be Required (since there's no point
+	//       specifying the block otherwise) - however for 2+ they should be optional
 	features := map[string]*schema.Schema{
 		"virtual_machine": {
 			Type:     schema.TypeList,
@@ -34,18 +36,23 @@ func schemaFeatures() *schema.Schema {
 						Required: true,
 					},
 				},
+			},
+		},
 
-				"key_vault": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"purge_soft_delete_on_destroy": {
-								Type:     schema.TypeBool,
-								Required: true,
-							},
-						},
+		"key_vault": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"recover_soft_deleted_key_vaults": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+
+					"purge_soft_delete_on_destroy": {
+						Type:     schema.TypeBool,
+						Optional: true,
 					},
 				},
 			},
@@ -85,7 +92,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			RollInstancesWhenRequired: true,
 		},
 		KeyVault: features.KeyVaultFeatures{
-			PurgeSoftDeleteOnDestroy: true,
+			PurgeSoftDeleteOnDestroy:    true,
+			RecoverSoftDeletedKeyVaults: true,
 		},
 	}
 
@@ -94,6 +102,19 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	val := input[0].(map[string]interface{})
+
+	if raw, ok := val["key_vault"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			keyVaultRaw := items[0].(map[string]interface{})
+			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
+				features.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
+				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+			}
+		}
+	}
 
 	if raw, ok := val["virtual_machine"]; ok {
 		items := raw.([]interface{})
@@ -111,16 +132,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			scaleSetRaw := items[0].(map[string]interface{})
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
-			}
-		}
-	}
-
-	if raw, ok := val["key_vault"]; ok {
-		items := raw.([]interface{})
-		if len(items) > 0 {
-			keyVaultRaw := items[0].(map[string]interface{})
-			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
-				features.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
 		}
 	}

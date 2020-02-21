@@ -132,18 +132,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the virtual machine extension peering. Changing
     this forces a new resource to be created.
 
-* `location` - (Optional / **Deprecated**) The location where the extension is created. Changing
-    this forces a new resource to be created.
-
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to
-    create the virtual network. Changing this forces a new resource to be
-    created.
-
-* `virtual_machine_name` - (Optional / **Deprecated**) The name of the virtual machine. Changing
-    this forces a new resource to be created.
-
-* `virtual_machine_id` - (Optional) The resource ID of the virtual machine. This value replaces
-    `location`, `resource_group_name` and `virtual_machine_name`. Changing this forces a new
+* `virtual_machine_id` - (Required) The resource ID of the virtual machine. Changing this forces a new
     resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers

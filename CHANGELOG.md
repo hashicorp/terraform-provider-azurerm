@@ -21,6 +21,7 @@ FEATURES:
 
 BREAKING CHANGES:
 
+* Data Source: `azurerm_api_management` - removing the deprecated `sku` block [GH-5725]
 * Data Source: `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * Data Source: `azurerm_azuread_application` - This data source has been removed since it was deprecated [GH-5748]
 * Data Source: `azurerm_azuread_service_principal` - This data source has been removed since it was deprecated [GH-5748]
@@ -33,6 +34,8 @@ BREAKING CHANGES:
 * Data Source: `azurerm_role_definition` - removing the alias `VirtualMachineContributor` which has been deprecated in favour of the full name `Virtual Machine Contributor` [GH-5733]
 * Data Source: `azurerm_scheduler_job_collection` - This data source has been removed since it was deprecated [GH-5712]
 * Data Source: `azurerm_subnet` - removing the deprecated `ip_configuration` field [GH-5801]
+* `azurerm_api_management` - removing the deprecated `sku` block [GH-5725]
+* `azurerm_api_management` - removing the deprecated fields in the `security` block [GH-5725]
 * `azurerm_app_service_plan` - the deprecated `properties` block has been removed since these properties have been moved to the top level [GH-5717]
 * `azurerm_application_gateway` - updating the default value for the `body` field within the `match` block from `*` to an empty string [GH-5752]
 * `azurerm_automation_account` - removing the `sku` block which has been deprecated in favour of the `sku_name` field [GH-5781]
@@ -56,8 +59,11 @@ BREAKING CHANGES:
 * `azurerm_eventhub_consumer_group` - removing the deprecated `location` field [GH-5793]
 * `azurerm_eventhub_namespace` - removing the deprecated `kafka_enabled` field since this is now managed by Azure [GH-5793]
 * `azurerm_eventhub_namespace_authorization_rule` - removing the deprecated `location` field [GH-5793]
+* `azurerm_frontdoor` - The `forwarding_protocol` property now defaults to `HttpsOnly` [GH-5792]
 * `azurerm_iot_dps` - This resource has been removed since it was deprecated [GH-5753]
 * `azurerm_iot_dps_certificate` - This resource has been removed since it was deprecated [GH-5753]
+* `azurerm_iothub`- The deprecated `sku.tier` property will be removed. [GH-5790]
+* `azurerm_iothub_dps` - The deprecated `sku.tier` property will be removed. [GH-5790]
 * `azurerm_key_vault` - removing the `sku` block since this has been deprecated in favour of the `sku_name` field [GH-5774]
 * `azurerm_key_vault_access_policy` - removing the deprecated field `vault_name` which has been superseded by the `key_vault_id` field [GH-5774]
 * `azurerm_key_vault_access_policy` - removing the deprecated field `resource_group_name ` which has been superseded by the `key_vault_id` field [GH-5774]
@@ -66,6 +72,7 @@ BREAKING CHANGES:
 * `azurerm_key_vault_secret` - removing the deprecated `vault_uri` field [GH-5774]
 * `azurerm_kubernetes_cluster` - updating the default value for `load_balancer_sku` to `Standard` from `Basic` [GH-5747]
 * `azurerm_log_analytics_workspace_linked_service` - This resource has been removed since it was deprecated [GH-5754]
+* `azurerm_log_analytics_linked_service` - The `resource_id` field has been moved from the `linked_service_properties` block to the top-level and the deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource [GH-5775]
 * `azurerm_maps_account` - the `sku_name` field is now case-sensitive [GH-5776]
 * `azurerm_mariadb_server` - removing the `sku` block since it's been deprecated in favour of the `sku_name` field [GH-5777]
 * `azurerm_mssql_elasticpool` - removing the deprecated `elastic_pool_properties` block [GH-5744]
@@ -76,6 +83,7 @@ BREAKING CHANGES:
 * `azurerm_network_interface` - removing the deprecated `load_balancer_inbound_nat_rules_ids ` field from the `ip_configurations` block [GH-5784]
 * `azurerm_network_interface` - removing the deprecated `internal_fqdn` field [GH-5784]
 * `azurerm_network_interface` - removing the `network_security_group_id` field in favour of a new split-out resource `azurerm_network_interface_security_group_association` [GH-5784]
+* `azurerm_network_interface_application_security_group_association` - removing the `ip_configuration_name` field associations between Network Interfaces and Application Security Groups now need to be made to all IP Configurations [GH-5815]
 * `azurerm_network_interface` - the `virtual_machine_id` field is now computed-only since it's not setable [GH-5784]
 * `azurerm_notification_hub_namesapce` - removing the `sku` block in favour of the `sku_name` argument [GH-5722]
 * `azurerm_postgresql_server` - removing the `sku` block which has been deprecated in favour of the `sku_name` field [GH-5721]
@@ -84,6 +92,7 @@ BREAKING CHANGES:
 * `azurerm_scheduler_job_collection` - This resource has been removed since it was deprecated [GH-5712]
 * `azurerm_storage_account` - removing the deprecated `account_type` field [GH-5710]
 * `azurerm_storage_account` - removing the deprecated `enable_advanced_threat_protection` field [GH-5710]
+* `azurerm_storage_account` - updating the default value for `enable_https_traffic_only` from `false` to `true` [GH-5808]
 * `azurerm_storage_blob` - making the `type` field case-sensitive [GH-5710]
 * `azurerm_storage_blob` - removing the deprecated `attempts` field [GH-5710]
 * `azurerm_storage_blob` - removing the deprecated `resource_group_name` field [GH-5710]
@@ -96,11 +105,15 @@ BREAKING CHANGES:
 * `azurerm_subnet` - removing the deprecated `network_security_group_id` field [GH-5801]
 * `azurerm_subnet` - removing the deprecated `route_table_id` field [GH-5801]
 * `azurerm_subnet` - making the `actions` list within the `service_delegation` block within the `service_endpoints` block non-computed [GH-5801]
+* `azurerm_virtual_network_peering` - `allow_virtual_network_access` now defaults to true, matching the API and Portal behaviours. [GH-5832]
 
 IMPROVEMENTS:
 
 * Data Source: `azurerm_kubernetes_service_version` - support for filtering of preview releases [GH-5662]
 * `azurerm_dedicated_host` - support for setting `sku_name` to `DSv3-Type2` and `ESv3-Type2` [GH-5768]
+* `azurerm_key_vault` - support for configuring `purge_protection_enabled` [GH-5344]
+* `azurerm_key_vault` - support for configuring `soft_delete_enabled` [GH-5344]
+* `azurerm_sql_database` - support for configuring `zone_redundant` [GH-5772]
 * `azurerm_storage_account` - support for configuring the `static_website` block [GH-5649]
 * `azurerm_storage_account` - support for configuring `cors_rules` within the `blob_properties` block [GH-5425]
 * `azurerm_subnet` - support for delta updates [GH-5801]
@@ -108,9 +121,14 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights` - the `application_type` field is now case sensitive as documented [GH-5817]
+* `azurerm_api_management_api` - allows blank `path` field [GH-5833]
+* `azurerm_eventhub_namespace` - the field `ip_rule` within the `network_rulesets` block now supports a maximum of 128 items [GH-5831]
+* `azurerm_eventhub_namespace` - the field `virtual_network_rule` within the `network_rulesets` block now supports a maximum of 128 items [GH-5831]
 * `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
 * `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
 * `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]
+* `azurerm_recovery_services_vault` - using the requested cloud rather than the default [GH-5825]
 * `azurerm_role_assignment` - validating that the `name` is a UUID [GH-5624]
 * `azurerm_signalr_service` - ensuring the SignalR segment is parsed in the correct case [GH-5737]
 * `azurerm_subnet` - supporting updating of the `enforce_private_link_endpoint_network_policies` field [GH-5801]

@@ -58,32 +58,10 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 			},
 
 			"resource_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"linked_service_properties.0"},
-			},
-
-			"linked_service_properties": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"resource_id"},
-				MaxItems:      1,
-				Deprecated:    "This property has been deprecated in favour of the 'resource_id' property and will be removed in version 2.0 of the provider",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"resource_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			// Exported properties
@@ -122,13 +100,6 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 	}
 
 	resourceId := d.Get("resource_id").(string)
-	if resourceId == "" {
-		props := d.Get("linked_service_properties").([]interface{})
-		resourceId = expandLogAnalyticsLinkedServiceProperties(props)
-		if resourceId == "" {
-			return fmt.Errorf("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block")
-		}
-	}
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := operationalinsights.LinkedService{
@@ -187,11 +158,6 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 		d.Set("resource_id", props.ResourceID)
 	}
 
-	linkedServiceProperties := flattenLogAnalyticsLinkedServiceProperties(resp.LinkedServiceProperties)
-	if err := d.Set("linked_service_properties", linkedServiceProperties); err != nil {
-		return fmt.Errorf("Error setting `linked_service_properties`: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -219,28 +185,4 @@ func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta int
 	}
 
 	return nil
-}
-
-func expandLogAnalyticsLinkedServiceProperties(input []interface{}) string {
-	if len(input) == 0 {
-		return ""
-	}
-
-	props := input[0].(map[string]interface{})
-	return props["resource_id"].(string)
-}
-
-func flattenLogAnalyticsLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	properties := make(map[string]interface{})
-
-	// resource id linked service
-	if resourceID := input.ResourceID; resourceID != nil {
-		properties["resource_id"] = interface{}(*resourceID)
-	}
-
-	return []interface{}{properties}
 }

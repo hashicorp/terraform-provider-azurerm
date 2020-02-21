@@ -108,10 +108,10 @@ A `ip_configuration` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 40 minutes) Used when creating the Firewall.
-* `update` - (Defaults to 40 minutes) Used when updating the Firewall.
+* `create` - (Defaults to 90 minutes) Used when creating the Firewall.
+* `update` - (Defaults to 90 minutes) Used when updating the Firewall.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall.
-* `delete` - (Defaults to 40 minutes) Used when deleting the Firewall.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Firewall.
 
 ## Import
 

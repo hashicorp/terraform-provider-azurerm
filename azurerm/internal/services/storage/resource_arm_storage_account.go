@@ -135,6 +135,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"enable_https_traffic_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"is_hns_enabled": {

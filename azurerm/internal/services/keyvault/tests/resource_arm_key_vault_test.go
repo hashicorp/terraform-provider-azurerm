@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -10,66 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func TestAccAzureRMKeyVault_name(t *testing.T) {
-	cases := []struct {
-		Input       string
-		ExpectError bool
-	}{
-		{
-			Input:       "",
-			ExpectError: true,
-		},
-		{
-			Input:       "hi",
-			ExpectError: true,
-		},
-		{
-			Input:       "hello",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello-world",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello-world-21",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello_world_21",
-			ExpectError: true,
-		},
-		{
-			Input:       "Hello-World",
-			ExpectError: false,
-		},
-		{
-			Input:       "20202020",
-			ExpectError: false,
-		},
-		{
-			Input:       "ABC123!@£",
-			ExpectError: true,
-		},
-		{
-			Input:       "abcdefghijklmnopqrstuvwxyz",
-			ExpectError: true,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := keyvault.ValidateKeyVaultName(tc.Input, "")
-
-		hasError := len(errors) > 0
-		if tc.ExpectError && !hasError {
-			t.Fatalf("Expected the Key Vault Name to trigger a validation error for '%s'", tc.Input)
-		}
-	}
-}
 
 func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
@@ -292,7 +235,7 @@ func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVault_softDelete(t *testing.T) {
+func TestAccAzureRMKeyVault_softDeleteEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -301,26 +244,232 @@ func TestAccAzureRMKeyVault_softDelete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVault_softDelete(data),
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
 				),
 			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteViaUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVault_softDeletePurge(data),
+				Config: testAccAzureRMKeyVault_softDelete(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMKeyVault_softDelete(data),
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
 				),
 			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteAttemptToDisable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVault_softDeletePurge(data),
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config:      testAccAzureRMKeyVault_softDelete(data, false),
+				ExpectError: regexp.MustCompile("once Soft Delete has been Enabled it's not possible to disable it"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				// create it regularly
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				// delete the key vault
+				Config: testAccAzureRMKeyVault_softDeleteAbsent(data),
+			},
+			{
+				// attempting to re-create it requires recovery, which is enabled by default
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				// create it regularly
+				Config: testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				// delete the key vault
+				Config: testAccAzureRMKeyVault_softDeleteAbsent(data),
+			},
+			{
+				// attempting to re-create it requires recovery, which is enabled by default
+				Config:      testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data),
+				ExpectError: regexp.MustCompile("An existing soft-deleted Key Vault exists with the Name"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionAndSoftDeleteEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtectionAndSoftDelete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionViaUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config:      testAccAzureRMKeyVault_purgeProtection(data, false),
+				ExpectError: regexp.MustCompile("once Purge Protection has been Enabled it's not possible to disable it"),
 			},
 		},
 	})
@@ -847,7 +996,7 @@ func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
 
 	return fmt.Sprintf(`
 access_policy {
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = "%s"
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
@@ -856,19 +1005,9 @@ access_policy {
 `, oid)
 }
 
-func testAccAzureRMKeyVault_softDelete(data acceptance.TestData) string {
+func testAccAzureRMKeyVault_purgeProtection(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
-
-provider "azurerm" {
-  alias = "keyVault"
-
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy = true
-    }
-  }
-}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -877,35 +1016,99 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                     = "vault%d"
-  provider                 = azurerm.keyVault
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  tenant_id                = "${data.azurerm_client_config.current.tenant_id}"
-  soft_delete_enabled      = true
-  purge_protection_enabled = false
-
-  sku_name = "premium"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "premium"
+  purge_protection_enabled = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
-func testAccAzureRMKeyVault_softDeletePurge(data acceptance.TestData) string {
+func testAccAzureRMKeyVault_softDelete(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
-provider "azurerm" {
-  alias = "keyVault"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+  soft_delete_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMKeyVault_softDeleteAbsent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy = true
+      recover_soft_deleted_key_vaults = false
     }
   }
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+  soft_delete_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMKeyVault_purgeProtectionAndSoftDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "vault%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "premium"
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

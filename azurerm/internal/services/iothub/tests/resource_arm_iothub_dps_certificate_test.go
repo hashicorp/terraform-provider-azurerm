@@ -52,7 +52,7 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPSCertificate_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps_certificate"),
 			},
 		},
 	})
@@ -169,11 +169,11 @@ resource "azurerm_iothub_dps_certificate" "test" {
 }
 
 func testAccAzureRMIotHubDPSCertificate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubDPS_basic(data)
+	template := testAccAzureRMIotHubDPSCertificate_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_dps_certificate" "test" {
+resource "azurerm_iothub_dps_certificate" "import" {
   name                = "${azurerm_iothub_dps_certificate.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   iot_dps_name        = "${azurerm_iothub_dps.test.name}"

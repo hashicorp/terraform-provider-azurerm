@@ -1,5 +1,5 @@
 ---
-subcategory: "Front Door"
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_firewall_policy"
 description: |-

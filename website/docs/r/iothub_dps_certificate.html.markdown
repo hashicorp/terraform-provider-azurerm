@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_iothub_dps_certificate
 
-Manages an IotHub Device Provisioning Service Certificate.
+Manages an IotHub Device Provisioning Service Certificate. 
 
 ## Example Usage
 
