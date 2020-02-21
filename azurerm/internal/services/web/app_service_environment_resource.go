@@ -124,7 +124,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, resourceGroup, err)
 	}
 
-	// the App Service Environment has to be in the same location as the Virtual netowrk -
+	// the App Service Environment has to be in the same location as the Virtual Network
 	var location string
 	if loc := vnet.Location; loc != nil {
 		location = azure.NormalizeLocation(*loc)
@@ -324,7 +324,7 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 }
 
 func waitForAppServiceEnvironmentToStabilize(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) error {
-	for true {
+	for {
 		time.Sleep(1 * time.Minute)
 
 		read, err := client.Get(ctx, resourceGroup, name)
