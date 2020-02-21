@@ -123,6 +123,8 @@ BUG FIXES:
 
 * `azurerm_application_insights` - the `application_type` field is now case sensitive as documented [GH-5817]
 * `azurerm_api_management_api` - allows blank `path` field [GH-5833]
+* `azurerm_eventhub_namespace` - the field `ip_rule` within the `network_rulesets` block now supports a maximum of 128 items [GH-5831]
+* `azurerm_eventhub_namespace` - the field `virtual_network_rule` within the `network_rulesets` block now supports a maximum of 128 items [GH-5831]
 * `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
 * `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
 * `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]
