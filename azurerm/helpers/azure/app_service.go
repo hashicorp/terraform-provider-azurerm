@@ -14,6 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const (
+	// TODO: switch back once https://github.com/Azure/azure-rest-api-specs/pull/8435 has been fixed
+	SystemAssignedUserAssigned web.ManagedServiceIdentityType = "SystemAssigned, UserAssigned"
+)
+
 func SchemaAppServiceAadAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -225,6 +230,7 @@ func SchemaAppServiceIdentity() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedServiceIdentityTypeNone),
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
+						string(SystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
@@ -1309,7 +1315,7 @@ func ExpandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
 		Type: identityType,
 	}
 
-	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned {
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == SystemAssignedUserAssigned {
 		managedServiceIdentity.UserAssignedIdentities = identityIds
 	}
 
