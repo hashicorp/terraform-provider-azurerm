@@ -1,6 +1,7 @@
 package keyvault
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -639,31 +640,34 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 
 	// Purge the soft deleted key vault permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
-		// Raise an error if the key vault is in the soft delete state and purge protection is enabled
+		// KeyVaults with Purge Protection Enabled cannot be deleted unless done by Azure
 		if purgeProtectionEnabled {
-			delDate, purgeDate, err := azure.KeyVaultGetSoftDeletedState(ctx, client, name, location)
-			if err == nil {
-				if delDate != nil && purgeDate != nil {
-					return fmt.Errorf("unable to purge Key Vault %q (Resource Group %q) because it has purge protection enabled. The key vault was soft deleted on %s and is scheduled to be purged on %s", name, resourceGroup, delDate.(string), purgeDate.(string))
-				}
-
-				// I was unable to get the soft deleted and purge date information, error with a generic error as the key valit cannot be purged
-				return fmt.Errorf("unable to purge Key Vault %q (Resource Group %q) because it has purge protection enabled", name, resourceGroup)
+			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, client, name, location)
+			if err != nil {
+				return fmt.Errorf("Error retrieving the Deletion Details for KeyVault %q: %+v", name, err)
 			}
+
+			// in the future it'd be nice to raise a warning, but this is the best we can do for now
+			if deletedInfo != nil {
+				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and was deleted on %q. Azure will purge this on %q", name, deletedInfo.deleteDate, deletedInfo.purgeDate)
+			} else {
+				log.Printf("[DEBUG] The Key Vault %q has Purge Protection Enabled and will be purged automatically by Azure", name)
+			}
+			return nil
 		}
 
-		log.Printf("[DEBUG] KeyVault %s marked for purge, executing purge", name)
-
+		log.Printf("[DEBUG] KeyVault %q marked for purge - executing purge", name)
 		future, err := client.PurgeDeleted(ctx, name, location)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[DEBUG] Waiting for purge of KeyVault %s", name)
+		log.Printf("[DEBUG] Waiting for purge of KeyVault %q..", name)
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error purging Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+		log.Printf("[DEBUG] Purged KeyVault %q.", name)
 	}
 
 	return nil
@@ -791,4 +795,39 @@ https://www.terraform.io/docs/providers/azurerm/index.html#features
 Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
 this into Terraform via "terraform import", or pick a different name/location.
 `, name, location)
+}
+
+type keyVaultDeletionStatus struct {
+	deleteDate string
+	purgeDate  string
+}
+
+func getSoftDeletedStateForKeyVault(ctx context.Context, client *keyvault.VaultsClient, name string, location string) (*keyVaultDeletionStatus, error) {
+	softDel, err := client.GetDeleted(ctx, name, location)
+	if err != nil {
+		return nil, err
+	}
+
+	// we found an existing key vault that is not soft deleted
+	if softDel.Properties == nil {
+		return nil, nil
+	}
+
+	// the logic is this way because the GetDeleted call will return an existing key vault
+	// that is not soft deleted, but the Deleted Vault properties will be nil
+	props := *softDel.Properties
+
+	result := keyVaultDeletionStatus{}
+	if props.DeletionDate != nil {
+		result.deleteDate = (*props.DeletionDate).Format(time.RFC3339)
+	}
+	if props.ScheduledPurgeDate != nil {
+		result.purgeDate = (*props.ScheduledPurgeDate).Format(time.RFC3339)
+	}
+
+	if result.deleteDate == "" && result.purgeDate == "" {
+		return nil, nil
+	}
+
+	return &result, nil
 }
