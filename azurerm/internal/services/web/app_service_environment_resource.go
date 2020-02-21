@@ -348,8 +348,6 @@ func waitForAppServiceEnvironmentToStabilize(ctx context.Context, client *web.Ap
 
 		return fmt.Errorf("Unexpected ProvisioningState: %q", state)
 	}
-
-	return nil
 }
 
 // Note: These are abstractions and possibly subject to change if Azure changes the underlying SKU for Isolated instances.

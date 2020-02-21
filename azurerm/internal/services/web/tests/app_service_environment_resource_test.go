@@ -275,8 +275,9 @@ resource "azurerm_app_service_plan" "test" {
   app_service_environment_id = azurerm_app_service_environment.test.id
 
   sku {
-    tier = "Basic"
-    size = "B1"
+    tier     = "Isolated"
+    size     = "I1"
+    capacity = 1
   }
 }
 `, template, data.RandomInteger)
