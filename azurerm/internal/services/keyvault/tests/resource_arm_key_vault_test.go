@@ -1084,17 +1084,6 @@ resource "azurerm_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMKeyVault_softDeletePurge(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
 func testAccAzureRMKeyVault_purgeProtectionAndSoftDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
