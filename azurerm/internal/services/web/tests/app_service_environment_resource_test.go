@@ -39,14 +39,14 @@ func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
 		return
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "import")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppService_basic(data),
+				Config: testAccAzureRMAppServiceEnvironment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
 				),
