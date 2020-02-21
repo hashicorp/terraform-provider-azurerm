@@ -207,7 +207,7 @@ func resourceArmFunctionApp() *schema.Resource {
 									"ip_address": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validate.CIDR,
 									},
 									"subnet_id": {
 										Type:         schema.TypeString,
