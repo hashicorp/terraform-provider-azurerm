@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
@@ -126,20 +127,18 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		ptrName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS PTR record: %s", ptrName)
+		id, err := parse.DnsPtrRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, ptrName, dns.PTR)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
 		if err != nil {
 			return fmt.Errorf("Bad: Get PTR RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS PTR record %s (resource group: %s) does not exist", ptrName, resourceGroup)
+			return fmt.Errorf("Bad: DNS PTR record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -155,11 +154,12 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ptrName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DnsPtrRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, ptrName, dns.PTR)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
