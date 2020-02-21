@@ -143,6 +143,15 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"os_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"linux",
+				}, false),
+			},
+
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -307,6 +316,13 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
+	if osTypeRaw, ok := d.GetOk("os_type"); ok {
+		osType := osTypeRaw.(string)
+		if osType == "linux" {
+			kind = "functionapp,linux"
+		}
+	}
+
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
@@ -394,6 +410,12 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
+	if osTypeRaw, ok := d.GetOk("os_type"); ok {
+		osType := osTypeRaw.(string)
+		if osType == "Linux" {
+			kind = "functionapp,linux"
+		}
+	}
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
@@ -551,6 +573,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("kind", resp.Kind)
+
+	if notWindows := strings.HasPrefix(*resp.Kind, "functionapp,linux"); notWindows {
+		d.Set("os_type", utils.String("linux"))
+	}
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
