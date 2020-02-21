@@ -357,7 +357,7 @@ func TestAccAzureRMKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// create it regularly
-				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Config: testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
@@ -1047,6 +1047,14 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_softDeleteAbsent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+	key_vault {
+	  recover_soft_deleted_key_vaults = false
+	}
+  }
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {

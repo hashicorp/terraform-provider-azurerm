@@ -104,9 +104,6 @@ func TestAccDataSourceAzureRMKeyVault_softDelete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				Config: testAccAzureRMKeyVault_softDeleteAbsent(data),
-			},
 		},
 	})
 }
