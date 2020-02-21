@@ -136,13 +136,12 @@ The following arguments are supported:
 `site_config` supports the following:
 
 * `always_on` - (Optional) Should the Function App be loaded at all times? Defaults to `false`.
+
 * `use_32_bit_worker_process` - (Optional) Should the Function App run in 32 bit mode, rather than 64 bit mode? Defaults to `true`.
 
 ~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
-
-* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 

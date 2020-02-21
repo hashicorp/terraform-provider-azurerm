@@ -173,6 +173,8 @@ The deprecated `vault_uri` field has been replaced by the `key_vault_id` field a
 
 The deprecated block `agent_pool_profile` will be removed. This has been replaced by the `default_node_pool` block.
 
+The deprecated `default_node_pool.dns_prefix` field has been removed
+
 ### Data Source: `azurerm_network_interface`
 
 The deprecated field `internal_fqdn` will be removed.
@@ -191,7 +193,7 @@ Azure Scheduler is being retired in favour of Logic Apps ([more information can 
 
 ### Data Source: `azurerm_virtual_network`
 
-The deprecated field `address_space` will be removed.
+The deprecated field `address_spaces` will be removed.
 
 ### Resource: `azurerm_api_management`
 
@@ -212,6 +214,16 @@ The deprecated field  `disable_frontend_tls11` will be removed in favour of the 
 The deprecated field  `disable_triple_des_chipers` will be removed in favour of the `enable_triple_des_ciphers` property.
 
 The deprecated field  `disable_triple_des_ciphers` will be removed in favour of the `enable_triple_des_ciphers` property.
+
+### Resource: `azurerm_app_service`
+
+The `identity.type` field no longer supports the combined value `"SystemAssigned, UserAssigned"` as this has been removed from the API
+
+The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
+
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is not longer used.
+
+The `site_config.virtual_network_name` field has been removed as it it no longer used
 
 ### Resource: `azurerm_app_service_plan`
 
@@ -337,6 +349,14 @@ The deprecated `internal_public_ip_address_id` field in the `ip_configuration` b
 
 The `forwarding_protocol` property now defaults to `HttpsOnly`
 
+### Resource: `azurerm_function_app`
+
+The `site_config.ip_restriction.ip_address` must now be specified in CIDR notation to match the API
+
+The `site_config.ip_restriction.subnet_mask` field has been removed as it is not longer used.
+
+The `site_config.virtual_network_name` field has been removed as it it no longer used
+
 ### Resource: `azurerm_iothub`
 
 The deprecated `sku.tier` property will be remove.
@@ -409,10 +429,13 @@ The deprecated `vault_uri` field has been replaced by the `key_vault_id` field a
 
 The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
 
-
 ### Resource: `azurerm_key_vault_secret`
 
 The deprecated `vault_uri` field has been replaced by the `key_vault_id` field and will be removed.
+
+### Resource: `azurerm_kubernetes_cluster`
+
+The deprecated `default_node_pool.dns_prefix` field has been removed
 
 ### Resource: `azurerm_log_analytics_linked_service`
 

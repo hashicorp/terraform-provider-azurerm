@@ -483,11 +483,6 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
   name                 = "acctvme-%d"
-<<<<<<< HEAD
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-=======
->>>>>>> master
   virtual_machine_id   = "${azurerm_virtual_machine.test.id}"
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"

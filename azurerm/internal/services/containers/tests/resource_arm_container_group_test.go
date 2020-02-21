@@ -617,10 +617,10 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
 
   container {
-    name     = "hw"
-    image    = "microsoft/aci-helloworld:latest"
-    cpu      = "0.5"
-    memory   = "0.5"
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
     ports {
       port     = 5443
       protocol = "UDP"
