@@ -167,7 +167,7 @@ The `key_vault` block supports the following:
 
 * `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`. 
 
-~> **Note:** When purge protection is enabled, a vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
+~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
 
 ---
 
