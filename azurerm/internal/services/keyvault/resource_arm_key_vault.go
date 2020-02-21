@@ -575,8 +575,6 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 	location := d.Get("location").(string)
-	purgeProtectionEnabled := false
-	softDeleteEnabled := false
 
 	locks.ByName(name, keyVaultResourceName)
 	defer locks.UnlockByName(name, keyVaultResourceName)
@@ -595,13 +593,13 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Check to see if purge protection is enabled or not...
-	if read.Properties == nil {
-		if ppe := read.Properties.EnablePurgeProtection; ppe != nil {
-			purgeProtectionEnabled = *ppe
-		}
-		if sde := read.Properties.EnableSoftDelete; sde != nil {
-			softDeleteEnabled = *sde
-		}
+	purgeProtectionEnabled := false
+	if ppe := read.Properties.EnablePurgeProtection; ppe != nil {
+		purgeProtectionEnabled = *ppe
+	}
+	softDeleteEnabled := false
+	if sde := read.Properties.EnableSoftDelete; sde != nil {
+		softDeleteEnabled = *sde
 	}
 
 	// ensure we lock on the latest network names, to ensure we handle Azure's networking layer being limited to one change at a time
