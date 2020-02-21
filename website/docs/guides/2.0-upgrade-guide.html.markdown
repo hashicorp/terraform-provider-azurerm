@@ -327,6 +327,8 @@ The deprecated `kafka_enabled` field will be removed, since this is no longer us
 
 The deprecated `location` field will be removed, since this is no longer used.
 
+The `virtual_network_rule` and `ip_rule` fields in the `network_rulesets` block will have a hard limit of 128 items.
+
 ### Resource: `azurerm_firewall`
 
 The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
