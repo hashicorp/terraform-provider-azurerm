@@ -52,6 +52,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 			"authorized_resource_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				MaxItems: 100,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
