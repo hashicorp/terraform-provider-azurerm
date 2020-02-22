@@ -183,6 +183,10 @@ The deprecated field `internal_fqdn` will be removed.
 
 The deprecated field `network_interface_ids` will be removed.
 
+### Data Source: `azurerm_recovery_services_protection_policy_vm`
+
+This Data Source is renamed to `azurerm_backup_policy_vm` in line with the name that replaces the Deprecated resource.  
+
 ### Data Source: `azurerm_role_definition`
 
 The Data Source no longer supports the alias `VirtualMachineContributor` for the Built-in role `Virtual Machine Contributor`.
@@ -516,6 +520,38 @@ The `sku_name` field will become Required.
 ### Resource: `azurerm_public_ip`
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
+
+### Resource `azurerm_recovery_replicated_vm`
+
+This resource was deprecated in favor of `azurerm_site_recovery_replicated_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_fabric`
+
+The resource was deprecated in favor of `azurerm_site_recovery_fabric` and has been removed.
+
+### Resource `azurerm_recovery_services_network_mapping`
+
+This resource was deprecated in favor of `azurerm_site_recovery_network_mapping` and has been removed.
+
+### Resource `azurerm_recovery_services_protected_vm`
+
+This resource was deprecated in favor of `azurerm_backup_protected_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_container`
+
+This resource was deprecated in favor of `azurerm_site_recovery_protection_container` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_container_mapping`
+
+This resource was deprecated in favor of `azurerm_site_recovery_protection_container_mapping` and has been removed.
+
+### Resource `azurerm_recovery_services_protection_policy_vm`
+
+This resource was deprecated in favor of `azurerm_backup_policy_vm` and has been removed.
+
+### Resource `azurerm_recovery_services_replication_policy`
+
+This resource was deprecated in favor of `azurerm_site_recovery_replication_policy` and has been removed.
 
 ### Resource: `azurerm_relay_namespace`
 

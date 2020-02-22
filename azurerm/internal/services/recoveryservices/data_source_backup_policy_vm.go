@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
+func dataSourceArmBackupPolicyVm() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmRecoveryServicesProtectionPolicyVmRead,
 
