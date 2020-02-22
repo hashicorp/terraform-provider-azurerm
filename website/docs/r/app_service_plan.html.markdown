@@ -143,10 +143,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the App Service Plan.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Plan.
+* `create` - (Defaults to 60 minutes) Used when creating the App Service Plan.
+* `update` - (Defaults to 60 minutes) Used when updating the App Service Plan.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Plan.
-* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Plan.
+* `delete` - (Defaults to 60 minutes) Used when deleting the App Service Plan.
 
 ## Import
 
