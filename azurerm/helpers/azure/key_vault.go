@@ -3,6 +3,7 @@ package azure
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -117,4 +118,67 @@ func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVault
 	}
 
 	return true, nil
+}
+
+func KeyVaultGetSoftDeletedState(ctx context.Context, client *keyvault.VaultsClient, name string, location string) (deleteDate interface{}, purgeDate interface{}, err error) {
+	softDel, err := client.GetDeleted(ctx, name, location)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to get soft delete state information: %+v", err)
+	}
+
+	// the logic is this way because the GetDeleted call will return an existing key vault
+	// that is not soft deleted, but the Deleted Vault properties will be nil
+	if props := softDel.Properties; props != nil {
+		var delDate interface{}
+		var purgeDate interface{}
+
+		if dd := props.DeletionDate; dd != nil {
+			delDate = (*dd).Format(time.RFC3339)
+		}
+		if pg := props.ScheduledPurgeDate; pg != nil {
+			purgeDate = (*pg).Format(time.RFC3339)
+		}
+		if delDate != nil && purgeDate != nil {
+			return delDate, purgeDate, nil
+		}
+	}
+
+	// this means we found an existing key vault that is not soft deleted
+	return nil, nil, nil
+}
+
+func KeyVaultIsSoftDeleteAndPurgeProtected(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) bool {
+	name, resourceGroup, err := ParseNameAndResourceGroupFromResourceId(keyVaultId, "vaults")
+	if err != nil {
+		return false
+	}
+
+	resp, err := client.Get(ctx, resourceGroup.(string), name.(string))
+
+	if props := resp.Properties; props != nil {
+		softDeleteEnabled := false
+		purgeProtectionEnabled := false
+
+		if esd := props.EnableSoftDelete; esd != nil {
+			softDeleteEnabled = *esd
+		}
+		if epp := props.EnableSoftDelete; epp != nil {
+			purgeProtectionEnabled = *epp
+		}
+
+		if softDeleteEnabled && purgeProtectionEnabled {
+			return true
+		}
+	}
+
+	return false
+}
+
+func ParseNameAndResourceGroupFromResourceId(resourceId string, namePathKey string) (resourceName interface{}, resourceGroup interface{}, err error) {
+	id, err := ParseAzureResourceID(resourceId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return id.Path[namePathKey], id.ResourceGroup, nil
 }

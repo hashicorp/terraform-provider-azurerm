@@ -74,12 +74,12 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	storageAccountId := d.Get("storage_account_id").(string)
 	encryptionServices := true
 
-	storageAccountName, storageAccountResourceGroupName, err := azure.KeyVaultGetResourceNameResource(storageAccountId, "storageAccounts")
+	storageAccountName, storageAccountResourceGroupName, err := azure.ParseNameAndResourceGroupFromResourceId(storageAccountId, "storageAccounts")
 	if err != nil {
 		return err
 	}
 
-	keyVaultAccountName, keyVaultResourceGroupName, err := azure.KeyVaultGetResourceNameResource(keyVaultId, "vaults")
+	keyVaultAccountName, keyVaultResourceGroupName, err := azure.ParseNameAndResourceGroupFromResourceId(keyVaultId, "vaults")
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	d.Set("storage_account_id", storageAccountId)
 	d.Set("key_vault_id", keyVaultId)
 
-	name, resGroup, err := azure.KeyVaultGetResourceNameResource(storageAccountId, "storageAccounts")
+	name, resGroup, err := azure.ParseNameAndResourceGroupFromResourceId(storageAccountId, "storageAccounts")
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 	storageAccountId := d.Get("storage_account_id").(string)
 	encryptionServices := true
 
-	storageAccountName, resourceGroupName, err := azure.KeyVaultGetResourceNameResource(storageAccountId, "storageAccounts")
+	storageAccountName, resourceGroupName, err := azure.ParseNameAndResourceGroupFromResourceId(storageAccountId, "storageAccounts")
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func resourceArmStorageAccountCustomerManagedKeyImportState(d *schema.ResourceDa
 	d.Set("storage_account_id", id)
 	d.Set("key_vault_id", "")
 
-	name, resourceGroup, err := azure.KeyVaultGetResourceNameResource(id, "storageAccounts")
+	name, resourceGroup, err := azure.ParseNameAndResourceGroupFromResourceId(id, "storageAccounts")
 	if err != nil {
 		return nil, err
 	}

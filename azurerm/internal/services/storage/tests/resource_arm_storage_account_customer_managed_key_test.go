@@ -15,7 +15,7 @@ import (
 )
 
 func TestAccAzureRMStorageAccountCustomerManagedKey_basic(t *testing.T) {
-	parentResourceName := "azurerm_storage_account.testsa"
+	parentResourceName := "azurerm_storage_account.test"
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "custom")
 	preConfig := testAccAzureRMStorageAccountCustomerManagedKey_basic(data)
 	postConfig := testAccAzureRMStorageAccountCustomerManagedKey_basicDelete(data)
@@ -46,7 +46,7 @@ func TestAccAzureRMStorageAccountCustomerManagedKey_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccountCustomerManagedKey_disappears(t *testing.T) {
-	parentResourceName := "azurerm_storage_account.testsa"
+	parentResourceName := "azurerm_storage_account.test"
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "custom")
 	preConfig := testAccAzureRMStorageAccountCustomerManagedKey_basic(data)
 	postConfig := testAccAzureRMStorageAccountCustomerManagedKey_basicDelete(data)
@@ -174,28 +174,86 @@ func testCheckAzureRMStorageAccountCustomerManagedKeyDestroyed(resourceName stri
 
 func testAccAzureRMStorageAccountCustomerManagedKey_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_storage_account" "testsa" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.testrg.location
+  resource_group_name = azurerm_resource_group.testrg.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 
-  location                 = "${azurerm_resource_group.testrg.location}"
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
+
+  tags = {
+    environment = "testing"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name                       = "key%d"
+  key_vault_id               = azurerm_key_vault.test.id
+  key_vault_access_policy_id = azurerm_key_vault_access_policy.storage.id
+  key_type                   = "RSA"
+  key_size                   = 2048
+  key_opts                   = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+}
+
+resource "azurerm_key_vault_access_policy" "storage" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_storage_account.test.identity.0.principal_id
+
+  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  secret_permissions = ["get"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.service_principal_application_id
+
+  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  secret_permissions = ["get"]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.testrg.name
+  location                 = azurerm_resource_group.testrg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
+	identity {
+    type = "SystemAssigned"
+	}
+	
   tags = {
-    environment = "production"
+    environment = "testing"
   }
 }
 
 resource "azurerm_storage_account_customer_managed_key" "custom" {
-  storage_account_id     = "${azurerm_storage_account.testsa.id}"
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_id       = azurerm_key_vault.test.id
+  key_name           = azurerm_key_vault_key.test.name
+  key_version        = azurerm_key_vault_key.test.version
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(4))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomStringOfLength(4))
 }
 
 func testAccAzureRMStorageAccountCustomerManagedKey_basicDelete(data acceptance.TestData) string {
@@ -209,7 +267,7 @@ resource "azurerm_storage_account" "testsa" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-  location                 = "${azurerm_resource_group.testrg.location}"
+  location                 = azurerm_resource_group.testrg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 

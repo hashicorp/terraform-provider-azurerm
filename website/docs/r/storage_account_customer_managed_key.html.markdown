@@ -16,8 +16,6 @@ Manages the customer managed key of an Azure Storage Account.
 data "azurerm_client_config" "current" {}
 
 provider "azurerm" {
-  alias = "keyVault"
-
   features {
     key_vault {
       purge_soft_delete_on_destroy = false
@@ -32,15 +30,13 @@ resource "azurerm_resource_group" "tfex" {
 
 resource "azurerm_key_vault" "tfex" {
   name                = "tfex-key-vault"
-  provider            = azurerm.keyVault
   location            = azurerm_resource_group.tfex.location
   resource_group_name = azurerm_resource_group.tfex.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 
   soft_delete_enabled      = true
   purge_protection_enabled = true
-
-  sku_name = "standard"
 
   tags = {
     environment = "testing"
@@ -61,14 +57,14 @@ resource "azurerm_key_vault_access_policy" "storage" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_storage_account.tfex.identity.0.principal_id
 
-  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
   key_vault_id = azurerm_key_vault.tfex.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_storage_account.tfex.identity.0.principal_id
+  object_id    = data.azurerm_client_config.current.service_principal_application_id
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
