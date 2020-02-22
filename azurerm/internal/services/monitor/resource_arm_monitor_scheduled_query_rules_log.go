@@ -301,7 +301,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) *[]insight
 }
 
 func expandMonitorScheduledQueryRulesLogToMetricAction(d *schema.ResourceData) *insights.LogToMetricAction {
-	criteriaRaw := d.Get("criteria").(*schema.Set).List()
+	criteriaRaw := d.Get("criteria").([]interface{})
 	criteria := expandMonitorScheduledQueryRulesLogCriteria(criteriaRaw)
 
 	action := insights.LogToMetricAction{

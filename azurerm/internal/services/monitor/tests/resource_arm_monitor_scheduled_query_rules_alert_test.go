@@ -258,8 +258,8 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestWorkspace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
