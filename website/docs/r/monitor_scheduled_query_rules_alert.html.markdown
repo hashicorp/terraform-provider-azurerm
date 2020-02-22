@@ -25,19 +25,17 @@ resource "azurerm_application_insights" "example" {
   application_type    = "web"
 }
 
-resource "azurerm_log_analytics_workspace" "example" {
-  name                = "loganalytics"
-  location            = azurerm_resource_group.example.location
+resource "azurerm_application_insights" "example2" {
+  name                = "appinsights2"
+  location            = var.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
+  application_type    = "web"
 }
-
 
 # Example: Alerting Action with result count trigger
 # Alert if more than three HTTP requests returned a >= 500 result code
 # in the past 30 minutes
-resource "azurerm_scheduled_query_rule_alert" "example" {
+resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
   name                = format("%s-queryrule", var.prefix)
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -63,7 +61,7 @@ resource "azurerm_scheduled_query_rule_alert" "example" {
 # Example: Alerting Action with metric trigger
 # Alert if more than three HTTP requests returned a >= 500 result code
 # in the past 30 minutes that have the same operation (ie: GET /)
-resource "azurerm_scheduled_query_rule_alert" "example" {
+resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
   name                = format("%s-queryrule", var.prefix)
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -93,13 +91,16 @@ resource "azurerm_scheduled_query_rule_alert" "example" {
 }
 
 # Example: Alerting Action Cross-Resource
-resource "azurerm_scheduled_query_rule_alert" "example2" {
+# Enables use of cross-resource queries to analyze query results across 
+# multiple Application Insights or Log Analytics resources.
+# Alert if more than three HTTP requests returned a >= 500 result code
+# in either of the Insights resources in the past 30 minutes.
+resource "azurerm_monitor_scheduled_query_rules_alert" "example2" {
   name                = format("%s-queryrule2", var.prefix)
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  authorized_resource_ids = [azurerm_application_insights.example.id,
-  azurerm_log_analytics_workspace.example.id]
+  authorized_resource_ids = [azurerm_application_insights.example2.id]
   action {
     action_group           = []
     email_subject          = "Email Header"
@@ -109,8 +110,8 @@ resource "azurerm_scheduled_query_rule_alert" "example2" {
   description    = "Scheduled query rule Alerting Action cross-resource example"
   enabled        = true
   frequency      = 5
-  query          = format("let a=workspace('%s').Perf | where Computer='dependency' and TimeGenerated > ago(1h) | where ObjectName == 'Processor' and CounterName == '%% Processor Time' | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated); let b=requests | where resultCode == '200' and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp); a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5", azurerm_log_analytics_workspace.test.id)
-  severity       = "1"
+  query          = format("let a=requests | where toint(resultCode) >= 500 | extend fail=1; let b=app('%s').requests | where toint(resultCode) >= 500 | extend fail=1; a | join b on fail", azurerm_application_insights.example2.id)
+  severity       = 1
   time_window    = 30
   trigger {
     operator  = "GreaterThan"

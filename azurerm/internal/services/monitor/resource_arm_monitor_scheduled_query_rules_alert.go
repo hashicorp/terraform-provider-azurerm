@@ -379,13 +379,13 @@ func resourceArmMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, me
 }
 
 func expandMonitorScheduledQueryRulesAlertingAction(d *schema.ResourceData) *insights.AlertingAction {
-	alertActionRaw := d.Get("action").(*schema.Set).List()
+	alertActionRaw := d.Get("action").([]interface{})
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
 	severityRaw := d.Get("severity").(int)
 	severity := strconv.Itoa(severityRaw)
 	throttling := d.Get("throttling").(int)
 
-	triggerRaw := d.Get("trigger").(*schema.Set).List()
+	triggerRaw := d.Get("trigger").([]interface{})
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)
 
 	action := insights.AlertingAction{
@@ -472,7 +472,7 @@ func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) *insights
 		if !ok {
 			continue
 		}
-		metricTriggerRaw := v["metric_trigger"].(*schema.Set).List()
+		metricTriggerRaw := v["metric_trigger"].([]interface{})
 
 		result.ThresholdOperator = insights.ConditionalOperator(v["operator"].(string))
 		result.Threshold = utils.Float(v["threshold"].(float64))
