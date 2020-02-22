@@ -1,19 +1,19 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
+page_title: "Azure Resource Manager: azurerm_backup_policy_vm"
 description: |-
-  Gets information about an existing Recovery Services VM Protection Policy.
+  Gets information about an existing Backup VM Protection Policy.
 ---
 
-# Data Source: azurerm_recovery_services_protection_policy_vm
+# Data Source: azurerm_backup_protection_policy_vm
 
-Use this data source to access information about an existing Recovery Services VM Protection Policy.
+Use this data source to access information about an existing Backup VM Protection Policy.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_recovery_services_protection_policy_vm" "policy" {
+data "azurerm_backup_protection_policy_vm" "policy" {
   name                = "policy"
   recovery_vault_name = "recovery_vault"
   resource_group_name = "resource_group"
@@ -24,7 +24,7 @@ data "azurerm_recovery_services_protection_policy_vm" "policy" {
 
 The following arguments are supported:
 
-* `name` - Specifies the name of the Recovery Services VM Protection Policy.
+* `name` - Specifies the name of the Backup VM Protection Policy.
 
 * `recovery_vault_name` - Specifies the name of the Recovery Services Vault.
 
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Recovery Services VM Protection Policy.
+* `id` - The ID of the Backup VM Protection Policy.
 
 * `tags` - A mapping of tags assigned to the resource.
 

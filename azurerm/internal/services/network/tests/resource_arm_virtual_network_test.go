@@ -323,7 +323,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_ddos_protection_plan" "test" {
+resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -336,7 +336,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ddos_protection_plan {
-    id     = "${azurerm_ddos_protection_plan.test.id}"
+    id     = "${azurerm_network_ddos_protection_plan.test.id}"
     enable = true
   }
 

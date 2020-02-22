@@ -29,7 +29,7 @@ resource "azurerm_network_security_group" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_ddos_protection_plan" "example" {
+resource "azurerm_network_ddos_protection_plan" "example" {
   name                = "ddospplan1"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -43,7 +43,7 @@ resource "azurerm_virtual_network" "example" {
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 
   ddos_protection_plan {
-    id     = azurerm_ddos_protection_plan.example.id
+    id     = azurerm_network_ddos_protection_plan.example.id
     enable = true
   }
 
