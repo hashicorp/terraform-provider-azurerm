@@ -298,14 +298,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"managed_outbound_ip_count": {
 										Type:          schema.TypeInt,
 										Optional:      true,
-										Computed:      true,
+										Computed:      false,
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
 									"outbound_ip_prefix_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
-										Computed:      true,
+										Computed:      false,
 										ConfigMode:    schema.SchemaConfigModeAttr,
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 										Elem: &schema.Schema{
@@ -316,7 +316,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"outbound_ip_address_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
-										Computed:      true,
+										Computed:      false,
 										ConfigMode:    schema.SchemaConfigModeAttr,
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
 										Elem: &schema.Schema{
