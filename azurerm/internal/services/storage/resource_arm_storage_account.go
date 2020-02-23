@@ -20,7 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -30,6 +29,8 @@ import (
 )
 
 const blobStorageAccountDefaultAccessTier = "Hot"
+
+var storageAccountResourceName = "azurerm_storage_account"
 
 func resourceArmStorageAccount() *schema.Resource {
 	return &schema.Resource{
@@ -749,8 +750,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
-	locks.ByName(storageAccountName, iothub.IothubResourceName)
-	defer locks.UnlockByName(storageAccountName, iothub.IothubResourceName)
+	locks.ByName(storageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
