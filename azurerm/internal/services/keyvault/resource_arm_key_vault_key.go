@@ -52,13 +52,6 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"key_vault_access_policy_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
 			"key_type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -309,8 +302,6 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	keyVaultAccessPolicyId := d.Get("key_vault_access_policy_id").(string)
-
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
@@ -348,7 +339,6 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", id.Name)
-	d.Set("key_vault_access_policy_id", keyVaultAccessPolicyId)
 
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))

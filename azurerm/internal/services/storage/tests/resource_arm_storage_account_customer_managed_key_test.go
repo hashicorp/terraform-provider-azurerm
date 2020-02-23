@@ -186,10 +186,14 @@ func testAccAzureRMStorageAccountCustomerManagedKey_updated(data acceptance.Test
 resource "azurerm_key_vault_key" "second" {
   name                       = "second"
   key_vault_id               = azurerm_key_vault.test.id
-  key_vault_access_policy_id = azurerm_key_vault_access_policy.storage.id
   key_type                   = "RSA"
   key_size                   = 2048
   key_opts                   = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.storage,
+  ]
 }
 
 resource "azurerm_storage_account_customer_managed_key" "test" {
@@ -249,12 +253,14 @@ resource "azurerm_key_vault_access_policy" "client" {
 resource "azurerm_key_vault_key" "first" {
   name                       = "first"
   key_vault_id               = azurerm_key_vault.test.id
-  key_vault_access_policy_id = azurerm_key_vault_access_policy.storage.id
   key_type                   = "RSA"
   key_size                   = 2048
   key_opts                   = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 
-  depends_on = [azurerm_key_vault_access_policy.client]
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.storage,
+  ]
 }
 
 resource "azurerm_storage_account" "test" {
