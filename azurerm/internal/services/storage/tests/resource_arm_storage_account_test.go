@@ -325,6 +325,7 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
