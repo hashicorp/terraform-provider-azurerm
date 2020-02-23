@@ -181,6 +181,7 @@ BUG FIXES:
 * `azurerm_eventhub_namespace` - the field `ip_rule` within the `network_rulesets` block now supports a maximum of 128 items [GH-5831]
 * `azurerm_eventhub_namespace` - the field `virtual_network_rule` within the `network_rulesets` block now supports a maximum of 128 items [GH-5831]
 * `azurerm_linux_virtual_machine` - using the delete custom timeout during deletion [GH-5764]
+* `azurerm_netapp_account` - allowing the `-` character to be used in the `name` field [GH-5842]
 * `azurerm_network_interface` - the `dns_servers` field now respects ordering [GH-5784]
 * `azurerm_public_ip_prefix` - fixing the validation for the `prefix_length` to match the Azure API [GH-5693]
 * `azurerm_recovery_services_vault` - using the requested cloud rather than the default [GH-5825]
