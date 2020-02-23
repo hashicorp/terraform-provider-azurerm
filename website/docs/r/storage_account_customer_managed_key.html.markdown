@@ -13,20 +13,62 @@ Manages a Customer Managed Key for a Storage Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault" "example" {
-  name                = "mykeyvault"
-  resource_group_name = "some-resource-group"
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
-data "azurerm_key_vault_key" "example" {
-  name         = "secret-sauce"
-  key_vault_id = data.azurerm_key_vault.example.id
+resource "azurerm_key_vault" "example" {
+  name                = "examplekv"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
 }
 
-resource "azurerm_storage_account" "tfex" {
-  name                     = "exampleaccount"
-  resource_group_name      = data.azurerm_key_vault.example.name
-  location                 = data.azurerm_key_vault.example.location
+resource "azurerm_key_vault_access_policy" "storage" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_storage_account.example.identity.0.principal_id
+
+  key_permissions    = ["get", "create", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  secret_permissions = ["get"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
+  secret_permissions = ["get"]
+}
+
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "tfex-key"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.storage,
+  ]
+}
+
+
+resource "azurerm_storage_account" "example" {
+  name                     = "examplestor"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -37,9 +79,9 @@ resource "azurerm_storage_account" "tfex" {
 
 resource "azurerm_storage_account_customer_managed_key" "example" {
   storage_account_id = azurerm_storage_account.example.id
-  key_vault_id       = data.azurerm_key_vault.example.id
-  key_name           = data.azurerm_key_vault_key.example.name
-  key_version        = data.azurerm_key_vault_key.example.version
+  key_vault_id       = azurerm_key_vault.example.id
+  key_name           = azurerm_key_vault_key.example.name
+  key_version        = azurerm_key_vault_key.example.version
 }
 ```
 
