@@ -25,12 +25,6 @@ func TestAccAzureRMNetworkDDoSProtectionPlan(t *testing.T) {
 		"datasource": {
 			"basic": testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic,
 		},
-		"deprecated": {
-			"basic":          testAccAzureRMDDoSProtectionPlan_basic,
-			"requiresImport": testAccAzureRMDDoSProtectionPlan_requiresImport,
-			"withTags":       testAccAzureRMDDoSProtectionPlan_withTags,
-			"disappears":     testAccAzureRMDDoSProtectionPlan_disappears,
-		},
 	}
 
 	for group, steps := range testCases {
