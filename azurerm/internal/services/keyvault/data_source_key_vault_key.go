@@ -28,13 +28,9 @@ func dataSourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"key_vault_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"key_vault_access_policy_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"key_type": {
@@ -88,8 +84,6 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
-
-	d.Set("key_vault_id", keyVaultId)
 
 	resp, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
 	if err != nil {
