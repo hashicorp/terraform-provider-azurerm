@@ -40,7 +40,7 @@ func NewTopLevelDomainsClientWithBaseURI(baseURI string, subscriptionID string) 
 	return TopLevelDomainsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get get details of a top-level domain.
+// Get description for Get details of a top-level domain.
 // Parameters:
 // name - name of the top-level domain.
 func (client TopLevelDomainsClient) Get(ctx context.Context, name string) (result TopLevelDomain, err error) {
@@ -82,7 +82,7 @@ func (client TopLevelDomainsClient) GetPreparer(ctx context.Context, name string
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -115,7 +115,7 @@ func (client TopLevelDomainsClient) GetResponder(resp *http.Response) (result To
 	return
 }
 
-// List get all top-level domains supported for registration.
+// List description for Get all top-level domains supported for registration.
 func (client TopLevelDomainsClient) List(ctx context.Context) (result TopLevelDomainCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopLevelDomainsClient.List")
@@ -155,7 +155,7 @@ func (client TopLevelDomainsClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -225,7 +225,7 @@ func (client TopLevelDomainsClient) ListComplete(ctx context.Context) (result To
 	return
 }
 
-// ListAgreements gets all legal agreements that user needs to accept before purchasing a domain.
+// ListAgreements description for Gets all legal agreements that user needs to accept before purchasing a domain.
 // Parameters:
 // name - name of the top-level domain.
 // agreementOption - domain agreement options.
@@ -269,7 +269,7 @@ func (client TopLevelDomainsClient) ListAgreementsPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

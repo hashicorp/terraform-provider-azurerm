@@ -35,6 +35,7 @@ resource "azurerm_managed_disk" "example" {
 
 ## Attributes Reference
 
+* `id` - The ID of the Resource Group.
 * `location` - The location of the resource group.
 * `tags` - A mapping of tags assigned to the resource group.
 

@@ -40,13 +40,7 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 						"azurerm_lb_probe.test", "id", probeId),
 				),
 			},
-			{
-				ResourceName:      "azurerm_lb.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// location is deprecated and was never actually used
-				ImportStateVerifyIgnore: []string{"location"},
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -289,7 +283,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -306,7 +299,6 @@ func testAccAzureRMLoadBalancerProbe_requiresImport(data acceptance.TestData, na
 resource "azurerm_lb_probe" "import" {
   name                = "${azurerm_lb_probe.test.name}"
   loadbalancer_id     = "${azurerm_lb_probe.test.loadbalancer_id}"
-  location            = "${azurerm_lb_probe.test.location}"
   resource_group_name = "${azurerm_lb_probe.test.resource_group_name}"
   port                = 22
 }
@@ -366,7 +358,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -374,7 +365,6 @@ resource "azurerm_lb_probe" "test" {
 }
 
 resource "azurerm_lb_probe" "test2" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -409,7 +399,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -417,7 +406,6 @@ resource "azurerm_lb_probe" "test" {
 }
 
 resource "azurerm_lb_probe" "test2" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -452,7 +440,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -489,7 +476,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"

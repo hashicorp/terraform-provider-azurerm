@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
 func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
@@ -238,20 +239,18 @@ func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		aaaaName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS AAAA record: %s", aaaaName)
+		id, err := parse.DnsAaaaRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, aaaaName, dns.AAAA)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.AAAA)
 		if err != nil {
 			return fmt.Errorf("Bad: Get AAAA RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS AAAA record %s (resource group: %s) does not exist", aaaaName, resourceGroup)
+			return fmt.Errorf("Bad: DNS AAAA record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -267,11 +266,11 @@ func testCheckAzureRMDnsAaaaRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		aaaaName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, aaaaName, dns.AAAA)
+		id, err := parse.DnsAaaaRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.AAAA)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

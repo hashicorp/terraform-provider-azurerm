@@ -41,7 +41,7 @@ func NewAppServiceCertificateOrdersClientWithBaseURI(baseURI string, subscriptio
 	return AppServiceCertificateOrdersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update a certificate purchase order.
+// CreateOrUpdate description for Create or update a certificate purchase order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -95,7 +95,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdatePreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -136,7 +136,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdateResponder(resp *ht
 	return
 }
 
-// CreateOrUpdateCertificate creates or updates a certificate and associates with key vault secret.
+// CreateOrUpdateCertificate description for Creates or updates a certificate and associates with key vault secret.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -185,7 +185,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdateCertificatePrepare
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -226,7 +226,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdateCertificateRespond
 	return
 }
 
-// Delete delete an existing certificate order.
+// Delete description for Delete an existing certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -278,7 +278,7 @@ func (client AppServiceCertificateOrdersClient) DeletePreparer(ctx context.Conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -310,7 +310,7 @@ func (client AppServiceCertificateOrdersClient) DeleteResponder(resp *http.Respo
 	return
 }
 
-// DeleteCertificate delete the certificate associated with a certificate order.
+// DeleteCertificate description for Delete the certificate associated with a certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -364,7 +364,7 @@ func (client AppServiceCertificateOrdersClient) DeleteCertificatePreparer(ctx co
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -396,7 +396,7 @@ func (client AppServiceCertificateOrdersClient) DeleteCertificateResponder(resp 
 	return
 }
 
-// Get get a certificate order.
+// Get description for Get a certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order..
@@ -448,7 +448,7 @@ func (client AppServiceCertificateOrdersClient) GetPreparer(ctx context.Context,
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -481,7 +481,7 @@ func (client AppServiceCertificateOrdersClient) GetResponder(resp *http.Response
 	return
 }
 
-// GetCertificate get the certificate associated with a certificate order.
+// GetCertificate description for Get the certificate associated with a certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -535,7 +535,7 @@ func (client AppServiceCertificateOrdersClient) GetCertificatePreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -568,7 +568,7 @@ func (client AppServiceCertificateOrdersClient) GetCertificateResponder(resp *ht
 	return
 }
 
-// List list all certificate orders in a subscription.
+// List description for List all certificate orders in a subscription.
 func (client AppServiceCertificateOrdersClient) List(ctx context.Context) (result AppServiceCertificateOrderCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AppServiceCertificateOrdersClient.List")
@@ -608,7 +608,7 @@ func (client AppServiceCertificateOrdersClient) ListPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -678,7 +678,7 @@ func (client AppServiceCertificateOrdersClient) ListComplete(ctx context.Context
 	return
 }
 
-// ListByResourceGroup get certificate orders in a resource group.
+// ListByResourceGroup description for Get certificate orders in a resource group.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 func (client AppServiceCertificateOrdersClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AppServiceCertificateOrderCollectionPage, err error) {
@@ -729,7 +729,7 @@ func (client AppServiceCertificateOrdersClient) ListByResourceGroupPreparer(ctx 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -799,7 +799,7 @@ func (client AppServiceCertificateOrdersClient) ListByResourceGroupComplete(ctx 
 	return
 }
 
-// ListCertificates list all certificates associated with a certificate order.
+// ListCertificates description for List all certificates associated with a certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -852,7 +852,7 @@ func (client AppServiceCertificateOrdersClient) ListCertificatesPreparer(ctx con
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -922,7 +922,7 @@ func (client AppServiceCertificateOrdersClient) ListCertificatesComplete(ctx con
 	return
 }
 
-// Reissue reissue an existing certificate order.
+// Reissue description for Reissue an existing certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -975,7 +975,7 @@ func (client AppServiceCertificateOrdersClient) ReissuePreparer(ctx context.Cont
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1009,7 +1009,7 @@ func (client AppServiceCertificateOrdersClient) ReissueResponder(resp *http.Resp
 	return
 }
 
-// Renew renew an existing certificate order.
+// Renew description for Renew an existing certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1062,7 +1062,7 @@ func (client AppServiceCertificateOrdersClient) RenewPreparer(ctx context.Contex
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1096,7 +1096,7 @@ func (client AppServiceCertificateOrdersClient) RenewResponder(resp *http.Respon
 	return
 }
 
-// ResendEmail resend certificate email.
+// ResendEmail description for Resend certificate email.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1148,7 +1148,7 @@ func (client AppServiceCertificateOrdersClient) ResendEmailPreparer(ctx context.
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1180,7 +1180,7 @@ func (client AppServiceCertificateOrdersClient) ResendEmailResponder(resp *http.
 	return
 }
 
-// ResendRequestEmails verify domain ownership for this certificate order.
+// ResendRequestEmails description for Verify domain ownership for this certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1233,7 +1233,7 @@ func (client AppServiceCertificateOrdersClient) ResendRequestEmailsPreparer(ctx 
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1267,7 +1267,7 @@ func (client AppServiceCertificateOrdersClient) ResendRequestEmailsResponder(res
 	return
 }
 
-// RetrieveCertificateActions retrieve the list of certificate actions.
+// RetrieveCertificateActions description for Retrieve the list of certificate actions.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the certificate order.
@@ -1319,7 +1319,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateActionsPrepar
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1352,7 +1352,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateActionsRespon
 	return
 }
 
-// RetrieveCertificateEmailHistory retrieve email history.
+// RetrieveCertificateEmailHistory description for Retrieve email history.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the certificate order.
@@ -1404,7 +1404,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateEmailHistoryP
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1437,7 +1437,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveCertificateEmailHistoryR
 	return
 }
 
-// RetrieveSiteSeal verify domain ownership for this certificate order.
+// RetrieveSiteSeal description for Verify domain ownership for this certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1490,7 +1490,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveSiteSealPreparer(ctx con
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1525,7 +1525,7 @@ func (client AppServiceCertificateOrdersClient) RetrieveSiteSealResponder(resp *
 	return
 }
 
-// Update create or update a certificate purchase order.
+// Update description for Create or update a certificate purchase order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1578,7 +1578,7 @@ func (client AppServiceCertificateOrdersClient) UpdatePreparer(ctx context.Conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1613,7 +1613,7 @@ func (client AppServiceCertificateOrdersClient) UpdateResponder(resp *http.Respo
 	return
 }
 
-// UpdateCertificate creates or updates a certificate and associates with key vault secret.
+// UpdateCertificate description for Creates or updates a certificate and associates with key vault secret.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1668,7 +1668,7 @@ func (client AppServiceCertificateOrdersClient) UpdateCertificatePreparer(ctx co
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1703,7 +1703,7 @@ func (client AppServiceCertificateOrdersClient) UpdateCertificateResponder(resp 
 	return
 }
 
-// ValidatePurchaseInformation validate information for a certificate order.
+// ValidatePurchaseInformation description for Validate information for a certificate order.
 // Parameters:
 // appServiceCertificateOrder - information for a certificate order.
 func (client AppServiceCertificateOrdersClient) ValidatePurchaseInformation(ctx context.Context, appServiceCertificateOrder AppServiceCertificateOrder) (result autorest.Response, err error) {
@@ -1755,7 +1755,7 @@ func (client AppServiceCertificateOrdersClient) ValidatePurchaseInformationPrepa
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1789,7 +1789,7 @@ func (client AppServiceCertificateOrdersClient) ValidatePurchaseInformationRespo
 	return
 }
 
-// VerifyDomainOwnership verify domain ownership for this certificate order.
+// VerifyDomainOwnership description for Verify domain ownership for this certificate order.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // certificateOrderName - name of the certificate order.
@@ -1841,7 +1841,7 @@ func (client AppServiceCertificateOrdersClient) VerifyDomainOwnershipPreparer(ct
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

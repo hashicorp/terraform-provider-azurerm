@@ -129,8 +129,7 @@ func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 			{
 				Config: testAccDataSourceAppService_ipRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
 				),
 			},
 		},

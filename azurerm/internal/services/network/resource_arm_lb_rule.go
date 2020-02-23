@@ -46,8 +46,6 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				ValidateFunc: ValidateArmLoadBalancerRuleName,
 			},
 
-			"location": azure.SchemaLocationDeprecated(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {

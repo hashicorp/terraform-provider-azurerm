@@ -44,8 +44,6 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 				ResourceName:      "azurerm_lb.test",
 				ImportState:       true,
 				ImportStateVerify: true,
-				// location is deprecated and was never actually used
-				ImportStateVerifyIgnore: []string{"location"},
 			},
 		},
 	})
@@ -258,7 +256,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_nat_pool" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -279,7 +276,6 @@ func testAccAzureRMLoadBalancerNatPool_requiresImport(data acceptance.TestData, 
 resource "azurerm_lb_nat_pool" "import" {
   name                           = "${azurerm_lb_nat_pool.test.name}"
   loadbalancer_id                = "${azurerm_lb_nat_pool.test.loadbalancer_id}"
-  location                       = "${azurerm_lb_nat_pool.test.location}"
   resource_group_name            = "${azurerm_lb_nat_pool.test.resource_group_name}"
   frontend_ip_configuration_name = "${azurerm_lb_nat_pool.test.frontend_ip_configuration_name}"
   protocol                       = "Tcp"
@@ -344,7 +340,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_nat_pool" "test" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -357,7 +352,6 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_nat_pool" "test2" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -397,7 +391,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_nat_pool" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -409,7 +402,6 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_lb_nat_pool" "test2" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"

@@ -42,7 +42,7 @@ func NewDiagnosticsClientWithBaseURI(baseURI string, subscriptionID string) Diag
 	return DiagnosticsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ExecuteSiteAnalysis execute Analysis
+// ExecuteSiteAnalysis description for Execute Analysis
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -104,7 +104,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -146,7 +146,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisResponder(resp *http.Response
 	return
 }
 
-// ExecuteSiteAnalysisSlot execute Analysis
+// ExecuteSiteAnalysisSlot description for Execute Analysis
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -210,7 +210,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisSlotPreparer(ctx context.Cont
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -252,7 +252,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisSlotResponder(resp *http.Resp
 	return
 }
 
-// ExecuteSiteDetector execute Detector
+// ExecuteSiteDetector description for Execute Detector
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -314,7 +314,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -356,7 +356,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorResponder(resp *http.Response
 	return
 }
 
-// ExecuteSiteDetectorSlot execute Detector
+// ExecuteSiteDetectorSlot description for Execute Detector
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -420,7 +420,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSlotPreparer(ctx context.Cont
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -462,7 +462,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSlotResponder(resp *http.Resp
 	return
 }
 
-// GetHostingEnvironmentDetectorResponse get Hosting Environment Detector Response
+// GetHostingEnvironmentDetectorResponse description for Get Hosting Environment Detector Response
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - app Service Environment Name
@@ -522,7 +522,7 @@ func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponsePreparer(ct
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -564,13 +564,13 @@ func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponseResponder(r
 	return
 }
 
-// GetSiteAnalysis get Site Analysis
+// GetSiteAnalysis description for Get Site Analysis
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
 // diagnosticCategory - diagnostic Category
 // analysisName - analysis Name
-func (client DiagnosticsClient) GetSiteAnalysis(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, analysisName string) (result DiagnosticAnalysis, err error) {
+func (client DiagnosticsClient) GetSiteAnalysis(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, analysisName string) (result AnalysisDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiagnosticsClient.GetSiteAnalysis")
 		defer func() {
@@ -620,7 +620,7 @@ func (client DiagnosticsClient) GetSiteAnalysisPreparer(ctx context.Context, res
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -642,7 +642,7 @@ func (client DiagnosticsClient) GetSiteAnalysisSender(req *http.Request) (*http.
 
 // GetSiteAnalysisResponder handles the response to the GetSiteAnalysis request. The method always
 // closes the http.Response Body.
-func (client DiagnosticsClient) GetSiteAnalysisResponder(resp *http.Response) (result DiagnosticAnalysis, err error) {
+func (client DiagnosticsClient) GetSiteAnalysisResponder(resp *http.Response) (result AnalysisDefinition, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -653,14 +653,14 @@ func (client DiagnosticsClient) GetSiteAnalysisResponder(resp *http.Response) (r
 	return
 }
 
-// GetSiteAnalysisSlot get Site Analysis
+// GetSiteAnalysisSlot description for Get Site Analysis
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
 // diagnosticCategory - diagnostic Category
 // analysisName - analysis Name
 // slot - slot - optional
-func (client DiagnosticsClient) GetSiteAnalysisSlot(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, analysisName string, slot string) (result DiagnosticAnalysis, err error) {
+func (client DiagnosticsClient) GetSiteAnalysisSlot(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, analysisName string, slot string) (result AnalysisDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiagnosticsClient.GetSiteAnalysisSlot")
 		defer func() {
@@ -711,7 +711,7 @@ func (client DiagnosticsClient) GetSiteAnalysisSlotPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -733,7 +733,7 @@ func (client DiagnosticsClient) GetSiteAnalysisSlotSender(req *http.Request) (*h
 
 // GetSiteAnalysisSlotResponder handles the response to the GetSiteAnalysisSlot request. The method always
 // closes the http.Response Body.
-func (client DiagnosticsClient) GetSiteAnalysisSlotResponder(resp *http.Response) (result DiagnosticAnalysis, err error) {
+func (client DiagnosticsClient) GetSiteAnalysisSlotResponder(resp *http.Response) (result AnalysisDefinition, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -744,19 +744,19 @@ func (client DiagnosticsClient) GetSiteAnalysisSlotResponder(resp *http.Response
 	return
 }
 
-// GetSiteDetector get Detector
+// GetSiteDetector description for Get Detector
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
 // diagnosticCategory - diagnostic Category
 // detectorName - detector Name
-func (client DiagnosticsClient) GetSiteDetector(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, detectorName string) (result DiagnosticDetectorCollectionPage, err error) {
+func (client DiagnosticsClient) GetSiteDetector(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, detectorName string) (result DetectorDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiagnosticsClient.GetSiteDetector")
 		defer func() {
 			sc := -1
-			if result.ddc.Response.Response != nil {
-				sc = result.ddc.Response.Response.StatusCode
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -769,7 +769,6 @@ func (client DiagnosticsClient) GetSiteDetector(ctx context.Context, resourceGro
 		return result, validation.NewError("web.DiagnosticsClient", "GetSiteDetector", err.Error())
 	}
 
-	result.fn = client.getSiteDetectorNextResults
 	req, err := client.GetSiteDetectorPreparer(ctx, resourceGroupName, siteName, diagnosticCategory, detectorName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetector", nil, "Failure preparing request")
@@ -778,12 +777,12 @@ func (client DiagnosticsClient) GetSiteDetector(ctx context.Context, resourceGro
 
 	resp, err := client.GetSiteDetectorSender(req)
 	if err != nil {
-		result.ddc.Response = autorest.Response{Response: resp}
+		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetector", resp, "Failure sending request")
 		return
 	}
 
-	result.ddc, err = client.GetSiteDetectorResponder(resp)
+	result, err = client.GetSiteDetectorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetector", resp, "Failure responding to request")
 	}
@@ -801,7 +800,7 @@ func (client DiagnosticsClient) GetSiteDetectorPreparer(ctx context.Context, res
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -823,7 +822,7 @@ func (client DiagnosticsClient) GetSiteDetectorSender(req *http.Request) (*http.
 
 // GetSiteDetectorResponder handles the response to the GetSiteDetector request. The method always
 // closes the http.Response Body.
-func (client DiagnosticsClient) GetSiteDetectorResponder(resp *http.Response) (result DiagnosticDetectorCollection, err error) {
+func (client DiagnosticsClient) GetSiteDetectorResponder(resp *http.Response) (result DetectorDefinition, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -834,44 +833,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponder(resp *http.Response) (r
 	return
 }
 
-// getSiteDetectorNextResults retrieves the next set of results, if any.
-func (client DiagnosticsClient) getSiteDetectorNextResults(ctx context.Context, lastResults DiagnosticDetectorCollection) (result DiagnosticDetectorCollection, err error) {
-	req, err := lastResults.diagnosticDetectorCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "getSiteDetectorNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetSiteDetectorSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "getSiteDetectorNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetSiteDetectorResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "getSiteDetectorNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetSiteDetectorComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DiagnosticsClient) GetSiteDetectorComplete(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, detectorName string) (result DiagnosticDetectorCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DiagnosticsClient.GetSiteDetector")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetSiteDetector(ctx, resourceGroupName, siteName, diagnosticCategory, detectorName)
-	return
-}
-
-// GetSiteDetectorResponse get site detector response
+// GetSiteDetectorResponse description for Get site detector response
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -931,7 +893,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponsePreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -973,7 +935,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponseResponder(resp *http.Resp
 	return
 }
 
-// GetSiteDetectorResponseSlot get site detector response
+// GetSiteDetectorResponseSlot description for Get site detector response
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -1035,7 +997,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponseSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1077,20 +1039,20 @@ func (client DiagnosticsClient) GetSiteDetectorResponseSlotResponder(resp *http.
 	return
 }
 
-// GetSiteDetectorSlot get Detector
+// GetSiteDetectorSlot description for Get Detector
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
 // diagnosticCategory - diagnostic Category
 // detectorName - detector Name
 // slot - slot Name
-func (client DiagnosticsClient) GetSiteDetectorSlot(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, detectorName string, slot string) (result DiagnosticDetectorCollectionPage, err error) {
+func (client DiagnosticsClient) GetSiteDetectorSlot(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, detectorName string, slot string) (result DetectorDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiagnosticsClient.GetSiteDetectorSlot")
 		defer func() {
 			sc := -1
-			if result.ddc.Response.Response != nil {
-				sc = result.ddc.Response.Response.StatusCode
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -1103,7 +1065,6 @@ func (client DiagnosticsClient) GetSiteDetectorSlot(ctx context.Context, resourc
 		return result, validation.NewError("web.DiagnosticsClient", "GetSiteDetectorSlot", err.Error())
 	}
 
-	result.fn = client.getSiteDetectorSlotNextResults
 	req, err := client.GetSiteDetectorSlotPreparer(ctx, resourceGroupName, siteName, diagnosticCategory, detectorName, slot)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorSlot", nil, "Failure preparing request")
@@ -1112,12 +1073,12 @@ func (client DiagnosticsClient) GetSiteDetectorSlot(ctx context.Context, resourc
 
 	resp, err := client.GetSiteDetectorSlotSender(req)
 	if err != nil {
-		result.ddc.Response = autorest.Response{Response: resp}
+		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorSlot", resp, "Failure sending request")
 		return
 	}
 
-	result.ddc, err = client.GetSiteDetectorSlotResponder(resp)
+	result, err = client.GetSiteDetectorSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorSlot", resp, "Failure responding to request")
 	}
@@ -1136,7 +1097,7 @@ func (client DiagnosticsClient) GetSiteDetectorSlotPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1158,7 +1119,7 @@ func (client DiagnosticsClient) GetSiteDetectorSlotSender(req *http.Request) (*h
 
 // GetSiteDetectorSlotResponder handles the response to the GetSiteDetectorSlot request. The method always
 // closes the http.Response Body.
-func (client DiagnosticsClient) GetSiteDetectorSlotResponder(resp *http.Response) (result DiagnosticDetectorCollection, err error) {
+func (client DiagnosticsClient) GetSiteDetectorSlotResponder(resp *http.Response) (result DetectorDefinition, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -1169,44 +1130,7 @@ func (client DiagnosticsClient) GetSiteDetectorSlotResponder(resp *http.Response
 	return
 }
 
-// getSiteDetectorSlotNextResults retrieves the next set of results, if any.
-func (client DiagnosticsClient) getSiteDetectorSlotNextResults(ctx context.Context, lastResults DiagnosticDetectorCollection) (result DiagnosticDetectorCollection, err error) {
-	req, err := lastResults.diagnosticDetectorCollectionPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "getSiteDetectorSlotNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.GetSiteDetectorSlotSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "getSiteDetectorSlotNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.GetSiteDetectorSlotResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "getSiteDetectorSlotNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// GetSiteDetectorSlotComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DiagnosticsClient) GetSiteDetectorSlotComplete(ctx context.Context, resourceGroupName string, siteName string, diagnosticCategory string, detectorName string, slot string) (result DiagnosticDetectorCollectionIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DiagnosticsClient.GetSiteDetectorSlot")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.GetSiteDetectorSlot(ctx, resourceGroupName, siteName, diagnosticCategory, detectorName, slot)
-	return
-}
-
-// GetSiteDiagnosticCategory get Diagnostics Category
+// GetSiteDiagnosticCategory description for Get Diagnostics Category
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -1260,7 +1184,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategoryPreparer(ctx context.Co
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1293,7 +1217,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategoryResponder(resp *http.Re
 	return
 }
 
-// GetSiteDiagnosticCategorySlot get Diagnostics Category
+// GetSiteDiagnosticCategorySlot description for Get Diagnostics Category
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -1349,7 +1273,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotPreparer(ctx contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1382,7 +1306,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotResponder(resp *htt
 	return
 }
 
-// ListHostingEnvironmentDetectorResponses list Hosting Environment Detector Responses
+// ListHostingEnvironmentDetectorResponses description for List Hosting Environment Detector Responses
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - site Name
@@ -1435,7 +1359,7 @@ func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesPreparer(
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1505,7 +1429,7 @@ func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesComplete(
 	return
 }
 
-// ListSiteAnalyses get Site Analyses
+// ListSiteAnalyses description for Get Site Analyses
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -1560,7 +1484,7 @@ func (client DiagnosticsClient) ListSiteAnalysesPreparer(ctx context.Context, re
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1630,7 +1554,7 @@ func (client DiagnosticsClient) ListSiteAnalysesComplete(ctx context.Context, re
 	return
 }
 
-// ListSiteAnalysesSlot get Site Analyses
+// ListSiteAnalysesSlot description for Get Site Analyses
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -1687,7 +1611,7 @@ func (client DiagnosticsClient) ListSiteAnalysesSlotPreparer(ctx context.Context
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1757,7 +1681,7 @@ func (client DiagnosticsClient) ListSiteAnalysesSlotComplete(ctx context.Context
 	return
 }
 
-// ListSiteDetectorResponses list Site Detector Responses
+// ListSiteDetectorResponses description for List Site Detector Responses
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -1810,7 +1734,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1880,7 +1804,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesComplete(ctx context.Co
 	return
 }
 
-// ListSiteDetectorResponsesSlot list Site Detector Responses
+// ListSiteDetectorResponsesSlot description for List Site Detector Responses
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -1935,7 +1859,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesSlotPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2005,7 +1929,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesSlotComplete(ctx contex
 	return
 }
 
-// ListSiteDetectors get Detectors
+// ListSiteDetectors description for Get Detectors
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -2060,7 +1984,7 @@ func (client DiagnosticsClient) ListSiteDetectorsPreparer(ctx context.Context, r
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2130,7 +2054,7 @@ func (client DiagnosticsClient) ListSiteDetectorsComplete(ctx context.Context, r
 	return
 }
 
-// ListSiteDetectorsSlot get Detectors
+// ListSiteDetectorsSlot description for Get Detectors
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -2187,7 +2111,7 @@ func (client DiagnosticsClient) ListSiteDetectorsSlotPreparer(ctx context.Contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2257,7 +2181,7 @@ func (client DiagnosticsClient) ListSiteDetectorsSlotComplete(ctx context.Contex
 	return
 }
 
-// ListSiteDiagnosticCategories get Diagnostics Categories
+// ListSiteDiagnosticCategories description for Get Diagnostics Categories
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -2310,7 +2234,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2380,7 +2304,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesComplete(ctx context
 	return
 }
 
-// ListSiteDiagnosticCategoriesSlot get Diagnostics Categories
+// ListSiteDiagnosticCategoriesSlot description for Get Diagnostics Categories
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - site Name
@@ -2435,7 +2359,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlotPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMBackupProtectionPolicyVm_basic(t *testing.T) {
+func TestAccDataSourceAzureRMBackupPolicyVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -40,7 +40,7 @@ func NewProviderClientWithBaseURI(baseURI string, subscriptionID string) Provide
 	return ProviderClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// GetAvailableStacks get available application frameworks and their versions
+// GetAvailableStacks description for Get available application frameworks and their versions
 func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelected string) (result ApplicationStackCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProviderClient.GetAvailableStacks")
@@ -76,7 +76,7 @@ func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelec
 
 // GetAvailableStacksPreparer prepares the GetAvailableStacks request.
 func (client ProviderClient) GetAvailableStacksPreparer(ctx context.Context, osTypeSelected string) (*http.Request, error) {
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -149,7 +149,7 @@ func (client ProviderClient) GetAvailableStacksComplete(ctx context.Context, osT
 	return
 }
 
-// GetAvailableStacksOnPrem get available application frameworks and their versions
+// GetAvailableStacksOnPrem description for Get available application frameworks and their versions
 func (client ProviderClient) GetAvailableStacksOnPrem(ctx context.Context, osTypeSelected string) (result ApplicationStackCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProviderClient.GetAvailableStacksOnPrem")
@@ -189,7 +189,7 @@ func (client ProviderClient) GetAvailableStacksOnPremPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -262,8 +262,8 @@ func (client ProviderClient) GetAvailableStacksOnPremComplete(ctx context.Contex
 	return
 }
 
-// ListOperations gets all available operations for the Microsoft.Web resource provider. Also exposes resource metric
-// definitions
+// ListOperations description for Gets all available operations for the Microsoft.Web resource provider. Also exposes
+// resource metric definitions
 func (client ProviderClient) ListOperations(ctx context.Context) (result CsmOperationCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProviderClient.ListOperations")
@@ -299,7 +299,7 @@ func (client ProviderClient) ListOperations(ctx context.Context) (result CsmOper
 
 // ListOperationsPreparer prepares the ListOperations request.
 func (client ProviderClient) ListOperationsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-02-01"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
