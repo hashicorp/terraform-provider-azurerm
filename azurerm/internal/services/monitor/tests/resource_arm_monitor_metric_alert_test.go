@@ -80,7 +80,7 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is a complete metric alert resource."),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT30M"),
@@ -128,7 +128,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT1M"),
@@ -149,7 +149,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is a complete metric alert resource."),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT30M"),
@@ -184,7 +184,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT1M"),
@@ -288,7 +288,7 @@ resource "azurerm_monitor_metric_alert" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   scopes              = ["${azurerm_storage_account.test.id}"]
   enabled             = true
-  auto_mitigate       = true
+  auto_mitigate       = false
   severity            = 4
   description         = "This is a complete metric alert resource."
   frequency           = "PT30M"
