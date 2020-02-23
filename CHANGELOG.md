@@ -123,6 +123,7 @@ BREAKING CHANGES:
 * `azurerm_maps_account` - the `sku_name` field is now case-sensitive [GH-5776]
 * `azurerm_mariadb_server` - removing the `sku` block since it's been deprecated in favour of the `sku_name` field [GH-5777]
 * `azurerm_metric_alertrule` - the deprecated resource has been removed [GH-5844]
+* `azurerm_monitor_metric_alert` - updating the default value for `auto_mitigate` from `false` to `true` [GH-5773]
 * `azurerm_monitor_metric_alertrule` - the deprecated resource has been removed [GH-5844]
 * `azurerm_mssql_elasticpool` - removing the deprecated `elastic_pool_properties` block [GH-5744]
 * `azurerm_mysql_server` - removing the deprecated `sku` block [GH-5743]
