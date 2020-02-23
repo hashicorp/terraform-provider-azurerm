@@ -603,6 +603,8 @@ The deprecated `enable_advanced_threat_protection` field will be removed. This f
 
 The default value for the field `enable_https_traffic_only` has changed from `false` to `true`. 
 
+The default value for the field `account_kind` has changed from `Storage` to `StorageV2`. 
+
 ### Resource: `azurerm_storage_blob`
 
 The deprecated `attempts` field will be removed, since Terraform now handles retries automatically.
