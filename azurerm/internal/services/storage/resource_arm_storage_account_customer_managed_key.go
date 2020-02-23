@@ -12,8 +12,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,13 +44,13 @@ func resourceArmStorageAccountCustomerManagedKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID, // TODO: validation
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: keyVaultValidate.KeyVaultID,
 			},
 
 			"key_name": {
@@ -73,7 +75,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	defer cancel()
 
 	storageAccountIdRaw := d.Get("storage_account_id").(string)
-	storageAccountId, err := parsers.ParseAccountID(storageAccountIdRaw)
+	storageAccountId, err := storageParse.ParseAccountID(storageAccountIdRaw)
 	if err != nil {
 		return err
 	}
@@ -103,7 +105,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	}
 
 	keyVaultIdRaw := d.Get("key_vault_id").(string)
-	keyVaultId, err := parse.KeyVaultID(keyVaultIdRaw)
+	keyVaultId, err := keyVaultParse.KeyVaultID(keyVaultIdRaw)
 	if err != nil {
 		return err
 	}
@@ -169,7 +171,7 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId, err := parsers.ParseAccountID(d.Id())
+	storageAccountId, err := storageParse.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -234,7 +236,7 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId, err := parsers.ParseAccountID(d.Id())
+	storageAccountId, err := storageParse.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
