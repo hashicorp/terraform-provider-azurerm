@@ -634,7 +634,6 @@ output "test" {
 
 resource "azurerm_storage_container" "using-outputs" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_template_deployment.test.outputs["accountName"]}"
   container_access_type = "private"
 }
