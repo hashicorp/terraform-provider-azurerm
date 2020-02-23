@@ -128,7 +128,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.password", "acrpassword"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.port", "5443"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.protocol", "UDP"),
 				),
 			},
@@ -185,7 +185,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.port", "80"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 				),
 			},
 			data.ImportStep(
@@ -264,7 +264,6 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.command", "/bin/bash -c ls"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.0", "/bin/bash"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.1", "-c"),
@@ -338,7 +337,7 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 					resource.TestCheckNoResourceAttr(data.ResourceName, "identity"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.port", "80"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_address_type", "Private"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network_profile_id"),
 				),
@@ -383,7 +382,6 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.command", "cmd.exe echo hi"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.0", "cmd.exe"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.1", "echo"),
@@ -619,12 +617,14 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
 
   container {
-    name     = "hw"
-    image    = "microsoft/aci-helloworld:latest"
-    cpu      = "0.5"
-    memory   = "0.5"
-    port     = 5443
-    protocol = "UDP"
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 5443
+      protocol = "UDP"
+    }
   }
 
   image_registry_credential {
@@ -724,7 +724,9 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port = 80
+    }
   }
 
   diagnostics {
@@ -843,7 +845,9 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port = 80
+    }
   }
 
   tags = {

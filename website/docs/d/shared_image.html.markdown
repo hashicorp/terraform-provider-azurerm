@@ -25,11 +25,11 @@ data "azurerm_shared_image" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Shared Image.
+* `name` - The name of the Shared Image.
 
-* `gallery_name` - (Required) The name of the Shared Image Gallery in which the Shared Image exists.
+* `gallery_name` - The name of the Shared Image Gallery in which the Shared Image exists.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Shared Image Gallery exists.
+* `resource_group_name` - The name of the Resource Group in which the Shared Image Gallery exists.
 
 ## Attributes Reference
 
@@ -63,9 +63,7 @@ A `identifier` block exports the following:
 
 * `sku` - The Name of the SKU for this Gallery Image.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

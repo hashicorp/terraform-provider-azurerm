@@ -10,6 +10,10 @@ description: |-
 
 Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 
+## Disclaimers
+
+~> **Note:** Since this resource is provisioned by default, the Azure Provider will not check for the presence of an existing resource prior to attempting to create it.
+
 ## Example Usage
 
 ```hcl
@@ -20,8 +24,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "B_Gen5_2"
 
@@ -39,8 +43,8 @@ resource "azurerm_postgresql_server" "example" {
 
 resource "azurerm_postgresql_configuration" "example" {
   name                = "backslash_quote"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_postgresql_server.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_postgresql_server.example.name
   value               = "on"
 }
 ```
@@ -63,9 +67,7 @@ The following attributes are exported:
 
 * `id` - The ID of the PostgreSQL Configuration.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

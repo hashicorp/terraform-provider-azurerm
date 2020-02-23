@@ -19,13 +19,13 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_sql_server" "example" {
   name                         = "example-server"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
-  location                     = "${azurerm_resource_group.example.location}"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "dbadmin"
   administrator_login_password = "example-password"
@@ -33,9 +33,9 @@ resource "azurerm_sql_server" "example" {
 
 resource "azurerm_sql_database" "example" {
   name                             = "exampledb"
-  resource_group_name              = "${azurerm_resource_group.example.name}"
-  location                         = "${azurerm_resource_group.example.location}"
-  server_name                      = "${azurerm_sql_server.example.name}"
+  resource_group_name              = azurerm_resource_group.example.name
+  location                         = azurerm_resource_group.example.location
+  server_name                      = azurerm_sql_server.example.name
   requested_service_objective_name = "S0"
   collation                        = "SQL_LATIN1_GENERAL_CP1_CI_AS"
   max_size_bytes                   = "268435456000"
@@ -44,13 +44,13 @@ resource "azurerm_sql_database" "example" {
 
 resource "azurerm_stream_analytics_output_mssql" "example" {
   name                      = "example-output-sql"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.example.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.example.resource_group_name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.example.name
+  resource_group_name       = azurerm_stream_analytics_job.example.resource_group_name
 
-  server   = "${azurerm_sql_server.example.fully_qualified_domain_name}"
-  user     = "${azurerm_sql_server.example.administrator_login}"
-  password = "${azurerm_sql_server.example.administrator_login_password}"
-  database = "${azurerm_sql_database.example.name}"
+  server   = azurerm_sql_server.example.fully_qualified_domain_name
+  user     = azurerm_sql_server.example.administrator_login
+  password = azurerm_sql_server.example.administrator_login_password
+  database = azurerm_sql_database.example.name
   table    = "ExampleTable"
 }
 ```
@@ -79,9 +79,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Stream Analytics Output Microsoft SQL Server Database.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

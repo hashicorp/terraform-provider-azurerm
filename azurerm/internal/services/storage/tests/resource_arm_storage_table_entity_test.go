@@ -200,7 +200,7 @@ func testAccAzureRMTableEntity_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_table_entity" "test" {
+resource "azurerm_storage_table_entity" "import" {
   storage_account_name = "${azurerm_storage_account.test.name}"
   table_name           = "${azurerm_storage_table.test.name}"
 
@@ -249,7 +249,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)

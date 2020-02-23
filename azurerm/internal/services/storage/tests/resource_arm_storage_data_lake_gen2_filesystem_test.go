@@ -155,7 +155,7 @@ func testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(data acceptance.
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "import" {
   name               = azurerm_storage_data_lake_gen2_filesystem.test.name
-  storage_account_id = azurerm_storage_data_lake_gen2_filesystem.storage_account_id
+  storage_account_id = azurerm_storage_data_lake_gen2_filesystem.test.storage_account_id
 }
 `, template)
 }

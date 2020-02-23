@@ -32,6 +32,7 @@ func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -54,8 +55,35 @@ func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSubnetRouteTableAssociation_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError(""),
+				ExpectError: acceptance.RequiresImportError("azurerm_subnet_route_table_association"),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMSubnetRouteTableAssociation_updateSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		// intentional since this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnetRouteTableAssociation_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetRouteTableAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSubnetRouteTableAssociation_updateSubnet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetRouteTableAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -211,6 +239,57 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 }
 
 func testAccAzureRMSubnetRouteTableAssociation_basic(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetRouteTableAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
+}
+`, template)
+}
+
+func testAccAzureRMSubnetRouteTableAssociation_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetRouteTableAssociation_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet_route_table_association" "import" {
+  subnet_id      = azurerm_subnet_route_table_association.test.subnet_id
+  route_table_id = azurerm_subnet_route_table_association.test.route_table_id
+}
+`, template)
+}
+
+func testAccAzureRMSubnetRouteTableAssociation_updateSubnet(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetRouteTableAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
+}
+`, template)
+}
+
+func testAccAzureRMSubnetRouteTableAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -220,46 +299,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
-    name                   = "acctest-%d"
+    name                   = "first"
     address_prefix         = "10.100.0.0/14"
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = "10.10.1.1"
   }
 }
-
-resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  route_table_id = "${azurerm_route_table.test.id}"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMSubnetRouteTableAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSubnetRouteTableAssociation_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_subnet_route_table_association" "import" {
-  subnet_id      = "${azurerm_subnet_route_table_association.test.subnet_id}"
-  route_table_id = "${azurerm_subnet_route_table_association.test.route_table_id}"
-}
-`, template)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

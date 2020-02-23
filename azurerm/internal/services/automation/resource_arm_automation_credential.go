@@ -42,24 +42,11 @@ func resourceArmAutomationCredential() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			//this is AutomationAccountName in the SDK
-			"account_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
-				ConflictsWith: []string{"automation_account_name"},
-				ValidateFunc:  azure.ValidateAutomationAccountName(),
-			},
-
 			"automation_account_name": {
-				Type:          schema.TypeString,
-				Optional:      true, //todo change to required once account_name has been removed
-				Computed:      true, // todo remove once account_name has been removed
-				ForceNew:      true,
-				ConflictsWith: []string{"account_name"}, // todo remove once account_name has been removed
-				ValidateFunc:  azure.ValidateAutomationAccountName(),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"username": {
@@ -90,13 +77,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	// todo remove this once `account_name` is removed
-	accountName := ""
-	if v, ok := d.GetOk("automation_account_name"); ok {
-		accountName = v.(string)
-	} else if v, ok := d.GetOk("account_name"); ok {
-		accountName = v.(string)
-	}
+	accountName := d.Get("automation_account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accountName, name)
@@ -168,7 +149,6 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accountName)
-	d.Set("account_name", accountName)
 	if props := resp.CredentialProperties; props != nil {
 		d.Set("username", props.UserName)
 	}

@@ -19,7 +19,7 @@ data "azurerm_cosmosdb_account" "example" {
 }
 
 output "cosmosdb_account_endpoint" {
-  value = "${data.azurerm_cosmosdb_account.jobs.endpoint}"
+  value = data.azurerm_cosmosdb_account.jobs.endpoint
 }
 ```
 
@@ -27,9 +27,9 @@ output "cosmosdb_account_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account.
+* `name` - Specifies the name of the CosmosDB Account.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group in which the CosmosDB Account resides.
+* `resource_group_name` - Specifies the name of the resource group in which the CosmosDB Account resides.
 
 ## Attributes Reference
 
@@ -88,9 +88,7 @@ The following attributes are exported:
 
 * `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

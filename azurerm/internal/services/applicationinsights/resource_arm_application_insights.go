@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -48,10 +47,9 @@ func resourceArmApplicationInsights() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"application_type": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"web",
 					"other",
@@ -61,7 +59,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 					"store",
 					"ios",
 					"Node.JS",
-				}, true),
+				}, false),
 			},
 
 			"retention_in_days": {
@@ -164,14 +162,9 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		Tags:                                   tags.Expand(t),
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
 	if err != nil {
-		// @tombuildsstuff - from 2018-08-14 the Create call started returning a 201 instead of 200
-		// which doesn't match the Swagger - this works around it until that's fixed
-		// BUG: https://github.com/Azure/azure-sdk-for-go/issues/2465
-		if resp.StatusCode != http.StatusCreated {
-			return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
-		}
+		return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)

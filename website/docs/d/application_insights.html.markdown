@@ -19,14 +19,14 @@ data "azurerm_application_insights" "example" {
 }
 
 output "application_insights_instrumentation_key" {
-  value = "${data.azurerm_application_insights.example.instrumentation_key}"
+  value = data.azurerm_application_insights.example.instrumentation_key
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Application Insights component.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Application Insights component is located in.
+* `name` - Specifies the name of the Application Insights component.
+* `resource_group_name` - Specifies the name of the resource group the Application Insights component is located in.
 
 ## Attributes Reference
 
@@ -38,9 +38,7 @@ output "application_insights_instrumentation_key" {
 * `retention_in_days` - The retention period in days.
 * `tags` - Tags applied to the component.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

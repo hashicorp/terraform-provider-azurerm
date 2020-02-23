@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specify the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specify the sku name of the Dedicated Host. Possible values are `DSv3-Type1`, `ESv3-Type1`, `FSv2-Type2`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) Specify the sku name of the Dedicated Host. Possible values are `DSv3-Type1`, `DSv3-Type2`, `ESv3-Type1`, `ESv3-Type2`,`FSv2-Type2`. Changing this forces a new resource to be created.
 
 * `platform_fault_domain` - (Required) Specify the fault domain of the Dedicated Host Group in which to create the Dedicated Host. Changing this forces a new resource to be created.
 
@@ -62,9 +62,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Dedicated Host.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

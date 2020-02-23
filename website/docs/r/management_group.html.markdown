@@ -13,24 +13,24 @@ Manages a Management Group.
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "current" {}
+data "azurerm_subscription" "current" {
+}
 
 resource "azurerm_management_group" "example_parent" {
   display_name = "ParentGroup"
 
   subscription_ids = [
-    "${data.azurerm_subscription.current.subscription_id}",
+    data.azurerm_subscription.current.subscription_id,
   ]
 }
 
 resource "azurerm_management_group" "example_child" {
   display_name               = "ChildGroup"
-  parent_management_group_id = "${azurerm_management_group.example_parent.id}"
+  parent_management_group_id = azurerm_management_group.example_parent.id
 
   subscription_ids = [
-    "${data.azurerm_subscription.current.subscription_id}",
+    data.azurerm_subscription.current.subscription_id,
   ]
-
   # other subscription IDs can go here
 }
 ```
@@ -53,9 +53,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Management Group.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

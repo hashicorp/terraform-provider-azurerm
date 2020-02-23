@@ -46,7 +46,7 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotDPSDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_basic(data),
@@ -56,7 +56,7 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPS_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps"),
 			},
 		},
 	})
@@ -68,7 +68,7 @@ func TestAccAzureRMIotHubDPS_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotDPSDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_basic(data),
@@ -119,7 +119,7 @@ func testCheckAzureRMIotHubDPSDestroy(s *terraform.State) error {
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothubdps" {
+		if rs.Type != "azurerm_iothub_dps" {
 			continue
 		}
 

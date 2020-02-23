@@ -110,133 +110,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"default_node_pool": SchemaDefaultNodePool(),
 
-			// TODO: remove in 2.0
-			"agent_pool_profile": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This has been replaced by `default_node_pool` and will be removed in version 2.0 of the AzureRM Provider",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validate.KubernetesAgentPoolName,
-						},
-
-						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(containerservice.AvailabilitySet),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.AvailabilitySet),
-								string(containerservice.VirtualMachineScaleSets),
-							}, false),
-						},
-
-						"count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 100),
-						},
-
-						"max_count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 100),
-						},
-
-						"min_count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 100),
-						},
-
-						"enable_auto_scaling": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-
-						"availability_zones": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-
-						// TODO: remove this field in the next major version
-						"dns_prefix": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This field has been removed by Azure",
-						},
-
-						"fqdn": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This field has been deprecated. Use the parent `fqdn` instead",
-						},
-
-						"vm_size": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ForceNew:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.StringIsNotEmpty,
-						},
-
-						"os_disk_size_gb": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ForceNew:     true,
-							Computed:     true,
-							ValidateFunc: validation.IntAtLeast(1),
-						},
-
-						"vnet_subnet_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-
-						"os_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(containerservice.Linux),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.Linux),
-								string(containerservice.Windows),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"max_pods": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
-						},
-
-						"node_taints": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-
-						"enable_node_public_ip": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
-			},
-
 			"service_principal": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -276,11 +149,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			// TODO: remove Computed in 2.0
 			"enable_pod_security_policy": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"identity": {
@@ -407,8 +278,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(containerservice.Basic),
+							Default:  string(containerservice.Standard),
 							ForceNew: true,
+							// TODO: fix the casing in the Swagger
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Basic),
 								string(containerservice.Standard),
@@ -681,17 +553,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
 	}
 
-	// TODO: remove me in 2.0
-	if agentProfiles == nil {
-		agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
-		agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, true)
-		if err != nil {
-			return err
-		}
-
-		agentProfiles = &agentProfilesLegacy
-	}
-
 	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
 	addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
 
@@ -934,23 +795,12 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	// update the node pool using the separate API
-	if d.HasChange("default_node_pool") || d.HasChange("agent_pool_profile") {
+	if d.HasChange("default_node_pool") {
 		log.Printf("[DEBUG] Updating of Default Node Pool..")
 
 		agentProfiles, err := ExpandDefaultNodePool(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
-		}
-
-		// TODO: remove me in 2.0
-		if agentProfiles == nil {
-			agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
-			agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, false)
-			if err != nil {
-				return err
-			}
-
-			agentProfiles = &agentProfilesLegacy
 		}
 
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
@@ -1049,12 +899,6 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		addonProfiles := FlattenKubernetesAddOnProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
-		}
-
-		// TODO: remove me in 2.0
-		agentPoolProfiles := flattenKubernetesClusterAgentPoolProfiles(props.AgentPoolProfiles, resp.Fqdn)
-		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
-			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
 
 		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
@@ -1169,162 +1013,6 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 		}
 	}
 	return nil, []interface{}{}
-}
-
-func expandKubernetesClusterAgentPoolProfiles(input []interface{}, isNewResource bool) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
-	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0)
-
-	for _, v := range input {
-		config := v.(map[string]interface{})
-
-		name := config["name"].(string)
-		poolType := config["type"].(string)
-		count := int32(config["count"].(int))
-		vmSize := config["vm_size"].(string)
-		osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
-		osType := config["os_type"].(string)
-
-		profile := containerservice.ManagedClusterAgentPoolProfile{
-			Name:         utils.String(name),
-			Type:         containerservice.AgentPoolType(poolType),
-			Count:        utils.Int32(count),
-			VMSize:       containerservice.VMSizeTypes(vmSize),
-			OsDiskSizeGB: utils.Int32(osDiskSizeGB),
-			OsType:       containerservice.OSType(osType),
-		}
-
-		if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
-			profile.MaxPods = utils.Int32(maxPods)
-		}
-
-		vnetSubnetID := config["vnet_subnet_id"].(string)
-		if vnetSubnetID != "" {
-			profile.VnetSubnetID = utils.String(vnetSubnetID)
-		}
-
-		if maxCount := int32(config["max_count"].(int)); maxCount > 0 {
-			profile.MaxCount = utils.Int32(maxCount)
-		}
-
-		if minCount := int32(config["min_count"].(int)); minCount > 0 {
-			profile.MinCount = utils.Int32(minCount)
-		}
-
-		if enableAutoScalingItf := config["enable_auto_scaling"]; enableAutoScalingItf != nil {
-			profile.EnableAutoScaling = utils.Bool(enableAutoScalingItf.(bool))
-
-			// Auto scaling will change the number of nodes, but the original count number should not be sent again.
-			// This avoid the cluster being resized after creation.
-			if *profile.EnableAutoScaling && !isNewResource {
-				profile.Count = nil
-			}
-		}
-
-		if availabilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availabilityZones) > 0 {
-			profile.AvailabilityZones = availabilityZones
-		}
-
-		if *profile.EnableAutoScaling && (profile.MinCount == nil || profile.MaxCount == nil) {
-			return nil, fmt.Errorf("Can't create an AKS cluster with autoscaling enabled but not setting min_count or max_count")
-		}
-
-		if nodeTaints := utils.ExpandStringSlice(config["node_taints"].([]interface{})); len(*nodeTaints) > 0 {
-			profile.NodeTaints = nodeTaints
-		}
-
-		if enableNodePublicIP := config["enable_node_public_ip"]; enableNodePublicIP != nil {
-			profile.EnableNodePublicIP = utils.Bool(enableNodePublicIP.(bool))
-		}
-
-		profiles = append(profiles, profile)
-	}
-
-	return profiles, nil
-}
-
-func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
-	if profiles == nil {
-		return []interface{}{}
-	}
-
-	agentPoolProfiles := make([]interface{}, 0)
-
-	for _, profile := range *profiles {
-		count := 0
-		if profile.Count != nil {
-			count = int(*profile.Count)
-		}
-
-		enableAutoScaling := false
-		if profile.EnableAutoScaling != nil {
-			enableAutoScaling = *profile.EnableAutoScaling
-		}
-
-		fqdnVal := ""
-		if fqdn != nil {
-			// temporarily persist the parent FQDN here until `fqdn` is removed from the `agent_pool_profile`
-			fqdnVal = *fqdn
-		}
-
-		maxCount := 0
-		if profile.MaxCount != nil {
-			maxCount = int(*profile.MaxCount)
-		}
-
-		maxPods := 0
-		if profile.MaxPods != nil {
-			maxPods = int(*profile.MaxPods)
-		}
-
-		minCount := 0
-		if profile.MinCount != nil {
-			minCount = int(*profile.MinCount)
-		}
-
-		name := ""
-		if profile.Name != nil {
-			name = *profile.Name
-		}
-
-		osDiskSizeGB := 0
-		if profile.OsDiskSizeGB != nil {
-			osDiskSizeGB = int(*profile.OsDiskSizeGB)
-		}
-
-		subnetId := ""
-		if profile.VnetSubnetID != nil {
-			subnetId = *profile.VnetSubnetID
-		}
-
-		enableNodePublicIP := false
-		if profile.EnableNodePublicIP != nil {
-			enableNodePublicIP = *profile.EnableNodePublicIP
-		}
-
-		agentPoolProfile := map[string]interface{}{
-			"availability_zones":    utils.FlattenStringSlice(profile.AvailabilityZones),
-			"count":                 count,
-			"enable_auto_scaling":   enableAutoScaling,
-			"enable_node_public_ip": enableNodePublicIP,
-			"max_count":             maxCount,
-			"max_pods":              maxPods,
-			"min_count":             minCount,
-			"name":                  name,
-			"node_taints":           utils.FlattenStringSlice(profile.NodeTaints),
-			"os_disk_size_gb":       osDiskSizeGB,
-			"os_type":               string(profile.OsType),
-			"type":                  string(profile.Type),
-			"vm_size":               string(profile.VMSize),
-			"vnet_subnet_id":        subnetId,
-
-			// TODO: remove in 2.0
-			"fqdn": fqdnVal,
-		}
-
-		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
-	}
-
-	return agentPoolProfiles
 }
 
 func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.LinuxProfile {

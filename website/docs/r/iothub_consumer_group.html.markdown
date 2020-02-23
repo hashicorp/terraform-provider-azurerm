@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iothub" "example" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -35,9 +35,9 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_consumer_group" "example" {
   name                   = "terraform"
-  iothub_name            = "${azurerm_iothub.example.name}"
+  iothub_name            = azurerm_iothub.example.name
   eventhub_endpoint_name = "events"
-  resource_group_name    = "${azurerm_resource_group.foo.name}"
+  resource_group_name    = azurerm_resource_group.foo.name
 }
 ```
 
@@ -59,9 +59,9 @@ The following attributes are exported:
 
 * `id` - The ID of the IoTHub Consumer Group.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

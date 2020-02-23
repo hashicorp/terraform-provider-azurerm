@@ -19,7 +19,7 @@ data "azurerm_netapp_account" "example" {
 }
 
 output "netapp_account_id" {
-  value = "${data.azurerm_netapp_account.example.id}"
+  value = data.azurerm_netapp_account.example.id
 }
 ```
 
@@ -28,9 +28,9 @@ output "netapp_account_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the NetApp Account.
+* `name` - The name of the NetApp Account.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the NetApp Account exists.
+* `resource_group_name` - The Name of the Resource Group where the NetApp Account exists.
 
 
 ## Attributes Reference
@@ -39,9 +39,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Account exists.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

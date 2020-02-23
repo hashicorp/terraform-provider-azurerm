@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 )
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
@@ -189,19 +190,18 @@ func testCheckAzureRMCdnProfileExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn profile: %s", name)
+		id, err := parse.CdnProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnProfilesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: CDN Profile %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: CDN Profile %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -217,10 +217,11 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		id, err := parse.CdnProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			return nil

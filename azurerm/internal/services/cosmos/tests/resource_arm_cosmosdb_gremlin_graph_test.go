@@ -219,6 +219,19 @@ resource "azurerm_cosmosdb_gremlin_graph" "import" {
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
   database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
+
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
+
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+
 }
 `, testAccAzureRMCosmosDbGremlinGraph_basic(data))
 }

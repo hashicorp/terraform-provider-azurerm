@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_eventgrid_domain" "example" {
   name                = "my-eventgrid-domain"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     environment = "Production"
@@ -86,9 +86,9 @@ The following attributes are exported:
 
 * `secondary_access_key` - The Secondary Shared Access Key associated with the EventGrid Domain.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

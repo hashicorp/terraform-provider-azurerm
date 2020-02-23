@@ -315,11 +315,11 @@ func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]s
 			subnetName := subnetResourceID.Path["subnets"]
 			vnetName := subnetResourceID.Path["virtualNetworks"]
 
-			if !SliceContainsValue(subnetNames, subnetName) {
+			if !azure.SliceContainsValue(subnetNames, subnetName) {
 				subnetNames = append(subnetNames, subnetName)
 			}
 
-			if !SliceContainsValue(vnetNames, vnetName) {
+			if !azure.SliceContainsValue(vnetNames, vnetName) {
 				vnetNames = append(vnetNames, vnetName)
 			}
 		}

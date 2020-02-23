@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -28,43 +27,6 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagement_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMApiManagement_basicNotDefined(data),
-				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
-			},
 		},
 	})
 }
@@ -104,6 +66,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 				Config: testAccAzureRMApiManagement_customProps(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -125,6 +88,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
 				),
 			},
 			{
@@ -276,47 +240,6 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Developer_1"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMApiManagement_basicClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMApiManagement_basicNotDefined(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -509,6 +432,10 @@ resource "azurerm_api_management" "test" {
     encoded_certificate  = "${filebase64("testdata/api_management_api_test.pfx")}"
     certificate_password = "terraform"
     store_name           = "Root"
+  }
+
+  protocols {
+    enable_http2 = true
   }
 
   security {

@@ -26,7 +26,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_template_deployment" "example" {
   name                = "acctesttemplate-01"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   template_body = <<DEPLOY
 {
@@ -86,6 +86,7 @@ resource "azurerm_template_deployment" "example" {
 }
 DEPLOY
 
+
   # these key-value pairs are passed into the ARM Template's `parameters` block
   parameters = {
     "storageAccountType" = "Standard_GRS"
@@ -95,7 +96,7 @@ DEPLOY
 }
 
 output "storageAccountName" {
-  value = "${lookup(azurerm_template_deployment.example.outputs, "storageAccountName")}"
+  value = azurerm_template_deployment.example.outputs["storageAccountName"]
 }
 ```
 
@@ -132,9 +133,7 @@ The following attributes are exported:
 
 Terraform does not know about the individual resources created by Azure using a deployment template and therefore cannot delete these resources during a destroy. Destroying a template deployment removes the associated deployment operations, but will not delete the Azure resources created by the deployment. In order to delete these resources, the containing resource group must also be destroyed. [More information](https://docs.microsoft.com/en-us/rest/api/resources/deployments#Deployments_Delete).
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -14,11 +14,12 @@ Manages a Management Lock which is scoped to a Subscription, Resource Group or R
 ## Example Usage (Subscription Level Lock)
 
 ```hcl
-data "azurerm_subscription" "current" {}
+data "azurerm_subscription" "current" {
+}
 
 resource "azurerm_management_lock" "subscription-level" {
   name       = "subscription-level"
-  scope      = "${data.azurerm_subscription.current.id}"
+  scope      = data.azurerm_subscription.current.id
   lock_level = "CanNotDelete"
   notes      = "Items can't be deleted in this subscription!"
 }
@@ -34,7 +35,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_management_lock" "resource-group-level" {
   name       = "resource-group-level"
-  scope      = "${azurerm_resource_group.example.id}"
+  scope      = azurerm_resource_group.example.id
   lock_level = "ReadOnly"
   notes      = "This Resource Group is Read-Only"
 }
@@ -50,15 +51,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip" "example" {
   name                    = "locked-publicip"
-  location                = "${azurerm_resource_group.example.location}"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
 
 resource "azurerm_management_lock" "public-ip" {
   name       = "resource-ip"
-  scope      = "${azurerm_public_ip.example.id}"
+  scope      = azurerm_public_ip.example.id
   lock_level = "CanNotDelete"
   notes      = "Locked because it's needed by a third-party"
 }
@@ -84,9 +85,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Management Lock
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
