@@ -34,7 +34,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Recovery Services VM Protection Policy.
+* `id` - The ID of the Backup VM Protection Policy.
 
 * `tags` - A mapping of tags assigned to the resource.
 

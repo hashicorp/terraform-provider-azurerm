@@ -471,6 +471,14 @@ The `sku_name` field is now case sensitive.
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
 
+### Resource: `azurerm_metric_alertrule`
+
+The `azurerm_metric_alertrule` resource will be removed since this is no longer supported by Azure.
+
+### Resource: `azurerm_monitor_metric_alertrule`
+
+The `azurerm_monitor_metric_alertrule` resource will be removed since this is no longer supported by Azure.
+
 ### Resource: `azurerm_mysql_server`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
