@@ -118,7 +118,7 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 				Config: testAccAzureRMAppServiceEnvironment_withAppServicePlan(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-					testCheckAppServicePlanMemberOfAppServiceEnvironment(data.ResourceName, aspData.ResourceName),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "id", aspData.ResourceName, "app_service_environment_id"),
 				),
 			},
 			data.ImportStep(),
@@ -180,49 +180,6 @@ func testCheckAzureRMAppServiceEnvironmentDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testCheckAppServicePlanMemberOfAppServiceEnvironment(ase string, asp string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		aseClient := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServiceEnvironmentsClient
-		aspClient := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicePlansClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		aseResource, ok := s.RootModule().Resources[ase]
-		if !ok {
-			return fmt.Errorf("Not found: %s", ase)
-		}
-
-		appServiceEnvironmentName := aseResource.Primary.Attributes["name"]
-		appServiceEnvironmentResourceGroup := aseResource.Primary.Attributes["resource_group_name"]
-
-		aseResp, err := aseClient.Get(ctx, appServiceEnvironmentResourceGroup, appServiceEnvironmentName)
-		if err != nil {
-			if utils.ResponseWasNotFound(aseResp.Response) {
-				return fmt.Errorf("Bad: App Service Environment %q (resource group %q) does not exist: %+v", appServiceEnvironmentName, appServiceEnvironmentResourceGroup, err)
-			}
-		}
-
-		aspResource, ok := s.RootModule().Resources[asp]
-		if !ok {
-			return fmt.Errorf("Not found: %s", ase)
-		}
-
-		appServicePlanName := aspResource.Primary.Attributes["name"]
-		appServicePlanResourceGroup := aspResource.Primary.Attributes["resource_group_name"]
-
-		aspResp, err := aspClient.Get(ctx, appServicePlanResourceGroup, appServicePlanName)
-		if err != nil {
-			if utils.ResponseWasNotFound(aseResp.Response) {
-				return fmt.Errorf("Bad: App Service Plan %q (resource group %q) does not exist: %+v", appServicePlanName, appServicePlanResourceGroup, err)
-			}
-		}
-		if aspResp.HostingEnvironmentProfile.ID != aseResp.ID {
-			return fmt.Errorf("Bad: App Service Plan %s not a member of App Service Environment %s", appServicePlanName, appServiceEnvironmentName)
-		}
-
-		return nil
-	}
 }
 
 func testAccAzureRMAppServiceEnvironment_basic(data acceptance.TestData) string {
