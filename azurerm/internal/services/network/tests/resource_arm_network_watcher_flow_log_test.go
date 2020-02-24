@@ -228,6 +228,7 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -242,6 +243,28 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval", "60"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_region"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_resource_id"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsUpdateInterval(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "network_watcher_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval", "10"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_region"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_resource_id"),
@@ -483,6 +506,41 @@ resource "azurerm_network_watcher_flow_log" "test" {
     workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
     workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
     workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  }
+}
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
+}
+
+func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsUpdateInterval(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.test.id}"
+  enabled                   = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = true
+    workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
+    workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
+    workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+	interval              = 10
   }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
