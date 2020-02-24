@@ -75,7 +75,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
-				Default: string(storage.Storage),
+				Default: string(storage.StorageV2),
 			},
 
 			"account_tier": {
