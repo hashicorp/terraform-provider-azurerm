@@ -540,7 +540,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
     workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
     workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
     workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-	interval              = 10
+    interval              = 10
   }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
