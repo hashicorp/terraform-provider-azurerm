@@ -353,7 +353,7 @@ The deprecated `internal_public_ip_address_id` field in the `ip_configuration` b
 
 ### Resource: `azurerm_frontdoor`
 
-The field `cache_enabled` within the `forwarding_configuration` block now defaults to `HttpsOnly` rather than `MatchRequest`.
+The field `cache_enabled` within the `forwarding_configuration` block now defaults to `false` rather than `true`.
 
 The field `cache_query_parameter_strip_directive` within the `forwarding_configuration` block now defaults to `StripAll` rather than `StripNone`.
 
