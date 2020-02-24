@@ -86,6 +86,7 @@ BREAKING CHANGES:
 * `azurerm_container_group` - removing the deprecated field `command` [GH-5823]
 * `azurerm_container_registry` - removing the deprecated `storage_account` block [GH-5823]
 * `azurerm_container_service` - This resource has been removed since it was deprecated [GH-5709]
+* `azurerm_cosmosdb_mongo_collection` - removing the deprecated `indexes` block [GH-5853]
 * `azurerm_ddos_protection_plan` - the deprecated resource has been removed [GH-5844]
 * `azurerm_devspace_controller` - removing the deprecated `sku` block [GH-5795]
 * `azurerm_dns_cname_record` - removing the deprecated `records` field [GH-5794]
