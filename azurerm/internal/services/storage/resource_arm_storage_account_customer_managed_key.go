@@ -213,7 +213,7 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	}
 
 	if keyVaultUri == "" {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultUri` was nil")
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultUri` was nil", storageAccountId.Name, storageAccountId.ResourceGroup)
 	}
 
 	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultUri)
