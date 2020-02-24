@@ -36,8 +36,8 @@ resource "azurerm_key_vault" "example" {
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
-    object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.service_principal_object_id
 
     key_permissions = [
       "get",
@@ -58,7 +58,7 @@ resource "azurerm_key_vault" "example" {
   }
 
   tags = {
-    environment = "Production"
+    environment = "Testing"
   }
 }
 ```
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
+* `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
