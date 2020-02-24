@@ -49,6 +49,24 @@ The following attributes are exported:
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow
 
+* `endpoint_configuration` - The Endpoint Configuration for the Logic App Workflow as defined below.
+
+---
+
+A `endpoint_configuration` block supports the following:
+
+* `workflow` - The Flow Endpoints Configuration applied to workflow as defined below.
+
+* `connector` - The Flow Endpoints Configuration applied to connector as defined below.
+
+---
+
+A `workflow`/`connector` block supports the following:
+
+* `outgoing_ip_addresses` - A set of the outgoing ip addresses.
+
+* `access_endpoint_ip_addresses` - A set of the access endpoint ip addresses.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

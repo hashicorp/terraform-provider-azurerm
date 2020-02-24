@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
+	"github.com/Azure/azure-sdk-for-go/services/preview/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -51,12 +51,24 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
-
 			"access_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"endpoint_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"workflow":  buildFlowEndpointsSchema(),
+						"connector": buildFlowEndpointsSchema(),
+					},
+				},
+			},
+
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -90,6 +102,10 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 		}
 
 		d.Set("access_endpoint", props.AccessEndpoint)
+
+		if err := d.Set("endpoint_configuration", flattenFlowEndpointsConfiguration(props.EndpointsConfiguration)); err != nil {
+			return fmt.Errorf("Error setting `endpoint_configuration`: %+v", err)
+		}
 
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
