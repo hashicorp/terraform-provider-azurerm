@@ -505,7 +505,7 @@ resource "azurerm_key_vault" "test-kv" {
 
   access_policy {
     key_permissions = []
-    object_id       = "${data.azurerm_client_config.current.service_principal_object_id}"
+    object_id       = "${data.azurerm_client_config.current.object_id}"
 
     secret_permissions = [
       "delete",
@@ -634,7 +634,6 @@ output "test" {
 
 resource "azurerm_storage_container" "using-outputs" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_template_deployment.test.outputs["accountName"]}"
   container_access_type = "private"
 }

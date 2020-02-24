@@ -20,7 +20,7 @@ tools:
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 
-build: fmtcheck
+build: fmtcheck generate
 	go install
 
 build-docker:
@@ -36,6 +36,9 @@ fmt:
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 	@sh "$(CURDIR)/scripts/timeouts.sh"
+
+generate:
+	go generate ./azurerm/internal/provider/
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."

@@ -29,7 +29,7 @@ resource "azurerm_netapp_account" "example" {
     username            = "aduser"
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
-    dns                 = ["1.2.3.4"]
+    dns_servers         = ["1.2.3.4"]
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
   }

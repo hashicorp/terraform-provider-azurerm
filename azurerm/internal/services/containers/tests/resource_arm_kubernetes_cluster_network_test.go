@@ -595,11 +595,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-
-  # TODO: remove in 2.0
-  lifecycle {
-    ignore_changes = ["route_table_id"]
-  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -667,11 +662,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-
-  # TODO: remove in 2.0
-  lifecycle {
-    ignore_changes = ["route_table_id"]
-  }
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -802,7 +792,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-  route_table_id       = azurerm_route_table.test.id
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -894,11 +883,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "172.0.2.0/24"
-
-  # TODO: remove in 2.0
-  lifecycle {
-    ignore_changes = ["route_table_id"]
-  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1062,7 +1046,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-  route_table_id       = azurerm_route_table.test.id
 }
 
 resource "azurerm_subnet_route_table_association" "test" {

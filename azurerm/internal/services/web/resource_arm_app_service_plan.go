@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -33,10 +33,10 @@ func resourceArmAppServicePlan() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -264,17 +264,23 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
-		if profile := props.HostingEnvironmentProfile; profile != nil {
-			d.Set("app_service_environment_id", profile.ID)
+		appServiceEnvironmentId := ""
+		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
+			appServiceEnvironmentId = *props.HostingEnvironmentProfile.ID
 		}
+		d.Set("app_service_environment_id", appServiceEnvironmentId)
 
+		maximumNumberOfWorkers := 0
 		if props.MaximumNumberOfWorkers != nil {
-			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
+			maximumNumberOfWorkers = int(*props.MaximumNumberOfWorkers)
 		}
+		d.Set("maximum_number_of_workers", maximumNumberOfWorkers)
 
+		maximumElasticWorkerCount := 0
 		if props.MaximumElasticWorkerCount != nil {
-			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
+			maximumElasticWorkerCount = int(*props.MaximumElasticWorkerCount)
 		}
+		d.Set("maximum_elastic_worker_count", maximumElasticWorkerCount)
 
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -699,8 +699,7 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 				Config: testAccAzureRMAppServiceSlot_oneIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
 				),
 			},
 		},
@@ -774,14 +773,10 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 				Config: testAccAzureRMAppServiceSlot_manyIpRestrictions(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0/16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2/24"),
 				),
 			},
 		},
@@ -875,32 +870,6 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceSlot_virtualNetwork(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.virtual_network_name", fmt.Sprintf("acctestvn-%d", data.RandomInteger)),
-				),
-			},
-			{
-				Config: testAccAzureRMAppServiceSlot_virtualNetworkUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.virtual_network_name", fmt.Sprintf("acctestvn2-%d", data.RandomInteger)),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
@@ -982,28 +951,6 @@ func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppServiceSlot_multipleAssignedIdentities(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceSlot_multipleAssignedIdentities(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -2687,7 +2634,7 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10"
+      ip_address = "10.10.10.10/32"
     }
   }
 }
@@ -2822,22 +2769,19 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10"
+      ip_address = "10.10.10.10/32"
     }
 
     ip_restriction {
-      ip_address  = "20.20.20.0"
-      subnet_mask = "255.255.255.0"
+      ip_address = "20.20.20.0/24"
     }
 
     ip_restriction {
-      ip_address  = "30.30.0.0"
-      subnet_mask = "255.255.0.0"
+      ip_address = "30.30.0.0/16"
     }
 
     ip_restriction {
-      ip_address  = "192.168.1.2"
-      subnet_mask = "255.255.255.0"
+      ip_address = "192.168.1.2/24"
     }
   }
 }
@@ -3043,120 +2987,6 @@ resource "azurerm_app_service_slot" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppServiceSlot_virtualNetwork(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  subnet {
-    name           = "internal"
-    address_prefix = "10.0.1.0/24"
-  }
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-
-  site_config {
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppServiceSlot_virtualNetworkUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  subnet {
-    name           = "internal"
-    address_prefix = "10.0.1.0/24"
-  }
-}
-
-resource "azurerm_virtual_network" "second" {
-  name                = "acctestvn2-%d"
-  address_space       = ["172.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  subnet {
-    name           = "internal"
-    address_prefix = "172.0.1.0/24"
-  }
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-
-  site_config {
-    virtual_network_name = "${azurerm_virtual_network.second.name}"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMAppServiceSlot_windowsDotNet(data acceptance.TestData, version string) string {
@@ -3435,52 +3265,6 @@ resource "azurerm_app_service_slot" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppServiceSlot_multipleAssignedIdentities(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acct-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-
-  identity {
-    type         = "SystemAssigned, UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 }

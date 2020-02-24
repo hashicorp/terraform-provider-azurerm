@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -78,43 +77,6 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Deprecated - remove in 2.0
-func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "ignored", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMLogAnalyticsLinkedService_noResourceID(data),
-				ExpectError: regexp.MustCompile("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block"),
-			},
-		},
-	})
-}
-
-// Deprecated - remove in 2.0
-func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -224,33 +186,6 @@ resource "azurerm_log_analytics_linked_service" "test" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_noResourceID(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-}
-`, template)
-}
-
-func testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-  linked_service_properties {
-    resource_id = "${azurerm_automation_account.test.id}"
-  }
-}
-`, template)
-}
-
 func testAccAzureRMLogAnalyticsLinkedService_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -263,9 +198,7 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 
   tags = {
     Environment = "Test"

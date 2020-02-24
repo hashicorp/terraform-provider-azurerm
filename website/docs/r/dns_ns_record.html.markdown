@@ -48,15 +48,9 @@ The following arguments are supported:
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `records` - (Optional) A list of values that make up the NS record. *WARNING*: Either `records` or `record` is required.
-
-* `record` - (Optional) A list of values that make up the NS record. Each `record` block supports fields documented below. This field has been deprecated and will be removed in a future release.
+* `records` - (Required) A list of values that make up the NS record. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-The `record` block supports:
-
-* `nsdname` - (Required) The value of the record.
 
 ## Attributes Reference
 

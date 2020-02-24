@@ -37,28 +37,6 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVaultAccessPolicy_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVaultAccessPolicy_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -235,31 +213,7 @@ resource "azurerm_key_vault_access_policy" "test" {
   ]
 
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-}
-`, template)
-}
-
-func testAccAzureRMKeyVaultAccessPolicy_basicClassic(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
-
-  key_permissions = [
-    "get",
-  ]
-
-  secret_permissions = [
-    "get",
-    "set",
-  ]
-
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  object_id = "${data.azurerm_client_config.current.object_id}"
 }
 `, template)
 }
@@ -309,9 +263,9 @@ resource "azurerm_key_vault_access_policy" "test_with_application_id" {
     "delete",
   ]
 
-  application_id = "${data.azurerm_client_config.current.service_principal_application_id}"
+  application_id = "${data.azurerm_client_config.current.client_id}"
   tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
-  object_id      = "${data.azurerm_client_config.current.service_principal_object_id}"
+  object_id      = "${data.azurerm_client_config.current.object_id}"
 }
 
 resource "azurerm_key_vault_access_policy" "test_no_application_id" {
@@ -350,7 +304,7 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
   ]
 
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  object_id = "${data.azurerm_client_config.current.object_id}"
 }
 `, template)
 }
@@ -361,8 +315,7 @@ func testAccAzureRMKeyVaultAccessPolicy_update(data acceptance.TestData) string 
 %s
 
 resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   key_permissions = [
     "list",
@@ -372,7 +325,7 @@ resource "azurerm_key_vault_access_policy" "test" {
   secret_permissions = []
 
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  object_id = "${data.azurerm_client_config.current.object_id}"
 }
 `, template)
 }
@@ -428,7 +381,7 @@ resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = "${azurerm_key_vault.test.id}NOPE"
 
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  object_id = "${data.azurerm_client_config.current.object_id}"
 
   key_permissions = [
     "get",

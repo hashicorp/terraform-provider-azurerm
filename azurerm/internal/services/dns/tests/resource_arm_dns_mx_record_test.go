@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
 func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
@@ -144,20 +145,18 @@ func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		mxName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS MX record: %s", mxName)
+		id, err := parse.DnsMxRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, mxName, dns.MX)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.MX)
 		if err != nil {
 			return fmt.Errorf("Bad: Get MX RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS MX record %s (resource group: %s) does not exist", mxName, resourceGroup)
+			return fmt.Errorf("Bad: DNS MX record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -173,11 +172,12 @@ func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		mxName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DnsMxRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, mxName, dns.MX)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.MX)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

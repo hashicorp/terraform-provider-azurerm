@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -62,9 +61,6 @@ func resourceArmStorageTable() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: ValidateArmStorageAccountName,
 			},
-
-			// TODO: deprecate this in the docs
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"acl": {
 				Type:     schema.TypeSet,
@@ -199,7 +195,6 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", id.TableName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", account.ResourceGroup)
 
 	if err := d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("Error flattening `acl`: %+v", err)

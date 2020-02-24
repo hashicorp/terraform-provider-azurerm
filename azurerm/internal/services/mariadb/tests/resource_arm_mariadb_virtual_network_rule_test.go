@@ -255,13 +255,7 @@ resource "azurerm_mariadb_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -330,13 +324,7 @@ resource "azurerm_mariadb_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -392,13 +380,7 @@ resource "azurerm_mariadb_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -469,13 +451,7 @@ resource "azurerm_mariadb_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200

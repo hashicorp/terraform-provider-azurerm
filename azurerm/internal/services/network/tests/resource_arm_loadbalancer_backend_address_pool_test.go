@@ -44,8 +44,6 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 				ResourceName:      "azurerm_lb.test",
 				ImportState:       true,
 				ImportStateVerify: true,
-				// location is deprecated and was never actually used
-				ImportStateVerifyIgnore: []string{"location"},
 			},
 		},
 	})
@@ -214,7 +212,6 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
@@ -230,7 +227,6 @@ func testAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(data acceptance
 resource "azurerm_lb_backend_address_pool" "import" {
   name                = "${azurerm_lb_backend_address_pool.test.name}"
   loadbalancer_id     = "${azurerm_lb_backend_address_pool.test.loadbalancer_id}"
-  location            = "${azurerm_lb_backend_address_pool.test.location}"
   resource_group_name = "${azurerm_lb_backend_address_pool.test.resource_group_name}"
 }
 `, template)

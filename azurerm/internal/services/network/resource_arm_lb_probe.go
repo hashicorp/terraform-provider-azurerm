@@ -44,8 +44,6 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocationDeprecated(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {

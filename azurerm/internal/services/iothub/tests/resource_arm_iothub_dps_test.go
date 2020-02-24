@@ -56,7 +56,7 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPS_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps"),
 			},
 		},
 	})
@@ -119,7 +119,7 @@ func testCheckAzureRMIotHubDPSDestroy(s *terraform.State) error {
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothubdps" {
+		if rs.Type != "azurerm_iothub_dps" {
 			continue
 		}
 

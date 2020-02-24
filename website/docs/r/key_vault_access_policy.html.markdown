@@ -61,14 +61,6 @@ The following arguments are supported:
 * `key_vault_id` - (Required) Specifies the id of the Key Vault resource. Changing this
     forces a new resource to be created.
 
--> **NOTE:** At this time the Key Vault `<->` Key Vault Access Policy associations need to be configured using the field `key_vault_id` or using both fields `vault_name` and `resource_group_name`. These fields are now deprecated and will be removed in favour of `key_vault_id` in the next major version (2.0) of the AzureRM Provider.
-
-* `vault_name` - (Required / **Deprecated**) Specifies the name of the Key Vault resource. Changing this
-    forces a new resource to be created.
-
-* `resource_group_name` - (Required / **Deprecated**) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
-
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used
     for authenticating requests to the key vault. Changing this forces a new resource
     to be created.

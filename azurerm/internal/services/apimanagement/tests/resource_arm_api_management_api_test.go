@@ -77,6 +77,29 @@ func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementApi_blankPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_blankPath(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "path", ""),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMApiManagementApi_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 
@@ -349,6 +372,23 @@ resource "azurerm_api_management_api" "test" {
 `, template, data.RandomInteger)
 }
 
+func testAccAzureRMApiManagementApi_blankPath(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApi_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "api1"
+  path                = ""
+  protocols           = ["https"]
+  revision            = "1"
+}
+`, template, data.RandomInteger)
+}
+
 func testAccAzureRMApiManagementApi_wordRevision(data acceptance.TestData) string {
 	template := testAccAzureRMApiManagementApi_template(data)
 	return fmt.Sprintf(`
@@ -534,11 +574,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name            = "Developer_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

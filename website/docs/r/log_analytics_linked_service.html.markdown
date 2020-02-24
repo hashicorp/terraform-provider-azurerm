@@ -57,17 +57,9 @@ The following arguments are supported:
 
 * `linked_service_name` - (Optional) Name of the type of linkedServices resource to connect to the Log Analytics Workspace specified in `workspace_name`. Currently it defaults to and only supports `automation` as a value. Changing this forces a new resource to be created.
 
-* `resource_id` - (Optional) The ID of the Resource that will be linked to the workspace.
-
-* `linked_service_properties` - (Optional **Deprecated**) A `linked_service_properties` block as defined below.
+* `resource_id` - (Required) The ID of the Resource that will be linked to the workspace. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-`linked_service_properties` supports the following:
-
-* `resource_id` - (Optional  **Deprecated**) The resource id of the resource that will be linked to the workspace. This field has been deprecated in favour of the top-level `resource_id` field and will be removed in v2.0 of the AzureRM Provider.
 
 ## Attributes Reference
 

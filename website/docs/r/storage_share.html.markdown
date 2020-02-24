@@ -48,9 +48,6 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of MetaData for this File Share.
 
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to
-    create the share. Changing this forces a new resource to be created.
-
 ---
 
 A `acl` block supports the following:

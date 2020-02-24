@@ -342,14 +342,14 @@ data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
 
-data "azurerm_builtin_role_definition" "test" {
+data "azurerm_role_definition" "test" {
   name = "Monitoring Reader"
 }
 
 resource "azurerm_role_assignment" "test" {
   scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.object_id}"
 }
 `
 }
@@ -364,7 +364,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = "${data.azurerm_subscription.primary.id}"
   role_definition_name = "Log Analytics Reader"
-  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+  principal_id         = "${data.azurerm_client_config.test.object_id}"
 }
 `, id)
 }
@@ -392,7 +392,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = "${data.azurerm_subscription.primary.id}"
   role_definition_name = "Virtual Machine User Login"
-  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+  principal_id         = "${data.azurerm_client_config.test.object_id}"
 }
 `, id)
 }
@@ -403,15 +403,15 @@ data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
 
-data "azurerm_builtin_role_definition" "test" {
+data "azurerm_role_definition" "test" {
   name = "Site Recovery Reader"
 }
 
 resource "azurerm_role_assignment" "test" {
   name               = "%s"
   scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.object_id}"
 }
 `, id)
 }
@@ -442,7 +442,7 @@ resource "azurerm_role_assignment" "test" {
   name               = "%s"
   scope              = "${data.azurerm_subscription.primary.id}"
   role_definition_id = "${azurerm_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  principal_id       = "${data.azurerm_client_config.test.object_id}"
 }
 `, roleDefinitionId, rInt, roleAssignmentId)
 }
@@ -524,7 +524,7 @@ resource "azurerm_management_group" "test" {
 resource "azurerm_role_assignment" "test" {
   scope              = "${azurerm_management_group.test.id}"
   role_definition_id = "${data.azurerm_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  principal_id       = "${data.azurerm_client_config.test.object_id}"
 }
 `, groupId)
 }

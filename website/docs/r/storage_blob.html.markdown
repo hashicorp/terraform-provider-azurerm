@@ -35,7 +35,6 @@ resource "azurerm_storage_container" "example" {
 
 resource "azurerm_storage_blob" "example" {
   name                   = "my-awesome-content.zip"
-  resource_group_name    = azurerm_resource_group.example.name
   storage_account_name   = azurerm_storage_account.example.name
   storage_container_name = azurerm_storage_container.example.name
   type                   = "Block"
@@ -74,10 +73,6 @@ The following arguments are supported:
 ~> **NOTE:** `parallelism` is only applicable for Page blobs - support for [Block Blobs is blocked on the upstream issue](https://github.com/tombuildsstuff/giovanni/issues/15).
 
 * `metadata` - (Optional) A map of custom blob metadata.
-
-* `attempts` - (Optional / **Deprecated**) The number of attempts to make per page or block when uploading. Defaults to `1`.
-
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage container.
 
 ## Attributes Reference
 

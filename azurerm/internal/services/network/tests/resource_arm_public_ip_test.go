@@ -66,37 +66,6 @@ func TestAccAzureRMPublicIpStatic_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPublicIpStatic_basicOld(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPublicIPStatic_basicOld(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address_allocation", "Static"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv4"),
-				),
-			},
-			{
-				Config: testAccAzureRMPublicIPStatic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allocation_method", "Static"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv4"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMPublicIpStatic_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
@@ -556,22 +525,6 @@ resource "azurerm_public_ip" "import" {
   allocation_method   = "${azurerm_public_ip.test.allocation_method}"
 }
 `, testAccAzureRMPublicIPStatic_basic(data))
-}
-
-func testAccAzureRMPublicIPStatic_basicOld(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Static"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMPublicIPStatic_withZone(data acceptance.TestData) string {

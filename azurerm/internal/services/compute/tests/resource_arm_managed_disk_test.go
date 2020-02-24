@@ -210,30 +210,6 @@ func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	var d compute.Disk
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMManagedDisk_nonStandardCasing(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			{
-				Config:             testAccAzureRMManagedDisk_nonStandardCasing(data),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
-		},
-	})
-}
-
 func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	var d compute.Disk
@@ -566,7 +542,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
@@ -648,29 +623,6 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDisk_nonStandardCasing(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_type = "standard_lrs"
-  create_option        = "Empty"
-  disk_size_gb         = "1"
-
-  tags = {
-    environment = "acctest"
-    cost-center = "ops"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func testAccAzureRMManagedDisk_platformImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_platform_image" "test" {
@@ -745,7 +697,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    object_id = "${data.azurerm_client_config.current.object_id}"
 
     key_permissions = [
       "create",
@@ -915,7 +867,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_key_vault_access_policy" "service-principal" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.service_principal_object_id
+  object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
     "create",

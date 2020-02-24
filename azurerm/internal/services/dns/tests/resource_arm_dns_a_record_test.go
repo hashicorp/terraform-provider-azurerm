@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
 func TestAccAzureRMDnsARecord_basic(t *testing.T) {
@@ -163,7 +164,7 @@ func TestAccAzureRMDnsARecord_RecordsToAlias(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsARecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "records"),
+					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -211,20 +212,18 @@ func testCheckAzureRMDnsARecordExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		aName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS A record: %s", aName)
+		id, err := parse.DnsARecordID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, aName, dns.A)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.A)
 		if err != nil {
 			return fmt.Errorf("Bad: Get A RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS A record %s (resource group: %s) does not exist", aName, resourceGroup)
+			return fmt.Errorf("Bad: DNS A record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -240,11 +239,11 @@ func testCheckAzureRMDnsARecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		aName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, aName, dns.A)
+		id, err := parse.DnsARecordID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.A)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

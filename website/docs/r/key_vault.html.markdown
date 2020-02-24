@@ -10,7 +10,11 @@ description: |-
 
 Manages a Key Vault.
 
-~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+## Disclaimers
+
+~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+
+~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
 ## Example Usage
 
@@ -26,12 +30,14 @@ resource "azurerm_key_vault" "example" {
   resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
+  soft_delete_enabled         = true
+  purge_protection_enabled    = false
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
-    object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.service_principal_object_id
 
     key_permissions = [
       "get",
@@ -52,7 +58,7 @@ resource "azurerm_key_vault" "example" {
   }
 
   tags = {
-    environment = "Production"
+    environment = "Testing"
   }
 }
 ```
@@ -67,11 +73,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
 * `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
+
+---
 
 * `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of up to 16 objects describing access policies, as described below.
 
@@ -85,17 +91,21 @@ The following arguments are supported:
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
+* `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault? Defaults to `false`.
+
+!> **Note:** Once Purge Protection has been Enabled it's not possible to Disable it. Support for [disabling purge protection is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075). Deleting the Key Vault with Purge Protection Enabled will schedule the Key Vault to be deleted (which will happen by Azure in the configured number of days, currently 90 days - which will be configurable in Terraform in the future).
+
+* `soft_delete_enabled` - (Optional) Should Soft Delete be enabled for this Key Vault? Defaults to `false`.
+
+!> **Note:** Once Soft Delete has been Enabled it's not possible to Disable it.
+
+~> **Note:** Terraform will check when creating a Key Vault for a previous soft-deleted Key Vault and recover it if one exists. You can configure this behaviour using the `features` block within the `provider` block.  
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
-A `sku` block supports the following:
 
-* `name` - (Required)  The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
-
----
 A `access_policy` block supports the following:
-
-Elements of `access_policy` support:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Must match the `tenant_id` used above.
 
@@ -132,8 +142,6 @@ The following attributes are exported:
 * `vault_uri` - The URI of the Key Vault, used for performing operations on keys and secrets.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
