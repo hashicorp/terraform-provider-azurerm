@@ -56,14 +56,6 @@ The following arguments are supported:
 * `default_ttl_seconds` - (Required) The default Time To Live in seconds. If the value is `-1` items are not automatically expired.
 * `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys.
 * `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
-* `indexes` - (Optional) One or more `indexes` blocks as defined below.
-
----
-
-An `indexes` block supports the following:
-
-* `key` - (Required) The name of the key to use for this index.
-* `unique` - (Required) Whether the index key should be unique.
 
 ## Attributes Reference
 
