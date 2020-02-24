@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
@@ -28,42 +29,97 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
-
-// AccessKeyType enumerates the values for access key type.
-type AccessKeyType string
-
-const (
-	// NotSpecified ...
-	NotSpecified AccessKeyType = "NotSpecified"
-	// Primary ...
-	Primary AccessKeyType = "Primary"
-	// Secondary ...
-	Secondary AccessKeyType = "Secondary"
-)
-
-// PossibleAccessKeyTypeValues returns an array of possible values for the AccessKeyType const type.
-func PossibleAccessKeyTypeValues() []AccessKeyType {
-	return []AccessKeyType{NotSpecified, Primary, Secondary}
-}
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/logic/mgmt/2019-05-01/logic"
 
 // AgreementType enumerates the values for agreement type.
 type AgreementType string
 
 const (
-	// AgreementTypeAS2 ...
-	AgreementTypeAS2 AgreementType = "AS2"
-	// AgreementTypeEdifact ...
-	AgreementTypeEdifact AgreementType = "Edifact"
-	// AgreementTypeNotSpecified ...
-	AgreementTypeNotSpecified AgreementType = "NotSpecified"
-	// AgreementTypeX12 ...
-	AgreementTypeX12 AgreementType = "X12"
+	// AS2 ...
+	AS2 AgreementType = "AS2"
+	// Edifact ...
+	Edifact AgreementType = "Edifact"
+	// NotSpecified ...
+	NotSpecified AgreementType = "NotSpecified"
+	// X12 ...
+	X12 AgreementType = "X12"
 )
 
 // PossibleAgreementTypeValues returns an array of possible values for the AgreementType const type.
 func PossibleAgreementTypeValues() []AgreementType {
-	return []AgreementType{AgreementTypeAS2, AgreementTypeEdifact, AgreementTypeNotSpecified, AgreementTypeX12}
+	return []AgreementType{AS2, Edifact, NotSpecified, X12}
+}
+
+// APIDeploymentParameterVisibility enumerates the values for api deployment parameter visibility.
+type APIDeploymentParameterVisibility string
+
+const (
+	// APIDeploymentParameterVisibilityDefault ...
+	APIDeploymentParameterVisibilityDefault APIDeploymentParameterVisibility = "Default"
+	// APIDeploymentParameterVisibilityInternal ...
+	APIDeploymentParameterVisibilityInternal APIDeploymentParameterVisibility = "Internal"
+	// APIDeploymentParameterVisibilityNotSpecified ...
+	APIDeploymentParameterVisibilityNotSpecified APIDeploymentParameterVisibility = "NotSpecified"
+)
+
+// PossibleAPIDeploymentParameterVisibilityValues returns an array of possible values for the APIDeploymentParameterVisibility const type.
+func PossibleAPIDeploymentParameterVisibilityValues() []APIDeploymentParameterVisibility {
+	return []APIDeploymentParameterVisibility{APIDeploymentParameterVisibilityDefault, APIDeploymentParameterVisibilityInternal, APIDeploymentParameterVisibilityNotSpecified}
+}
+
+// APITier enumerates the values for api tier.
+type APITier string
+
+const (
+	// APITierEnterprise ...
+	APITierEnterprise APITier = "Enterprise"
+	// APITierNotSpecified ...
+	APITierNotSpecified APITier = "NotSpecified"
+	// APITierPremium ...
+	APITierPremium APITier = "Premium"
+	// APITierStandard ...
+	APITierStandard APITier = "Standard"
+)
+
+// PossibleAPITierValues returns an array of possible values for the APITier const type.
+func PossibleAPITierValues() []APITier {
+	return []APITier{APITierEnterprise, APITierNotSpecified, APITierPremium, APITierStandard}
+}
+
+// APIType enumerates the values for api type.
+type APIType string
+
+const (
+	// APITypeNotSpecified ...
+	APITypeNotSpecified APIType = "NotSpecified"
+	// APITypeRest ...
+	APITypeRest APIType = "Rest"
+	// APITypeSoap ...
+	APITypeSoap APIType = "Soap"
+)
+
+// PossibleAPITypeValues returns an array of possible values for the APIType const type.
+func PossibleAPITypeValues() []APIType {
+	return []APIType{APITypeNotSpecified, APITypeRest, APITypeSoap}
+}
+
+// AzureAsyncOperationState enumerates the values for azure async operation state.
+type AzureAsyncOperationState string
+
+const (
+	// Canceled ...
+	Canceled AzureAsyncOperationState = "Canceled"
+	// Failed ...
+	Failed AzureAsyncOperationState = "Failed"
+	// Pending ...
+	Pending AzureAsyncOperationState = "Pending"
+	// Succeeded ...
+	Succeeded AzureAsyncOperationState = "Succeeded"
+)
+
+// PossibleAzureAsyncOperationStateValues returns an array of possible values for the AzureAsyncOperationState const type.
+func PossibleAzureAsyncOperationStateValues() []AzureAsyncOperationState {
+	return []AzureAsyncOperationState{Canceled, Failed, Pending, Succeeded}
 }
 
 // DayOfWeek enumerates the values for day of week.
@@ -199,6 +255,25 @@ func PossibleEncryptionAlgorithmValues() []EncryptionAlgorithm {
 	return []EncryptionAlgorithm{EncryptionAlgorithmAES128, EncryptionAlgorithmAES192, EncryptionAlgorithmAES256, EncryptionAlgorithmDES3, EncryptionAlgorithmNone, EncryptionAlgorithmNotSpecified, EncryptionAlgorithmRC2}
 }
 
+// ErrorResponseCode enumerates the values for error response code.
+type ErrorResponseCode string
+
+const (
+	// ErrorResponseCodeIntegrationServiceEnvironmentNotFound ...
+	ErrorResponseCodeIntegrationServiceEnvironmentNotFound ErrorResponseCode = "IntegrationServiceEnvironmentNotFound"
+	// ErrorResponseCodeInternalServerError ...
+	ErrorResponseCodeInternalServerError ErrorResponseCode = "InternalServerError"
+	// ErrorResponseCodeInvalidOperationID ...
+	ErrorResponseCodeInvalidOperationID ErrorResponseCode = "InvalidOperationId"
+	// ErrorResponseCodeNotSpecified ...
+	ErrorResponseCodeNotSpecified ErrorResponseCode = "NotSpecified"
+)
+
+// PossibleErrorResponseCodeValues returns an array of possible values for the ErrorResponseCode const type.
+func PossibleErrorResponseCodeValues() []ErrorResponseCode {
+	return []ErrorResponseCode{ErrorResponseCodeIntegrationServiceEnvironmentNotFound, ErrorResponseCodeInternalServerError, ErrorResponseCodeInvalidOperationID, ErrorResponseCodeNotSpecified}
+}
+
 // EventLevel enumerates the values for event level.
 type EventLevel string
 
@@ -251,6 +326,8 @@ func PossibleHashingAlgorithmValues() []HashingAlgorithm {
 type IntegrationAccountSkuName string
 
 const (
+	// IntegrationAccountSkuNameBasic ...
+	IntegrationAccountSkuNameBasic IntegrationAccountSkuName = "Basic"
 	// IntegrationAccountSkuNameFree ...
 	IntegrationAccountSkuNameFree IntegrationAccountSkuName = "Free"
 	// IntegrationAccountSkuNameNotSpecified ...
@@ -261,7 +338,136 @@ const (
 
 // PossibleIntegrationAccountSkuNameValues returns an array of possible values for the IntegrationAccountSkuName const type.
 func PossibleIntegrationAccountSkuNameValues() []IntegrationAccountSkuName {
-	return []IntegrationAccountSkuName{IntegrationAccountSkuNameFree, IntegrationAccountSkuNameNotSpecified, IntegrationAccountSkuNameStandard}
+	return []IntegrationAccountSkuName{IntegrationAccountSkuNameBasic, IntegrationAccountSkuNameFree, IntegrationAccountSkuNameNotSpecified, IntegrationAccountSkuNameStandard}
+}
+
+// IntegrationServiceEnvironmentAccessEndpointType enumerates the values for integration service environment
+// access endpoint type.
+type IntegrationServiceEnvironmentAccessEndpointType string
+
+const (
+	// IntegrationServiceEnvironmentAccessEndpointTypeExternal ...
+	IntegrationServiceEnvironmentAccessEndpointTypeExternal IntegrationServiceEnvironmentAccessEndpointType = "External"
+	// IntegrationServiceEnvironmentAccessEndpointTypeInternal ...
+	IntegrationServiceEnvironmentAccessEndpointTypeInternal IntegrationServiceEnvironmentAccessEndpointType = "Internal"
+	// IntegrationServiceEnvironmentAccessEndpointTypeNotSpecified ...
+	IntegrationServiceEnvironmentAccessEndpointTypeNotSpecified IntegrationServiceEnvironmentAccessEndpointType = "NotSpecified"
+)
+
+// PossibleIntegrationServiceEnvironmentAccessEndpointTypeValues returns an array of possible values for the IntegrationServiceEnvironmentAccessEndpointType const type.
+func PossibleIntegrationServiceEnvironmentAccessEndpointTypeValues() []IntegrationServiceEnvironmentAccessEndpointType {
+	return []IntegrationServiceEnvironmentAccessEndpointType{IntegrationServiceEnvironmentAccessEndpointTypeExternal, IntegrationServiceEnvironmentAccessEndpointTypeInternal, IntegrationServiceEnvironmentAccessEndpointTypeNotSpecified}
+}
+
+// IntegrationServiceEnvironmentNetworkDependencyCategoryType enumerates the values for integration service
+// environment network dependency category type.
+type IntegrationServiceEnvironmentNetworkDependencyCategoryType string
+
+const (
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAccessEndpoints ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAccessEndpoints IntegrationServiceEnvironmentNetworkDependencyCategoryType = "AccessEndpoints"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureActiveDirectory ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureActiveDirectory IntegrationServiceEnvironmentNetworkDependencyCategoryType = "AzureActiveDirectory"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureManagement ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureManagement IntegrationServiceEnvironmentNetworkDependencyCategoryType = "AzureManagement"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureStorage ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureStorage IntegrationServiceEnvironmentNetworkDependencyCategoryType = "AzureStorage"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeDiagnosticLogsAndMetrics ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeDiagnosticLogsAndMetrics IntegrationServiceEnvironmentNetworkDependencyCategoryType = "DiagnosticLogsAndMetrics"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeIntegrationServiceEnvironmentConnectors ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeIntegrationServiceEnvironmentConnectors IntegrationServiceEnvironmentNetworkDependencyCategoryType = "IntegrationServiceEnvironmentConnectors"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeNotSpecified ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeNotSpecified IntegrationServiceEnvironmentNetworkDependencyCategoryType = "NotSpecified"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRecoveryService ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRecoveryService IntegrationServiceEnvironmentNetworkDependencyCategoryType = "RecoveryService"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRedisCache ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRedisCache IntegrationServiceEnvironmentNetworkDependencyCategoryType = "RedisCache"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRegionalService ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRegionalService IntegrationServiceEnvironmentNetworkDependencyCategoryType = "RegionalService"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSQL ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSQL IntegrationServiceEnvironmentNetworkDependencyCategoryType = "SQL"
+	// IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSSLCertificateVerification ...
+	IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSSLCertificateVerification IntegrationServiceEnvironmentNetworkDependencyCategoryType = "SSLCertificateVerification"
+)
+
+// PossibleIntegrationServiceEnvironmentNetworkDependencyCategoryTypeValues returns an array of possible values for the IntegrationServiceEnvironmentNetworkDependencyCategoryType const type.
+func PossibleIntegrationServiceEnvironmentNetworkDependencyCategoryTypeValues() []IntegrationServiceEnvironmentNetworkDependencyCategoryType {
+	return []IntegrationServiceEnvironmentNetworkDependencyCategoryType{IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAccessEndpoints, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureActiveDirectory, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureManagement, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureStorage, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeDiagnosticLogsAndMetrics, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeIntegrationServiceEnvironmentConnectors, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeNotSpecified, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRecoveryService, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRedisCache, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRegionalService, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSQL, IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSSLCertificateVerification}
+}
+
+// IntegrationServiceEnvironmentNetworkDependencyHealthState enumerates the values for integration service
+// environment network dependency health state.
+type IntegrationServiceEnvironmentNetworkDependencyHealthState string
+
+const (
+	// IntegrationServiceEnvironmentNetworkDependencyHealthStateHealthy ...
+	IntegrationServiceEnvironmentNetworkDependencyHealthStateHealthy IntegrationServiceEnvironmentNetworkDependencyHealthState = "Healthy"
+	// IntegrationServiceEnvironmentNetworkDependencyHealthStateNotSpecified ...
+	IntegrationServiceEnvironmentNetworkDependencyHealthStateNotSpecified IntegrationServiceEnvironmentNetworkDependencyHealthState = "NotSpecified"
+	// IntegrationServiceEnvironmentNetworkDependencyHealthStateUnhealthy ...
+	IntegrationServiceEnvironmentNetworkDependencyHealthStateUnhealthy IntegrationServiceEnvironmentNetworkDependencyHealthState = "Unhealthy"
+	// IntegrationServiceEnvironmentNetworkDependencyHealthStateUnknown ...
+	IntegrationServiceEnvironmentNetworkDependencyHealthStateUnknown IntegrationServiceEnvironmentNetworkDependencyHealthState = "Unknown"
+)
+
+// PossibleIntegrationServiceEnvironmentNetworkDependencyHealthStateValues returns an array of possible values for the IntegrationServiceEnvironmentNetworkDependencyHealthState const type.
+func PossibleIntegrationServiceEnvironmentNetworkDependencyHealthStateValues() []IntegrationServiceEnvironmentNetworkDependencyHealthState {
+	return []IntegrationServiceEnvironmentNetworkDependencyHealthState{IntegrationServiceEnvironmentNetworkDependencyHealthStateHealthy, IntegrationServiceEnvironmentNetworkDependencyHealthStateNotSpecified, IntegrationServiceEnvironmentNetworkDependencyHealthStateUnhealthy, IntegrationServiceEnvironmentNetworkDependencyHealthStateUnknown}
+}
+
+// IntegrationServiceEnvironmentNetworkEndPointAccessibilityState enumerates the values for integration service
+// environment network end point accessibility state.
+type IntegrationServiceEnvironmentNetworkEndPointAccessibilityState string
+
+const (
+	// IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateAvailable ...
+	IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateAvailable IntegrationServiceEnvironmentNetworkEndPointAccessibilityState = "Available"
+	// IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotAvailable ...
+	IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotAvailable IntegrationServiceEnvironmentNetworkEndPointAccessibilityState = "NotAvailable"
+	// IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotSpecified ...
+	IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotSpecified IntegrationServiceEnvironmentNetworkEndPointAccessibilityState = "NotSpecified"
+	// IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateUnknown ...
+	IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateUnknown IntegrationServiceEnvironmentNetworkEndPointAccessibilityState = "Unknown"
+)
+
+// PossibleIntegrationServiceEnvironmentNetworkEndPointAccessibilityStateValues returns an array of possible values for the IntegrationServiceEnvironmentNetworkEndPointAccessibilityState const type.
+func PossibleIntegrationServiceEnvironmentNetworkEndPointAccessibilityStateValues() []IntegrationServiceEnvironmentNetworkEndPointAccessibilityState {
+	return []IntegrationServiceEnvironmentNetworkEndPointAccessibilityState{IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateAvailable, IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotAvailable, IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotSpecified, IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateUnknown}
+}
+
+// IntegrationServiceEnvironmentSkuName enumerates the values for integration service environment sku name.
+type IntegrationServiceEnvironmentSkuName string
+
+const (
+	// IntegrationServiceEnvironmentSkuNameDeveloper ...
+	IntegrationServiceEnvironmentSkuNameDeveloper IntegrationServiceEnvironmentSkuName = "Developer"
+	// IntegrationServiceEnvironmentSkuNameNotSpecified ...
+	IntegrationServiceEnvironmentSkuNameNotSpecified IntegrationServiceEnvironmentSkuName = "NotSpecified"
+	// IntegrationServiceEnvironmentSkuNamePremium ...
+	IntegrationServiceEnvironmentSkuNamePremium IntegrationServiceEnvironmentSkuName = "Premium"
+)
+
+// PossibleIntegrationServiceEnvironmentSkuNameValues returns an array of possible values for the IntegrationServiceEnvironmentSkuName const type.
+func PossibleIntegrationServiceEnvironmentSkuNameValues() []IntegrationServiceEnvironmentSkuName {
+	return []IntegrationServiceEnvironmentSkuName{IntegrationServiceEnvironmentSkuNameDeveloper, IntegrationServiceEnvironmentSkuNameNotSpecified, IntegrationServiceEnvironmentSkuNamePremium}
+}
+
+// IntegrationServiceEnvironmentSkuScaleType enumerates the values for integration service environment sku
+// scale type.
+type IntegrationServiceEnvironmentSkuScaleType string
+
+const (
+	// Automatic ...
+	Automatic IntegrationServiceEnvironmentSkuScaleType = "Automatic"
+	// Manual ...
+	Manual IntegrationServiceEnvironmentSkuScaleType = "Manual"
+	// None ...
+	None IntegrationServiceEnvironmentSkuScaleType = "None"
+)
+
+// PossibleIntegrationServiceEnvironmentSkuScaleTypeValues returns an array of possible values for the IntegrationServiceEnvironmentSkuScaleType const type.
+func PossibleIntegrationServiceEnvironmentSkuScaleTypeValues() []IntegrationServiceEnvironmentSkuScaleType {
+	return []IntegrationServiceEnvironmentSkuScaleType{Automatic, Manual, None}
 }
 
 // KeyType enumerates the values for key type.
@@ -285,34 +491,21 @@ func PossibleKeyTypeValues() []KeyType {
 type MapType string
 
 const (
+	// MapTypeLiquid ...
+	MapTypeLiquid MapType = "Liquid"
 	// MapTypeNotSpecified ...
 	MapTypeNotSpecified MapType = "NotSpecified"
 	// MapTypeXslt ...
 	MapTypeXslt MapType = "Xslt"
+	// MapTypeXslt20 ...
+	MapTypeXslt20 MapType = "Xslt20"
+	// MapTypeXslt30 ...
+	MapTypeXslt30 MapType = "Xslt30"
 )
 
 // PossibleMapTypeValues returns an array of possible values for the MapType const type.
 func PossibleMapTypeValues() []MapType {
-	return []MapType{MapTypeNotSpecified, MapTypeXslt}
-}
-
-// MessageEncoding enumerates the values for message encoding.
-type MessageEncoding string
-
-const (
-	// MessageEncodingBase64 ...
-	MessageEncodingBase64 MessageEncoding = "Base64"
-	// MessageEncodingEightBit ...
-	MessageEncodingEightBit MessageEncoding = "EightBit"
-	// MessageEncodingNotSpecified ...
-	MessageEncodingNotSpecified MessageEncoding = "NotSpecified"
-	// MessageEncodingQuotedPrintable ...
-	MessageEncodingQuotedPrintable MessageEncoding = "QuotedPrintable"
-)
-
-// PossibleMessageEncodingValues returns an array of possible values for the MessageEncoding const type.
-func PossibleMessageEncodingValues() []MessageEncoding {
-	return []MessageEncoding{MessageEncodingBase64, MessageEncodingEightBit, MessageEncodingNotSpecified, MessageEncodingQuotedPrintable}
+	return []MapType{MapTypeLiquid, MapTypeNotSpecified, MapTypeXslt, MapTypeXslt20, MapTypeXslt30}
 }
 
 // MessageFilterType enumerates the values for message filter type.
@@ -403,103 +596,6 @@ func PossibleRecurrenceFrequencyValues() []RecurrenceFrequency {
 	return []RecurrenceFrequency{RecurrenceFrequencyDay, RecurrenceFrequencyHour, RecurrenceFrequencyMinute, RecurrenceFrequencyMonth, RecurrenceFrequencyNotSpecified, RecurrenceFrequencySecond, RecurrenceFrequencyWeek, RecurrenceFrequencyYear}
 }
 
-// RosettaNetActionType enumerates the values for rosetta net action type.
-type RosettaNetActionType string
-
-const (
-	// RosettaNetActionTypeDoubleAction ...
-	RosettaNetActionTypeDoubleAction RosettaNetActionType = "DoubleAction"
-	// RosettaNetActionTypeNotSpecified ...
-	RosettaNetActionTypeNotSpecified RosettaNetActionType = "NotSpecified"
-	// RosettaNetActionTypeSingleAction ...
-	RosettaNetActionTypeSingleAction RosettaNetActionType = "SingleAction"
-)
-
-// PossibleRosettaNetActionTypeValues returns an array of possible values for the RosettaNetActionType const type.
-func PossibleRosettaNetActionTypeValues() []RosettaNetActionType {
-	return []RosettaNetActionType{RosettaNetActionTypeDoubleAction, RosettaNetActionTypeNotSpecified, RosettaNetActionTypeSingleAction}
-}
-
-// RosettaNetPipActivityType enumerates the values for rosetta net pip activity type.
-type RosettaNetPipActivityType string
-
-const (
-	// RosettaNetPipActivityTypeBusinessTransaction ...
-	RosettaNetPipActivityTypeBusinessTransaction RosettaNetPipActivityType = "BusinessTransaction"
-	// RosettaNetPipActivityTypeInformationDistribution ...
-	RosettaNetPipActivityTypeInformationDistribution RosettaNetPipActivityType = "InformationDistribution"
-	// RosettaNetPipActivityTypeNotification ...
-	RosettaNetPipActivityTypeNotification RosettaNetPipActivityType = "Notification"
-	// RosettaNetPipActivityTypeNotSpecified ...
-	RosettaNetPipActivityTypeNotSpecified RosettaNetPipActivityType = "NotSpecified"
-	// RosettaNetPipActivityTypeQueryResponse ...
-	RosettaNetPipActivityTypeQueryResponse RosettaNetPipActivityType = "QueryResponse"
-	// RosettaNetPipActivityTypeRequestConfirm ...
-	RosettaNetPipActivityTypeRequestConfirm RosettaNetPipActivityType = "RequestConfirm"
-	// RosettaNetPipActivityTypeRequestResponse ...
-	RosettaNetPipActivityTypeRequestResponse RosettaNetPipActivityType = "RequestResponse"
-)
-
-// PossibleRosettaNetPipActivityTypeValues returns an array of possible values for the RosettaNetPipActivityType const type.
-func PossibleRosettaNetPipActivityTypeValues() []RosettaNetPipActivityType {
-	return []RosettaNetPipActivityType{RosettaNetPipActivityTypeBusinessTransaction, RosettaNetPipActivityTypeInformationDistribution, RosettaNetPipActivityTypeNotification, RosettaNetPipActivityTypeNotSpecified, RosettaNetPipActivityTypeQueryResponse, RosettaNetPipActivityTypeRequestConfirm, RosettaNetPipActivityTypeRequestResponse}
-}
-
-// RosettaNetPipConfidentialityScope enumerates the values for rosetta net pip confidentiality scope.
-type RosettaNetPipConfidentialityScope string
-
-const (
-	// RosettaNetPipConfidentialityScopeNone ...
-	RosettaNetPipConfidentialityScopeNone RosettaNetPipConfidentialityScope = "None"
-	// RosettaNetPipConfidentialityScopeNotSpecified ...
-	RosettaNetPipConfidentialityScopeNotSpecified RosettaNetPipConfidentialityScope = "NotSpecified"
-	// RosettaNetPipConfidentialityScopePayload ...
-	RosettaNetPipConfidentialityScopePayload RosettaNetPipConfidentialityScope = "Payload"
-	// RosettaNetPipConfidentialityScopePayloadContainer ...
-	RosettaNetPipConfidentialityScopePayloadContainer RosettaNetPipConfidentialityScope = "PayloadContainer"
-)
-
-// PossibleRosettaNetPipConfidentialityScopeValues returns an array of possible values for the RosettaNetPipConfidentialityScope const type.
-func PossibleRosettaNetPipConfidentialityScopeValues() []RosettaNetPipConfidentialityScope {
-	return []RosettaNetPipConfidentialityScope{RosettaNetPipConfidentialityScopeNone, RosettaNetPipConfidentialityScopeNotSpecified, RosettaNetPipConfidentialityScopePayload, RosettaNetPipConfidentialityScopePayloadContainer}
-}
-
-// RosettaNetPipRoleType enumerates the values for rosetta net pip role type.
-type RosettaNetPipRoleType string
-
-const (
-	// RosettaNetPipRoleTypeEmployee ...
-	RosettaNetPipRoleTypeEmployee RosettaNetPipRoleType = "Employee"
-	// RosettaNetPipRoleTypeFunctional ...
-	RosettaNetPipRoleTypeFunctional RosettaNetPipRoleType = "Functional"
-	// RosettaNetPipRoleTypeNotSpecified ...
-	RosettaNetPipRoleTypeNotSpecified RosettaNetPipRoleType = "NotSpecified"
-	// RosettaNetPipRoleTypeOrganizational ...
-	RosettaNetPipRoleTypeOrganizational RosettaNetPipRoleType = "Organizational"
-)
-
-// PossibleRosettaNetPipRoleTypeValues returns an array of possible values for the RosettaNetPipRoleType const type.
-func PossibleRosettaNetPipRoleTypeValues() []RosettaNetPipRoleType {
-	return []RosettaNetPipRoleType{RosettaNetPipRoleTypeEmployee, RosettaNetPipRoleTypeFunctional, RosettaNetPipRoleTypeNotSpecified, RosettaNetPipRoleTypeOrganizational}
-}
-
-// RosettaNetResponseType enumerates the values for rosetta net response type.
-type RosettaNetResponseType string
-
-const (
-	// RosettaNetResponseTypeAsync ...
-	RosettaNetResponseTypeAsync RosettaNetResponseType = "Async"
-	// RosettaNetResponseTypeNotSpecified ...
-	RosettaNetResponseTypeNotSpecified RosettaNetResponseType = "NotSpecified"
-	// RosettaNetResponseTypeSync ...
-	RosettaNetResponseTypeSync RosettaNetResponseType = "Sync"
-)
-
-// PossibleRosettaNetResponseTypeValues returns an array of possible values for the RosettaNetResponseType const type.
-func PossibleRosettaNetResponseTypeValues() []RosettaNetResponseType {
-	return []RosettaNetResponseType{RosettaNetResponseTypeAsync, RosettaNetResponseTypeNotSpecified, RosettaNetResponseTypeSync}
-}
-
 // SchemaType enumerates the values for schema type.
 type SchemaType string
 
@@ -582,19 +678,63 @@ func PossibleSkuNameValues() []SkuName {
 	return []SkuName{SkuNameBasic, SkuNameFree, SkuNameNotSpecified, SkuNamePremium, SkuNameShared, SkuNameStandard}
 }
 
+// StatusAnnotation enumerates the values for status annotation.
+type StatusAnnotation string
+
+const (
+	// StatusAnnotationNotSpecified ...
+	StatusAnnotationNotSpecified StatusAnnotation = "NotSpecified"
+	// StatusAnnotationPreview ...
+	StatusAnnotationPreview StatusAnnotation = "Preview"
+	// StatusAnnotationProduction ...
+	StatusAnnotationProduction StatusAnnotation = "Production"
+)
+
+// PossibleStatusAnnotationValues returns an array of possible values for the StatusAnnotation const type.
+func PossibleStatusAnnotationValues() []StatusAnnotation {
+	return []StatusAnnotation{StatusAnnotationNotSpecified, StatusAnnotationPreview, StatusAnnotationProduction}
+}
+
+// SwaggerSchemaType enumerates the values for swagger schema type.
+type SwaggerSchemaType string
+
+const (
+	// Array ...
+	Array SwaggerSchemaType = "Array"
+	// Boolean ...
+	Boolean SwaggerSchemaType = "Boolean"
+	// File ...
+	File SwaggerSchemaType = "File"
+	// Integer ...
+	Integer SwaggerSchemaType = "Integer"
+	// Null ...
+	Null SwaggerSchemaType = "Null"
+	// Number ...
+	Number SwaggerSchemaType = "Number"
+	// Object ...
+	Object SwaggerSchemaType = "Object"
+	// String ...
+	String SwaggerSchemaType = "String"
+)
+
+// PossibleSwaggerSchemaTypeValues returns an array of possible values for the SwaggerSchemaType const type.
+func PossibleSwaggerSchemaTypeValues() []SwaggerSchemaType {
+	return []SwaggerSchemaType{Array, Boolean, File, Integer, Null, Number, Object, String}
+}
+
 // TrackEventsOperationOptions enumerates the values for track events operation options.
 type TrackEventsOperationOptions string
 
 const (
-	// DisableSourceInfoEnrich ...
-	DisableSourceInfoEnrich TrackEventsOperationOptions = "DisableSourceInfoEnrich"
-	// None ...
-	None TrackEventsOperationOptions = "None"
+	// TrackEventsOperationOptionsDisableSourceInfoEnrich ...
+	TrackEventsOperationOptionsDisableSourceInfoEnrich TrackEventsOperationOptions = "DisableSourceInfoEnrich"
+	// TrackEventsOperationOptionsNone ...
+	TrackEventsOperationOptionsNone TrackEventsOperationOptions = "None"
 )
 
 // PossibleTrackEventsOperationOptionsValues returns an array of possible values for the TrackEventsOperationOptions const type.
 func PossibleTrackEventsOperationOptionsValues() []TrackEventsOperationOptions {
-	return []TrackEventsOperationOptions{DisableSourceInfoEnrich, None}
+	return []TrackEventsOperationOptions{TrackEventsOperationOptionsDisableSourceInfoEnrich, TrackEventsOperationOptionsNone}
 }
 
 // TrackingRecordType enumerates the values for tracking record type.
@@ -832,6 +972,23 @@ func PossibleWorkflowTriggerProvisioningStateValues() []WorkflowTriggerProvision
 	return []WorkflowTriggerProvisioningState{WorkflowTriggerProvisioningStateAccepted, WorkflowTriggerProvisioningStateCanceled, WorkflowTriggerProvisioningStateCompleted, WorkflowTriggerProvisioningStateCreated, WorkflowTriggerProvisioningStateCreating, WorkflowTriggerProvisioningStateDeleted, WorkflowTriggerProvisioningStateDeleting, WorkflowTriggerProvisioningStateFailed, WorkflowTriggerProvisioningStateMoving, WorkflowTriggerProvisioningStateNotSpecified, WorkflowTriggerProvisioningStateReady, WorkflowTriggerProvisioningStateRegistered, WorkflowTriggerProvisioningStateRegistering, WorkflowTriggerProvisioningStateRunning, WorkflowTriggerProvisioningStateSucceeded, WorkflowTriggerProvisioningStateUnregistered, WorkflowTriggerProvisioningStateUnregistering, WorkflowTriggerProvisioningStateUpdating}
 }
 
+// WsdlImportMethod enumerates the values for wsdl import method.
+type WsdlImportMethod string
+
+const (
+	// WsdlImportMethodNotSpecified ...
+	WsdlImportMethodNotSpecified WsdlImportMethod = "NotSpecified"
+	// WsdlImportMethodSoapPassThrough ...
+	WsdlImportMethodSoapPassThrough WsdlImportMethod = "SoapPassThrough"
+	// WsdlImportMethodSoapToRest ...
+	WsdlImportMethodSoapToRest WsdlImportMethod = "SoapToRest"
+)
+
+// PossibleWsdlImportMethodValues returns an array of possible values for the WsdlImportMethod const type.
+func PossibleWsdlImportMethodValues() []WsdlImportMethod {
+	return []WsdlImportMethod{WsdlImportMethodNotSpecified, WsdlImportMethodSoapPassThrough, WsdlImportMethodSoapToRest}
+}
+
 // X12CharacterSet enumerates the values for x12 character set.
 type X12CharacterSet string
 
@@ -889,12 +1046,6 @@ func PossibleX12TimeFormatValues() []X12TimeFormat {
 	return []X12TimeFormat{X12TimeFormatHHMM, X12TimeFormatHHMMSS, X12TimeFormatHHMMSSd, X12TimeFormatHHMMSSdd, X12TimeFormatNotSpecified}
 }
 
-// AccessKeyRegenerateActionDefinition ...
-type AccessKeyRegenerateActionDefinition struct {
-	// KeyType - Possible values include: 'NotSpecified', 'Primary', 'Secondary'
-	KeyType AccessKeyType `json:"keyType,omitempty"`
-}
-
 // AgreementContent the integration account agreement content.
 type AgreementContent struct {
 	// AS2 - The AS2 agreement content.
@@ -903,6 +1054,481 @@ type AgreementContent struct {
 	X12 *X12AgreementContent `json:"x12,omitempty"`
 	// Edifact - The EDIFACT agreement content.
 	Edifact *EdifactAgreementContent `json:"edifact,omitempty"`
+}
+
+// APIDeploymentParameterMetadata the API deployment parameter metadata.
+type APIDeploymentParameterMetadata struct {
+	// Type - The type.
+	Type *string `json:"type,omitempty"`
+	// IsRequired - Indicates whether its required.
+	IsRequired *bool `json:"isRequired,omitempty"`
+	// DisplayName - The display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - The description.
+	Description *string `json:"description,omitempty"`
+	// Visibility - The visibility. Possible values include: 'APIDeploymentParameterVisibilityNotSpecified', 'APIDeploymentParameterVisibilityDefault', 'APIDeploymentParameterVisibilityInternal'
+	Visibility APIDeploymentParameterVisibility `json:"visibility,omitempty"`
+}
+
+// APIDeploymentParameterMetadataSet the API deployment parameters metadata.
+type APIDeploymentParameterMetadataSet struct {
+	// PackageContentLink - The package content link parameter.
+	PackageContentLink *APIDeploymentParameterMetadata `json:"packageContentLink,omitempty"`
+	// RedisCacheConnectionString - The package content link parameter.
+	RedisCacheConnectionString *APIDeploymentParameterMetadata `json:"redisCacheConnectionString,omitempty"`
+}
+
+// APIOperation the api operation.
+type APIOperation struct {
+	Properties *APIOperationPropertiesDefinition `json:"properties,omitempty"`
+	// ID - READ-ONLY; The resource id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Gets the resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Gets the resource type.
+	Type *string `json:"type,omitempty"`
+	// Location - The resource location.
+	Location *string `json:"location,omitempty"`
+	// Tags - The resource tags.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for APIOperation.
+func (ao APIOperation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ao.Properties != nil {
+		objectMap["properties"] = ao.Properties
+	}
+	if ao.Location != nil {
+		objectMap["location"] = ao.Location
+	}
+	if ao.Tags != nil {
+		objectMap["tags"] = ao.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// APIOperationAnnotation the Api Operation Annotation.
+type APIOperationAnnotation struct {
+	// Status - Possible values include: 'StatusAnnotationNotSpecified', 'StatusAnnotationPreview', 'StatusAnnotationProduction'
+	Status StatusAnnotation `json:"status,omitempty"`
+	// Family - The family.
+	Family *string `json:"family,omitempty"`
+	// Revision - The revision.
+	Revision *int32 `json:"revision,omitempty"`
+}
+
+// APIOperationListResult the list of managed API operations.
+type APIOperationListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The api operation definitions for an API.
+	Value *[]APIOperation `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// APIOperationListResultIterator provides access to a complete listing of APIOperation values.
+type APIOperationListResultIterator struct {
+	i    int
+	page APIOperationListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *APIOperationListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIOperationListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *APIOperationListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter APIOperationListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter APIOperationListResultIterator) Response() APIOperationListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter APIOperationListResultIterator) Value() APIOperation {
+	if !iter.page.NotDone() {
+		return APIOperation{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the APIOperationListResultIterator type.
+func NewAPIOperationListResultIterator(page APIOperationListResultPage) APIOperationListResultIterator {
+	return APIOperationListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (aolr APIOperationListResult) IsEmpty() bool {
+	return aolr.Value == nil || len(*aolr.Value) == 0
+}
+
+// aPIOperationListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (aolr APIOperationListResult) aPIOperationListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if aolr.NextLink == nil || len(to.String(aolr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(aolr.NextLink)))
+}
+
+// APIOperationListResultPage contains a page of APIOperation values.
+type APIOperationListResultPage struct {
+	fn   func(context.Context, APIOperationListResult) (APIOperationListResult, error)
+	aolr APIOperationListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *APIOperationListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/APIOperationListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.aolr)
+	if err != nil {
+		return err
+	}
+	page.aolr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *APIOperationListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page APIOperationListResultPage) NotDone() bool {
+	return !page.aolr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page APIOperationListResultPage) Response() APIOperationListResult {
+	return page.aolr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page APIOperationListResultPage) Values() []APIOperation {
+	if page.aolr.IsEmpty() {
+		return nil
+	}
+	return *page.aolr.Value
+}
+
+// Creates a new instance of the APIOperationListResultPage type.
+func NewAPIOperationListResultPage(getNextPage func(context.Context, APIOperationListResult) (APIOperationListResult, error)) APIOperationListResultPage {
+	return APIOperationListResultPage{fn: getNextPage}
+}
+
+// APIOperationPropertiesDefinition the api operations properties
+type APIOperationPropertiesDefinition struct {
+	// Summary - The summary of the api operation.
+	Summary *string `json:"summary,omitempty"`
+	// Description - The description of the api operation.
+	Description *string `json:"description,omitempty"`
+	// Visibility - The visibility of the api operation.
+	Visibility *string `json:"visibility,omitempty"`
+	// Trigger - The trigger type of api operation.
+	Trigger *string `json:"trigger,omitempty"`
+	// TriggerHint - The trigger hint for the api operation.
+	TriggerHint *string `json:"triggerHint,omitempty"`
+	// Pageable - Indicates whether the api operation is pageable.
+	Pageable *bool `json:"pageable,omitempty"`
+	// Annotation - The annotation of api operation.
+	Annotation *APIOperationAnnotation `json:"annotation,omitempty"`
+	// API - The api reference.
+	API *APIReference `json:"api,omitempty"`
+	// InputsDefinition - The operation inputs definition schema.
+	InputsDefinition *SwaggerSchema `json:"inputsDefinition,omitempty"`
+	// ResponsesDefinition - The operation responses definition schemas.
+	ResponsesDefinition map[string]*SwaggerSchema `json:"responsesDefinition"`
+	// IsWebhook - Indicates whether the API operation is webhook or not.
+	IsWebhook *bool `json:"isWebhook,omitempty"`
+	// IsNotification - Indicates whether the API operation is notification or not.
+	IsNotification *bool `json:"isNotification,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIOperationPropertiesDefinition.
+func (aopd APIOperationPropertiesDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aopd.Summary != nil {
+		objectMap["summary"] = aopd.Summary
+	}
+	if aopd.Description != nil {
+		objectMap["description"] = aopd.Description
+	}
+	if aopd.Visibility != nil {
+		objectMap["visibility"] = aopd.Visibility
+	}
+	if aopd.Trigger != nil {
+		objectMap["trigger"] = aopd.Trigger
+	}
+	if aopd.TriggerHint != nil {
+		objectMap["triggerHint"] = aopd.TriggerHint
+	}
+	if aopd.Pageable != nil {
+		objectMap["pageable"] = aopd.Pageable
+	}
+	if aopd.Annotation != nil {
+		objectMap["annotation"] = aopd.Annotation
+	}
+	if aopd.API != nil {
+		objectMap["api"] = aopd.API
+	}
+	if aopd.InputsDefinition != nil {
+		objectMap["inputsDefinition"] = aopd.InputsDefinition
+	}
+	if aopd.ResponsesDefinition != nil {
+		objectMap["responsesDefinition"] = aopd.ResponsesDefinition
+	}
+	if aopd.IsWebhook != nil {
+		objectMap["isWebhook"] = aopd.IsWebhook
+	}
+	if aopd.IsNotification != nil {
+		objectMap["isNotification"] = aopd.IsNotification
+	}
+	return json.Marshal(objectMap)
+}
+
+// APIReference the Api reference.
+type APIReference struct {
+	// DisplayName - The display name of the api.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - The description of the api.
+	Description *string `json:"description,omitempty"`
+	// IconURI - The icon uri of the api.
+	IconURI *string `json:"iconUri,omitempty"`
+	// Swagger - The swagger of the api.
+	Swagger interface{} `json:"swagger,omitempty"`
+	// BrandColor - The brand color of the api.
+	BrandColor *string `json:"brandColor,omitempty"`
+	// Category - The tier. Possible values include: 'APITierNotSpecified', 'APITierEnterprise', 'APITierStandard', 'APITierPremium'
+	Category APITier `json:"category,omitempty"`
+	// IntegrationServiceEnvironment - The integration service environment reference.
+	IntegrationServiceEnvironment *ResourceReference `json:"integrationServiceEnvironment,omitempty"`
+	// ID - The resource id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Gets the resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Gets the resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// APIResourceBackendService the API backend service.
+type APIResourceBackendService struct {
+	// ServiceURL - The service URL.
+	ServiceURL *string `json:"serviceUrl,omitempty"`
+}
+
+// APIResourceDefinitions the Api resource definition.
+type APIResourceDefinitions struct {
+	// OriginalSwaggerURL - The original swagger url.
+	OriginalSwaggerURL *string `json:"originalSwaggerUrl,omitempty"`
+	// ModifiedSwaggerURL - The modified swagger url.
+	ModifiedSwaggerURL *string `json:"modifiedSwaggerUrl,omitempty"`
+}
+
+// APIResourceGeneralInformation the API general information.
+type APIResourceGeneralInformation struct {
+	// IconURL - The icon url.
+	IconURL *string `json:"iconUrl,omitempty"`
+	// DisplayName - The display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - The description.
+	Description *string `json:"description,omitempty"`
+	// TermsOfUseURL - The terms of use url.
+	TermsOfUseURL *string `json:"termsOfUseUrl,omitempty"`
+	// ReleaseTag - The release tag.
+	ReleaseTag *string `json:"releaseTag,omitempty"`
+	// Tier - The tier. Possible values include: 'APITierNotSpecified', 'APITierEnterprise', 'APITierStandard', 'APITierPremium'
+	Tier APITier `json:"tier,omitempty"`
+}
+
+// APIResourceMetadata the api resource metadata.
+type APIResourceMetadata struct {
+	// Source - The source.
+	Source *string `json:"source,omitempty"`
+	// BrandColor - The brand color.
+	BrandColor *string `json:"brandColor,omitempty"`
+	// HideKey - The hide key.
+	HideKey *string `json:"hideKey,omitempty"`
+	// Tags - The tags.
+	Tags map[string]*string `json:"tags"`
+	// APIType - The api type. Possible values include: 'APITypeNotSpecified', 'APITypeRest', 'APITypeSoap'
+	APIType APIType `json:"ApiType,omitempty"`
+	// WsdlService - The WSDL service.
+	WsdlService *WsdlService `json:"wsdlService,omitempty"`
+	// WsdlImportMethod - The WSDL import method. Possible values include: 'WsdlImportMethodNotSpecified', 'WsdlImportMethodSoapToRest', 'WsdlImportMethodSoapPassThrough'
+	WsdlImportMethod WsdlImportMethod `json:"wsdlImportMethod,omitempty"`
+	// ConnectionType - The connection type.
+	ConnectionType *string `json:"connectionType,omitempty"`
+	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
+	// DeploymentParameters - The connector deployment parameters metadata.
+	DeploymentParameters *APIDeploymentParameterMetadataSet `json:"deploymentParameters,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIResourceMetadata.
+func (arm APIResourceMetadata) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if arm.Source != nil {
+		objectMap["source"] = arm.Source
+	}
+	if arm.BrandColor != nil {
+		objectMap["brandColor"] = arm.BrandColor
+	}
+	if arm.HideKey != nil {
+		objectMap["hideKey"] = arm.HideKey
+	}
+	if arm.Tags != nil {
+		objectMap["tags"] = arm.Tags
+	}
+	if arm.APIType != "" {
+		objectMap["ApiType"] = arm.APIType
+	}
+	if arm.WsdlService != nil {
+		objectMap["wsdlService"] = arm.WsdlService
+	}
+	if arm.WsdlImportMethod != "" {
+		objectMap["wsdlImportMethod"] = arm.WsdlImportMethod
+	}
+	if arm.ConnectionType != nil {
+		objectMap["connectionType"] = arm.ConnectionType
+	}
+	if arm.ProvisioningState != "" {
+		objectMap["provisioningState"] = arm.ProvisioningState
+	}
+	if arm.DeploymentParameters != nil {
+		objectMap["deploymentParameters"] = arm.DeploymentParameters
+	}
+	return json.Marshal(objectMap)
+}
+
+// APIResourcePolicies the API resource policies.
+type APIResourcePolicies struct {
+	// Content - The API level only policies XML as embedded content.
+	Content *string `json:"content,omitempty"`
+	// ContentLink - The content link to the policies.
+	ContentLink *string `json:"contentLink,omitempty"`
+}
+
+// APIResourceProperties the API resource properties.
+type APIResourceProperties struct {
+	// Name - The name
+	Name *string `json:"name,omitempty"`
+	// ConnectionParameters - The connection parameters.
+	ConnectionParameters map[string]interface{} `json:"connectionParameters"`
+	// Metadata - The metadata.
+	Metadata *APIResourceMetadata `json:"metadata,omitempty"`
+	// RuntimeUrls - The runtime urls.
+	RuntimeUrls *[]string `json:"runtimeUrls,omitempty"`
+	// GeneralInformation - The api general information.
+	GeneralInformation *APIResourceGeneralInformation `json:"generalInformation,omitempty"`
+	// Capabilities - The capabilities.
+	Capabilities *[]string `json:"capabilities,omitempty"`
+	// BackendService - The backend service.
+	BackendService *APIResourceBackendService `json:"backendService,omitempty"`
+	// Policies - The policies for the API.
+	Policies *APIResourcePolicies `json:"policies,omitempty"`
+	// APIDefinitionURL - The API definition.
+	APIDefinitionURL *string `json:"apiDefinitionUrl,omitempty"`
+	// APIDefinitions - The api definitions.
+	APIDefinitions *APIResourceDefinitions `json:"apiDefinitions,omitempty"`
+	// IntegrationServiceEnvironment - The integration service environment reference.
+	IntegrationServiceEnvironment *ResourceReference `json:"integrationServiceEnvironment,omitempty"`
+	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
+	// Category - The category. Possible values include: 'APITierNotSpecified', 'APITierEnterprise', 'APITierStandard', 'APITierPremium'
+	Category APITier `json:"category,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIResourceProperties.
+func (arp APIResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if arp.Name != nil {
+		objectMap["name"] = arp.Name
+	}
+	if arp.ConnectionParameters != nil {
+		objectMap["connectionParameters"] = arp.ConnectionParameters
+	}
+	if arp.Metadata != nil {
+		objectMap["metadata"] = arp.Metadata
+	}
+	if arp.RuntimeUrls != nil {
+		objectMap["runtimeUrls"] = arp.RuntimeUrls
+	}
+	if arp.GeneralInformation != nil {
+		objectMap["generalInformation"] = arp.GeneralInformation
+	}
+	if arp.Capabilities != nil {
+		objectMap["capabilities"] = arp.Capabilities
+	}
+	if arp.BackendService != nil {
+		objectMap["backendService"] = arp.BackendService
+	}
+	if arp.Policies != nil {
+		objectMap["policies"] = arp.Policies
+	}
+	if arp.APIDefinitionURL != nil {
+		objectMap["apiDefinitionUrl"] = arp.APIDefinitionURL
+	}
+	if arp.APIDefinitions != nil {
+		objectMap["apiDefinitions"] = arp.APIDefinitions
+	}
+	if arp.IntegrationServiceEnvironment != nil {
+		objectMap["integrationServiceEnvironment"] = arp.IntegrationServiceEnvironment
+	}
+	if arp.ProvisioningState != "" {
+		objectMap["provisioningState"] = arp.ProvisioningState
+	}
+	if arp.Category != "" {
+		objectMap["category"] = arp.Category
+	}
+	return json.Marshal(objectMap)
 }
 
 // ArtifactContentPropertiesDefinition the artifact content properties definition.
@@ -930,13 +1556,13 @@ type ArtifactProperties struct {
 
 // AS2AcknowledgementConnectionSettings the AS2 agreement acknowledgement connection settings.
 type AS2AcknowledgementConnectionSettings struct {
-	// IgnoreCertificateNameMismatch - The value indicating whether to ignore mismatch in certificate name.
+	// IgnoreCertificateNameMismatch - Indicates whether to ignore mismatch in certificate name.
 	IgnoreCertificateNameMismatch *bool `json:"ignoreCertificateNameMismatch,omitempty"`
-	// SupportHTTPStatusCodeContinue - The value indicating whether to support HTTP status code 'CONTINUE'.
+	// SupportHTTPStatusCodeContinue - Indicates whether to support HTTP status code 'CONTINUE'.
 	SupportHTTPStatusCodeContinue *bool `json:"supportHttpStatusCodeContinue,omitempty"`
-	// KeepHTTPConnectionAlive - The value indicating whether to keep the connection alive.
+	// KeepHTTPConnectionAlive - Indicates whether to keep the connection alive.
 	KeepHTTPConnectionAlive *bool `json:"keepHttpConnectionAlive,omitempty"`
-	// UnfoldHTTPHeaders - The value indicating whether to unfold the HTTP headers.
+	// UnfoldHTTPHeaders - Indicates whether to unfold the HTTP headers.
 	UnfoldHTTPHeaders *bool `json:"unfoldHttpHeaders,omitempty"`
 }
 
@@ -966,28 +1592,28 @@ type AS2EnvelopeSettings struct {
 type AS2ErrorSettings struct {
 	// SuspendDuplicateMessage - The value indicating whether to suspend duplicate message.
 	SuspendDuplicateMessage *bool `json:"suspendDuplicateMessage,omitempty"`
-	// ResendIfMdnNotReceived - The value indicating whether to resend message If MDN is not received.
-	ResendIfMdnNotReceived *bool `json:"resendIfMdnNotReceived,omitempty"`
+	// ResendIfMDNNotReceived - The value indicating whether to resend message If MDN is not received.
+	ResendIfMDNNotReceived *bool `json:"resendIfMDNNotReceived,omitempty"`
 }
 
 // AS2MdnSettings the AS2 agreement mdn settings.
 type AS2MdnSettings struct {
-	// NeedMdn - The value indicating whether to send or request a MDN.
-	NeedMdn *bool `json:"needMdn,omitempty"`
-	// SignMdn - The value indicating whether the MDN needs to be signed or not.
-	SignMdn *bool `json:"signMdn,omitempty"`
-	// SendMdnAsynchronously - The value indicating whether to send the asynchronous MDN.
-	SendMdnAsynchronously *bool `json:"sendMdnAsynchronously,omitempty"`
+	// NeedMDN - The value indicating whether to send or request a MDN.
+	NeedMDN *bool `json:"needMDN,omitempty"`
+	// SignMDN - The value indicating whether the MDN needs to be signed or not.
+	SignMDN *bool `json:"signMDN,omitempty"`
+	// SendMDNAsynchronously - The value indicating whether to send the asynchronous MDN.
+	SendMDNAsynchronously *bool `json:"sendMDNAsynchronously,omitempty"`
 	// ReceiptDeliveryURL - The receipt delivery URL.
 	ReceiptDeliveryURL *string `json:"receiptDeliveryUrl,omitempty"`
 	// DispositionNotificationTo - The disposition notification to header value.
 	DispositionNotificationTo *string `json:"dispositionNotificationTo,omitempty"`
-	// SignOutboundMdnIfOptional - The value indicating whether to sign the outbound MDN if optional.
-	SignOutboundMdnIfOptional *bool `json:"signOutboundMdnIfOptional,omitempty"`
+	// SignOutboundMDNIfOptional - The value indicating whether to sign the outbound MDN if optional.
+	SignOutboundMDNIfOptional *bool `json:"signOutboundMDNIfOptional,omitempty"`
 	// MdnText - The MDN text.
 	MdnText *string `json:"mdnText,omitempty"`
-	// SendInboundMdnToMessageBox - The value indicating whether to send inbound MDN to message box.
-	SendInboundMdnToMessageBox *bool `json:"sendInboundMdnToMessageBox,omitempty"`
+	// SendInboundMDNToMessageBox - The value indicating whether to send inbound MDN to message box.
+	SendInboundMDNToMessageBox *bool `json:"sendInboundMDNToMessageBox,omitempty"`
 	// MicHashingAlgorithm - The signing or hashing algorithm. Possible values include: 'HashingAlgorithmNotSpecified', 'HashingAlgorithmNone', 'HashingAlgorithmMD5', 'HashingAlgorithmSHA1', 'HashingAlgorithmSHA2256', 'HashingAlgorithmSHA2384', 'HashingAlgorithmSHA2512'
 	MicHashingAlgorithm HashingAlgorithm `json:"micHashingAlgorithm,omitempty"`
 }
@@ -1040,18 +1666,18 @@ type AS2SecuritySettings struct {
 	SigningCertificateName *string `json:"signingCertificateName,omitempty"`
 	// EncryptionCertificateName - The name of the encryption certificate.
 	EncryptionCertificateName *string `json:"encryptionCertificateName,omitempty"`
-	// EnableNrrForInboundEncodedMessages - The value indicating whether to enable NRR for inbound encoded messages.
-	EnableNrrForInboundEncodedMessages *bool `json:"enableNrrForInboundEncodedMessages,omitempty"`
-	// EnableNrrForInboundDecodedMessages - The value indicating whether to enable NRR for inbound decoded messages.
-	EnableNrrForInboundDecodedMessages *bool `json:"enableNrrForInboundDecodedMessages,omitempty"`
-	// EnableNrrForOutboundMdn - The value indicating whether to enable NRR for outbound MDN.
-	EnableNrrForOutboundMdn *bool `json:"enableNrrForOutboundMdn,omitempty"`
-	// EnableNrrForOutboundEncodedMessages - The value indicating whether to enable NRR for outbound encoded messages.
-	EnableNrrForOutboundEncodedMessages *bool `json:"enableNrrForOutboundEncodedMessages,omitempty"`
-	// EnableNrrForOutboundDecodedMessages - The value indicating whether to enable NRR for outbound decoded messages.
-	EnableNrrForOutboundDecodedMessages *bool `json:"enableNrrForOutboundDecodedMessages,omitempty"`
-	// EnableNrrForInboundMdn - The value indicating whether to enable NRR for inbound MDN.
-	EnableNrrForInboundMdn *bool `json:"enableNrrForInboundMdn,omitempty"`
+	// EnableNRRForInboundEncodedMessages - The value indicating whether to enable NRR for inbound encoded messages.
+	EnableNRRForInboundEncodedMessages *bool `json:"enableNRRForInboundEncodedMessages,omitempty"`
+	// EnableNRRForInboundDecodedMessages - The value indicating whether to enable NRR for inbound decoded messages.
+	EnableNRRForInboundDecodedMessages *bool `json:"enableNRRForInboundDecodedMessages,omitempty"`
+	// EnableNRRForOutboundMDN - The value indicating whether to enable NRR for outbound MDN.
+	EnableNRRForOutboundMDN *bool `json:"enableNRRForOutboundMDN,omitempty"`
+	// EnableNRRForOutboundEncodedMessages - The value indicating whether to enable NRR for outbound encoded messages.
+	EnableNRRForOutboundEncodedMessages *bool `json:"enableNRRForOutboundEncodedMessages,omitempty"`
+	// EnableNRRForOutboundDecodedMessages - The value indicating whether to enable NRR for outbound decoded messages.
+	EnableNRRForOutboundDecodedMessages *bool `json:"enableNRRForOutboundDecodedMessages,omitempty"`
+	// EnableNRRForInboundMDN - The value indicating whether to enable NRR for inbound MDN.
+	EnableNRRForInboundMDN *bool `json:"enableNRRForInboundMDN,omitempty"`
 	// Sha2AlgorithmFormat - The Sha2 algorithm format. Valid values are Sha2, ShaHashSize, ShaHyphenHashSize, Sha2UnderscoreHashSize.
 	Sha2AlgorithmFormat *string `json:"sha2AlgorithmFormat,omitempty"`
 }
@@ -1554,10 +2180,10 @@ type EdifactValidationOverride struct {
 	MessageID *string `json:"messageId,omitempty"`
 	// EnforceCharacterSet - The value indicating whether to validate character Set.
 	EnforceCharacterSet *bool `json:"enforceCharacterSet,omitempty"`
-	// ValidateEdiTypes - The value indicating whether to validate EDI types.
-	ValidateEdiTypes *bool `json:"validateEdiTypes,omitempty"`
-	// ValidateXsdTypes - The value indicating whether to validate XSD types.
-	ValidateXsdTypes *bool `json:"validateXsdTypes,omitempty"`
+	// ValidateEDITypes - The value indicating whether to validate EDI types.
+	ValidateEDITypes *bool `json:"validateEDITypes,omitempty"`
+	// ValidateXSDTypes - The value indicating whether to validate XSD types.
+	ValidateXSDTypes *bool `json:"validateXSDTypes,omitempty"`
 	// AllowLeadingAndTrailingSpacesAndZeroes - The value indicating whether to allow leading and trailing spaces and zeroes.
 	AllowLeadingAndTrailingSpacesAndZeroes *bool `json:"allowLeadingAndTrailingSpacesAndZeroes,omitempty"`
 	// TrailingSeparatorPolicy - The trailing separator policy. Possible values include: 'TrailingSeparatorPolicyNotSpecified', 'TrailingSeparatorPolicyNotAllowed', 'TrailingSeparatorPolicyOptional', 'TrailingSeparatorPolicyMandatory'
@@ -1578,10 +2204,10 @@ type EdifactValidationSettings struct {
 	CheckDuplicateGroupControlNumber *bool `json:"checkDuplicateGroupControlNumber,omitempty"`
 	// CheckDuplicateTransactionSetControlNumber - The value indicating whether to check for duplicate transaction set control number.
 	CheckDuplicateTransactionSetControlNumber *bool `json:"checkDuplicateTransactionSetControlNumber,omitempty"`
-	// ValidateEdiTypes - The value indicating whether to Whether to validate EDI types.
-	ValidateEdiTypes *bool `json:"validateEdiTypes,omitempty"`
-	// ValidateXsdTypes - The value indicating whether to Whether to validate XSD types.
-	ValidateXsdTypes *bool `json:"validateXsdTypes,omitempty"`
+	// ValidateEDITypes - The value indicating whether to Whether to validate EDI types.
+	ValidateEDITypes *bool `json:"validateEDITypes,omitempty"`
+	// ValidateXSDTypes - The value indicating whether to Whether to validate XSD types.
+	ValidateXSDTypes *bool `json:"validateXSDTypes,omitempty"`
 	// AllowLeadingAndTrailingSpacesAndZeroes - The value indicating whether to allow leading and trailing spaces and zeroes.
 	AllowLeadingAndTrailingSpacesAndZeroes *bool `json:"allowLeadingAndTrailingSpacesAndZeroes,omitempty"`
 	// TrimLeadingAndTrailingSpacesAndZeroes - The value indicating whether to trim leading and trailing spaces and zeroes.
@@ -1612,28 +2238,60 @@ type ErrorResponse struct {
 	Error *ErrorProperties `json:"error,omitempty"`
 }
 
-// Expression ...
+// Expression the expression.
 type Expression struct {
-	Text           *string                 `json:"text,omitempty"`
-	Value          interface{}             `json:"value,omitempty"`
+	// Text - The text.
+	Text  *string     `json:"text,omitempty"`
+	Value interface{} `json:"value,omitempty"`
+	// Subexpressions - The sub expressions.
 	Subexpressions *[]Expression           `json:"subexpressions,omitempty"`
 	Error          *AzureResourceErrorInfo `json:"error,omitempty"`
 }
 
-// ExpressionRoot ...
+// ExpressionRoot the expression root.
 type ExpressionRoot struct {
 	// Path - The path.
-	Path           *string                 `json:"path,omitempty"`
-	Text           *string                 `json:"text,omitempty"`
-	Value          interface{}             `json:"value,omitempty"`
+	Path *string `json:"path,omitempty"`
+	// Text - The text.
+	Text  *string     `json:"text,omitempty"`
+	Value interface{} `json:"value,omitempty"`
+	// Subexpressions - The sub expressions.
 	Subexpressions *[]Expression           `json:"subexpressions,omitempty"`
 	Error          *AzureResourceErrorInfo `json:"error,omitempty"`
 }
 
-// ExpressionTraces ...
+// ExpressionTraces the expression traces.
 type ExpressionTraces struct {
 	autorest.Response `json:"-"`
 	Inputs            *[]ExpressionRoot `json:"inputs,omitempty"`
+}
+
+// ExtendedErrorInfo the extended error info.
+type ExtendedErrorInfo struct {
+	// Code - The error code. Possible values include: 'ErrorResponseCodeNotSpecified', 'ErrorResponseCodeIntegrationServiceEnvironmentNotFound', 'ErrorResponseCodeInternalServerError', 'ErrorResponseCodeInvalidOperationID'
+	Code ErrorResponseCode `json:"code,omitempty"`
+	// Message - The error message.
+	Message *string `json:"message,omitempty"`
+	// Details - The error message details.
+	Details *[]ExtendedErrorInfo `json:"details,omitempty"`
+	// InnerError - The inner error.
+	InnerError interface{} `json:"innerError,omitempty"`
+}
+
+// FlowEndpoints the flow endpoints configuration.
+type FlowEndpoints struct {
+	// OutgoingIPAddresses - The outgoing ip address.
+	OutgoingIPAddresses *[]IPAddress `json:"outgoingIpAddresses,omitempty"`
+	// AccessEndpointIPAddresses - The access endpoint ip address.
+	AccessEndpointIPAddresses *[]IPAddress `json:"accessEndpointIpAddresses,omitempty"`
+}
+
+// FlowEndpointsConfiguration the endpoints configuration.
+type FlowEndpointsConfiguration struct {
+	// Workflow - The workflow endpoints.
+	Workflow *FlowEndpoints `json:"workflow,omitempty"`
+	// Connector - The connector endpoints.
+	Connector *FlowEndpoints `json:"connector,omitempty"`
 }
 
 // GenerateUpgradedDefinitionParameters the parameters to generate upgraded definition.
@@ -1653,8 +2311,8 @@ type GetCallbackURLParameters struct {
 // IntegrationAccount the integration account.
 type IntegrationAccount struct {
 	autorest.Response `json:"-"`
-	// Properties - The integration account properties.
-	Properties interface{} `json:"properties,omitempty"`
+	// IntegrationAccountProperties - The integration account properties.
+	*IntegrationAccountProperties `json:"properties,omitempty"`
 	// Sku - The sku.
 	Sku *IntegrationAccountSku `json:"sku,omitempty"`
 	// ID - READ-ONLY; The resource id.
@@ -1672,8 +2330,8 @@ type IntegrationAccount struct {
 // MarshalJSON is the custom marshaler for IntegrationAccount.
 func (ia IntegrationAccount) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ia.Properties != nil {
-		objectMap["properties"] = ia.Properties
+	if ia.IntegrationAccountProperties != nil {
+		objectMap["properties"] = ia.IntegrationAccountProperties
 	}
 	if ia.Sku != nil {
 		objectMap["sku"] = ia.Sku
@@ -1685,6 +2343,84 @@ func (ia IntegrationAccount) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = ia.Tags
 	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for IntegrationAccount struct.
+func (ia *IntegrationAccount) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var integrationAccountProperties IntegrationAccountProperties
+				err = json.Unmarshal(*v, &integrationAccountProperties)
+				if err != nil {
+					return err
+				}
+				ia.IntegrationAccountProperties = &integrationAccountProperties
+			}
+		case "sku":
+			if v != nil {
+				var sku IntegrationAccountSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				ia.Sku = &sku
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ia.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ia.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ia.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ia.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				ia.Tags = tags
+			}
+		}
+	}
+
+	return nil
 }
 
 // IntegrationAccountAgreement the integration account agreement.
@@ -1790,7 +2526,7 @@ func (iaa *IntegrationAccountAgreement) UnmarshalJSON(body []byte) error {
 
 // IntegrationAccountAgreementFilter the integration account agreement filter for odata query.
 type IntegrationAccountAgreementFilter struct {
-	// AgreementType - The agreement type of integration account agreement. Possible values include: 'AgreementTypeNotSpecified', 'AgreementTypeAS2', 'AgreementTypeX12', 'AgreementTypeEdifact'
+	// AgreementType - The agreement type of integration account agreement. Possible values include: 'NotSpecified', 'AS2', 'X12', 'Edifact'
 	AgreementType AgreementType `json:"agreementType,omitempty"`
 }
 
@@ -1949,7 +2685,7 @@ type IntegrationAccountAgreementProperties struct {
 	ChangedTime *date.Time `json:"changedTime,omitempty"`
 	// Metadata - The metadata.
 	Metadata interface{} `json:"metadata,omitempty"`
-	// AgreementType - The agreement type. Possible values include: 'AgreementTypeNotSpecified', 'AgreementTypeAS2', 'AgreementTypeX12', 'AgreementTypeEdifact'
+	// AgreementType - The agreement type. Possible values include: 'NotSpecified', 'AS2', 'X12', 'Edifact'
 	AgreementType AgreementType `json:"agreementType,omitempty"`
 	// HostPartner - The integration account partner that is set as host partner for this agreement.
 	HostPartner *string `json:"hostPartner,omitempty"`
@@ -2474,7 +3210,7 @@ func (iam *IntegrationAccountMap) UnmarshalJSON(body []byte) error {
 
 // IntegrationAccountMapFilter the integration account map filter for odata query.
 type IntegrationAccountMapFilter struct {
-	// MapType - The map type of integration account map. Possible values include: 'MapTypeNotSpecified', 'MapTypeXslt'
+	// MapType - The map type of integration account map. Possible values include: 'MapTypeNotSpecified', 'MapTypeXslt', 'MapTypeXslt20', 'MapTypeXslt30', 'MapTypeLiquid'
 	MapType MapType `json:"mapType,omitempty"`
 }
 
@@ -2627,7 +3363,7 @@ func NewIntegrationAccountMapListResultPage(getNextPage func(context.Context, In
 
 // IntegrationAccountMapProperties the integration account map.
 type IntegrationAccountMapProperties struct {
-	// MapType - The map type. Possible values include: 'MapTypeNotSpecified', 'MapTypeXslt'
+	// MapType - The map type. Possible values include: 'MapTypeNotSpecified', 'MapTypeXslt', 'MapTypeXslt20', 'MapTypeXslt30', 'MapTypeLiquid'
 	MapType MapType `json:"mapType,omitempty"`
 	// ParametersSchema - The parameters schema of integration account map.
 	ParametersSchema *IntegrationAccountMapPropertiesParametersSchema `json:"parametersSchema,omitempty"`
@@ -2919,310 +3655,12 @@ type IntegrationAccountPartnerProperties struct {
 	Content *PartnerContent `json:"content,omitempty"`
 }
 
-// IntegrationAccountRosettaNetProcessConfiguration the integration account RosettaNet process
-// configuration.
-type IntegrationAccountRosettaNetProcessConfiguration struct {
-	autorest.Response `json:"-"`
-	// IntegrationAccountRosettaNetProcessConfigurationProperties - The integration account RosettaNet process configuration properties.
-	*IntegrationAccountRosettaNetProcessConfigurationProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; The resource id.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Gets the resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Gets the resource type.
-	Type *string `json:"type,omitempty"`
-	// Location - The resource location.
-	Location *string `json:"location,omitempty"`
-	// Tags - The resource tags.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for IntegrationAccountRosettaNetProcessConfiguration.
-func (iarnpc IntegrationAccountRosettaNetProcessConfiguration) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if iarnpc.IntegrationAccountRosettaNetProcessConfigurationProperties != nil {
-		objectMap["properties"] = iarnpc.IntegrationAccountRosettaNetProcessConfigurationProperties
-	}
-	if iarnpc.Location != nil {
-		objectMap["location"] = iarnpc.Location
-	}
-	if iarnpc.Tags != nil {
-		objectMap["tags"] = iarnpc.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for IntegrationAccountRosettaNetProcessConfiguration struct.
-func (iarnpc *IntegrationAccountRosettaNetProcessConfiguration) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var integrationAccountRosettaNetProcessConfigurationProperties IntegrationAccountRosettaNetProcessConfigurationProperties
-				err = json.Unmarshal(*v, &integrationAccountRosettaNetProcessConfigurationProperties)
-				if err != nil {
-					return err
-				}
-				iarnpc.IntegrationAccountRosettaNetProcessConfigurationProperties = &integrationAccountRosettaNetProcessConfigurationProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				iarnpc.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				iarnpc.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				iarnpc.Type = &typeVar
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				iarnpc.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				iarnpc.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// IntegrationAccountRosettaNetProcessConfigurationListResult the list of integration account RosettaNet
-// process configuration.
-type IntegrationAccountRosettaNetProcessConfigurationListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The list of integration account RosettaNet PIP configuration.
-	Value *[]IntegrationAccountRosettaNetProcessConfiguration `json:"value,omitempty"`
-	// NextLink - The URL to get the next set of results.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// IntegrationAccountRosettaNetProcessConfigurationListResultIterator provides access to a complete listing
-// of IntegrationAccountRosettaNetProcessConfiguration values.
-type IntegrationAccountRosettaNetProcessConfigurationListResultIterator struct {
-	i    int
-	page IntegrationAccountRosettaNetProcessConfigurationListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *IntegrationAccountRosettaNetProcessConfigurationListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountRosettaNetProcessConfigurationListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *IntegrationAccountRosettaNetProcessConfigurationListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter IntegrationAccountRosettaNetProcessConfigurationListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter IntegrationAccountRosettaNetProcessConfigurationListResultIterator) Response() IntegrationAccountRosettaNetProcessConfigurationListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter IntegrationAccountRosettaNetProcessConfigurationListResultIterator) Value() IntegrationAccountRosettaNetProcessConfiguration {
-	if !iter.page.NotDone() {
-		return IntegrationAccountRosettaNetProcessConfiguration{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the IntegrationAccountRosettaNetProcessConfigurationListResultIterator type.
-func NewIntegrationAccountRosettaNetProcessConfigurationListResultIterator(page IntegrationAccountRosettaNetProcessConfigurationListResultPage) IntegrationAccountRosettaNetProcessConfigurationListResultIterator {
-	return IntegrationAccountRosettaNetProcessConfigurationListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (iarnpclr IntegrationAccountRosettaNetProcessConfigurationListResult) IsEmpty() bool {
-	return iarnpclr.Value == nil || len(*iarnpclr.Value) == 0
-}
-
-// integrationAccountRosettaNetProcessConfigurationListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (iarnpclr IntegrationAccountRosettaNetProcessConfigurationListResult) integrationAccountRosettaNetProcessConfigurationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if iarnpclr.NextLink == nil || len(to.String(iarnpclr.NextLink)) < 1 {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(iarnpclr.NextLink)))
-}
-
-// IntegrationAccountRosettaNetProcessConfigurationListResultPage contains a page of
-// IntegrationAccountRosettaNetProcessConfiguration values.
-type IntegrationAccountRosettaNetProcessConfigurationListResultPage struct {
-	fn       func(context.Context, IntegrationAccountRosettaNetProcessConfigurationListResult) (IntegrationAccountRosettaNetProcessConfigurationListResult, error)
-	iarnpclr IntegrationAccountRosettaNetProcessConfigurationListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *IntegrationAccountRosettaNetProcessConfigurationListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountRosettaNetProcessConfigurationListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	next, err := page.fn(ctx, page.iarnpclr)
-	if err != nil {
-		return err
-	}
-	page.iarnpclr = next
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *IntegrationAccountRosettaNetProcessConfigurationListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page IntegrationAccountRosettaNetProcessConfigurationListResultPage) NotDone() bool {
-	return !page.iarnpclr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page IntegrationAccountRosettaNetProcessConfigurationListResultPage) Response() IntegrationAccountRosettaNetProcessConfigurationListResult {
-	return page.iarnpclr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page IntegrationAccountRosettaNetProcessConfigurationListResultPage) Values() []IntegrationAccountRosettaNetProcessConfiguration {
-	if page.iarnpclr.IsEmpty() {
-		return nil
-	}
-	return *page.iarnpclr.Value
-}
-
-// Creates a new instance of the IntegrationAccountRosettaNetProcessConfigurationListResultPage type.
-func NewIntegrationAccountRosettaNetProcessConfigurationListResultPage(getNextPage func(context.Context, IntegrationAccountRosettaNetProcessConfigurationListResult) (IntegrationAccountRosettaNetProcessConfigurationListResult, error)) IntegrationAccountRosettaNetProcessConfigurationListResultPage {
-	return IntegrationAccountRosettaNetProcessConfigurationListResultPage{fn: getNextPage}
-}
-
-// IntegrationAccountRosettaNetProcessConfigurationProperties the integration account RosettaNet process
-// configuration properties.
-type IntegrationAccountRosettaNetProcessConfigurationProperties struct {
-	// CreatedTime - READ-ONLY; The created time.
-	CreatedTime *date.Time `json:"createdTime,omitempty"`
-	// ChangedTime - READ-ONLY; The changed time.
-	ChangedTime *date.Time `json:"changedTime,omitempty"`
-	// Metadata - The metadata.
-	Metadata map[string]*string `json:"metadata"`
-	// ActivitySettings - The RosettaNet process configuration activity settings.
-	ActivitySettings *RosettaNetPipActivitySettings `json:"activitySettings,omitempty"`
-	// ProcessCode - The integration account RosettaNet process code.
-	ProcessCode *string `json:"processCode,omitempty"`
-	// ProcessVersion - The integration account RosettaNet process version.
-	ProcessVersion *string `json:"processVersion,omitempty"`
-	// ProcessName - The integration account RosettaNet process name.
-	ProcessName *string `json:"processName,omitempty"`
-	// InitiatorRoleSettings - The RosettaNet initiator role settings.
-	InitiatorRoleSettings *RosettaNetPipRoleSettings `json:"initiatorRoleSettings,omitempty"`
-	// ResponderRoleSettings - The RosettaNet responder role settings.
-	ResponderRoleSettings *RosettaNetPipRoleSettings `json:"responderRoleSettings,omitempty"`
-	// Description - The integration account RosettaNet ProcessConfiguration properties.
-	Description *string `json:"description,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for IntegrationAccountRosettaNetProcessConfigurationProperties.
-func (iarnpcp IntegrationAccountRosettaNetProcessConfigurationProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if iarnpcp.Metadata != nil {
-		objectMap["metadata"] = iarnpcp.Metadata
-	}
-	if iarnpcp.ActivitySettings != nil {
-		objectMap["activitySettings"] = iarnpcp.ActivitySettings
-	}
-	if iarnpcp.ProcessCode != nil {
-		objectMap["processCode"] = iarnpcp.ProcessCode
-	}
-	if iarnpcp.ProcessVersion != nil {
-		objectMap["processVersion"] = iarnpcp.ProcessVersion
-	}
-	if iarnpcp.ProcessName != nil {
-		objectMap["processName"] = iarnpcp.ProcessName
-	}
-	if iarnpcp.InitiatorRoleSettings != nil {
-		objectMap["initiatorRoleSettings"] = iarnpcp.InitiatorRoleSettings
-	}
-	if iarnpcp.ResponderRoleSettings != nil {
-		objectMap["responderRoleSettings"] = iarnpcp.ResponderRoleSettings
-	}
-	if iarnpcp.Description != nil {
-		objectMap["description"] = iarnpcp.Description
-	}
-	return json.Marshal(objectMap)
+// IntegrationAccountProperties the integration account properties.
+type IntegrationAccountProperties struct {
+	// IntegrationServiceEnvironment - The integration service environment.
+	IntegrationServiceEnvironment *IntegrationServiceEnvironment `json:"integrationServiceEnvironment,omitempty"`
+	// State - The workflow state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
+	State WorkflowState `json:"state,omitempty"`
 }
 
 // IntegrationAccountSchema the integration account schema.
@@ -3769,8 +4207,553 @@ type IntegrationAccountSessionProperties struct {
 
 // IntegrationAccountSku the integration account sku.
 type IntegrationAccountSku struct {
-	// Name - The sku name. Possible values include: 'IntegrationAccountSkuNameNotSpecified', 'IntegrationAccountSkuNameFree', 'IntegrationAccountSkuNameStandard'
+	// Name - The sku name. Possible values include: 'IntegrationAccountSkuNameNotSpecified', 'IntegrationAccountSkuNameFree', 'IntegrationAccountSkuNameBasic', 'IntegrationAccountSkuNameStandard'
 	Name IntegrationAccountSkuName `json:"name,omitempty"`
+}
+
+// IntegrationServiceEnvironment the integration service environment.
+type IntegrationServiceEnvironment struct {
+	autorest.Response `json:"-"`
+	// Properties - The integration service environment properties.
+	Properties *IntegrationServiceEnvironmentProperties `json:"properties,omitempty"`
+	// Sku - The sku.
+	Sku *IntegrationServiceEnvironmentSku `json:"sku,omitempty"`
+	// ID - READ-ONLY; The resource id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Gets the resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Gets the resource type.
+	Type *string `json:"type,omitempty"`
+	// Location - The resource location.
+	Location *string `json:"location,omitempty"`
+	// Tags - The resource tags.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for IntegrationServiceEnvironment.
+func (ise IntegrationServiceEnvironment) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ise.Properties != nil {
+		objectMap["properties"] = ise.Properties
+	}
+	if ise.Sku != nil {
+		objectMap["sku"] = ise.Sku
+	}
+	if ise.Location != nil {
+		objectMap["location"] = ise.Location
+	}
+	if ise.Tags != nil {
+		objectMap["tags"] = ise.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// IntegrationServiceEnvironmentAccessEndpoint the integration service environment access endpoint.
+type IntegrationServiceEnvironmentAccessEndpoint struct {
+	// Type - The access endpoint type. Possible values include: 'IntegrationServiceEnvironmentAccessEndpointTypeNotSpecified', 'IntegrationServiceEnvironmentAccessEndpointTypeExternal', 'IntegrationServiceEnvironmentAccessEndpointTypeInternal'
+	Type IntegrationServiceEnvironmentAccessEndpointType `json:"type,omitempty"`
+}
+
+// IntegrationServiceEnvironmentListResult the list of integration service environments.
+type IntegrationServiceEnvironmentListResult struct {
+	autorest.Response `json:"-"`
+	Value             *[]IntegrationServiceEnvironment `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// IntegrationServiceEnvironmentListResultIterator provides access to a complete listing of
+// IntegrationServiceEnvironment values.
+type IntegrationServiceEnvironmentListResultIterator struct {
+	i    int
+	page IntegrationServiceEnvironmentListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *IntegrationServiceEnvironmentListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *IntegrationServiceEnvironmentListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter IntegrationServiceEnvironmentListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter IntegrationServiceEnvironmentListResultIterator) Response() IntegrationServiceEnvironmentListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter IntegrationServiceEnvironmentListResultIterator) Value() IntegrationServiceEnvironment {
+	if !iter.page.NotDone() {
+		return IntegrationServiceEnvironment{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the IntegrationServiceEnvironmentListResultIterator type.
+func NewIntegrationServiceEnvironmentListResultIterator(page IntegrationServiceEnvironmentListResultPage) IntegrationServiceEnvironmentListResultIterator {
+	return IntegrationServiceEnvironmentListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (iselr IntegrationServiceEnvironmentListResult) IsEmpty() bool {
+	return iselr.Value == nil || len(*iselr.Value) == 0
+}
+
+// integrationServiceEnvironmentListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (iselr IntegrationServiceEnvironmentListResult) integrationServiceEnvironmentListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if iselr.NextLink == nil || len(to.String(iselr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(iselr.NextLink)))
+}
+
+// IntegrationServiceEnvironmentListResultPage contains a page of IntegrationServiceEnvironment values.
+type IntegrationServiceEnvironmentListResultPage struct {
+	fn    func(context.Context, IntegrationServiceEnvironmentListResult) (IntegrationServiceEnvironmentListResult, error)
+	iselr IntegrationServiceEnvironmentListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *IntegrationServiceEnvironmentListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.iselr)
+	if err != nil {
+		return err
+	}
+	page.iselr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *IntegrationServiceEnvironmentListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page IntegrationServiceEnvironmentListResultPage) NotDone() bool {
+	return !page.iselr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page IntegrationServiceEnvironmentListResultPage) Response() IntegrationServiceEnvironmentListResult {
+	return page.iselr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page IntegrationServiceEnvironmentListResultPage) Values() []IntegrationServiceEnvironment {
+	if page.iselr.IsEmpty() {
+		return nil
+	}
+	return *page.iselr.Value
+}
+
+// Creates a new instance of the IntegrationServiceEnvironmentListResultPage type.
+func NewIntegrationServiceEnvironmentListResultPage(getNextPage func(context.Context, IntegrationServiceEnvironmentListResult) (IntegrationServiceEnvironmentListResult, error)) IntegrationServiceEnvironmentListResultPage {
+	return IntegrationServiceEnvironmentListResultPage{fn: getNextPage}
+}
+
+// IntegrationServiceEnvironmentManagedApisDeleteFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type IntegrationServiceEnvironmentManagedApisDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *IntegrationServiceEnvironmentManagedApisDeleteFuture) Result(client IntegrationServiceEnvironmentManagedApisClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// IntegrationServiceEnvironmentManagedApisPutFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type IntegrationServiceEnvironmentManagedApisPutFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *IntegrationServiceEnvironmentManagedApisPutFuture) Result(client IntegrationServiceEnvironmentManagedApisClient) (ma ManagedAPI, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentManagedApisPutFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ma.Response.Response, err = future.GetResult(sender); err == nil && ma.Response.Response.StatusCode != http.StatusNoContent {
+		ma, err = client.PutResponder(ma.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisPutFuture", "Result", ma.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// IntegrationServiceEnvironmentNetworkDependency the azure async operation resource.
+type IntegrationServiceEnvironmentNetworkDependency struct {
+	// Category - The network dependency category type. Possible values include: 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeNotSpecified', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureStorage', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureManagement', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAzureActiveDirectory', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSSLCertificateVerification', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeDiagnosticLogsAndMetrics', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeIntegrationServiceEnvironmentConnectors', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRedisCache', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeAccessEndpoints', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRecoveryService', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeSQL', 'IntegrationServiceEnvironmentNetworkDependencyCategoryTypeRegionalService'
+	Category IntegrationServiceEnvironmentNetworkDependencyCategoryType `json:"category,omitempty"`
+	// DisplayName - The display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Endpoints - The endpoints.
+	Endpoints *[]IntegrationServiceEnvironmentNetworkEndpoint `json:"endpoints,omitempty"`
+}
+
+// IntegrationServiceEnvironmentNetworkDependencyHealth the integration service environment subnet network
+// health.
+type IntegrationServiceEnvironmentNetworkDependencyHealth struct {
+	// Error - The error if any occurred during the operation.
+	Error *ExtendedErrorInfo `json:"error,omitempty"`
+	// State - The network dependency health state. Possible values include: 'IntegrationServiceEnvironmentNetworkDependencyHealthStateNotSpecified', 'IntegrationServiceEnvironmentNetworkDependencyHealthStateHealthy', 'IntegrationServiceEnvironmentNetworkDependencyHealthStateUnhealthy', 'IntegrationServiceEnvironmentNetworkDependencyHealthStateUnknown'
+	State IntegrationServiceEnvironmentNetworkDependencyHealthState `json:"state,omitempty"`
+}
+
+// IntegrationServiceEnvironmentNetworkEndpoint the network endpoint.
+type IntegrationServiceEnvironmentNetworkEndpoint struct {
+	// Accessibility - The accessibility state. Possible values include: 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotSpecified', 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateUnknown', 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateAvailable', 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotAvailable'
+	Accessibility IntegrationServiceEnvironmentNetworkEndPointAccessibilityState `json:"accessibility,omitempty"`
+	// DomainName - The domain name.
+	DomainName *string `json:"domainName,omitempty"`
+	// Ports - The ports.
+	Ports *[]string `json:"ports,omitempty"`
+}
+
+// IntegrationServiceEnvironmentProperties the integration service environment properties.
+type IntegrationServiceEnvironmentProperties struct {
+	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
+	// State - The integration service environment state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
+	State WorkflowState `json:"state,omitempty"`
+	// IntegrationServiceEnvironmentID - Gets the tracking id.
+	IntegrationServiceEnvironmentID *string `json:"integrationServiceEnvironmentId,omitempty"`
+	// EndpointsConfiguration - The endpoints configuration.
+	EndpointsConfiguration *FlowEndpointsConfiguration `json:"endpointsConfiguration,omitempty"`
+	// NetworkConfiguration - The network configuration.
+	NetworkConfiguration *NetworkConfiguration `json:"networkConfiguration,omitempty"`
+}
+
+// IntegrationServiceEnvironmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type IntegrationServiceEnvironmentsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *IntegrationServiceEnvironmentsCreateOrUpdateFuture) Result(client IntegrationServiceEnvironmentsClient) (ise IntegrationServiceEnvironment, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ise.Response.Response, err = future.GetResult(sender); err == nil && ise.Response.Response.StatusCode != http.StatusNoContent {
+		ise, err = client.CreateOrUpdateResponder(ise.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsCreateOrUpdateFuture", "Result", ise.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// IntegrationServiceEnvironmentSku the integration service environment sku.
+type IntegrationServiceEnvironmentSku struct {
+	// Name - The sku name. Possible values include: 'IntegrationServiceEnvironmentSkuNameNotSpecified', 'IntegrationServiceEnvironmentSkuNamePremium', 'IntegrationServiceEnvironmentSkuNameDeveloper'
+	Name IntegrationServiceEnvironmentSkuName `json:"name,omitempty"`
+	// Capacity - The sku capacity.
+	Capacity *int32 `json:"capacity,omitempty"`
+}
+
+// IntegrationServiceEnvironmentSkuCapacity the integration service environment sku capacity.
+type IntegrationServiceEnvironmentSkuCapacity struct {
+	// Minimum - The minimum capacity.
+	Minimum *int32 `json:"minimum,omitempty"`
+	// Maximum - The maximum capacity.
+	Maximum *int32 `json:"maximum,omitempty"`
+	// Default - The default capacity.
+	Default *int32 `json:"default,omitempty"`
+	// ScaleType - The sku scale type. Possible values include: 'Manual', 'Automatic', 'None'
+	ScaleType IntegrationServiceEnvironmentSkuScaleType `json:"scaleType,omitempty"`
+}
+
+// IntegrationServiceEnvironmentSkuDefinition the integration service environment sku definition.
+type IntegrationServiceEnvironmentSkuDefinition struct {
+	// ResourceType - The resource type.
+	ResourceType *string `json:"resourceType,omitempty"`
+	// Sku - The sku.
+	Sku *IntegrationServiceEnvironmentSkuDefinitionSku `json:"sku,omitempty"`
+	// Capacity - The sku capacity.
+	Capacity *IntegrationServiceEnvironmentSkuCapacity `json:"capacity,omitempty"`
+}
+
+// IntegrationServiceEnvironmentSkuDefinitionSku the sku.
+type IntegrationServiceEnvironmentSkuDefinitionSku struct {
+	// Name - The sku name. Possible values include: 'IntegrationServiceEnvironmentSkuNameNotSpecified', 'IntegrationServiceEnvironmentSkuNamePremium', 'IntegrationServiceEnvironmentSkuNameDeveloper'
+	Name IntegrationServiceEnvironmentSkuName `json:"name,omitempty"`
+	// Tier - The sku tier.
+	Tier *string `json:"tier,omitempty"`
+}
+
+// IntegrationServiceEnvironmentSkuList the list of integration service environment skus.
+type IntegrationServiceEnvironmentSkuList struct {
+	autorest.Response `json:"-"`
+	// Value - The list of integration service environment skus.
+	Value *[]IntegrationServiceEnvironmentSkuDefinition `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// IntegrationServiceEnvironmentSkuListIterator provides access to a complete listing of
+// IntegrationServiceEnvironmentSkuDefinition values.
+type IntegrationServiceEnvironmentSkuListIterator struct {
+	i    int
+	page IntegrationServiceEnvironmentSkuListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *IntegrationServiceEnvironmentSkuListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentSkuListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *IntegrationServiceEnvironmentSkuListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter IntegrationServiceEnvironmentSkuListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter IntegrationServiceEnvironmentSkuListIterator) Response() IntegrationServiceEnvironmentSkuList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter IntegrationServiceEnvironmentSkuListIterator) Value() IntegrationServiceEnvironmentSkuDefinition {
+	if !iter.page.NotDone() {
+		return IntegrationServiceEnvironmentSkuDefinition{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the IntegrationServiceEnvironmentSkuListIterator type.
+func NewIntegrationServiceEnvironmentSkuListIterator(page IntegrationServiceEnvironmentSkuListPage) IntegrationServiceEnvironmentSkuListIterator {
+	return IntegrationServiceEnvironmentSkuListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (isesl IntegrationServiceEnvironmentSkuList) IsEmpty() bool {
+	return isesl.Value == nil || len(*isesl.Value) == 0
+}
+
+// integrationServiceEnvironmentSkuListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (isesl IntegrationServiceEnvironmentSkuList) integrationServiceEnvironmentSkuListPreparer(ctx context.Context) (*http.Request, error) {
+	if isesl.NextLink == nil || len(to.String(isesl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(isesl.NextLink)))
+}
+
+// IntegrationServiceEnvironmentSkuListPage contains a page of IntegrationServiceEnvironmentSkuDefinition
+// values.
+type IntegrationServiceEnvironmentSkuListPage struct {
+	fn    func(context.Context, IntegrationServiceEnvironmentSkuList) (IntegrationServiceEnvironmentSkuList, error)
+	isesl IntegrationServiceEnvironmentSkuList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *IntegrationServiceEnvironmentSkuListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationServiceEnvironmentSkuListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.isesl)
+	if err != nil {
+		return err
+	}
+	page.isesl = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *IntegrationServiceEnvironmentSkuListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page IntegrationServiceEnvironmentSkuListPage) NotDone() bool {
+	return !page.isesl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page IntegrationServiceEnvironmentSkuListPage) Response() IntegrationServiceEnvironmentSkuList {
+	return page.isesl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page IntegrationServiceEnvironmentSkuListPage) Values() []IntegrationServiceEnvironmentSkuDefinition {
+	if page.isesl.IsEmpty() {
+		return nil
+	}
+	return *page.isesl.Value
+}
+
+// Creates a new instance of the IntegrationServiceEnvironmentSkuListPage type.
+func NewIntegrationServiceEnvironmentSkuListPage(getNextPage func(context.Context, IntegrationServiceEnvironmentSkuList) (IntegrationServiceEnvironmentSkuList, error)) IntegrationServiceEnvironmentSkuListPage {
+	return IntegrationServiceEnvironmentSkuListPage{fn: getNextPage}
+}
+
+// IntegrationServiceEnvironmentSubnetNetworkHealth the integration service environment subnet network
+// health.
+type IntegrationServiceEnvironmentSubnetNetworkHealth struct {
+	// OutboundNetworkDependencies - The outbound network dependencies.
+	OutboundNetworkDependencies *[]IntegrationServiceEnvironmentNetworkDependency `json:"outboundNetworkDependencies,omitempty"`
+	// OutboundNetworkHealth - The integration service environment network health.
+	OutboundNetworkHealth *IntegrationServiceEnvironmentNetworkDependencyHealth `json:"outboundNetworkHealth,omitempty"`
+	// NetworkDependencyHealthState - The integration service environment network health state. Possible values include: 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotSpecified', 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateUnknown', 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateAvailable', 'IntegrationServiceEnvironmentNetworkEndPointAccessibilityStateNotAvailable'
+	NetworkDependencyHealthState IntegrationServiceEnvironmentNetworkEndPointAccessibilityState `json:"networkDependencyHealthState,omitempty"`
+}
+
+// IntegrationServiceEnvironmentsUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type IntegrationServiceEnvironmentsUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *IntegrationServiceEnvironmentsUpdateFuture) Result(client IntegrationServiceEnvironmentsClient) (ise IntegrationServiceEnvironment, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("logic.IntegrationServiceEnvironmentsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ise.Response.Response, err = future.GetResult(sender); err == nil && ise.Response.Response.StatusCode != http.StatusNoContent {
+		ise, err = client.UpdateResponder(ise.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentsUpdateFuture", "Result", ise.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// IPAddress the ip address.
+type IPAddress struct {
+	// Address - The address.
+	Address *string `json:"address,omitempty"`
 }
 
 // JSONSchema the JSON schema.
@@ -3831,7 +4814,7 @@ type KeyVaultKeyReferenceKeyVault struct {
 
 // KeyVaultReference the key vault reference.
 type KeyVaultReference struct {
-	// ID - READ-ONLY; The resource id.
+	// ID - The resource id.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
@@ -3845,6 +4828,194 @@ type ListKeyVaultKeysDefinition struct {
 	KeyVault *KeyVaultReference `json:"keyVault,omitempty"`
 	// SkipToken - The skip token.
 	SkipToken *string `json:"skipToken,omitempty"`
+}
+
+// ManagedAPI the managed api definition.
+type ManagedAPI struct {
+	autorest.Response `json:"-"`
+	// Properties - The api resource properties.
+	Properties *APIResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The resource id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Gets the resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Gets the resource type.
+	Type *string `json:"type,omitempty"`
+	// Location - The resource location.
+	Location *string `json:"location,omitempty"`
+	// Tags - The resource tags.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedAPI.
+func (ma ManagedAPI) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ma.Properties != nil {
+		objectMap["properties"] = ma.Properties
+	}
+	if ma.Location != nil {
+		objectMap["location"] = ma.Location
+	}
+	if ma.Tags != nil {
+		objectMap["tags"] = ma.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedAPIListResult the list of managed APIs.
+type ManagedAPIListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The managed APIs.
+	Value *[]ManagedAPI `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ManagedAPIListResultIterator provides access to a complete listing of ManagedAPI values.
+type ManagedAPIListResultIterator struct {
+	i    int
+	page ManagedAPIListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedAPIListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedAPIListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ManagedAPIListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedAPIListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedAPIListResultIterator) Response() ManagedAPIListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedAPIListResultIterator) Value() ManagedAPI {
+	if !iter.page.NotDone() {
+		return ManagedAPI{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ManagedAPIListResultIterator type.
+func NewManagedAPIListResultIterator(page ManagedAPIListResultPage) ManagedAPIListResultIterator {
+	return ManagedAPIListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (malr ManagedAPIListResult) IsEmpty() bool {
+	return malr.Value == nil || len(*malr.Value) == 0
+}
+
+// managedAPIListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (malr ManagedAPIListResult) managedAPIListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if malr.NextLink == nil || len(to.String(malr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(malr.NextLink)))
+}
+
+// ManagedAPIListResultPage contains a page of ManagedAPI values.
+type ManagedAPIListResultPage struct {
+	fn   func(context.Context, ManagedAPIListResult) (ManagedAPIListResult, error)
+	malr ManagedAPIListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedAPIListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedAPIListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.malr)
+	if err != nil {
+		return err
+	}
+	page.malr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ManagedAPIListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedAPIListResultPage) NotDone() bool {
+	return !page.malr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedAPIListResultPage) Response() ManagedAPIListResult {
+	return page.malr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedAPIListResultPage) Values() []ManagedAPI {
+	if page.malr.IsEmpty() {
+		return nil
+	}
+	return *page.malr.Value
+}
+
+// Creates a new instance of the ManagedAPIListResultPage type.
+func NewManagedAPIListResultPage(getNextPage func(context.Context, ManagedAPIListResult) (ManagedAPIListResult, error)) ManagedAPIListResultPage {
+	return ManagedAPIListResultPage{fn: getNextPage}
+}
+
+// NetworkConfiguration the network configuration.
+type NetworkConfiguration struct {
+	// VirtualNetworkAddressSpace - Gets the virtual network address space.
+	VirtualNetworkAddressSpace *string `json:"virtualNetworkAddressSpace,omitempty"`
+	// AccessEndpoint - The access endpoint.
+	AccessEndpoint *IntegrationServiceEnvironmentAccessEndpoint `json:"accessEndpoint,omitempty"`
+	// Subnets - The subnets.
+	Subnets *[]ResourceReference `json:"subnets,omitempty"`
 }
 
 // Operation logic REST API operation
@@ -4327,7 +5498,7 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 
 // ResourceReference the resource reference.
 type ResourceReference struct {
-	// ID - READ-ONLY; The resource id.
+	// ID - The resource id.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Gets the resource name.
 	Name *string `json:"name,omitempty"`
@@ -4361,73 +5532,6 @@ type RetryHistory struct {
 	Error *ErrorResponse `json:"error,omitempty"`
 }
 
-// RosettaNetPipAcknowledgmentOfReceiptSettings the integration account RosettaNet ProcessConfiguration
-// Acknowledgement settings.
-type RosettaNetPipAcknowledgmentOfReceiptSettings struct {
-	// IsNonRepudiationRequired - The non-repudiation is required or not.
-	IsNonRepudiationRequired *bool `json:"isNonRepudiationRequired,omitempty"`
-	// TimeToAcknowledgeInSeconds - The time to acknowledge in seconds.
-	TimeToAcknowledgeInSeconds *int32 `json:"timeToAcknowledgeInSeconds,omitempty"`
-}
-
-// RosettaNetPipActivityBehavior the integration account RosettaNet ProcessConfiguration activity behavior.
-type RosettaNetPipActivityBehavior struct {
-	// IsAuthorizationRequired - The value indicating whether authorization is required.
-	IsAuthorizationRequired *bool `json:"isAuthorizationRequired,omitempty"`
-	// PersistentConfidentialityScope - The persistent confidentiality encryption scope. Possible values include: 'RosettaNetPipConfidentialityScopeNotSpecified', 'RosettaNetPipConfidentialityScopeNone', 'RosettaNetPipConfidentialityScopePayload', 'RosettaNetPipConfidentialityScopePayloadContainer'
-	PersistentConfidentialityScope RosettaNetPipConfidentialityScope `json:"persistentConfidentialityScope,omitempty"`
-	// IsSecuredTransportRequired - The value indicating whether secured transport is required.
-	IsSecuredTransportRequired *bool `json:"isSecuredTransportRequired,omitempty"`
-	// ActionType - The value indicating whether the RosettaNet PIP is used for a single action. Possible values include: 'RosettaNetActionTypeNotSpecified', 'RosettaNetActionTypeSingleAction', 'RosettaNetActionTypeDoubleAction'
-	ActionType RosettaNetActionType `json:"actionType,omitempty"`
-	// ResponseType - The value indicating whether the RosettaNet PIP communication is synchronous. Possible values include: 'RosettaNetResponseTypeNotSpecified', 'RosettaNetResponseTypeSync', 'RosettaNetResponseTypeAsync'
-	ResponseType RosettaNetResponseType `json:"responseType,omitempty"`
-	// NonRepudiationOfOriginAndContent - The value indicating whether non-repudiation is for origin and content.
-	NonRepudiationOfOriginAndContent *bool `json:"nonRepudiationOfOriginAndContent,omitempty"`
-	// RetryCount - The value indicating retry count.
-	RetryCount *int32 `json:"retryCount,omitempty"`
-	// TimeToPerformInSeconds - The time to perform in seconds.
-	TimeToPerformInSeconds *int32 `json:"timeToPerformInSeconds,omitempty"`
-}
-
-// RosettaNetPipActivitySettings the integration account RosettaNet ProcessConfiguration activity settings.
-type RosettaNetPipActivitySettings struct {
-	// ActivityType - The RosettaNet ProcessConfiguration activity type. Possible values include: 'RosettaNetPipActivityTypeNotSpecified', 'RosettaNetPipActivityTypeInformationDistribution', 'RosettaNetPipActivityTypeBusinessTransaction', 'RosettaNetPipActivityTypeNotification', 'RosettaNetPipActivityTypeQueryResponse', 'RosettaNetPipActivityTypeRequestConfirm', 'RosettaNetPipActivityTypeRequestResponse'
-	ActivityType RosettaNetPipActivityType `json:"activityType,omitempty"`
-	// ActivityBehavior - The RosettaNet ProcessConfiguration activity behavior.
-	ActivityBehavior *RosettaNetPipActivityBehavior `json:"activityBehavior,omitempty"`
-	// AcknowledgmentOfReceiptSettings - The RosettaNet ProcessConfiguration acknowledgement settings.
-	AcknowledgmentOfReceiptSettings *RosettaNetPipAcknowledgmentOfReceiptSettings `json:"acknowledgmentOfReceiptSettings,omitempty"`
-}
-
-// RosettaNetPipBusinessDocument the RosettaNet ProcessConfiguration business document settings.
-type RosettaNetPipBusinessDocument struct {
-	// Name - The business document name.
-	Name *string `json:"name,omitempty"`
-	// Version - The business document version.
-	Version *string `json:"version,omitempty"`
-	// Description - The business document description.
-	Description *string `json:"description,omitempty"`
-}
-
-// RosettaNetPipRoleSettings the integration account RosettaNet ProcessConfiguration role settings.
-type RosettaNetPipRoleSettings struct {
-	// Action - The action name.
-	Action *string `json:"action,omitempty"`
-	// Role - The role name.
-	Role *string `json:"role,omitempty"`
-	// RoleType - The RosettaNet ProcessConfiguration role type. Possible values include: 'RosettaNetPipRoleTypeNotSpecified', 'RosettaNetPipRoleTypeFunctional', 'RosettaNetPipRoleTypeOrganizational', 'RosettaNetPipRoleTypeEmployee'
-	RoleType RosettaNetPipRoleType `json:"roleType,omitempty"`
-	// Service - The service name.
-	Service *string `json:"service,omitempty"`
-	// ServiceClassification - The service classification name.
-	ServiceClassification *string `json:"serviceClassification,omitempty"`
-	// BusinessDocument - The RosettaNet ProcessConfiguration business document.
-	BusinessDocument *RosettaNetPipBusinessDocument `json:"businessDocument,omitempty"`
-	// Description - The description.
-	Description *string `json:"description,omitempty"`
-}
-
 // RunActionCorrelation the workflow run action correlation properties.
 type RunActionCorrelation struct {
 	// ActionTrackingID - The action tracking identifier.
@@ -4446,14 +5550,30 @@ type RunCorrelation struct {
 	ClientKeywords *[]string `json:"clientKeywords,omitempty"`
 }
 
+// SetIntegrationServiceEnvironmentSubnetNetworkHealth ...
+type SetIntegrationServiceEnvironmentSubnetNetworkHealth struct {
+	autorest.Response `json:"-"`
+	Value             map[string]*IntegrationServiceEnvironmentSubnetNetworkHealth `json:"value"`
+}
+
+// MarshalJSON is the custom marshaler for SetIntegrationServiceEnvironmentSubnetNetworkHealth.
+func (sisesnh SetIntegrationServiceEnvironmentSubnetNetworkHealth) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sisesnh.Value != nil {
+		objectMap["value"] = sisesnh.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // SetObject ...
 type SetObject struct {
 	autorest.Response `json:"-"`
 	Value             interface{} `json:"value,omitempty"`
 }
 
-// SetTriggerStateActionDefinition ...
+// SetTriggerStateActionDefinition the set trigger state action definition.
 type SetTriggerStateActionDefinition struct {
+	// Source - The source.
 	Source *WorkflowTrigger `json:"source,omitempty"`
 }
 
@@ -4471,28 +5591,378 @@ type SubResource struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// TrackingEvent ...
+// SwaggerCustomDynamicList the swagger custom dynamic list.
+type SwaggerCustomDynamicList struct {
+	// OperationID - The operation id to fetch dynamic schema.
+	OperationID *string `json:"operationId,omitempty"`
+	// BuiltInOperation - The built in operation.
+	BuiltInOperation *string `json:"builtInOperation,omitempty"`
+	// ItemsPath - The path to a response property (relative to the response object, not the response body) which contains an array of dynamic value items.
+	ItemsPath *string `json:"itemsPath,omitempty"`
+	// ItemValuePath - The path to a property which defines the value which should be used.
+	ItemValuePath *string `json:"itemValuePath,omitempty"`
+	// ItemTitlePath - The path to an item property which defines the display name of the item.
+	ItemTitlePath *string `json:"itemTitlePath,omitempty"`
+	// Parameters - The parameters.
+	Parameters map[string]*SwaggerCustomDynamicProperties `json:"parameters"`
+}
+
+// MarshalJSON is the custom marshaler for SwaggerCustomDynamicList.
+func (scdl SwaggerCustomDynamicList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if scdl.OperationID != nil {
+		objectMap["operationId"] = scdl.OperationID
+	}
+	if scdl.BuiltInOperation != nil {
+		objectMap["builtInOperation"] = scdl.BuiltInOperation
+	}
+	if scdl.ItemsPath != nil {
+		objectMap["itemsPath"] = scdl.ItemsPath
+	}
+	if scdl.ItemValuePath != nil {
+		objectMap["itemValuePath"] = scdl.ItemValuePath
+	}
+	if scdl.ItemTitlePath != nil {
+		objectMap["itemTitlePath"] = scdl.ItemTitlePath
+	}
+	if scdl.Parameters != nil {
+		objectMap["parameters"] = scdl.Parameters
+	}
+	return json.Marshal(objectMap)
+}
+
+// SwaggerCustomDynamicProperties the swagger custom dynamic properties.
+type SwaggerCustomDynamicProperties struct {
+	// OperationID - The operation id to fetch dynamic schema.
+	OperationID *string `json:"operationId,omitempty"`
+	// ValuePath - Json pointer to the dynamic schema on the response body.
+	ValuePath *string `json:"valuePath,omitempty"`
+	// Parameters - The operation parameters.
+	Parameters map[string]*SwaggerCustomDynamicProperties `json:"parameters"`
+}
+
+// MarshalJSON is the custom marshaler for SwaggerCustomDynamicProperties.
+func (scdp SwaggerCustomDynamicProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if scdp.OperationID != nil {
+		objectMap["operationId"] = scdp.OperationID
+	}
+	if scdp.ValuePath != nil {
+		objectMap["valuePath"] = scdp.ValuePath
+	}
+	if scdp.Parameters != nil {
+		objectMap["parameters"] = scdp.Parameters
+	}
+	return json.Marshal(objectMap)
+}
+
+// SwaggerCustomDynamicSchema the swagger custom dynamic schema.
+type SwaggerCustomDynamicSchema struct {
+	// OperationID - The operation id to fetch dynamic schema.
+	OperationID *string `json:"operationId,omitempty"`
+	// ValuePath - Json pointer to the dynamic schema on the response body.
+	ValuePath *string `json:"valuePath,omitempty"`
+	// Parameters - The operation parameters.
+	Parameters map[string]interface{} `json:"parameters"`
+}
+
+// MarshalJSON is the custom marshaler for SwaggerCustomDynamicSchema.
+func (scds SwaggerCustomDynamicSchema) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if scds.OperationID != nil {
+		objectMap["operationId"] = scds.OperationID
+	}
+	if scds.ValuePath != nil {
+		objectMap["valuePath"] = scds.ValuePath
+	}
+	if scds.Parameters != nil {
+		objectMap["parameters"] = scds.Parameters
+	}
+	return json.Marshal(objectMap)
+}
+
+// SwaggerCustomDynamicTree the swagger custom dynamic tree.
+type SwaggerCustomDynamicTree struct {
+	// Settings - The tree settings
+	Settings *SwaggerCustomDynamicTreeSettings `json:"settings,omitempty"`
+	// Open - The tree on-open configuration
+	Open *SwaggerCustomDynamicTreeCommand `json:"open,omitempty"`
+	// Browse - The tree on-browse configuration
+	Browse *SwaggerCustomDynamicTreeCommand `json:"browse,omitempty"`
+}
+
+// SwaggerCustomDynamicTreeCommand the swagger tree command.
+type SwaggerCustomDynamicTreeCommand struct {
+	// OperationID - The path to an item property which defines the display name of the item.
+	OperationID *string `json:"operationId,omitempty"`
+	// ItemsPath - The path to an item property which defines the display name of the item.
+	ItemsPath *string `json:"itemsPath,omitempty"`
+	// ItemValuePath - The path to an item property which defines the display name of the item.
+	ItemValuePath *string `json:"itemValuePath,omitempty"`
+	// ItemTitlePath - The path to an item property which defines the display name of the item.
+	ItemTitlePath *string `json:"itemTitlePath,omitempty"`
+	// ItemFullTitlePath - The path to an item property which defines the display name of the item.
+	ItemFullTitlePath *string `json:"itemFullTitlePath,omitempty"`
+	// ItemIsParent - The path to an item property which defines the display name of the item.
+	ItemIsParent *string `json:"itemIsParent,omitempty"`
+	// SelectableFilter - The path to an item property which defines the display name of the item.
+	SelectableFilter *string                                       `json:"selectableFilter,omitempty"`
+	Parameters       map[string]*SwaggerCustomDynamicTreeParameter `json:"parameters"`
+}
+
+// MarshalJSON is the custom marshaler for SwaggerCustomDynamicTreeCommand.
+func (scdtc SwaggerCustomDynamicTreeCommand) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if scdtc.OperationID != nil {
+		objectMap["operationId"] = scdtc.OperationID
+	}
+	if scdtc.ItemsPath != nil {
+		objectMap["itemsPath"] = scdtc.ItemsPath
+	}
+	if scdtc.ItemValuePath != nil {
+		objectMap["itemValuePath"] = scdtc.ItemValuePath
+	}
+	if scdtc.ItemTitlePath != nil {
+		objectMap["itemTitlePath"] = scdtc.ItemTitlePath
+	}
+	if scdtc.ItemFullTitlePath != nil {
+		objectMap["itemFullTitlePath"] = scdtc.ItemFullTitlePath
+	}
+	if scdtc.ItemIsParent != nil {
+		objectMap["itemIsParent"] = scdtc.ItemIsParent
+	}
+	if scdtc.SelectableFilter != nil {
+		objectMap["selectableFilter"] = scdtc.SelectableFilter
+	}
+	if scdtc.Parameters != nil {
+		objectMap["parameters"] = scdtc.Parameters
+	}
+	return json.Marshal(objectMap)
+}
+
+// SwaggerCustomDynamicTreeParameter the swagger custom dynamic tree parameter.
+type SwaggerCustomDynamicTreeParameter struct {
+	// SelectedItemValuePath - Gets or sets a path to a property in the currently selected item to pass as a value to a parameter for the given operation.
+	SelectedItemValuePath *string `json:"selectedItemValuePath,omitempty"`
+	// Value - The parameter value.
+	Value interface{} `json:"value,omitempty"`
+	// ParameterReference - The parameter reference.
+	ParameterReference *string `json:"parameterReference,omitempty"`
+	// Required - Indicates whether the parameter is required.
+	Required *bool `json:"required,omitempty"`
+}
+
+// SwaggerCustomDynamicTreeSettings the swagger custom dynamic tree settings.
+type SwaggerCustomDynamicTreeSettings struct {
+	// CanSelectParentNodes - Indicates whether parent nodes can be selected.
+	CanSelectParentNodes *bool `json:"CanSelectParentNodes,omitempty"`
+	// CanSelectLeafNodes - Indicates whether leaf nodes can be selected.
+	CanSelectLeafNodes *bool `json:"CanSelectLeafNodes,omitempty"`
+}
+
+// SwaggerExternalDocumentation the swagger external documentation
+type SwaggerExternalDocumentation struct {
+	// Description - The document description.
+	Description *string `json:"description,omitempty"`
+	// URI - The documentation Uri.
+	URI *string `json:"uri,omitempty"`
+	// Extensions - The vendor extensions.
+	Extensions map[string]interface{} `json:"extensions"`
+}
+
+// MarshalJSON is the custom marshaler for SwaggerExternalDocumentation.
+func (sed SwaggerExternalDocumentation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sed.Description != nil {
+		objectMap["description"] = sed.Description
+	}
+	if sed.URI != nil {
+		objectMap["uri"] = sed.URI
+	}
+	if sed.Extensions != nil {
+		objectMap["extensions"] = sed.Extensions
+	}
+	return json.Marshal(objectMap)
+}
+
+// SwaggerSchema the swagger schema.
+type SwaggerSchema struct {
+	// Ref - The reference.
+	Ref *string `json:"ref,omitempty"`
+	// Type - The type. Possible values include: 'String', 'Number', 'Integer', 'Boolean', 'Array', 'File', 'Object', 'Null'
+	Type SwaggerSchemaType `json:"type,omitempty"`
+	// Title - The title.
+	Title *string `json:"title,omitempty"`
+	// Items - The items schema.
+	Items *SwaggerSchema `json:"items,omitempty"`
+	// Properties - The object properties
+	Properties map[string]*SwaggerSchema `json:"properties"`
+	// AdditionalProperties - The additional properties.
+	AdditionalProperties interface{} `json:"additionalProperties,omitempty"`
+	// Required - The object required properties.
+	Required *[]string `json:"required,omitempty"`
+	// MaxProperties - The maximum number of allowed properties.
+	MaxProperties *int32 `json:"maxProperties,omitempty"`
+	// MinProperties - The minimum number of allowed properties.
+	MinProperties *int32 `json:"minProperties,omitempty"`
+	// AllOf - The schemas which must pass validation when this schema is used.
+	AllOf *[]SwaggerSchema `json:"allOf,omitempty"`
+	// Discriminator - The discriminator.
+	Discriminator *string `json:"discriminator,omitempty"`
+	// ReadOnly - Indicates whether this property must be present in the a request.
+	ReadOnly *bool `json:"readOnly,omitempty"`
+	// XML - The xml representation format for a property.
+	XML *SwaggerXML `json:"xml,omitempty"`
+	// ExternalDocs - The external documentation.
+	ExternalDocs *SwaggerExternalDocumentation `json:"externalDocs,omitempty"`
+	// Example - The example value.
+	Example interface{} `json:"example,omitempty"`
+	// NotificationURLExtension - Indicates the notification url extension. If this is set, the property's value should be a callback url for a webhook.
+	NotificationURLExtension *bool `json:"notificationUrlExtension,omitempty"`
+	// DynamicSchemaOld - The dynamic schema configuration.
+	DynamicSchemaOld *SwaggerCustomDynamicSchema `json:"dynamicSchemaOld,omitempty"`
+	// DynamicSchemaNew - The dynamic schema configuration.
+	DynamicSchemaNew *SwaggerCustomDynamicProperties `json:"dynamicSchemaNew,omitempty"`
+	// DynamicListNew - The dynamic list.
+	DynamicListNew *SwaggerCustomDynamicList `json:"dynamicListNew,omitempty"`
+	// DynamicTree - The dynamic values tree configuration.
+	DynamicTree *SwaggerCustomDynamicTree `json:"dynamicTree,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SwaggerSchema.
+func (ss SwaggerSchema) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ss.Ref != nil {
+		objectMap["ref"] = ss.Ref
+	}
+	if ss.Type != "" {
+		objectMap["type"] = ss.Type
+	}
+	if ss.Title != nil {
+		objectMap["title"] = ss.Title
+	}
+	if ss.Items != nil {
+		objectMap["items"] = ss.Items
+	}
+	if ss.Properties != nil {
+		objectMap["properties"] = ss.Properties
+	}
+	if ss.AdditionalProperties != nil {
+		objectMap["additionalProperties"] = ss.AdditionalProperties
+	}
+	if ss.Required != nil {
+		objectMap["required"] = ss.Required
+	}
+	if ss.MaxProperties != nil {
+		objectMap["maxProperties"] = ss.MaxProperties
+	}
+	if ss.MinProperties != nil {
+		objectMap["minProperties"] = ss.MinProperties
+	}
+	if ss.AllOf != nil {
+		objectMap["allOf"] = ss.AllOf
+	}
+	if ss.Discriminator != nil {
+		objectMap["discriminator"] = ss.Discriminator
+	}
+	if ss.ReadOnly != nil {
+		objectMap["readOnly"] = ss.ReadOnly
+	}
+	if ss.XML != nil {
+		objectMap["xml"] = ss.XML
+	}
+	if ss.ExternalDocs != nil {
+		objectMap["externalDocs"] = ss.ExternalDocs
+	}
+	if ss.Example != nil {
+		objectMap["example"] = ss.Example
+	}
+	if ss.NotificationURLExtension != nil {
+		objectMap["notificationUrlExtension"] = ss.NotificationURLExtension
+	}
+	if ss.DynamicSchemaOld != nil {
+		objectMap["dynamicSchemaOld"] = ss.DynamicSchemaOld
+	}
+	if ss.DynamicSchemaNew != nil {
+		objectMap["dynamicSchemaNew"] = ss.DynamicSchemaNew
+	}
+	if ss.DynamicListNew != nil {
+		objectMap["dynamicListNew"] = ss.DynamicListNew
+	}
+	if ss.DynamicTree != nil {
+		objectMap["dynamicTree"] = ss.DynamicTree
+	}
+	return json.Marshal(objectMap)
+}
+
+// SwaggerXML the Swagger XML.
+type SwaggerXML struct {
+	// Name - The xml element or attribute name.
+	Name *string `json:"name,omitempty"`
+	// Namespace - The xml namespace.
+	Namespace *string `json:"namespace,omitempty"`
+	// Prefix - The name prefix.
+	Prefix *string `json:"prefix,omitempty"`
+	// Attribute - Indicates whether the property should be an attribute instead of an element.
+	Attribute *bool `json:"attribute,omitempty"`
+	// Wrapped - Indicates whether the array elements are wrapped in a container element.
+	Wrapped *bool `json:"wrapped,omitempty"`
+	// Extensions - The vendor extensions.
+	Extensions map[string]interface{} `json:"extensions"`
+}
+
+// MarshalJSON is the custom marshaler for SwaggerXML.
+func (sx SwaggerXML) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sx.Name != nil {
+		objectMap["name"] = sx.Name
+	}
+	if sx.Namespace != nil {
+		objectMap["namespace"] = sx.Namespace
+	}
+	if sx.Prefix != nil {
+		objectMap["prefix"] = sx.Prefix
+	}
+	if sx.Attribute != nil {
+		objectMap["attribute"] = sx.Attribute
+	}
+	if sx.Wrapped != nil {
+		objectMap["wrapped"] = sx.Wrapped
+	}
+	if sx.Extensions != nil {
+		objectMap["extensions"] = sx.Extensions
+	}
+	return json.Marshal(objectMap)
+}
+
+// TrackingEvent the tracking event.
 type TrackingEvent struct {
-	// EventLevel - Possible values include: 'LogAlways', 'Critical', 'Error', 'Warning', 'Informational', 'Verbose'
+	// EventLevel - The event level. Possible values include: 'LogAlways', 'Critical', 'Error', 'Warning', 'Informational', 'Verbose'
 	EventLevel EventLevel `json:"eventLevel,omitempty"`
-	EventTime  *date.Time `json:"eventTime,omitempty"`
-	// RecordType - Possible values include: 'TrackingRecordTypeNotSpecified', 'TrackingRecordTypeCustom', 'TrackingRecordTypeAS2Message', 'TrackingRecordTypeAS2MDN', 'TrackingRecordTypeX12Interchange', 'TrackingRecordTypeX12FunctionalGroup', 'TrackingRecordTypeX12TransactionSet', 'TrackingRecordTypeX12InterchangeAcknowledgment', 'TrackingRecordTypeX12FunctionalGroupAcknowledgment', 'TrackingRecordTypeX12TransactionSetAcknowledgment', 'TrackingRecordTypeEdifactInterchange', 'TrackingRecordTypeEdifactFunctionalGroup', 'TrackingRecordTypeEdifactTransactionSet', 'TrackingRecordTypeEdifactInterchangeAcknowledgment', 'TrackingRecordTypeEdifactFunctionalGroupAcknowledgment', 'TrackingRecordTypeEdifactTransactionSetAcknowledgment'
-	RecordType TrackingRecordType      `json:"recordType,omitempty"`
-	Error      *TrackingEventErrorInfo `json:"error,omitempty"`
+	// EventTime - The event time.
+	EventTime *date.Time `json:"eventTime,omitempty"`
+	// RecordType - The record type. Possible values include: 'TrackingRecordTypeNotSpecified', 'TrackingRecordTypeCustom', 'TrackingRecordTypeAS2Message', 'TrackingRecordTypeAS2MDN', 'TrackingRecordTypeX12Interchange', 'TrackingRecordTypeX12FunctionalGroup', 'TrackingRecordTypeX12TransactionSet', 'TrackingRecordTypeX12InterchangeAcknowledgment', 'TrackingRecordTypeX12FunctionalGroupAcknowledgment', 'TrackingRecordTypeX12TransactionSetAcknowledgment', 'TrackingRecordTypeEdifactInterchange', 'TrackingRecordTypeEdifactFunctionalGroup', 'TrackingRecordTypeEdifactTransactionSet', 'TrackingRecordTypeEdifactInterchangeAcknowledgment', 'TrackingRecordTypeEdifactFunctionalGroupAcknowledgment', 'TrackingRecordTypeEdifactTransactionSetAcknowledgment'
+	RecordType TrackingRecordType `json:"recordType,omitempty"`
+	// Error - The error.
+	Error *TrackingEventErrorInfo `json:"error,omitempty"`
 }
 
-// TrackingEventErrorInfo ...
+// TrackingEventErrorInfo the tracking event error info.
 type TrackingEventErrorInfo struct {
+	// Message - The message.
 	Message *string `json:"message,omitempty"`
-	Code    *string `json:"code,omitempty"`
+	// Code - The code.
+	Code *string `json:"code,omitempty"`
 }
 
-// TrackingEventsDefinition ...
+// TrackingEventsDefinition the tracking events definition.
 type TrackingEventsDefinition struct {
+	// SourceType - The source type.
 	SourceType *string `json:"sourceType,omitempty"`
-	// TrackEventsOptions - Possible values include: 'None', 'DisableSourceInfoEnrich'
+	// TrackEventsOptions - The track events options. Possible values include: 'TrackEventsOperationOptionsNone', 'TrackEventsOperationOptionsDisableSourceInfoEnrich'
 	TrackEventsOptions TrackEventsOperationOptions `json:"trackEventsOptions,omitempty"`
-	Events             *[]TrackingEvent            `json:"events,omitempty"`
+	// Events - The events.
+	Events *[]TrackingEvent `json:"events,omitempty"`
 }
 
 // Workflow the workflow type.
@@ -4788,11 +6258,15 @@ type WorkflowProperties struct {
 	Version *string `json:"version,omitempty"`
 	// AccessEndpoint - READ-ONLY; Gets the access endpoint.
 	AccessEndpoint *string `json:"accessEndpoint,omitempty"`
+	// EndpointsConfiguration - The endpoints configuration.
+	EndpointsConfiguration *FlowEndpointsConfiguration `json:"endpointsConfiguration,omitempty"`
 	// Sku - The sku.
 	Sku *Sku `json:"sku,omitempty"`
 	// IntegrationAccount - The integration account.
 	IntegrationAccount *ResourceReference `json:"integrationAccount,omitempty"`
-	// Definition - The definition. See [Schema reference for Workflow Definition Language in Azure Logic Apps](https://aka.ms/logic-apps-workflow-definition-language).
+	// IntegrationServiceEnvironment - The integration service environment.
+	IntegrationServiceEnvironment *ResourceReference `json:"integrationServiceEnvironment,omitempty"`
+	// Definition - The definition.
 	Definition interface{} `json:"definition,omitempty"`
 	// Parameters - The parameters.
 	Parameters map[string]*WorkflowParameter `json:"parameters"`
@@ -4804,11 +6278,17 @@ func (wp WorkflowProperties) MarshalJSON() ([]byte, error) {
 	if wp.State != "" {
 		objectMap["state"] = wp.State
 	}
+	if wp.EndpointsConfiguration != nil {
+		objectMap["endpointsConfiguration"] = wp.EndpointsConfiguration
+	}
 	if wp.Sku != nil {
 		objectMap["sku"] = wp.Sku
 	}
 	if wp.IntegrationAccount != nil {
 		objectMap["integrationAccount"] = wp.IntegrationAccount
+	}
+	if wp.IntegrationServiceEnvironment != nil {
+		objectMap["integrationServiceEnvironment"] = wp.IntegrationServiceEnvironment
 	}
 	if wp.Definition != nil {
 		objectMap["definition"] = wp.Definition
@@ -5247,7 +6727,9 @@ func (wrard *WorkflowRunActionRepetitionDefinition) UnmarshalJSON(body []byte) e
 // WorkflowRunActionRepetitionDefinitionCollection a collection of workflow run action repetitions.
 type WorkflowRunActionRepetitionDefinitionCollection struct {
 	autorest.Response `json:"-"`
-	Value             *[]WorkflowRunActionRepetitionDefinition `json:"value,omitempty"`
+	// NextLink - The link used to get the next page of recommendations.
+	NextLink *string                                  `json:"nextLink,omitempty"`
+	Value    *[]WorkflowRunActionRepetitionDefinition `json:"value,omitempty"`
 }
 
 // WorkflowRunActionRepetitionProperties the workflow run action repetition properties definition.
@@ -5501,6 +6983,29 @@ type WorkflowRunTrigger struct {
 	Error interface{} `json:"error,omitempty"`
 	// TrackedProperties - READ-ONLY; Gets the tracked properties.
 	TrackedProperties interface{} `json:"trackedProperties,omitempty"`
+}
+
+// WorkflowsMoveFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type WorkflowsMoveFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *WorkflowsMoveFuture) Result(client WorkflowsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "logic.WorkflowsMoveFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("logic.WorkflowsMoveFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // WorkflowTrigger the workflow trigger.
@@ -5845,7 +7350,7 @@ type WorkflowTriggerHistoryProperties struct {
 	InputsLink *ContentLink `json:"inputsLink,omitempty"`
 	// OutputsLink - READ-ONLY; Gets the link to output parameters.
 	OutputsLink *ContentLink `json:"outputsLink,omitempty"`
-	// Fired - READ-ONLY; Gets a value indicating whether trigger was fired.
+	// Fired - READ-ONLY; The value indicating whether trigger was fired.
 	Fired *bool `json:"fired,omitempty"`
 	// Run - READ-ONLY; Gets the reference to workflow run.
 	Run *ResourceReference `json:"run,omitempty"`
@@ -6339,6 +7844,14 @@ func (wvp WorkflowVersionProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// WsdlService the WSDL service.
+type WsdlService struct {
+	// QualifiedName - The qualified name.
+	QualifiedName *string `json:"qualifiedName,omitempty"`
+	// EndpointQualifiedNames - The list of endpoints' qualified names.
+	EndpointQualifiedNames *[]string `json:"EndpointQualifiedNames,omitempty"`
+}
+
 // X12AcknowledgementSettings the X12 agreement acknowledgement settings.
 type X12AcknowledgementSettings struct {
 	// NeedTechnicalAcknowledgement - The value indicating whether technical acknowledgement is needed.
@@ -6591,10 +8104,10 @@ type X12SecuritySettings struct {
 type X12ValidationOverride struct {
 	// MessageID - The message id on which the validation settings has to be applied.
 	MessageID *string `json:"messageId,omitempty"`
-	// ValidateEdiTypes - The value indicating whether to validate EDI types.
-	ValidateEdiTypes *bool `json:"validateEdiTypes,omitempty"`
-	// ValidateXsdTypes - The value indicating whether to validate XSD types.
-	ValidateXsdTypes *bool `json:"validateXsdTypes,omitempty"`
+	// ValidateEDITypes - The value indicating whether to validate EDI types.
+	ValidateEDITypes *bool `json:"validateEDITypes,omitempty"`
+	// ValidateXSDTypes - The value indicating whether to validate XSD types.
+	ValidateXSDTypes *bool `json:"validateXSDTypes,omitempty"`
 	// AllowLeadingAndTrailingSpacesAndZeroes - The value indicating whether to allow leading and trailing spaces and zeroes.
 	AllowLeadingAndTrailingSpacesAndZeroes *bool `json:"allowLeadingAndTrailingSpacesAndZeroes,omitempty"`
 	// ValidateCharacterSet - The value indicating whether to validate character Set.
@@ -6617,10 +8130,10 @@ type X12ValidationSettings struct {
 	CheckDuplicateGroupControlNumber *bool `json:"checkDuplicateGroupControlNumber,omitempty"`
 	// CheckDuplicateTransactionSetControlNumber - The value indicating whether to check for duplicate transaction set control number.
 	CheckDuplicateTransactionSetControlNumber *bool `json:"checkDuplicateTransactionSetControlNumber,omitempty"`
-	// ValidateEdiTypes - The value indicating whether to Whether to validate EDI types.
-	ValidateEdiTypes *bool `json:"validateEdiTypes,omitempty"`
-	// ValidateXsdTypes - The value indicating whether to Whether to validate XSD types.
-	ValidateXsdTypes *bool `json:"validateXsdTypes,omitempty"`
+	// ValidateEDITypes - The value indicating whether to Whether to validate EDI types.
+	ValidateEDITypes *bool `json:"validateEDITypes,omitempty"`
+	// ValidateXSDTypes - The value indicating whether to Whether to validate XSD types.
+	ValidateXSDTypes *bool `json:"validateXSDTypes,omitempty"`
 	// AllowLeadingAndTrailingSpacesAndZeroes - The value indicating whether to allow leading and trailing spaces and zeroes.
 	AllowLeadingAndTrailingSpacesAndZeroes *bool `json:"allowLeadingAndTrailingSpacesAndZeroes,omitempty"`
 	// TrimLeadingAndTrailingSpacesAndZeroes - The value indicating whether to trim leading and trailing spaces and zeroes.

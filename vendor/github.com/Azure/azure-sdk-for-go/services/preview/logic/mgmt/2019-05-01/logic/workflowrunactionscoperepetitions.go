@@ -25,21 +25,21 @@ import (
 	"net/http"
 )
 
-// WorkflowRunActionScopedRepetitionsClient is the REST API for Azure Logic Apps.
-type WorkflowRunActionScopedRepetitionsClient struct {
+// WorkflowRunActionScopeRepetitionsClient is the REST API for Azure Logic Apps.
+type WorkflowRunActionScopeRepetitionsClient struct {
 	BaseClient
 }
 
-// NewWorkflowRunActionScopedRepetitionsClient creates an instance of the WorkflowRunActionScopedRepetitionsClient
+// NewWorkflowRunActionScopeRepetitionsClient creates an instance of the WorkflowRunActionScopeRepetitionsClient
 // client.
-func NewWorkflowRunActionScopedRepetitionsClient(subscriptionID string) WorkflowRunActionScopedRepetitionsClient {
-	return NewWorkflowRunActionScopedRepetitionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewWorkflowRunActionScopeRepetitionsClient(subscriptionID string) WorkflowRunActionScopeRepetitionsClient {
+	return NewWorkflowRunActionScopeRepetitionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkflowRunActionScopedRepetitionsClientWithBaseURI creates an instance of the
-// WorkflowRunActionScopedRepetitionsClient client.
-func NewWorkflowRunActionScopedRepetitionsClientWithBaseURI(baseURI string, subscriptionID string) WorkflowRunActionScopedRepetitionsClient {
-	return WorkflowRunActionScopedRepetitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewWorkflowRunActionScopeRepetitionsClientWithBaseURI creates an instance of the
+// WorkflowRunActionScopeRepetitionsClient client.
+func NewWorkflowRunActionScopeRepetitionsClientWithBaseURI(baseURI string, subscriptionID string) WorkflowRunActionScopeRepetitionsClient {
+	return WorkflowRunActionScopeRepetitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get get a workflow run action scoped repetition.
@@ -49,9 +49,9 @@ func NewWorkflowRunActionScopedRepetitionsClientWithBaseURI(baseURI string, subs
 // runName - the workflow run name.
 // actionName - the workflow action name.
 // repetitionName - the workflow repetition.
-func (client WorkflowRunActionScopedRepetitionsClient) Get(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string, repetitionName string) (result WorkflowRunActionRepetitionDefinition, err error) {
+func (client WorkflowRunActionScopeRepetitionsClient) Get(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string, repetitionName string) (result WorkflowRunActionRepetitionDefinition, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowRunActionScopedRepetitionsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowRunActionScopeRepetitionsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -62,27 +62,27 @@ func (client WorkflowRunActionScopedRepetitionsClient) Get(ctx context.Context, 
 	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, workflowName, runName, actionName, repetitionName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopedRepetitionsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopeRepetitionsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopedRepetitionsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopeRepetitionsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopedRepetitionsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopeRepetitionsClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client WorkflowRunActionScopedRepetitionsClient) GetPreparer(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string, repetitionName string) (*http.Request, error) {
+func (client WorkflowRunActionScopeRepetitionsClient) GetPreparer(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string, repetitionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"actionName":        autorest.Encode("path", actionName),
 		"repetitionName":    autorest.Encode("path", repetitionName),
@@ -92,7 +92,7 @@ func (client WorkflowRunActionScopedRepetitionsClient) GetPreparer(ctx context.C
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -107,14 +107,14 @@ func (client WorkflowRunActionScopedRepetitionsClient) GetPreparer(ctx context.C
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client WorkflowRunActionScopedRepetitionsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client WorkflowRunActionScopeRepetitionsClient) GetSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client WorkflowRunActionScopedRepetitionsClient) GetResponder(resp *http.Response) (result WorkflowRunActionRepetitionDefinition, err error) {
+func (client WorkflowRunActionScopeRepetitionsClient) GetResponder(resp *http.Response) (result WorkflowRunActionRepetitionDefinition, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -131,9 +131,9 @@ func (client WorkflowRunActionScopedRepetitionsClient) GetResponder(resp *http.R
 // workflowName - the workflow name.
 // runName - the workflow run name.
 // actionName - the workflow action name.
-func (client WorkflowRunActionScopedRepetitionsClient) List(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string) (result WorkflowRunActionRepetitionDefinitionCollection, err error) {
+func (client WorkflowRunActionScopeRepetitionsClient) List(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string) (result WorkflowRunActionRepetitionDefinitionCollection, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowRunActionScopedRepetitionsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowRunActionScopeRepetitionsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -144,27 +144,27 @@ func (client WorkflowRunActionScopedRepetitionsClient) List(ctx context.Context,
 	}
 	req, err := client.ListPreparer(ctx, resourceGroupName, workflowName, runName, actionName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopedRepetitionsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopeRepetitionsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopedRepetitionsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopeRepetitionsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopedRepetitionsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionScopeRepetitionsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client WorkflowRunActionScopedRepetitionsClient) ListPreparer(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string) (*http.Request, error) {
+func (client WorkflowRunActionScopeRepetitionsClient) ListPreparer(ctx context.Context, resourceGroupName string, workflowName string, runName string, actionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"actionName":        autorest.Encode("path", actionName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -173,7 +173,7 @@ func (client WorkflowRunActionScopedRepetitionsClient) ListPreparer(ctx context.
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,14 +188,14 @@ func (client WorkflowRunActionScopedRepetitionsClient) ListPreparer(ctx context.
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client WorkflowRunActionScopedRepetitionsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client WorkflowRunActionScopeRepetitionsClient) ListSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client WorkflowRunActionScopedRepetitionsClient) ListResponder(resp *http.Response) (result WorkflowRunActionRepetitionDefinitionCollection, err error) {
+func (client WorkflowRunActionScopeRepetitionsClient) ListResponder(resp *http.Response) (result WorkflowRunActionRepetitionDefinitionCollection, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

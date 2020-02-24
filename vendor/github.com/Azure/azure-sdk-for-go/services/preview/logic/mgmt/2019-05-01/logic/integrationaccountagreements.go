@@ -26,19 +26,20 @@ import (
 	"net/http"
 )
 
-// AgreementsClient is the REST API for Azure Logic Apps.
-type AgreementsClient struct {
+// IntegrationAccountAgreementsClient is the REST API for Azure Logic Apps.
+type IntegrationAccountAgreementsClient struct {
 	BaseClient
 }
 
-// NewAgreementsClient creates an instance of the AgreementsClient client.
-func NewAgreementsClient(subscriptionID string) AgreementsClient {
-	return NewAgreementsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewIntegrationAccountAgreementsClient creates an instance of the IntegrationAccountAgreementsClient client.
+func NewIntegrationAccountAgreementsClient(subscriptionID string) IntegrationAccountAgreementsClient {
+	return NewIntegrationAccountAgreementsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAgreementsClientWithBaseURI creates an instance of the AgreementsClient client.
-func NewAgreementsClientWithBaseURI(baseURI string, subscriptionID string) AgreementsClient {
-	return AgreementsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewIntegrationAccountAgreementsClientWithBaseURI creates an instance of the IntegrationAccountAgreementsClient
+// client.
+func NewIntegrationAccountAgreementsClientWithBaseURI(baseURI string, subscriptionID string) IntegrationAccountAgreementsClient {
+	return IntegrationAccountAgreementsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate creates or updates an integration account agreement.
@@ -47,9 +48,9 @@ func NewAgreementsClientWithBaseURI(baseURI string, subscriptionID string) Agree
 // integrationAccountName - the integration account name.
 // agreementName - the integration account agreement name.
 // agreement - the integration account agreement.
-func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, agreement IntegrationAccountAgreement) (result IntegrationAccountAgreement, err error) {
+func (client IntegrationAccountAgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, agreement IntegrationAccountAgreement) (result IntegrationAccountAgreement, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AgreementsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountAgreementsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -96,20 +97,20 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.AcknowledgementConnectionSettings.UnfoldHTTPHeaders", Name: validation.Null, Rule: true, Chain: nil},
 												}},
 											{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings", Name: validation.Null, Rule: true,
-												Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.NeedMdn", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SignMdn", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SendMdnAsynchronously", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SignOutboundMdnIfOptional", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SendInboundMdnToMessageBox", Name: validation.Null, Rule: true, Chain: nil},
+												Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.NeedMDN", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SignMDN", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SendMDNAsynchronously", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SignOutboundMDNIfOptional", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.MdnSettings.SendInboundMDNToMessageBox", Name: validation.Null, Rule: true, Chain: nil},
 												}},
 											{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings", Name: validation.Null, Rule: true,
 												Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.OverrideGroupSigningCertificate", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNrrForInboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNrrForInboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNrrForOutboundMdn", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNrrForOutboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNrrForOutboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNrrForInboundMdn", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNRRForInboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNRRForInboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNRRForOutboundMDN", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNRRForOutboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNRRForOutboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.SecuritySettings.EnableNRRForInboundMDN", Name: validation.Null, Rule: true, Chain: nil},
 												}},
 											{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.ValidationSettings", Name: validation.Null, Rule: true,
 												Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.ValidationSettings.OverrideMessageProperties", Name: validation.Null, Rule: true, Chain: nil},
@@ -130,7 +131,7 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 												}},
 											{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.ErrorSettings", Name: validation.Null, Rule: true,
 												Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.ErrorSettings.SuspendDuplicateMessage", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.ErrorSettings.ResendIfMdnNotReceived", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.ReceiveAgreement.ProtocolSettings.ErrorSettings.ResendIfMDNNotReceived", Name: validation.Null, Rule: true, Chain: nil},
 												}},
 										}},
 								}},
@@ -157,20 +158,20 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.AcknowledgementConnectionSettings.UnfoldHTTPHeaders", Name: validation.Null, Rule: true, Chain: nil},
 													}},
 												{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings", Name: validation.Null, Rule: true,
-													Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.NeedMdn", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SignMdn", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SendMdnAsynchronously", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SignOutboundMdnIfOptional", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SendInboundMdnToMessageBox", Name: validation.Null, Rule: true, Chain: nil},
+													Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.NeedMDN", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SignMDN", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SendMDNAsynchronously", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SignOutboundMDNIfOptional", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.MdnSettings.SendInboundMDNToMessageBox", Name: validation.Null, Rule: true, Chain: nil},
 													}},
 												{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings", Name: validation.Null, Rule: true,
 													Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.OverrideGroupSigningCertificate", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNrrForInboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNrrForInboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNrrForOutboundMdn", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNrrForOutboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNrrForOutboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNrrForInboundMdn", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNRRForInboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNRRForInboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNRRForOutboundMDN", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNRRForOutboundEncodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNRRForOutboundDecodedMessages", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.SecuritySettings.EnableNRRForInboundMDN", Name: validation.Null, Rule: true, Chain: nil},
 													}},
 												{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.ValidationSettings", Name: validation.Null, Rule: true,
 													Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.ValidationSettings.OverrideMessageProperties", Name: validation.Null, Rule: true, Chain: nil},
@@ -191,7 +192,7 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 													}},
 												{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.ErrorSettings", Name: validation.Null, Rule: true,
 													Chain: []validation.Constraint{{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.ErrorSettings.SuspendDuplicateMessage", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.ErrorSettings.ResendIfMdnNotReceived", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.AS2.SendAgreement.ProtocolSettings.ErrorSettings.ResendIfMDNNotReceived", Name: validation.Null, Rule: true, Chain: nil},
 													}},
 											}},
 									}},
@@ -213,8 +214,8 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.InterchangeControlNumberValidityDays", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateGroupControlNumber", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateTransactionSetControlNumber", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateEdiTypes", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateXsdTypes", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateEDITypes", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateXSDTypes", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.AllowLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.ReceiveAgreement.ProtocolSettings.ValidationSettings.TrimLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 												}},
@@ -290,8 +291,8 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.InterchangeControlNumberValidityDays", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateGroupControlNumber", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateTransactionSetControlNumber", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.ValidateEdiTypes", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.ValidateXsdTypes", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.ValidateEDITypes", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.ValidateXSDTypes", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.AllowLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.X12.SendAgreement.ProtocolSettings.ValidationSettings.TrimLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 													}},
@@ -369,8 +370,8 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.InterchangeControlNumberValidityDays", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateGroupControlNumber", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateTransactionSetControlNumber", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateEdiTypes", Name: validation.Null, Rule: true, Chain: nil},
-													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateXsdTypes", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateEDITypes", Name: validation.Null, Rule: true, Chain: nil},
+													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.ValidateXSDTypes", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.AllowLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 													{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.ReceiveAgreement.ProtocolSettings.ValidationSettings.TrimLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 												}},
@@ -436,8 +437,8 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.InterchangeControlNumberValidityDays", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateGroupControlNumber", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.CheckDuplicateTransactionSetControlNumber", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.ValidateEdiTypes", Name: validation.Null, Rule: true, Chain: nil},
-														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.ValidateXsdTypes", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.ValidateEDITypes", Name: validation.Null, Rule: true, Chain: nil},
+														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.ValidateXSDTypes", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.AllowLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 														{Target: "agreement.IntegrationAccountAgreementProperties.Content.Edifact.SendAgreement.ProtocolSettings.ValidationSettings.TrimLeadingAndTrailingSpacesAndZeroes", Name: validation.Null, Rule: true, Chain: nil},
 													}},
@@ -490,32 +491,32 @@ func (client AgreementsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 								}},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewError("logic.AgreementsClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewError("logic.IntegrationAccountAgreementsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, integrationAccountName, agreementName, agreement)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateOrUpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "CreateOrUpdate", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client AgreementsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, agreement IntegrationAccountAgreement) (*http.Request, error) {
+func (client IntegrationAccountAgreementsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, agreement IntegrationAccountAgreement) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"agreementName":          autorest.Encode("path", agreementName),
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
@@ -523,7 +524,7 @@ func (client AgreementsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -540,14 +541,14 @@ func (client AgreementsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client AgreementsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountAgreementsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client AgreementsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountAgreement, err error) {
+func (client IntegrationAccountAgreementsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountAgreement, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -563,9 +564,9 @@ func (client AgreementsClient) CreateOrUpdateResponder(resp *http.Response) (res
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // agreementName - the integration account agreement name.
-func (client AgreementsClient) Delete(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (result autorest.Response, err error) {
+func (client IntegrationAccountAgreementsClient) Delete(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AgreementsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountAgreementsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -576,27 +577,27 @@ func (client AgreementsClient) Delete(ctx context.Context, resourceGroupName str
 	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, integrationAccountName, agreementName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // DeletePreparer prepares the Delete request.
-func (client AgreementsClient) DeletePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (*http.Request, error) {
+func (client IntegrationAccountAgreementsClient) DeletePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"agreementName":          autorest.Encode("path", agreementName),
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
@@ -604,7 +605,7 @@ func (client AgreementsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -619,14 +620,14 @@ func (client AgreementsClient) DeletePreparer(ctx context.Context, resourceGroup
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client AgreementsClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountAgreementsClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client AgreementsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client IntegrationAccountAgreementsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -641,9 +642,9 @@ func (client AgreementsClient) DeleteResponder(resp *http.Response) (result auto
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // agreementName - the integration account agreement name.
-func (client AgreementsClient) Get(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (result IntegrationAccountAgreement, err error) {
+func (client IntegrationAccountAgreementsClient) Get(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (result IntegrationAccountAgreement, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AgreementsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountAgreementsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -654,27 +655,27 @@ func (client AgreementsClient) Get(ctx context.Context, resourceGroupName string
 	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, integrationAccountName, agreementName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client AgreementsClient) GetPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (*http.Request, error) {
+func (client IntegrationAccountAgreementsClient) GetPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"agreementName":          autorest.Encode("path", agreementName),
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
@@ -682,7 +683,7 @@ func (client AgreementsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -697,14 +698,14 @@ func (client AgreementsClient) GetPreparer(ctx context.Context, resourceGroupNam
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client AgreementsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountAgreementsClient) GetSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client AgreementsClient) GetResponder(resp *http.Response) (result IntegrationAccountAgreement, err error) {
+func (client IntegrationAccountAgreementsClient) GetResponder(resp *http.Response) (result IntegrationAccountAgreement, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -715,15 +716,15 @@ func (client AgreementsClient) GetResponder(resp *http.Response) (result Integra
 	return
 }
 
-// ListByIntegrationAccounts gets a list of integration account agreements.
+// List gets a list of integration account agreements.
 // Parameters:
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // top - the number of items to be included in the result.
 // filter - the filter to apply on the operation. Options for filters include: AgreementType.
-func (client AgreementsClient) ListByIntegrationAccounts(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountAgreementListResultPage, err error) {
+func (client IntegrationAccountAgreementsClient) List(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountAgreementListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AgreementsClient.ListByIntegrationAccounts")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountAgreementsClient.List")
 		defer func() {
 			sc := -1
 			if result.iaalr.Response.Response != nil {
@@ -732,37 +733,37 @@ func (client AgreementsClient) ListByIntegrationAccounts(ctx context.Context, re
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.fn = client.listByIntegrationAccountsNextResults
-	req, err := client.ListByIntegrationAccountsPreparer(ctx, resourceGroupName, integrationAccountName, top, filter)
+	result.fn = client.listNextResults
+	req, err := client.ListPreparer(ctx, resourceGroupName, integrationAccountName, top, filter)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "ListByIntegrationAccounts", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByIntegrationAccountsSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.iaalr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "ListByIntegrationAccounts", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.iaalr, err = client.ListByIntegrationAccountsResponder(resp)
+	result.iaalr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "ListByIntegrationAccounts", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// ListByIntegrationAccountsPreparer prepares the ListByIntegrationAccounts request.
-func (client AgreementsClient) ListByIntegrationAccountsPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (*http.Request, error) {
+// ListPreparer prepares the List request.
+func (client IntegrationAccountAgreementsClient) ListPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
 		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -781,16 +782,16 @@ func (client AgreementsClient) ListByIntegrationAccountsPreparer(ctx context.Con
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByIntegrationAccountsSender sends the ListByIntegrationAccounts request. The method will close the
+// ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client AgreementsClient) ListByIntegrationAccountsSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountAgreementsClient) ListSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
-// ListByIntegrationAccountsResponder handles the response to the ListByIntegrationAccounts request. The method always
+// ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client AgreementsClient) ListByIntegrationAccountsResponder(resp *http.Response) (result IntegrationAccountAgreementListResult, err error) {
+func (client IntegrationAccountAgreementsClient) ListResponder(resp *http.Response) (result IntegrationAccountAgreementListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -801,31 +802,31 @@ func (client AgreementsClient) ListByIntegrationAccountsResponder(resp *http.Res
 	return
 }
 
-// listByIntegrationAccountsNextResults retrieves the next set of results, if any.
-func (client AgreementsClient) listByIntegrationAccountsNextResults(ctx context.Context, lastResults IntegrationAccountAgreementListResult) (result IntegrationAccountAgreementListResult, err error) {
+// listNextResults retrieves the next set of results, if any.
+func (client IntegrationAccountAgreementsClient) listNextResults(ctx context.Context, lastResults IntegrationAccountAgreementListResult) (result IntegrationAccountAgreementListResult, err error) {
 	req, err := lastResults.integrationAccountAgreementListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "logic.AgreementsClient", "listByIntegrationAccountsNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListByIntegrationAccountsSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "logic.AgreementsClient", "listByIntegrationAccountsNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "listNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListByIntegrationAccountsResponder(resp)
+	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "listByIntegrationAccountsNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListByIntegrationAccountsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AgreementsClient) ListByIntegrationAccountsComplete(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountAgreementListResultIterator, err error) {
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client IntegrationAccountAgreementsClient) ListComplete(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountAgreementListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AgreementsClient.ListByIntegrationAccounts")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountAgreementsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -834,7 +835,7 @@ func (client AgreementsClient) ListByIntegrationAccountsComplete(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByIntegrationAccounts(ctx, resourceGroupName, integrationAccountName, top, filter)
+	result.page, err = client.List(ctx, resourceGroupName, integrationAccountName, top, filter)
 	return
 }
 
@@ -843,9 +844,9 @@ func (client AgreementsClient) ListByIntegrationAccountsComplete(ctx context.Con
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // agreementName - the integration account agreement name.
-func (client AgreementsClient) ListContentCallbackURL(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, listContentCallbackURL GetCallbackURLParameters) (result WorkflowTriggerCallbackURL, err error) {
+func (client IntegrationAccountAgreementsClient) ListContentCallbackURL(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, listContentCallbackURL GetCallbackURLParameters) (result WorkflowTriggerCallbackURL, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AgreementsClient.ListContentCallbackURL")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountAgreementsClient.ListContentCallbackURL")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -856,27 +857,27 @@ func (client AgreementsClient) ListContentCallbackURL(ctx context.Context, resou
 	}
 	req, err := client.ListContentCallbackURLPreparer(ctx, resourceGroupName, integrationAccountName, agreementName, listContentCallbackURL)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "ListContentCallbackURL", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "ListContentCallbackURL", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListContentCallbackURLSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "ListContentCallbackURL", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "ListContentCallbackURL", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListContentCallbackURLResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.AgreementsClient", "ListContentCallbackURL", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "ListContentCallbackURL", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListContentCallbackURLPreparer prepares the ListContentCallbackURL request.
-func (client AgreementsClient) ListContentCallbackURLPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, listContentCallbackURL GetCallbackURLParameters) (*http.Request, error) {
+func (client IntegrationAccountAgreementsClient) ListContentCallbackURLPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, agreementName string, listContentCallbackURL GetCallbackURLParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"agreementName":          autorest.Encode("path", agreementName),
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
@@ -884,7 +885,7 @@ func (client AgreementsClient) ListContentCallbackURLPreparer(ctx context.Contex
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -901,14 +902,14 @@ func (client AgreementsClient) ListContentCallbackURLPreparer(ctx context.Contex
 
 // ListContentCallbackURLSender sends the ListContentCallbackURL request. The method will close the
 // http.Response Body if it receives an error.
-func (client AgreementsClient) ListContentCallbackURLSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountAgreementsClient) ListContentCallbackURLSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListContentCallbackURLResponder handles the response to the ListContentCallbackURL request. The method always
 // closes the http.Response Body.
-func (client AgreementsClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
+func (client IntegrationAccountAgreementsClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

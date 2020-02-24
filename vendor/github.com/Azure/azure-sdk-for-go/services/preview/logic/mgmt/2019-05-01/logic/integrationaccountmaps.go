@@ -26,19 +26,19 @@ import (
 	"net/http"
 )
 
-// MapsClient is the REST API for Azure Logic Apps.
-type MapsClient struct {
+// IntegrationAccountMapsClient is the REST API for Azure Logic Apps.
+type IntegrationAccountMapsClient struct {
 	BaseClient
 }
 
-// NewMapsClient creates an instance of the MapsClient client.
-func NewMapsClient(subscriptionID string) MapsClient {
-	return NewMapsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewIntegrationAccountMapsClient creates an instance of the IntegrationAccountMapsClient client.
+func NewIntegrationAccountMapsClient(subscriptionID string) IntegrationAccountMapsClient {
+	return NewIntegrationAccountMapsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMapsClientWithBaseURI creates an instance of the MapsClient client.
-func NewMapsClientWithBaseURI(baseURI string, subscriptionID string) MapsClient {
-	return MapsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewIntegrationAccountMapsClientWithBaseURI creates an instance of the IntegrationAccountMapsClient client.
+func NewIntegrationAccountMapsClientWithBaseURI(baseURI string, subscriptionID string) IntegrationAccountMapsClient {
+	return IntegrationAccountMapsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate creates or updates an integration account map.
@@ -47,9 +47,9 @@ func NewMapsClientWithBaseURI(baseURI string, subscriptionID string) MapsClient 
 // integrationAccountName - the integration account name.
 // mapName - the integration account map name.
 // mapParameter - the integration account map.
-func (client MapsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, mapParameter IntegrationAccountMap) (result IntegrationAccountMap, err error) {
+func (client IntegrationAccountMapsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, mapParameter IntegrationAccountMap) (result IntegrationAccountMap, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MapsClient.CreateOrUpdate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountMapsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -61,32 +61,32 @@ func (client MapsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: mapParameter,
 			Constraints: []validation.Constraint{{Target: "mapParameter.IntegrationAccountMapProperties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("logic.MapsClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewError("logic.IntegrationAccountMapsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, integrationAccountName, mapName, mapParameter)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateOrUpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "CreateOrUpdate", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client MapsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, mapParameter IntegrationAccountMap) (*http.Request, error) {
+func (client IntegrationAccountMapsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, mapParameter IntegrationAccountMap) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
 		"mapName":                autorest.Encode("path", mapName),
@@ -94,7 +94,7 @@ func (client MapsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -111,14 +111,14 @@ func (client MapsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client MapsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountMapsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client MapsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountMap, err error) {
+func (client IntegrationAccountMapsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountMap, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -134,9 +134,9 @@ func (client MapsClient) CreateOrUpdateResponder(resp *http.Response) (result In
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // mapName - the integration account map name.
-func (client MapsClient) Delete(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (result autorest.Response, err error) {
+func (client IntegrationAccountMapsClient) Delete(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MapsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountMapsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -147,27 +147,27 @@ func (client MapsClient) Delete(ctx context.Context, resourceGroupName string, i
 	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, integrationAccountName, mapName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // DeletePreparer prepares the Delete request.
-func (client MapsClient) DeletePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (*http.Request, error) {
+func (client IntegrationAccountMapsClient) DeletePreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
 		"mapName":                autorest.Encode("path", mapName),
@@ -175,7 +175,7 @@ func (client MapsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -190,14 +190,14 @@ func (client MapsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client MapsClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountMapsClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client MapsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client IntegrationAccountMapsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -212,9 +212,9 @@ func (client MapsClient) DeleteResponder(resp *http.Response) (result autorest.R
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // mapName - the integration account map name.
-func (client MapsClient) Get(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (result IntegrationAccountMap, err error) {
+func (client IntegrationAccountMapsClient) Get(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (result IntegrationAccountMap, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MapsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountMapsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -225,27 +225,27 @@ func (client MapsClient) Get(ctx context.Context, resourceGroupName string, inte
 	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, integrationAccountName, mapName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client MapsClient) GetPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (*http.Request, error) {
+func (client IntegrationAccountMapsClient) GetPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
 		"mapName":                autorest.Encode("path", mapName),
@@ -253,7 +253,7 @@ func (client MapsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -268,14 +268,14 @@ func (client MapsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client MapsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountMapsClient) GetSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client MapsClient) GetResponder(resp *http.Response) (result IntegrationAccountMap, err error) {
+func (client IntegrationAccountMapsClient) GetResponder(resp *http.Response) (result IntegrationAccountMap, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -286,15 +286,15 @@ func (client MapsClient) GetResponder(resp *http.Response) (result IntegrationAc
 	return
 }
 
-// ListByIntegrationAccounts gets a list of integration account maps.
+// List gets a list of integration account maps.
 // Parameters:
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // top - the number of items to be included in the result.
 // filter - the filter to apply on the operation. Options for filters include: MapType.
-func (client MapsClient) ListByIntegrationAccounts(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountMapListResultPage, err error) {
+func (client IntegrationAccountMapsClient) List(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountMapListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MapsClient.ListByIntegrationAccounts")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountMapsClient.List")
 		defer func() {
 			sc := -1
 			if result.iamlr.Response.Response != nil {
@@ -303,37 +303,37 @@ func (client MapsClient) ListByIntegrationAccounts(ctx context.Context, resource
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.fn = client.listByIntegrationAccountsNextResults
-	req, err := client.ListByIntegrationAccountsPreparer(ctx, resourceGroupName, integrationAccountName, top, filter)
+	result.fn = client.listNextResults
+	req, err := client.ListPreparer(ctx, resourceGroupName, integrationAccountName, top, filter)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "ListByIntegrationAccounts", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByIntegrationAccountsSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.iamlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "ListByIntegrationAccounts", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.iamlr, err = client.ListByIntegrationAccountsResponder(resp)
+	result.iamlr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "ListByIntegrationAccounts", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// ListByIntegrationAccountsPreparer prepares the ListByIntegrationAccounts request.
-func (client MapsClient) ListByIntegrationAccountsPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (*http.Request, error) {
+// ListPreparer prepares the List request.
+func (client IntegrationAccountMapsClient) ListPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
 		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -352,16 +352,16 @@ func (client MapsClient) ListByIntegrationAccountsPreparer(ctx context.Context, 
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByIntegrationAccountsSender sends the ListByIntegrationAccounts request. The method will close the
+// ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client MapsClient) ListByIntegrationAccountsSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountMapsClient) ListSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
-// ListByIntegrationAccountsResponder handles the response to the ListByIntegrationAccounts request. The method always
+// ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client MapsClient) ListByIntegrationAccountsResponder(resp *http.Response) (result IntegrationAccountMapListResult, err error) {
+func (client IntegrationAccountMapsClient) ListResponder(resp *http.Response) (result IntegrationAccountMapListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -372,31 +372,31 @@ func (client MapsClient) ListByIntegrationAccountsResponder(resp *http.Response)
 	return
 }
 
-// listByIntegrationAccountsNextResults retrieves the next set of results, if any.
-func (client MapsClient) listByIntegrationAccountsNextResults(ctx context.Context, lastResults IntegrationAccountMapListResult) (result IntegrationAccountMapListResult, err error) {
+// listNextResults retrieves the next set of results, if any.
+func (client IntegrationAccountMapsClient) listNextResults(ctx context.Context, lastResults IntegrationAccountMapListResult) (result IntegrationAccountMapListResult, err error) {
 	req, err := lastResults.integrationAccountMapListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "logic.MapsClient", "listByIntegrationAccountsNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListByIntegrationAccountsSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "logic.MapsClient", "listByIntegrationAccountsNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "listNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListByIntegrationAccountsResponder(resp)
+	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "listByIntegrationAccountsNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListByIntegrationAccountsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client MapsClient) ListByIntegrationAccountsComplete(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountMapListResultIterator, err error) {
+// ListComplete enumerates all values, automatically crossing page boundaries as required.
+func (client IntegrationAccountMapsClient) ListComplete(ctx context.Context, resourceGroupName string, integrationAccountName string, top *int32, filter string) (result IntegrationAccountMapListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MapsClient.ListByIntegrationAccounts")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountMapsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -405,7 +405,7 @@ func (client MapsClient) ListByIntegrationAccountsComplete(ctx context.Context, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByIntegrationAccounts(ctx, resourceGroupName, integrationAccountName, top, filter)
+	result.page, err = client.List(ctx, resourceGroupName, integrationAccountName, top, filter)
 	return
 }
 
@@ -414,9 +414,9 @@ func (client MapsClient) ListByIntegrationAccountsComplete(ctx context.Context, 
 // resourceGroupName - the resource group name.
 // integrationAccountName - the integration account name.
 // mapName - the integration account map name.
-func (client MapsClient) ListContentCallbackURL(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, listContentCallbackURL GetCallbackURLParameters) (result WorkflowTriggerCallbackURL, err error) {
+func (client IntegrationAccountMapsClient) ListContentCallbackURL(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, listContentCallbackURL GetCallbackURLParameters) (result WorkflowTriggerCallbackURL, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/MapsClient.ListContentCallbackURL")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountMapsClient.ListContentCallbackURL")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -427,27 +427,27 @@ func (client MapsClient) ListContentCallbackURL(ctx context.Context, resourceGro
 	}
 	req, err := client.ListContentCallbackURLPreparer(ctx, resourceGroupName, integrationAccountName, mapName, listContentCallbackURL)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "ListContentCallbackURL", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "ListContentCallbackURL", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListContentCallbackURLSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "ListContentCallbackURL", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "ListContentCallbackURL", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListContentCallbackURLResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.MapsClient", "ListContentCallbackURL", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountMapsClient", "ListContentCallbackURL", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListContentCallbackURLPreparer prepares the ListContentCallbackURL request.
-func (client MapsClient) ListContentCallbackURLPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, listContentCallbackURL GetCallbackURLParameters) (*http.Request, error) {
+func (client IntegrationAccountMapsClient) ListContentCallbackURLPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, mapName string, listContentCallbackURL GetCallbackURLParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"integrationAccountName": autorest.Encode("path", integrationAccountName),
 		"mapName":                autorest.Encode("path", mapName),
@@ -455,7 +455,7 @@ func (client MapsClient) ListContentCallbackURLPreparer(ctx context.Context, res
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -472,14 +472,14 @@ func (client MapsClient) ListContentCallbackURLPreparer(ctx context.Context, res
 
 // ListContentCallbackURLSender sends the ListContentCallbackURL request. The method will close the
 // http.Response Body if it receives an error.
-func (client MapsClient) ListContentCallbackURLSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationAccountMapsClient) ListContentCallbackURLSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListContentCallbackURLResponder handles the response to the ListContentCallbackURL request. The method always
 // closes the http.Response Body.
-func (client MapsClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
+func (client IntegrationAccountMapsClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

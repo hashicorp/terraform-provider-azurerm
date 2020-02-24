@@ -87,7 +87,7 @@ func (client WorkflowTriggersClient) GetPreparer(ctx context.Context, resourceGr
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -166,7 +166,7 @@ func (client WorkflowTriggersClient) GetSchemaJSONPreparer(ctx context.Context, 
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,7 +246,7 @@ func (client WorkflowTriggersClient) ListPreparer(ctx context.Context, resourceG
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -368,7 +368,7 @@ func (client WorkflowTriggersClient) ListCallbackURLPreparer(ctx context.Context
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -447,7 +447,7 @@ func (client WorkflowTriggersClient) ResetPreparer(ctx context.Context, resource
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -525,7 +525,7 @@ func (client WorkflowTriggersClient) RunPreparer(ctx context.Context, resourceGr
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -611,7 +611,7 @@ func (client WorkflowTriggersClient) SetStatePreparer(ctx context.Context, resou
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -86,7 +86,7 @@ func (client WorkflowVersionsClient) GetPreparer(ctx context.Context, resourceGr
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client WorkflowVersionsClient) ListPreparer(ctx context.Context, resourceG
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -235,92 +235,5 @@ func (client WorkflowVersionsClient) ListComplete(ctx context.Context, resourceG
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, workflowName, top)
-	return
-}
-
-// ListCallbackURL get the callback url for a trigger of a workflow version.
-// Parameters:
-// resourceGroupName - the resource group name.
-// workflowName - the workflow name.
-// versionID - the workflow versionId.
-// triggerName - the workflow trigger name.
-// parameters - the callback URL parameters.
-func (client WorkflowVersionsClient) ListCallbackURL(ctx context.Context, resourceGroupName string, workflowName string, versionID string, triggerName string, parameters *GetCallbackURLParameters) (result WorkflowTriggerCallbackURL, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowVersionsClient.ListCallbackURL")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.ListCallbackURLPreparer(ctx, resourceGroupName, workflowName, versionID, triggerName, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "ListCallbackURL", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListCallbackURLSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "ListCallbackURL", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ListCallbackURLResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "ListCallbackURL", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListCallbackURLPreparer prepares the ListCallbackURL request.
-func (client WorkflowVersionsClient) ListCallbackURLPreparer(ctx context.Context, resourceGroupName string, workflowName string, versionID string, triggerName string, parameters *GetCallbackURLParameters) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"triggerName":       autorest.Encode("path", triggerName),
-		"versionId":         autorest.Encode("path", versionID),
-		"workflowName":      autorest.Encode("path", workflowName),
-	}
-
-	const APIVersion = "2016-06-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Logic/workflows/{workflowName}/versions/{versionId}/triggers/{triggerName}/listCallbackUrl", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	if parameters != nil {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithJSON(parameters))
-	}
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListCallbackURLSender sends the ListCallbackURL request. The method will close the
-// http.Response Body if it receives an error.
-func (client WorkflowVersionsClient) ListCallbackURLSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// ListCallbackURLResponder handles the response to the ListCallbackURL request. The method always
-// closes the http.Response Body.
-func (client WorkflowVersionsClient) ListCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
 	return
 }
