@@ -23,6 +23,37 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 				Config: testAccAzureRMKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKustoCluster_propsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKustoCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
+				),
+			},
+			{
+				Config: testAccAzureRMKustoCluster_propsUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -171,6 +202,29 @@ resource "azurerm_kusto_cluster" "test" {
   sku {
     name     = "Standard_D11_v2"
     capacity = 2
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_propsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  enable_disk_encryption  = true
+  enable_streaming_ingest = true
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
