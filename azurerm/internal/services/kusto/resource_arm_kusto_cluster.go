@@ -83,6 +83,11 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"enable_disk_encryption": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -107,6 +112,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	enableDiskEncryption := d.Get("enable_disk_encryption").(bool)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		server, err := client.Get(ctx, resourceGroup, name)
@@ -128,7 +134,9 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	clusterProperties := kusto.ClusterProperties{}
+	clusterProperties := kusto.ClusterProperties{
+		EnableDiskEncryption: utils.Bool(enableDiskEncryption),
+	}
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -200,6 +208,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
+		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 	}
 
 	return tags.FlattenAndSet(d, clusterResponse.Tags)

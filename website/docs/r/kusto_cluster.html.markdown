@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `enable_disk_encryption` - (Options) Indicates if the cluster's disks are encrypted
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

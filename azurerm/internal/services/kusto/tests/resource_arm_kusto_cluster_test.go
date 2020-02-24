@@ -87,6 +87,32 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKustoCluster_enableDiskEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKustoCluster_enableDiskEncryption(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMKustoCluster_enableDiskEncryption(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -174,6 +200,27 @@ resource "azurerm_kusto_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_enableDiskEncryption(data acceptance.TestData, enableDiskEncryption bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                   = "acctestkc%s"
+  location               = "${azurerm_resource_group.test.location}"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  enable_disk_encryption = %t
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, enableDiskEncryption)
 }
 
 func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
