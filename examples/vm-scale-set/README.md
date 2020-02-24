@@ -2,7 +2,7 @@
 
 In 1.x versions of the Provider, Terraform has a single resource for Virtual Machine Scale Sets: `azurerm_virtual_machine_scale_set`.
 
-Version 2.0 of the Azure Provider will introduce several new resources which supersede the existing `azurerm_virtual_machine_scale_set` resource:
+Version 2.0 of the Azure Provider introduces several new resources which supersede the existing `azurerm_virtual_machine_scale_set` resource:
 
 * `azurerm_linux_virtual_machine_scale_set`
 * `azurerm_virtual_machine_scale_set_extension`

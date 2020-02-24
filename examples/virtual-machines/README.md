@@ -2,7 +2,7 @@
 
 In 1.x versions of the Provider, Terraform has a single resource for Virtual Machines: `azurerm_virtual_machine`.
 
-Version 2.0 of the Azure Provider will introduce several new resources which supersede the existing `azurerm_virtual_machine` resource:
+Version 2.0 of the Azure Provider introduces several new resources which supersede the existing `azurerm_virtual_machine` resource:
 
 * `azurerm_linux_virtual_machine`
 * `azurerm_windows_virtual_machine`
