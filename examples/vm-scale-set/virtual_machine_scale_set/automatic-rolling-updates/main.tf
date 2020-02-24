@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 locals {
   frontend_ip_configuration_name = "internal"
 }
