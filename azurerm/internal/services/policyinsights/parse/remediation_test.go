@@ -133,6 +133,18 @@ func TestRemediationID(t *testing.T) {
 			},
 		},
 		{
+			Name:  "Policy Remediation ID at Management Group with readable id",
+			Input: "/providers/Microsoft.Management/managementGroups/group1/providers/Microsoft.PolicyInsights/remediations/test",
+			Expected: &RemediationId{
+				Name: "test",
+				RemediationScopeId: RemediationScopeId{
+					Type:              AtManagementGroup,
+					ScopeId:           "/providers/Microsoft.Management/managementGroups/group1",
+					ManagementGroupId: "group1",
+				},
+			},
+		},
+		{
 			Name:  "Policy Remediation ID at Management Group with wrong casing",
 			Input: "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000/providers/microsoft.policyinsights/remediations/test",
 			Expected: &RemediationId{
@@ -259,6 +271,15 @@ func TestRemediationScopeID(t *testing.T) {
 				ManagementGroupId: "00000000-0000-0000-0000-000000000000",
 			},
 		},
+		{
+			Name:  "Management Group ID with readable id",
+			Input: "/providers/Microsoft.Management/managementGroups/group1",
+			Expected: &RemediationScopeId{
+				Type:              AtManagementGroup,
+				ScopeId:           "/providers/Microsoft.Management/managementGroups/group1",
+				ManagementGroupId: "group1",
+			},
+		},
 	}
 
 	for _, v := range testData {
@@ -342,6 +363,13 @@ func TestManagementGroupID(t *testing.T) {
 			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
 			Expected: &ManagementGroupId{
 				GroupId: "00000000-0000-0000-0000-000000000000",
+			},
+		},
+		{
+			Name:  "Management Group ID with readable name",
+			Input: "/providers/Microsoft.Management/managementGroups/group1",
+			Expected: &ManagementGroupId{
+				GroupId: "group1",
 			},
 		},
 		{

@@ -106,15 +106,25 @@ type ManagementGroupId struct {
 }
 
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
-	// a management group id should be like /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000
-	regex := regexp.MustCompile(`/providers/[Mm]icrosoft\.[Mm]anagement/management[Gg]roups/([0-9abcdef]{8}-[0-9abcdef]{4}-[0-9abcdef]{4}-[0-9abcdef]{4}-[0-9abcdef]{12})`)
-	if regex.MatchString(input) {
-		groups := regex.FindStringSubmatch(input)
-		id := ManagementGroupId{
-			GroupId: groups[1],
-		}
-		return &id, nil
+	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/management[Gg]roups/`)
+	if !regex.MatchString(input) {
+		return nil, fmt.Errorf("Unable to parse Management Group ID %q", input)
 	}
 
-	return nil, fmt.Errorf("Cannot parse %q as management group id", input)
+	// Split the input ID by the regex
+	segments := regex.Split(input, -1)
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Unable to parse Management Group ID %q: expected id to have two segments after splitting", input)
+	}
+	groupID := segments[1]
+	// portal says: The name can only be an ASCII letter, digit, -, _, (, ), . and have a maximum length constraint of 90
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9_().-]{1,90}$`).Match([]byte(groupID)); !matched {
+		return nil, fmt.Errorf("Unable to parse Management Group ID %q: group id can only consist of ASCII letters, digits, -, _, (, ), . , and cannot exceed the maximum length of 90", input)
+	}
+
+	id := ManagementGroupId{
+		GroupId: groupID,
+	}
+
+	return &id, nil
 }
