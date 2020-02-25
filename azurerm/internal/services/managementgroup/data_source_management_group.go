@@ -2,6 +2,7 @@ package managementgroup
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
@@ -21,8 +22,9 @@ func dataSourceArmManagementGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"group_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: parse.ValidateManagementGroupName,
 			},
 
 			"display_name": {
