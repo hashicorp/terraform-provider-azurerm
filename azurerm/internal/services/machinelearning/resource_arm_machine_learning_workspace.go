@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -65,11 +66,10 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 			},
 
 			"key_vault_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO -- use the custom validation function of key vault
-				ValidateFunc: azure.ValidateResourceID,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: keyVaultValidate.KeyVaultID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -78,7 +78,7 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				// TODO -- use the custom validation function of storage account
+				// TODO -- use the custom validation function of storage account, when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				ValidateFunc: azure.ValidateResourceID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
