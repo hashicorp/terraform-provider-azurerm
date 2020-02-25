@@ -217,7 +217,6 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
-		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 	}
 
 	return tags.FlattenAndSet(d, clusterResponse.Tags)

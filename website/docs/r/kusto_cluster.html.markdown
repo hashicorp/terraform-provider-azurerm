@@ -38,46 +38,46 @@ resource "azurerm_kusto_cluster" "example" {
 
 The following arguments are supported:
 
-- `name` - (Required) The name of the Kusto Cluster to create. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Kusto Cluster to create. Changing this forces a new resource to be created.
 
-- `location` - (Required) The location where the Kusto Cluster should be created. Changing this forces a new resource to be created.
+* `location` - (Required) The location where the Kusto Cluster should be created. Changing this forces a new resource to be created.
 
-- `resource_group_name` - (Required) Specifies the Resource Group where the Kusto Cluster should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the Resource Group where the Kusto Cluster should exist. Changing this forces a new resource to be created.
 
-- `sku` - (Required) A `sku` block as defined below.
+* `sku` - (Required) A `sku` block as defined below.
 
-- `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
+* `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
 
-- `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
+* `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
 
-- `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 A `sku` block supports the following:
 
-- `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_L16s`, `Standard_L4s` and `Standard_L8s`
+* `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_L16s`, `Standard_L4s` and `Standard_L8s`
 
-- `capacity` - (Required) Specifies the node count for the cluster. Boundaries depend on the sku name.
+* `capacity` - (Required) Specifies the node count for the cluster. Boundaries depend on the sku name.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-- `id` - The Kusto Cluster ID.
+* `id` - The Kusto Cluster ID.
 
-- `uri` - The FQDN of the Azure Kusto Cluster.
+* `uri` - The FQDN of the Azure Kusto Cluster.
 
-- `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
+* `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-- `create` - (Defaults to 60 minutes) Used when creating the Kusto Cluster.
-- `update` - (Defaults to 60 minutes) Used when updating the Kusto Cluster.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster.
-- `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Cluster.
+* `create` - (Defaults to 60 minutes) Used when creating the Kusto Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the Kusto Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Cluster.
 
 ## Import
 
