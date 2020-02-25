@@ -848,10 +848,13 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 		}
 	}
 
-	if props.ScaleInPolicy != nil && len(*props.ScaleInPolicy.Rules) > 0 {
-		rules := *props.ScaleInPolicy.Rules
-		d.Set("scale_in_policy", string(rules[0]))
+	rule := string(compute.Default)
+	if props.ScaleInPolicy != nil {
+		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
+			rule = string((*rules)[0])
+		}
 	}
+	d.Set("scale_in_policy", rule)
 
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
