@@ -23,7 +23,6 @@ func buildFlowEndpointsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,
-		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"outgoing_ip_addresses": {
@@ -100,7 +99,6 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 			"endpoint_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"workflow":  buildFlowEndpointsSchema(),
