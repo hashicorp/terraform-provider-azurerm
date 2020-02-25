@@ -88,6 +88,11 @@ func resourceArmKustoCluster() *schema.Resource {
 				Optional: true,
 			},
 
+			"enable_streaming_ingest": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -112,7 +117,6 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	enableDiskEncryption := d.Get("enable_disk_encryption").(bool)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		server, err := client.Get(ctx, resourceGroup, name)
@@ -128,6 +132,8 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	enableDiskEncryption := d.Get("enable_disk_encryption").(bool)
+	enableStreamingIngest := d.Get("enable_streaming_ingest").(bool)
 
 	sku, err := expandKustoClusterSku(d)
 	if err != nil {
@@ -135,7 +141,8 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	clusterProperties := kusto.ClusterProperties{
-		EnableDiskEncryption: utils.Bool(enableDiskEncryption),
+		EnableDiskEncryption:  utils.Bool(enableDiskEncryption),
+		EnableStreamingIngest: utils.Bool(enableStreamingIngest),
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -206,6 +213,8 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
+		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
+		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
