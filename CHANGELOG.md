@@ -1,4 +1,9 @@
 ## 2.1.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
+
 ## 2.0.0 (February 24, 2020)
 
 NOTES:
