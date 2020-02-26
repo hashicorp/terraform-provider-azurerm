@@ -4517,7 +4517,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_address_pool {
-    name                  = "${local.backend_address_pool_name}"
+    name = "${local.backend_address_pool_name}"
   }
 
   backend_http_settings {
