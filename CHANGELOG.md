@@ -120,6 +120,10 @@ FEATURES:
 * **New Resource:** `azurerm_dev_test_global_shutdown_schedule` ([#5536](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5536))
 * **New Resource:** `azurerm_nat_gateway_public_ip_association` ([#6450](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6450))
 
+FEATURES:
+
+* **New Resource:** `azurerm_app_service_virtual_network_swift_connection_slot`  [GH-5458]
+
 IMPROVEMENTS:
 
 * Data Source: `azurerm_kubernetes_cluster` - exposing the `oms_agent_identity` block within the `addon_profile` block ([#7056](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7056))
