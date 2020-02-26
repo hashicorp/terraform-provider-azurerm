@@ -179,6 +179,7 @@ resource "azurerm_virtual_wan" "test" {
   allow_branch_to_branch_traffic    = true
   allow_vnet_to_vnet_traffic        = true
   office365_local_breakout_category = "All"
+  type                              = "Standard"
 
   tags = {
     Hello = "There"
