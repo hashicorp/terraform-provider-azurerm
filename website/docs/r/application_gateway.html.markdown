@@ -380,7 +380,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10, optional if `autoscale_configuration` is set
+* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 125, optional if `autoscale_configuration` is set
 
 ---
 
