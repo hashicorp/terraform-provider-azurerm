@@ -270,7 +270,6 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("app_service_environment_id", appServiceEnvironmentId)
 		}
 		
-
 		maximumNumberOfWorkers := 0
 		if props.MaximumNumberOfWorkers != nil {
 			maximumNumberOfWorkers = int(*props.MaximumNumberOfWorkers)
