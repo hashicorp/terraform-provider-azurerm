@@ -4,6 +4,10 @@ BUG FIXES:
 
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
 
+IMPROVEMENTS:
+
+* `azurerm_private_endpoint` - exposed `private_ip_address` as a computed attribute [GH-5838]
+
 ## 2.0.0 (February 24, 2020)
 
 NOTES:
