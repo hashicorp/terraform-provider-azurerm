@@ -109,6 +109,10 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. 
+
+~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
+
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
 * `enabled` - (Optional) Is the Function App enabled?
