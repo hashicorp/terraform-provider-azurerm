@@ -3,6 +3,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -660,9 +661,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 125),
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 					},
 				},
@@ -1305,6 +1305,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: ApplicationGatewayCustomizeDiff,
 	}
 }
 
@@ -3723,4 +3725,21 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	}
 
 	return results
+}
+
+func ApplicationGatewayCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	tier := d.Get("sku.0.tier").(string)
+	capacity, hasCapacity := d.GetOk("sku.0.capacity")
+
+	if hasCapacity {
+		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAF))) && (capacity.(int) < 1 || capacity.(int) > 32) {
+			return fmt.Errorf("The capacity of V1 SKU %q must be between 1 and 32.", tier)
+		}
+
+		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandardV2)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAFV2))) && (capacity.(int) < 1 || capacity.(int) > 125) {
+			return fmt.Errorf("The capacity of V2 SKU %q must be between 1 and 125.", tier)
+		}
+	}
+
+	return nil
 }
