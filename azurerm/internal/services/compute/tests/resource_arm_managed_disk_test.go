@@ -645,6 +645,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_platformImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
@@ -671,6 +675,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_zeroGbFromPlatformImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
@@ -698,6 +706,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -876,6 +888,10 @@ func testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data acceptance.Tes
 	location := "westus2"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {

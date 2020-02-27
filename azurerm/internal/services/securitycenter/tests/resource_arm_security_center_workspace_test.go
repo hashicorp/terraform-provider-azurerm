@@ -150,6 +150,10 @@ func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
 
 func testAccAzureRMSecurityCenterWorkspace_basicCfg(data acceptance.TestData, scope string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier = "Standard"
 }
@@ -187,6 +191,10 @@ resource "azurerm_security_center_workspace" "import" {
 
 func testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(data acceptance.TestData, scope string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier = "Standard"
 }

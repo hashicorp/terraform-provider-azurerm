@@ -563,6 +563,10 @@ func testCheckAzureRMKeyVaultDisappears(resourceName string) resource.TestCheckF
 
 func testAccAzureRMKeyVault_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -626,6 +630,10 @@ resource "azurerm_key_vault" "import" {
 
 func testAccAzureRMKeyVault_networkAclsTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -766,6 +774,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -808,6 +820,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_noAccessPolicyBlocks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -837,6 +853,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_accessPolicyExplicitZero(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -868,6 +888,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -911,6 +935,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_justCert(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -949,6 +977,10 @@ func testAccAzureRMKeyVault_accessPolicyUpperLimit(data acceptance.TestData) str
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -972,6 +1004,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_storage_account" "test%d" {
   name                     = "testsa%s%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -1013,6 +1049,10 @@ access_policy {
 
 func testAccAzureRMKeyVault_purgeProtection(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -1033,6 +1073,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_softDelete(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -1101,6 +1145,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_purgeProtectionAndSoftDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {

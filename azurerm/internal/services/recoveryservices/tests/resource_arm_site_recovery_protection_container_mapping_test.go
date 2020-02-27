@@ -32,6 +32,10 @@ func TestAccAzureRMSiteRecoveryProtectionContainerMapping_basic(t *testing.T) {
 
 func testAccAzureRMSiteRecoveryProtectionContainerMapping_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-recovery-%d-1"
   location = "%s"

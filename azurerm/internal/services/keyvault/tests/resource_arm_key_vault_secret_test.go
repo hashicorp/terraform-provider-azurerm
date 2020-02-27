@@ -276,6 +276,10 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 
 func testAccAzureRMKeyVaultSecret_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -335,6 +339,10 @@ resource "azurerm_key_vault_secret" "import" {
 
 func testAccAzureRMKeyVaultSecret_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -388,6 +396,10 @@ resource "azurerm_key_vault_secret" "test" {
 
 func testAccAzureRMKeyVaultSecret_basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

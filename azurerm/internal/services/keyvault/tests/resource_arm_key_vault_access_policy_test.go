@@ -332,6 +332,10 @@ resource "azurerm_key_vault_access_policy" "test" {
 
 func testAccAzureRMKeyVaultAccessPolicy_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -357,6 +361,10 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

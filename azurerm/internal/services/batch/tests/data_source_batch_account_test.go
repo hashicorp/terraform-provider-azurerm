@@ -138,6 +138,10 @@ data "azurerm_batch_account" "test" {
 
 func testAccDataSourceAzureBatchAccount_userSubscription(data acceptance.TestData, tenantID string, subscriptionID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azuread_service_principal" "test" {
   display_name = "Microsoft Azure Batch"
 }

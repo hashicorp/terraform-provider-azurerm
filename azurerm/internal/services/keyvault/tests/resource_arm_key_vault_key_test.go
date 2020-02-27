@@ -352,6 +352,10 @@ func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestChe
 
 func testAccAzureRMKeyVaultKey_basicEC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -425,6 +429,10 @@ resource "azurerm_key_vault_key" "import" {
 
 func testAccAzureRMKeyVaultKey_basicRSA(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -484,6 +492,10 @@ resource "azurerm_key_vault_key" "test" {
 
 func testAccAzureRMKeyVaultKey_basicRSAHSM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -542,6 +554,10 @@ resource "azurerm_key_vault_key" "test" {
 
 func testAccAzureRMKeyVaultKey_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -606,6 +622,10 @@ resource "azurerm_key_vault_key" "test" {
 
 func testAccAzureRMKeyVaultKey_basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -664,6 +684,10 @@ resource "azurerm_key_vault_key" "test" {
 
 func testAccAzureRMKeyVaultKey_curveEC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -718,6 +742,10 @@ resource "azurerm_key_vault_key" "test" {
 
 func testAccAzureRMKeyVaultKey_basicECHSM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

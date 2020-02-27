@@ -94,6 +94,10 @@ func TestAccAzureRMPolicySetDefinition_ManagementGroup(t *testing.T) {
 
 func testAzureRMPolicySetDefinition_builtIn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_set_definition" "test" {
   name         = "acctestpolset-%d"
   policy_type  = "Custom"
@@ -146,6 +150,10 @@ resource "azurerm_policy_set_definition" "import" {
 
 func testAzureRMPolicySetDefinition_custom(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -220,6 +228,10 @@ POLICY_DEFINITIONS
 
 func testAzureRMPolicySetDefinition_ManagementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }

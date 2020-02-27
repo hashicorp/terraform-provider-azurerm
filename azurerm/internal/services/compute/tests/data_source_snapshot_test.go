@@ -82,6 +82,10 @@ data "azurerm_snapshot" "snapshot" {
 
 func testAccDataSourceAzureRMSnapshot_encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {

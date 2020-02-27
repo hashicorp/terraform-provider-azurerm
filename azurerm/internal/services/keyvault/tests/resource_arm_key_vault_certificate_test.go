@@ -336,6 +336,10 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 
 func testAccAzureRMKeyVaultCertificate_basicImportPFX(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -437,6 +441,10 @@ resource "azurerm_key_vault_certificate" "import" {
 
 func testAccAzureRMKeyVaultCertificate_basicGenerate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -528,6 +536,10 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -626,6 +638,10 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -717,6 +733,10 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -814,6 +834,10 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

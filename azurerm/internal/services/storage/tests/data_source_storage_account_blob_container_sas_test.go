@@ -49,6 +49,10 @@ func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(data acceptance.TestData, startDate string, endDate string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-storage-%d"
   location = "%s"

@@ -68,6 +68,10 @@ func TestAccDataSourceAzureRMPolicyDefinition_custom(t *testing.T) {
 
 func testAccDataSourceBuiltInPolicyDefinition(name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_policy_definition" "test" {
   display_name = "%s"
 }
@@ -76,6 +80,10 @@ data "azurerm_policy_definition" "test" {
 
 func testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup(name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -88,6 +96,10 @@ data "azurerm_policy_definition" "test" {
 
 func testAccDataSourceCustomPolicyDefinition(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test_policy" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"

@@ -259,6 +259,10 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 
 func testAzureRMManagementGroup_basic() string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
 }
 `)
@@ -266,6 +270,10 @@ resource "azurerm_management_group" "test" {
 
 func testAzureRMManagementGroup_requiresImport() string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
 }
 
@@ -277,6 +285,10 @@ resource "azurerm_management_group" "import" {
 
 func testAzureRMManagementGroup_nested() string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "parent" {
 }
 
@@ -288,6 +300,10 @@ resource "azurerm_management_group" "child" {
 
 func testAzureRMManagementGroup_multiLevel() string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "grandparent" {
 }
 
@@ -303,6 +319,10 @@ resource "azurerm_management_group" "child" {
 
 func testAzureRMManagementGroup_withName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }
@@ -312,6 +332,10 @@ resource "azurerm_management_group" "test" {
 // TODO: switch this out for dynamically creating a subscription once that's supported in the future
 func testAzureRMManagementGroup_withSubscriptions(subscriptionID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   subscription_ids = [
     "%s",

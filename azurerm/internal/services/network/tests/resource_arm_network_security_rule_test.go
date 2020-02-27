@@ -280,6 +280,10 @@ resource "azurerm_network_security_rule" "import" {
 
 func testAccAzureRMNetworkSecurityRule_updateBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -309,6 +313,10 @@ resource "azurerm_network_security_rule" "test1" {
 
 func testAccAzureRMNetworkSecurityRule_updateExtraRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -352,6 +360,10 @@ resource "azurerm_network_security_rule" "test2" {
 
 func testAccAzureRMNetworkSecurityRule_augmented(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-%d"
   location = "%s"

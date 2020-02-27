@@ -224,6 +224,10 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 
 func testAccAzureRMRoleDefinition_basic(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -267,6 +271,10 @@ resource "azurerm_role_definition" "import" {
 
 func testAccAzureRMRoleDefinition_complete(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -292,6 +300,10 @@ resource "azurerm_role_definition" "test" {
 
 func testAccAzureRMRoleDefinition_updated(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -315,6 +327,10 @@ resource "azurerm_role_definition" "test" {
 
 func testAccAzureRMRoleDefinition_emptyId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -336,6 +352,10 @@ resource "azurerm_role_definition" "test" {
 
 func testAccAzureRMRoleDefinition_updateEmptyId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 

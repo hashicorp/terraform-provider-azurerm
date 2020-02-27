@@ -186,7 +186,11 @@ func testCheckAzureRMBackupProtectedFileShareExists(resourceName string) resourc
 }
 
 func testAccAzureRMBackupProtectedFileShare_base(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%[1]d"
   location = "%[2]s"

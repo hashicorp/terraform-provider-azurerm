@@ -134,6 +134,10 @@ func testCheckAzureRMBotWebAppDestroy(s *terraform.State) error {
 
 func testAccAzureRMBotWebApp_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -158,6 +162,10 @@ resource "azurerm_bot_web_app" "test" {
 
 func testAccAzureRMBotWebApp_updateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -182,6 +190,10 @@ resource "azurerm_bot_web_app" "test" {
 
 func testAccAzureRMBotWebApp_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

@@ -351,7 +351,11 @@ func testCheckAzureRMBackupProtectionPolicyVmExists(resourceName string) resourc
 }
 
 func testAccAzureRMBackupProtectionPolicyVM_template(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%d"
   location = "%s"

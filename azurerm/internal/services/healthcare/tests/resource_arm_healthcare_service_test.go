@@ -135,6 +135,10 @@ func testAccAzureRMHealthCareService_basic(data acceptance.TestData) string {
 	location := "westus2"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -177,6 +181,10 @@ func testAccAzureRMHealthCareService_complete(data acceptance.TestData) string {
 	location := "westus2"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

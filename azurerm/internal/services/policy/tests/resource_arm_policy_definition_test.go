@@ -167,6 +167,10 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 
 func testAzureRMPolicyDefinition_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -223,6 +227,10 @@ resource "azurerm_policy_definition" "import" {
 
 func testAzureRMPolicyDefinition_computedMetadata(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctest-%d"
   policy_type  = "Custom"
@@ -258,6 +266,10 @@ POLICY_RULE
 
 func testAzureRMPolicyDefinition_ManagementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }

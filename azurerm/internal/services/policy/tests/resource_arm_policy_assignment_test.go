@@ -157,6 +157,10 @@ func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
 
 func testAzureRMPolicyAssignment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -207,6 +211,10 @@ resource "azurerm_policy_assignment" "import" {
 
 func testAzureRMPolicyAssignment_deployIfNotExists_policy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -286,6 +294,10 @@ resource "azurerm_policy_assignment" "test" {
 
 func testAzureRMPolicyAssignment_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -348,6 +360,10 @@ PARAMETERS
 
 func testAzureRMPolicyAssignment_not_scopes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {
 }
 

@@ -356,6 +356,10 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_roleNameConfig(id string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -386,6 +390,10 @@ resource "azurerm_role_assignment" "import" {
 
 func testAccAzureRMRoleAssignment_dataActionsConfig(id string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -403,6 +411,10 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_builtinConfig(id string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -424,6 +436,10 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_customConfig(roleDefinitionId string, roleAssignmentId string, rInt int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 
@@ -457,6 +473,10 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_servicePrincipal(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {
 }
 
@@ -479,6 +499,10 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_servicePrincipalWithType(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {
 }
 
@@ -502,6 +526,10 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_group(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {
 }
 
@@ -520,6 +548,10 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_managementGroupConfig(groupId string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 

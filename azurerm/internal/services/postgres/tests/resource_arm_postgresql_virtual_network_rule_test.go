@@ -520,7 +520,11 @@ resource "azurerm_postgresql_virtual_network_rule" "rule3" {
 }
 
 func testAccAzureRMPostgreSQLVirtualNetworkRule_ignoreEndpointValid(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"

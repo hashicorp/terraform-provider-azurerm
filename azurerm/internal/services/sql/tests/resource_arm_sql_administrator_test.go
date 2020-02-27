@@ -153,6 +153,10 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 
 func testAccAzureRMSqlAdministrator_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -196,6 +200,10 @@ resource "azurerm_sql_active_directory_administrator" "import" {
 
 func testAccAzureRMSqlAdministrator_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

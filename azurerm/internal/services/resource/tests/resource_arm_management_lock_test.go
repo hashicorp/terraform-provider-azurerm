@@ -399,6 +399,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_subscriptionReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {
 }
 
@@ -412,6 +416,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {
 }
 

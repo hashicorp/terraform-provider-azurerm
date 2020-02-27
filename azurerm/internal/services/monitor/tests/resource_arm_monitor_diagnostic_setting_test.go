@@ -196,6 +196,10 @@ func testCheckAzureRMMonitorDiagnosticSettingDestroy(s *terraform.State) error {
 
 func testAccAzureRMMonitorDiagnosticSetting_eventhub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -295,6 +299,10 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
 
 func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -346,6 +354,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
 func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -415,6 +427,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
 func testAccAzureRMMonitorDiagnosticSetting_storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

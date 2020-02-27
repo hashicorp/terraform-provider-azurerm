@@ -112,6 +112,10 @@ resource "azurerm_app_service_certificate" "test" {
 
 func testAccAzureRMAppServiceCertificateKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "test" {}
 
 data "azuread_service_principal" "test" {

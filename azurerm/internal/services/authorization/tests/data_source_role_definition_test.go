@@ -157,6 +157,10 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t 
 
 func testAccDataSourceAzureRMRoleDefinition_builtIn(name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_role_definition" "test" {
   name = "%s"
 }
@@ -165,6 +169,10 @@ data "azurerm_role_definition" "test" {
 
 func testAccDataSourceRoleDefinition_basic(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {
 }
 

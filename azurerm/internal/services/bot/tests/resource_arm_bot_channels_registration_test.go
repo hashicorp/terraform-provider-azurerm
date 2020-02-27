@@ -173,6 +173,10 @@ func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
 
 func testAccAzureRMBotChannelsRegistration_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -197,6 +201,10 @@ resource "azurerm_bot_channels_registration" "test" {
 
 func testAccAzureRMBotChannelsRegistration_updateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 
@@ -221,6 +229,10 @@ resource "azurerm_bot_channels_registration" "test" {
 
 func testAccAzureRMBotChannelsRegistration_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {
 }
 

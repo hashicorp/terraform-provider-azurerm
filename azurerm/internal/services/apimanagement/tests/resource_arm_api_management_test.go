@@ -418,6 +418,10 @@ resource "azurerm_api_management" "test" {
 
 func testAccAzureRMApiManagement_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-api1-%d"
   location = "%s"
