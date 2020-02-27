@@ -237,6 +237,10 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 
 func testAccAzureRMCdnProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -267,6 +271,10 @@ resource "azurerm_cdn_profile" "import" {
 
 func testAccAzureRMCdnProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -288,6 +296,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -308,6 +320,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfileNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -324,6 +340,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_standardAkamai(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -340,6 +360,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_standardMicrosoft(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

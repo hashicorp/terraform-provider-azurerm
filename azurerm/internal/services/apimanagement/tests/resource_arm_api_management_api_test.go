@@ -543,6 +543,10 @@ resource "azurerm_api_management_api" "test" {
 
 func testAccAzureRMApiManagementApi_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -563,6 +567,10 @@ resource "azurerm_api_management" "test" {
 // Remove in 2.0
 func testAccAzureRMApiManagementApi_templateClassic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -106,6 +106,10 @@ func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
 
 func testAccAzureRMRelayHybridConnection_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -129,6 +133,10 @@ resource "azurerm_relay_hybrid_connection" "test" {
 
 func testAccAzureRMRelayHybridConnection_full(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -153,6 +161,10 @@ resource "azurerm_relay_hybrid_connection" "test" {
 
 func testAccAzureRMRelayHybridConnection_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

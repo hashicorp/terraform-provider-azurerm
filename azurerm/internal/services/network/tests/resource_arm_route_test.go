@@ -228,6 +228,10 @@ func testCheckAzureRMRouteDestroy(s *terraform.State) error {
 
 func testAccAzureRMRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -266,6 +270,10 @@ resource "azurerm_route" "import" {
 
 func testAccAzureRMRoute_basicAppliance(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -291,6 +299,10 @@ resource "azurerm_route" "test" {
 
 func testAccAzureRMRoute_multipleRoutes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

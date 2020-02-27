@@ -252,6 +252,10 @@ func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
 
 func testAccAzureRMVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -273,6 +277,10 @@ resource "azurerm_virtual_network" "test" {
 
 func testAccAzureRMVirtualNetwork_basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -318,6 +326,10 @@ resource "azurerm_virtual_network" "import" {
 
 func testAccAzureRMVirtualNetwork_ddosProtectionPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -350,6 +362,10 @@ resource "azurerm_virtual_network" "test" {
 
 func testAccAzureRMVirtualNetwork_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -376,6 +392,10 @@ resource "azurerm_virtual_network" "test" {
 
 func testAccAzureRMVirtualNetwork_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

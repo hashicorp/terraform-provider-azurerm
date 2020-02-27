@@ -173,6 +173,10 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 
 func testAccAzureRMAPIManagementGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -213,6 +217,10 @@ resource "azurerm_api_management_group" "import" {
 
 func testAccAzureRMAPIManagementGroup_complete(data acceptance.TestData, displayName, description string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

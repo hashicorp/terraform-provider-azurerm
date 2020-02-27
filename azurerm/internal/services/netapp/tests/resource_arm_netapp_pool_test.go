@@ -161,6 +161,10 @@ func testCheckAzureRMNetAppPoolDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetAppPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
@@ -196,6 +200,10 @@ resource "azurerm_netapp_pool" "import" {
 
 func testAccAzureRMNetAppPool_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"

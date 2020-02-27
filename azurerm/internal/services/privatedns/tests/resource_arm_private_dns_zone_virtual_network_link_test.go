@@ -142,6 +142,10 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy(s *terraform.State)
 
 func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -190,6 +194,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "import" {
 
 func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -228,6 +236,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 
 func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

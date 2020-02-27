@@ -89,6 +89,10 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 
 func testAccDataSourceAzureRMPublicIPs_attached(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -140,6 +144,10 @@ data "azurerm_public_ips" "attached" {
 
 func testAccDataSourceAzureRMPublicIPs_prefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -187,6 +195,10 @@ data "azurerm_public_ips" "test" {
 
 func testAccDataSourceAzureRMPublicIPs_allocationType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

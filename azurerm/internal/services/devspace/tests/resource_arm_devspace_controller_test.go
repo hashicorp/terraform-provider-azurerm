@@ -127,6 +127,10 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevSpaceController_basic(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

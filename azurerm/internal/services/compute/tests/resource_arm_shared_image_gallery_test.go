@@ -142,6 +142,10 @@ func testCheckAzureRMSharedImageGalleryExists(resourceName string) resource.Test
 
 func testAccAzureRMSharedImageGallery_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -169,6 +173,10 @@ resource "azurerm_shared_image_gallery" "import" {
 
 func testAccAzureRMSharedImageGallery_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

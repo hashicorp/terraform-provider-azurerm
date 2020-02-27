@@ -202,6 +202,10 @@ resource "azurerm_postgresql_configuration" "test" {
 
 func testAccAzureRMPostgreSQLConfiguration_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"

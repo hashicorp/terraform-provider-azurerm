@@ -155,6 +155,10 @@ func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
 
 func testAccAzureRMStreamAnalyticsJob_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -182,6 +186,10 @@ QUERY
 
 func testAccAzureRMStreamAnalyticsJob_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -237,6 +245,10 @@ resource "azurerm_stream_analytics_job" "import" {
 
 func testAccAzureRMStreamAnalyticsJob_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

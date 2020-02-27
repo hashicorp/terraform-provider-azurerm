@@ -184,6 +184,10 @@ func testCheckAzureRMPrivateDnsCNameRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateDnsCNameRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -221,6 +225,10 @@ resource "azurerm_private_dns_cname_record" "import" {
 
 func testAccAzureRMPrivateDnsCNameRecord_subdomain(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -243,6 +251,10 @@ resource "azurerm_private_dns_cname_record" "test" {
 
 func testAccAzureRMPrivateDnsCNameRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -265,6 +277,10 @@ resource "azurerm_private_dns_cname_record" "test" {
 
 func testAccAzureRMPrivateDnsCNameRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -292,6 +308,10 @@ resource "azurerm_private_dns_cname_record" "test" {
 
 func testAccAzureRMPrivateDnsCNameRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

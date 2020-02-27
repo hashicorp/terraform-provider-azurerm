@@ -332,6 +332,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "import" {
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -477,6 +481,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -561,6 +569,10 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -637,6 +649,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

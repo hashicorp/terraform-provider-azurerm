@@ -102,6 +102,10 @@ func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 
 func testAccAzureRMBatchCertificatePfx(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -128,6 +132,10 @@ resource "azurerm_batch_certificate" "test" {
 
 func testAccAzureRMBatchCertificatePfxWithoutPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -152,6 +160,10 @@ resource "azurerm_batch_certificate" "test" {
 }
 func testAccAzureRMBatchCertificateCer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -176,6 +188,10 @@ resource "azurerm_batch_certificate" "test" {
 }
 func testAccAzureRMBatchCertificateCerWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"

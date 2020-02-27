@@ -136,6 +136,10 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 
 func testAccAzureRMIotHubConsumerGroup_basic(data acceptance.TestData, eventName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

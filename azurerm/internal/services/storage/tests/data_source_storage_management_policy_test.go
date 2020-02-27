@@ -41,6 +41,10 @@ func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMStorageManagementPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"

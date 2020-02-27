@@ -142,6 +142,10 @@ func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevTestLab_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -170,6 +174,10 @@ resource "azurerm_dev_test_lab" "import" {
 
 func testAccAzureRMDevTestLab_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

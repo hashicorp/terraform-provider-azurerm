@@ -33,6 +33,10 @@ func TestAccDataSourceAzureRMApiManagementProduct_basic(t *testing.T) {
 
 func testAccDataSourceApiManagementProduct_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "amtestRG-%d"
   location = "%s"

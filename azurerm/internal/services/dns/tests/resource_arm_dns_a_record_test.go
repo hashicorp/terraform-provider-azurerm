@@ -261,6 +261,10 @@ func testCheckAzureRMDnsARecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsARecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -298,6 +302,10 @@ resource "azurerm_dns_a_record" "import" {
 
 func testAccAzureRMDnsARecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -320,6 +328,10 @@ resource "azurerm_dns_a_record" "test" {
 
 func testAccAzureRMDnsARecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -347,6 +359,10 @@ resource "azurerm_dns_a_record" "test" {
 
 func testAccAzureRMDnsARecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -373,6 +389,10 @@ resource "azurerm_dns_a_record" "test" {
 
 func testAccAzureRMDnsARecord_withAlias(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -403,6 +423,10 @@ resource "azurerm_dns_a_record" "test" {
 
 func testAccAzureRMDnsARecord_withAliasUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -433,6 +457,10 @@ resource "azurerm_dns_a_record" "test" {
 
 func testAccAzureRMDnsARecord_AliasToRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -463,6 +491,10 @@ resource "azurerm_dns_a_record" "test" {
 
 func testAccAzureRMDnsARecord_AliasToRecordsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

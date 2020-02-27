@@ -433,6 +433,10 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 
 func testAccAzureRMContainerGroup_SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -466,6 +470,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_UserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -507,6 +515,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_MultipleAssignedIdentities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -548,6 +560,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -604,6 +620,10 @@ resource "azurerm_container_group" "import" {
 
 func testAccAzureRMContainerGroup_imageRegistryCredentials(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -655,6 +675,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -700,6 +724,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_logTypeUnset(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -745,6 +773,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxBasicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -789,6 +821,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -859,6 +895,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_windowsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -897,6 +937,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_windowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -999,6 +1043,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

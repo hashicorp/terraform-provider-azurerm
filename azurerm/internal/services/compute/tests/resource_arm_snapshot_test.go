@@ -261,6 +261,10 @@ func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc 
 
 func testAccAzureRMSnapshot_fromManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -301,6 +305,10 @@ resource "azurerm_snapshot" "import" {
 
 func testAccAzureRMSnapshot_fromManagedDiskUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -426,6 +434,10 @@ resource "azurerm_snapshot" "test" {
 
 func testAccAzureRMSnapshot_extendingManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -453,6 +465,10 @@ resource "azurerm_snapshot" "test" {
 
 func testAccAzureRMSnapshot_fromExistingSnapshot(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -487,6 +503,10 @@ resource "azurerm_snapshot" "second" {
 
 func testAccAzureRMSnapshot_fromUnmanagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

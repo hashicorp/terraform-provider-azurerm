@@ -174,6 +174,10 @@ func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
 
 func testAccAzureRMPostgreSQLDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -225,6 +229,10 @@ resource "azurerm_postgresql_database" "import" {
 
 func testAccAzureRMPostgreSQLDatabase_collationWithHyphen(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -261,6 +269,10 @@ resource "azurerm_postgresql_database" "test" {
 
 func testAccAzureRMPostgreSQLDatabase_charsetLowercase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -297,6 +309,10 @@ resource "azurerm_postgresql_database" "test" {
 
 func testAccAzureRMPostgreSQLDatabase_charsetMixedcase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"

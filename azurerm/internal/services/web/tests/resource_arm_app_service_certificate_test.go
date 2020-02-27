@@ -71,6 +71,10 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 
 func testAccAzureRMAppServiceCertificatePfx(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestwebcert%d"
   location = "%s"
@@ -88,6 +92,10 @@ resource "azurerm_app_service_certificate" "test" {
 
 func testAccAzureRMAppServiceCertificatePfxNoPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestwebcert%d"
   location = "%s"

@@ -323,6 +323,10 @@ func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkConnectionMonitor_baseConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-watcher-%d"
   location = "%s"

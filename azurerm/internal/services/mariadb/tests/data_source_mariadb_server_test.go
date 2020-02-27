@@ -31,6 +31,10 @@ func TestAccDataSourceAzureRMMariaDbServer_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMMariaDbServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-maria-%d"
   location = "%s"

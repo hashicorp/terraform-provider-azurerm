@@ -1662,6 +1662,10 @@ func testCheckAzureRMAppServiceExists(resourceName string) resource.TestCheckFun
 
 func testAccAzureRMAppService_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1703,6 +1707,10 @@ resource "azurerm_app_service" "import" {
 
 func testAccAzureRMAppService_freeTier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1734,6 +1742,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_moved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1772,6 +1784,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_sharedTier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1803,6 +1819,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_alwaysOn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1834,6 +1854,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_appCommandLine(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1865,6 +1889,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_httpsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1893,6 +1921,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_clientCertEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1921,6 +1953,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_clientCertEnabledNotSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1948,6 +1984,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_32Bit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2049,6 +2089,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_backupTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2115,6 +2159,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppService_http2Enabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2146,6 +2194,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_appSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2185,6 +2237,10 @@ func testAccAzureRMAppService_clientAffinityDisabled(data acceptance.TestData) s
 
 func testAccAzureRMAppService_clientAffinity(data acceptance.TestData, clientAffinity bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2213,6 +2269,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_mangedServiceIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2244,6 +2304,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2282,6 +2346,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_connectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2321,6 +2389,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_connectionStringsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2360,6 +2432,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_storageAccounts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2409,6 +2485,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_storageAccountsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2473,6 +2553,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_oneIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2506,6 +2590,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_oneVNetSubnetIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2553,6 +2641,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_manyIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2598,6 +2690,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_zeroedIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2629,6 +2725,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_defaultDocuments(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2664,6 +2764,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_enabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2692,6 +2796,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_localMySql(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2723,6 +2831,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_applicationBlobStorageLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2759,6 +2871,10 @@ resource "azurerm_app_service" "test" {
 }
 func testAccAzureRMAppService_applicationBlobStorageLogsWithAppSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2797,6 +2913,10 @@ resource "azurerm_app_service" "test" {
 }
 func testAccAzureRMAppService_httpFileSystemLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2885,6 +3005,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_managedPipelineMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2916,6 +3040,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_remoteDebugging(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2952,6 +3080,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2983,6 +3115,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3015,6 +3151,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_windowsDotNet(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3046,6 +3186,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_windowsJava(data acceptance.TestData, javaVersion, container, containerVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3079,6 +3223,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_windowsPHP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3110,6 +3258,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_windowsPython(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3141,6 +3293,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_webSockets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3172,6 +3328,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_scmType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3203,6 +3363,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_ftpsState(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3234,6 +3398,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_linuxFxVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3270,6 +3438,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_minTls(data acceptance.TestData, tlsVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3301,6 +3473,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_corsSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3340,6 +3516,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_authSettingsAdditionalLoginParams(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3391,6 +3571,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_authSettingsAdditionalAllowedExternalRedirectUrls(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3442,6 +3626,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_authSettingsRuntimeVersion(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3490,6 +3678,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_authSettingsTokenRefreshExtensionHours(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3538,6 +3730,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_authSettingsTokenStoreEnabled(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3586,6 +3782,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_authSettingsUnauthenticatedClientAction(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3634,6 +3834,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_aadAuthSettings(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3681,6 +3885,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_facebookAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3727,6 +3935,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_googleAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3773,6 +3985,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_microsoftAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3819,6 +4035,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_twitterAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3861,6 +4081,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_aadMicrosoftAuthSettings(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3918,6 +4142,10 @@ resource "azurerm_app_service" "test" {
 
 func testAccAzureRMAppService_basicWindowsContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

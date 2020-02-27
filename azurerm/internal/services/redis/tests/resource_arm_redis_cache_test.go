@@ -478,6 +478,10 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 
 func testAccAzureRMRedisCache_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -521,6 +525,10 @@ resource "azurerm_redis_cache" "import" {
 
 func testAccAzureRMRedisCache_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -546,6 +554,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -572,6 +584,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_premiumSharded(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -599,6 +615,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_premiumShardedScaled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -626,6 +646,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -647,6 +671,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheBackupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -670,6 +698,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheBackupEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -708,6 +740,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheAOFBackupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -731,6 +767,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheAOFBackupEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -768,6 +808,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCachePatchSchedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -798,6 +842,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheSubscribeAllEvents(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -833,6 +881,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_internalSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -869,6 +921,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_internalSubnetStaticIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -906,6 +962,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_internalSubnet_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -943,6 +1003,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheWithoutAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

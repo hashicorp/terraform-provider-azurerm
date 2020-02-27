@@ -402,6 +402,10 @@ func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestChe
 
 func testAccAzureRMCosmosDBAccount_basic(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%d"
   location = "%s"
@@ -450,6 +454,10 @@ resource "azurerm_cosmosdb_account" "import" {
 
 func testAccAzureRMCosmosDBAccount_consistency(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, interval, staleness int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%d"
   location = "%s"
@@ -478,6 +486,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_completePreReqs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%[1]d"
   location = "%[2]s"
@@ -608,6 +620,10 @@ func testAccAzureRMCosmosDBAccount_capabilities(data acceptance.TestData, kind d
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cosmos-%d"
   location = "%s"

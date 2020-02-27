@@ -177,6 +177,10 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 }
 func testAccAzureRMLogAnalyticsWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -207,6 +211,10 @@ resource "azurerm_log_analytics_workspace" "import" {
 
 func testAccAzureRMLogAnalyticsWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

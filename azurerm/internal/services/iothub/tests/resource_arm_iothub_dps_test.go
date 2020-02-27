@@ -169,6 +169,10 @@ func testCheckAzureRMIotHubDPSExists(resourceName string) resource.TestCheckFunc
 
 func testAccAzureRMIotHubDPS_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -207,6 +211,10 @@ resource "azurerm_iothub_dps" "import" {
 
 func testAccAzureRMIotHubDPS_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -231,6 +239,10 @@ resource "azurerm_iothub_dps" "test" {
 
 func testAccAzureRMIotHubDPS_linkedHubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -263,6 +275,10 @@ resource "azurerm_iothub_dps" "test" {
 
 func testAccAzureRMIotHubDPS_linkedHubsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -174,6 +174,10 @@ func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.T
 
 func testAccAzureRMAutomationJobSchedulePrerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

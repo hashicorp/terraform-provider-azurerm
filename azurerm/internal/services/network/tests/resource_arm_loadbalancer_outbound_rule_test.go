@@ -268,6 +268,10 @@ func testCheckAzureRMLoadBalancerOutboundRuleDisappears(ruleName string, lb *net
 
 func testAccAzureRMLoadBalancerOutboundRule_basic(data acceptance.TestData, outboundRuleName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -334,6 +338,10 @@ resource "azurerm_lb_outbound_rule" "import" {
 
 func testAccAzureRMLoadBalancerOutboundRule_removal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -369,6 +377,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancerOutboundRule_multipleRules(data acceptance.TestData, outboundRuleName, outboundRule2Name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -441,6 +453,10 @@ resource "azurerm_lb_outbound_rule" "test2" {
 
 func testAccAzureRMLoadBalancerOutboundRule_multipleRulesUpdate(data acceptance.TestData, outboundRuleName, outboundRule2Name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -513,6 +529,10 @@ resource "azurerm_lb_outbound_rule" "test2" {
 
 func testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(data acceptance.TestData, outboundRuleName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

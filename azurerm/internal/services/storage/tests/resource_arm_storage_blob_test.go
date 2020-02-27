@@ -1172,6 +1172,10 @@ resource "azurerm_storage_blob" "test" {
 
 func testAccAzureRMStorageBlob_template(data acceptance.TestData, accessLevel string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1195,6 +1199,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMStorageBlob_templateBlockBlobStorage(data acceptance.TestData, accessLevel string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1219,6 +1227,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMStorageBlob_templatePremium(data acceptance.TestData, accessLevel string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

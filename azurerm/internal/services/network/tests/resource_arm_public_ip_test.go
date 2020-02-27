@@ -500,6 +500,10 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 
 func testAccAzureRMPublicIPStatic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -529,6 +533,10 @@ resource "azurerm_public_ip" "import" {
 
 func testAccAzureRMPublicIPStatic_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -546,6 +554,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_basic_withDNSLabel(data acceptance.TestData, dnsNameLabel string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -563,6 +575,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -580,6 +596,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -597,6 +617,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standardPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -621,6 +645,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standardPrefixWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -650,6 +678,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standardPrefixWithTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -678,6 +710,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standard_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -696,6 +732,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -713,6 +753,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_idleTimeout(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -730,6 +774,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPDynamic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -746,6 +794,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPDynamic_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -764,6 +816,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -785,6 +841,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -805,6 +865,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_canLabelBe63(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

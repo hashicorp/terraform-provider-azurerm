@@ -124,6 +124,10 @@ func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy(s *terra
 
 func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -152,6 +156,10 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
 
 func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -192,6 +200,10 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
 
 func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

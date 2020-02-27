@@ -142,6 +142,10 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationDestroy(s *terraform.State)
 
 func testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -191,6 +195,10 @@ resource "azurerm_express_route_circuit_authorization" "import" {
 
 func testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

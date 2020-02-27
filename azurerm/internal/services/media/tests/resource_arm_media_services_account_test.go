@@ -240,6 +240,10 @@ resource "azurerm_media_services_account" "test" {
 
 func testAccAzureRMMediaServicesAccount_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-media-%d"
   location = "%s"

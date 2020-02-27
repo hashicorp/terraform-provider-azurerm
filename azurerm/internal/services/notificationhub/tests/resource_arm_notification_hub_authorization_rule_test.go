@@ -344,6 +344,10 @@ resource "azurerm_notification_hub_authorization_rule" "test" {
 
 func testAzureRMNotificationHubAuthorizationRule_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

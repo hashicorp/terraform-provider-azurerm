@@ -319,6 +319,10 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 
 func testAccAzureRMCdnEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -370,6 +374,10 @@ resource "azurerm_cdn_endpoint" "import" {
 
 func testAccAzureRMCdnEndpoint_hostHeader(data acceptance.TestData, domain string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -406,6 +414,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -441,6 +453,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -475,6 +491,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_geoFilters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -521,6 +541,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_optimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -554,6 +578,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_fullFields(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -603,6 +631,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data acceptance.TestData, isHttpAllowed string, isHttpsAllowed string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

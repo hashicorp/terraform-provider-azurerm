@@ -224,6 +224,10 @@ func testCheckAzureRMNetworkDDoSProtectionPlanDestroy(s *terraform.State) error 
 
 func testAccAzureRMNetworkDDoSProtectionPlan_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -252,6 +256,10 @@ resource "azurerm_network_ddos_protection_plan" "import" {
 
 func testAccAzureRMNetworkDDoSProtectionPlan_withTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -272,6 +280,10 @@ resource "azurerm_network_ddos_protection_plan" "test" {
 
 func testAccAzureRMNetworkDDoSProtectionPlan_withUpdatedTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

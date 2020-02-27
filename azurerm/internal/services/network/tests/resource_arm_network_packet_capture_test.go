@@ -170,6 +170,10 @@ func testCheckAzureRMNetworkPacketCaptureDestroy(s *terraform.State) error {
 
 func testAzureRMNetworkPacketCapture_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-watcher-%d"
   location = "%s"

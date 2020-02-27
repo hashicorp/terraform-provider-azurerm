@@ -292,6 +292,10 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 
 func testAccAzureRMSubnetNetworkSecurityGroupAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

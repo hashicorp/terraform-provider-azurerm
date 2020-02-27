@@ -420,6 +420,10 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 
 func testAccAzureRMMonitorActionGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -448,6 +452,10 @@ resource "azurerm_monitor_action_group" "import" {
 
 func testAccAzureRMMonitorActionGroup_emailReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -469,6 +477,10 @@ resource "azurerm_monitor_action_group" "test" {
 
 func testAccAzureRMMonitorActionGroup_itsmReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -492,6 +504,10 @@ resource "azurerm_monitor_action_group" "test" {
 
 func testAccAzureRMMonitorActionGroup_azureAppPushReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -512,6 +528,10 @@ resource "azurerm_monitor_action_group" "test" {
 
 func testAccAzureRMMonitorActionGroup_smsReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -533,6 +553,10 @@ resource "azurerm_monitor_action_group" "test" {
 
 func testAccAzureRMMonitorActionGroup_webhookReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -554,6 +578,10 @@ resource "azurerm_monitor_action_group" "test" {
 
 func testAccAzureRMMonitorActionGroup_automationRunbookReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -604,6 +632,10 @@ resource "azurerm_automation_runbook" "test" {
 
 func testAccAzureRMMonitorActionGroup_voiceReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -625,6 +657,10 @@ resource "azurerm_monitor_action_group" "test" {
 
 func testAccAzureRMMonitorActionGroup_logicAppReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -670,6 +706,10 @@ SCHEMA
 
 func testAccAzureRMMonitorActionGroup_azureFunctionReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -720,6 +760,10 @@ resource "azurerm_function_app" "test" {
 
 func testAccAzureRMMonitorActionGroup_armRoleReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -741,6 +785,10 @@ resource "azurerm_monitor_action_group" "test" {
 
 func testAccAzureRMMonitorActionGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -914,6 +962,10 @@ resource "azurerm_function_app" "test" {
 
 func testAccAzureRMMonitorActionGroup_disabledBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

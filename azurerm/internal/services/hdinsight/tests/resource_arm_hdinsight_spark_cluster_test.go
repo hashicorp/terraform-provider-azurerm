@@ -653,6 +653,10 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
 func testAccAzureRMHDInsightSparkCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -676,6 +680,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMHDInsightSparkCluster_gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

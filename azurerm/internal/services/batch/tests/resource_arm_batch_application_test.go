@@ -111,6 +111,10 @@ func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
 
 func testAccAzureRMBatchApplication_template(data acceptance.TestData, displayName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

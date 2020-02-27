@@ -94,6 +94,10 @@ func testCheckAzureRMAutomationVariableBoolDestroy(s *terraform.State) error {
 
 func testAccAzureRMAutomationVariableBool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -117,6 +121,10 @@ resource "azurerm_automation_variable_bool" "test" {
 
 func testAccAzureRMAutomationVariableBool_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -100,6 +100,10 @@ resource "azurerm_logic_app_action_custom" "import" {
 
 func testAccAzureRMLogicAppActionCustom_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

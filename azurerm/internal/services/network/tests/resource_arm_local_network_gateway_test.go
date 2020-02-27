@@ -322,6 +322,10 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 
 func testAccAzureRMLocalNetworkGatewayConfig_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -354,6 +358,10 @@ resource "azurerm_local_network_gateway" "import" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -375,6 +383,10 @@ resource "azurerm_local_network_gateway" "test" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -397,6 +409,10 @@ resource "azurerm_local_network_gateway" "test" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_bgpSettingsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"

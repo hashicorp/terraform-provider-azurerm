@@ -28,6 +28,10 @@ func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
 
 func testAccAzureRMDataSourceVirtualNetworkGateway_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

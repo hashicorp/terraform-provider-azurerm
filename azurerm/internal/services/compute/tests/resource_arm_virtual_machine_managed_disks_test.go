@@ -969,6 +969,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_withManagedServiceIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1050,6 +1054,10 @@ output "principal_id" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1123,6 +1131,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1241,6 +1253,10 @@ resource "azurerm_virtual_machine" "import" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1313,6 +1329,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1386,6 +1406,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1484,6 +1508,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1567,6 +1595,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksBefore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1649,6 +1681,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksAfter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1684,6 +1720,10 @@ resource "azurerm_network_interface" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM_managedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1719,6 +1759,10 @@ resource "azurerm_network_interface" "test" {
 
 func testAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1800,6 +1844,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1879,6 +1927,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_osDiskTypeConflict(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1962,6 +2014,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_dataDiskTypeConflict(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2054,6 +2110,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_bugAzureRM33(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2204,6 +2264,10 @@ func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Di
 
 func testAccAzureRMVirtualMachine_linuxNoConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2267,6 +2331,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_windowsNoConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2330,6 +2398,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_multipleNICs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2409,6 +2481,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_anWithVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2483,6 +2559,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2558,6 +2638,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_ultraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -420,6 +420,10 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 
 func testAccAzureRMSqlDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -466,6 +470,10 @@ resource "azurerm_sql_database" "import" {
 
 func testAccAzureRMSqlDatabase_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -500,6 +508,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -533,6 +545,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_dataWarehouse(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest_rg_%d"
   location = "%s"
@@ -561,6 +577,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_restorePointInTime(data acceptance.TestData, formattedTime string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -600,6 +620,10 @@ resource "azurerm_sql_database" "test_restore" {
 
 func testAccAzureRMSqlDatabase_elasticPool(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -640,6 +664,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_collationUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -669,6 +697,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_bacpac(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG_%d"
   location = "%s"
@@ -738,6 +770,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_requestedServiceObjectiveName(data acceptance.TestData, requestedServiceObjectiveName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -767,6 +803,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_threatDetectionPolicy(data acceptance.TestData, state string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -813,6 +853,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_readScale(data acceptance.TestData, readScale bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "readscaletestRG-%d"
   location = "%s"
@@ -842,6 +886,10 @@ resource "azurerm_sql_database" "test" {
 
 func testAccAzureRMSqlDatabase_zoneRedundant(data acceptance.TestData, zoneRedundant bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

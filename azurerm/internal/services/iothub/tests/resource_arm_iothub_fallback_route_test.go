@@ -125,6 +125,10 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 
 func testAccAzureRMIotHubFallbackRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
@@ -185,6 +189,10 @@ resource "azurerm_iothub_fallback_route" "test" {
 
 func testAccAzureRMIotHubFallbackRoute_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"

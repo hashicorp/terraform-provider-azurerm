@@ -32,6 +32,10 @@ func TestAccAzureRMSiteRecoveryFabric_basic(t *testing.T) {
 
 func testAccAzureRMSiteRecoveryFabric_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery-%d"
   location = "%s"

@@ -283,6 +283,10 @@ resource "azurerm_network_interface_application_gateway_backend_address_pool_ass
 
 func testAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

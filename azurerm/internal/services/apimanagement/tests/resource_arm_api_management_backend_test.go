@@ -439,6 +439,10 @@ resource "azurerm_api_management_backend" "import" {
 
 func testAccAzureRMApiManagementBackend_template(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d-%s"
   location = "%s"

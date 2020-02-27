@@ -47,6 +47,10 @@ func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
 
 func testAccDataSourceEventHubNamespace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -68,6 +72,10 @@ data "azurerm_eventhub_namespace" "test" {
 
 func testAccDataSourceEventHubNamespace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

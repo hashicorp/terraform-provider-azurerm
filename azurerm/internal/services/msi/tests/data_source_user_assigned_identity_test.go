@@ -62,6 +62,10 @@ func testEqualResourceAttr(dataSourceName string, resourceName string, attrName 
 
 func testAccDataSourceAzureRMUserAssignedIdentity_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"

@@ -138,6 +138,10 @@ func TestAccAzureRMCosmosDBAccount_failover_geoReplicated(t *testing.T) {
 
 func testAccAzureRMCosmosDBAccount_failover_boundedStaleness(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -163,6 +167,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -190,6 +198,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_failover_eventualConsistency(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -215,6 +227,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_failover_session(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -240,6 +256,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_failover_mongoDB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -266,6 +286,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_failover_strong(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -291,6 +315,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
 func testAccAzureRMCosmosDBAccount_failover_geoReplicated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

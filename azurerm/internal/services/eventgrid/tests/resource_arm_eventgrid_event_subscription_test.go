@@ -177,6 +177,10 @@ func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resou
 
 func testAccAzureRMEventGridEventSubscription_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -243,6 +247,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func testAccAzureRMEventGridEventSubscription_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -313,6 +321,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func testAccAzureRMEventGridEventSubscription_eventhub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -347,6 +359,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func testAccAzureRMEventGridEventSubscription_filter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

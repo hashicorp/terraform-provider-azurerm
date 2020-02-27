@@ -81,6 +81,10 @@ func TestAccAzureRMStorageAccountNetworkRules_empty(t *testing.T) {
 
 func testAccAzureRMStorageAccountNetworkRules_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -126,6 +130,10 @@ resource "azurerm_storage_account_network_rules" "test" {
 
 func testAccAzureRMStorageAccountNetworkRules_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -180,6 +188,10 @@ resource "azurerm_storage_account_network_rules" "test" {
 
 func testAccAzureRMStorageAccountNetworkRules_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"

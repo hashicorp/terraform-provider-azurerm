@@ -316,6 +316,10 @@ func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkSecurityGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -344,6 +348,10 @@ resource "azurerm_network_security_group" "test" {
 
 func testAccAzureRMNetworkSecurityGroup_rulesExplicitZero(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -361,6 +369,10 @@ resource "azurerm_network_security_group" "test" {
 
 func testAccAzureRMNetworkSecurityGroup_singleRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -388,6 +400,10 @@ resource "azurerm_network_security_group" "test" {
 
 func testAccAzureRMNetworkSecurityGroup_anotherRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -427,6 +443,10 @@ resource "azurerm_network_security_group" "test" {
 
 func testAccAzureRMNetworkSecurityGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -459,6 +479,10 @@ resource "azurerm_network_security_group" "test" {
 
 func testAccAzureRMNetworkSecurityGroup_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -490,6 +514,10 @@ resource "azurerm_network_security_group" "test" {
 
 func testAccAzureRMNetworkSecurityGroup_augmented(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -517,6 +545,10 @@ resource "azurerm_network_security_group" "test" {
 
 func testAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

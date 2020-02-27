@@ -131,6 +131,10 @@ func testCheckAzureRMDedicatedHostGroupDestroy(s *terraform.State) error {
 
 func testAccAzureRMDedicatedHostGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-compute-%d"
   location = "%s"
@@ -160,6 +164,10 @@ resource "azurerm_dedicated_host_group" "import" {
 
 func testAccAzureRMDedicatedHostGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-compute-%d"
   location = "%s"

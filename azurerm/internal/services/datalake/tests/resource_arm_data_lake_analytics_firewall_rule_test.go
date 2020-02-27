@@ -179,6 +179,10 @@ func testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy(s *terraform.State) er
 
 func testAccAzureRMDataLakeAnalyticsFirewallRule_basic(data acceptance.TestData, startIP, endIP string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"

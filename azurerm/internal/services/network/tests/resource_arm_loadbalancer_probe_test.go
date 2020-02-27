@@ -259,6 +259,10 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 
 func testAccAzureRMLoadBalancerProbe_basic(data acceptance.TestData, probeName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -307,6 +311,10 @@ resource "azurerm_lb_probe" "import" {
 
 func testAccAzureRMLoadBalancerProbe_removal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -334,6 +342,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancerProbe_multipleProbes(data acceptance.TestData, probeName, probe2Name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -375,6 +387,10 @@ resource "azurerm_lb_probe" "test2" {
 
 func testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(data acceptance.TestData, probeName, probe2Name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -416,6 +432,10 @@ resource "azurerm_lb_probe" "test2" {
 
 func testAccAzureRMLoadBalancerProbe_updateProtocolBefore(data acceptance.TestData, probeName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -452,6 +472,10 @@ resource "azurerm_lb_probe" "test" {
 
 func testAccAzureRMLoadBalancerProbe_updateProtocolAfter(data acceptance.TestData, probeName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

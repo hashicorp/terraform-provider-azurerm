@@ -167,6 +167,10 @@ func testCheckAzureRMPrivateDnsPtrRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateDnsPtrRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -204,6 +208,10 @@ resource "azurerm_private_dns_ptr_record" "import" {
 
 func testAccAzureRMPrivateDnsPtrRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -226,6 +234,10 @@ resource "azurerm_private_dns_ptr_record" "test" {
 
 func testAccAzureRMPrivateDnsPtrRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -253,6 +265,10 @@ resource "azurerm_private_dns_ptr_record" "test" {
 
 func testAccAzureRMPrivateDnsPtrRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

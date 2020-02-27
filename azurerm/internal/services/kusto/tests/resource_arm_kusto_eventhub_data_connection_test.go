@@ -32,6 +32,10 @@ func TestAccAzureRMKustoEventHubDataConnection_basic(t *testing.T) {
 
 func testAccAzureRMKustoEventHubDataConnection_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

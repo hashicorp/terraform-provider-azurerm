@@ -118,6 +118,10 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 
 func testAccAzureRMMariaDbDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = %q

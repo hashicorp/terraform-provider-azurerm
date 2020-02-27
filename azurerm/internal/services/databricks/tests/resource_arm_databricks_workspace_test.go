@@ -246,6 +246,10 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 
 func testAccAzureRMDatabricksWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-db-%d"
   location = "%s"
@@ -276,6 +280,10 @@ resource "azurerm_databricks_workspace" "import" {
 
 func testAccAzureRMDatabricksWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-db-%[1]d"
 
@@ -371,6 +379,10 @@ resource "azurerm_databricks_workspace" "test" {
 
 func testAccAzureRMDatabricksWorkspace_completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-db-%d"
   location = "%s"

@@ -80,6 +80,10 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 
 func testAccDataSourceAzureRMNetworkSecurityGroupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -100,6 +104,10 @@ data "azurerm_network_security_group" "test" {
 
 func testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -132,6 +140,10 @@ data "azurerm_network_security_group" "test" {
 
 func testAccDataSourceAzureRMNetworkSecurityGroupTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

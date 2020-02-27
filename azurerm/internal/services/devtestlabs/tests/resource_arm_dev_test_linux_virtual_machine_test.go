@@ -359,6 +359,10 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
 
 func testAccAzureRMDevTestLinuxVirtualMachine_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

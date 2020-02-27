@@ -266,6 +266,10 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 
 func testAccAzureRMAvailabilitySet_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -294,6 +298,10 @@ resource "azurerm_availability_set" "import" {
 
 func testAccAzureRMAvailabilitySet_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -314,6 +322,10 @@ resource "azurerm_availability_set" "test" {
 
 func testAccAzureRMAvailabilitySet_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -333,6 +345,10 @@ resource "azurerm_availability_set" "test" {
 
 func testAccAzureRMAvailabilitySet_withPPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -356,6 +372,10 @@ resource "azurerm_availability_set" "test" {
 
 func testAccAzureRMAvailabilitySet_withDomainCounts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -373,6 +393,10 @@ resource "azurerm_availability_set" "test" {
 
 func testAccAzureRMAvailabilitySet_unmanaged(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

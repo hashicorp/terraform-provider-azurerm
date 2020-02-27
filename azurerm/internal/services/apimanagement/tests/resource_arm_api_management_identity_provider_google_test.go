@@ -136,6 +136,10 @@ func testCheckAzureRMApiManagementIdentityProviderGoogleExists(resourceName stri
 
 func testAccAzureRMApiManagementIdentityProviderGoogle_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-api-%d"
   location = "%s"
@@ -161,6 +165,10 @@ resource "azurerm_api_management_identity_provider_google" "test" {
 
 func testAccAzureRMApiManagementIdentityProviderGoogle_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-api-%d"
   location = "%s"

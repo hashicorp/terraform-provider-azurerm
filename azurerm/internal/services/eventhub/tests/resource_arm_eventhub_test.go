@@ -415,6 +415,10 @@ func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc 
 
 func testAccAzureRMEventHub_basic(data acceptance.TestData, partitionCount int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%d"
   location = "%s"
@@ -454,6 +458,10 @@ resource "azurerm_eventhub" "import" {
 
 func testAccAzureRMEventHub_partitionCountUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%d"
   location = "%s"
@@ -478,6 +486,10 @@ resource "azurerm_eventhub" "test" {
 
 func testAccAzureRMEventHub_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%d"
   location = "%s"
@@ -503,6 +515,10 @@ resource "azurerm_eventhub" "test" {
 func testAccAzureRMEventHub_captureDescription(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%d"
   location = "%s"
@@ -556,6 +572,10 @@ resource "azurerm_eventhub" "test" {
 
 func testAccAzureRMEventHub_messageRetentionUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%d"
   location = "%s"

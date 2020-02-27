@@ -288,6 +288,10 @@ func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
 
 func testAccAzureRMTemplateDeployment_basicSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -332,6 +336,10 @@ DEPLOY
 
 func testAccAzureRMTemplateDeployment_basicMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -416,6 +424,10 @@ resource "azurerm_template_deployment" "import" {
 
 func testAccAzureRMTemplateDeployment_nestedTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -476,6 +488,10 @@ DEPLOY
 
 func testaccAzureRMTemplateDeployment_withParamsBody(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -626,6 +642,10 @@ DEPLOY
 
 func testAccAzureRMTemplateDeployment_withParams(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -725,6 +745,10 @@ DEPLOY
 
 func testAccAzureRMTemplateDeployment_withOutputs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -851,6 +875,10 @@ DEPLOY
 // StorageAccount name is too long, forces error
 func testAccAzureRMTemplateDeployment_withError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

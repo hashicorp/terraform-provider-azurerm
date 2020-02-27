@@ -89,6 +89,10 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 
 func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -109,6 +113,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -133,6 +141,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -158,6 +170,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_skuUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

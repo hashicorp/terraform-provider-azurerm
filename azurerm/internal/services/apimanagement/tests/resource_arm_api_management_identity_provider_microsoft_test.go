@@ -137,6 +137,10 @@ func testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(resourceName s
 
 func testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-api-%d"
   location = "%s"
@@ -162,6 +166,10 @@ resource "azurerm_api_management_identity_provider_microsoft" "test" {
 
 func testAccAzureRMApiManagementIdentityProviderMicrosoft_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-api-%d"
   location = "%s"

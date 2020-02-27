@@ -238,6 +238,10 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 
 func testAccAzureRMApiManagementProduct_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -283,6 +287,10 @@ resource "azurerm_api_management_product" "import" {
 
 func testAccAzureRMApiManagementProduct_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -313,6 +321,10 @@ resource "azurerm_api_management_product" "test" {
 
 func testAccAzureRMApiManagementProduct_subscriptionLimits(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -343,6 +355,10 @@ resource "azurerm_api_management_product" "test" {
 
 func testAccAzureRMApiManagementProduct_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -375,6 +391,10 @@ resource "azurerm_api_management_product" "test" {
 
 func testAccAzureRMApiManagementProduct_approvalRequiredError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

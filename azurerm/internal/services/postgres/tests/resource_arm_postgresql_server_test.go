@@ -326,6 +326,10 @@ func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
 
 func testAccAzureRMPostgreSQLServer_basic(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -397,6 +401,10 @@ resource "azurerm_postgresql_server" "import" {
 
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -425,6 +433,10 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -453,6 +465,10 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_basicMaxStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -482,6 +498,10 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_generalPurpose(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -510,6 +530,10 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_memoryOptimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -538,6 +562,10 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"

@@ -184,6 +184,10 @@ func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
 
 func testAccAzureRMSqlFailoverGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -260,6 +264,10 @@ resource "azurerm_sql_failover_group" "import" {
 
 func testAccAzureRMSqlFailoverGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -317,6 +325,10 @@ resource "azurerm_sql_failover_group" "test" {
 
 func testAccAzureRMSqlFailoverGroup_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"

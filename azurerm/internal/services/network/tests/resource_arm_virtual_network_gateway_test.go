@@ -324,6 +324,10 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 
 func testAccAzureRMVirtualNetworkGateway_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -392,6 +396,10 @@ resource "azurerm_virtual_network_gateway" "import" {
 
 func testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -438,6 +446,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_vpnGw1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -484,6 +496,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_activeActive(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -558,6 +574,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_vpnClientConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -613,6 +633,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -665,6 +689,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_sku(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -711,6 +739,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_enableBgp(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -758,6 +790,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_expressRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -804,6 +840,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_generation(data acceptance.TestData, generation string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

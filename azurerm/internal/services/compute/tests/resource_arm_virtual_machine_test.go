@@ -186,6 +186,10 @@ func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 
 func testAccAzureRMVirtualMachine_winTimeZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -267,6 +271,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachineSystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -362,6 +370,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachineUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -465,6 +477,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachineMultipleAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -567,6 +583,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachinePPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"

@@ -58,6 +58,10 @@ func TestAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(t *testing.T) {
 
 func testAccDataSourceAzureRMManagedDiskBasic(data acceptance.TestData, name string, resourceGroupName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"
@@ -86,6 +90,10 @@ data "azurerm_managed_disk" "test" {
 
 func testAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(data acceptance.TestData, name string, resourceGroupName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"

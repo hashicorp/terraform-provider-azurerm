@@ -113,6 +113,10 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 
 func testAccAzureRMNotificationHub_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRGpol-%d"
   location = "%s"

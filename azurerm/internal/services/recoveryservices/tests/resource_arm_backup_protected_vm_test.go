@@ -370,6 +370,10 @@ resource "azurerm_backup_protected_vm" "test" {
 // For update backup policy id test
 func testAccAzureRMBackupProtectedVm_basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%d-1"
   location = "%s"

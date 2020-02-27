@@ -58,6 +58,10 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 
 func testAccDataSourceArmVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"
@@ -85,6 +89,10 @@ data "azurerm_virtual_network" "test" {
 
 func testAccDataSourceArmVirtualNetwork_peering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"
@@ -115,6 +123,10 @@ resource "azurerm_virtual_network_peering" "test1" {
 
 func testAccDataSourceArmVirtualNetwork_peeringWithDataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"

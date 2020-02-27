@@ -135,6 +135,10 @@ func testCheckAzureRMNatGatewayDestroy(s *terraform.State) error {
 // Using alt location because the resource currently in private preview and is only available in eastus2.
 func testAccAzureRMNatGateway_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-%d"
   location = "%s"
@@ -151,6 +155,10 @@ resource "azurerm_nat_gateway" "test" {
 // Using alt location because the resource currently in private preview and is only available in eastus2.
 func testAccAzureRMNatGateway_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-%d"
   location = "%s"

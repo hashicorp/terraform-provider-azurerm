@@ -780,6 +780,10 @@ func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.Te
 
 func testAccAzureRMServiceFabricCluster_basic(data acceptance.TestData, count int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -807,6 +811,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(data acceptance.TestData, count int, secondary_count int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -866,6 +874,10 @@ resource "azurerm_service_fabric_cluster" "import" {
 
 func testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(data acceptance.TestData, clusterCodeVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -894,6 +906,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_addOnFeatures(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -922,6 +938,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_certificates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -962,6 +982,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_reverseProxyCertificates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1008,6 +1032,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_clientCertificateThumbprint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1053,6 +1081,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1103,6 +1135,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_certificateCommonNames(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1146,6 +1182,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_azureActiveDirectory(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1251,6 +1291,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1294,6 +1338,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_diagnosticsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1337,6 +1385,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1372,6 +1424,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_fabricSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1407,6 +1463,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1444,6 +1504,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_nodeTypeMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1479,6 +1543,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_nodeTypeProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1520,6 +1588,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func testAccAzureRMServiceFabricCluster_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

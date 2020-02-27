@@ -67,6 +67,10 @@ func TestAccDataSourceAzureRMPublicIP_dynamic(t *testing.T) {
 
 func testAccDataSourceAzureRMPublicIP_static(name string, resourceGroupName string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"
@@ -94,6 +98,10 @@ data "azurerm_public_ip" "test" {
 
 func testAccDataSourceAzureRMPublicIP_dynamic(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

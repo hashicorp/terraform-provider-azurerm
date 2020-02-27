@@ -306,6 +306,10 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 
 func testAccAzureRMAppServicePlan_basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -326,6 +330,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_basicLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -370,6 +378,10 @@ resource "azurerm_app_service_plan" "import" {
 
 func testAccAzureRMAppServicePlan_basicLinuxNew(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -393,6 +405,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_standardWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -413,6 +429,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_premiumWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -433,6 +453,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_premiumWindowsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -454,6 +478,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_completeWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -482,6 +510,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_completeWindowsNew(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -510,6 +542,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_consumptionPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -531,6 +567,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_premiumConsumptionPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -554,6 +594,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_basicWindowsContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

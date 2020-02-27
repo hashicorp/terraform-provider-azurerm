@@ -905,6 +905,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
 func testAccAzureRMHDInsightHadoopCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -928,6 +932,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMHDInsightHadoopCluster_gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

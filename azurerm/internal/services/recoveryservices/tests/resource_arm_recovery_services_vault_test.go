@@ -171,6 +171,10 @@ func testCheckAzureRMRecoveryServicesVaultExists(resourceName string) resource.T
 
 func testAccAzureRMRecoveryServicesVault_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery-%d"
   location = "%s"
@@ -189,6 +193,10 @@ resource "azurerm_recovery_services_vault" "test" {
 
 func testAccAzureRMRecoveryServicesVault_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery-%d"
   location = "%s"

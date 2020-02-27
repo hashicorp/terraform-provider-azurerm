@@ -62,6 +62,10 @@ func TestAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(t *testing.T) {
 
 func testAccAzureRMIotHubEndpointServiceBusTopic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"

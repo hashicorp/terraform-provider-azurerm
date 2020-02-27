@@ -144,6 +144,10 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 
 func testAccAzureRMAutomationCredential_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -183,6 +187,10 @@ resource "azurerm_automation_credential" "import" {
 
 func testAccAzureRMAutomationCredential_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

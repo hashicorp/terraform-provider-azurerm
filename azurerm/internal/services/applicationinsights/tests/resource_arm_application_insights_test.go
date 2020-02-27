@@ -263,6 +263,10 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 
 func testAccAzureRMApplicationInsights_basic(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -293,6 +297,10 @@ resource "azurerm_application_insights" "import" {
 
 func testAccAzureRMApplicationInsights_complete(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -143,6 +143,10 @@ func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestC
 
 func testAccAzureRMAutomationAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -175,6 +179,10 @@ resource "azurerm_automation_account" "import" {
 
 func testAccAzureRMAutomationAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

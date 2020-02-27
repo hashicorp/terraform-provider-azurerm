@@ -227,6 +227,10 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 
 func testAccAzureRMApiManagement_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -246,6 +250,10 @@ resource "azurerm_api_management" "test" {
 
 func testAccAzureRMApiManagement_policyXmlContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -276,6 +284,10 @@ XML
 
 func testAccAzureRMApiManagement_policyXmlLink(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -299,6 +311,10 @@ resource "azurerm_api_management" "test" {
 
 func testAccAzureRMApiManagement_policyRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -337,6 +353,10 @@ resource "azurerm_api_management" "import" {
 
 func testAccAzureRMApiManagement_customProps(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -361,6 +381,10 @@ resource "azurerm_api_management" "test" {
 
 func testAccAzureRMApiManagement_signInSignUpSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

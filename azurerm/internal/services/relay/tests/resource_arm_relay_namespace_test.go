@@ -146,6 +146,10 @@ func testCheckAzureRMRelayNamespaceDestroy(s *terraform.State) error {
 
 func testAccAzureRMRelayNamespace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -178,6 +182,10 @@ resource "azurerm_relay_namespace" "import" {
 
 func testAccAzureRMRelayNamespace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

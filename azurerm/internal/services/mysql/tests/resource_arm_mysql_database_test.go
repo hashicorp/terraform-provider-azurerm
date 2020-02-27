@@ -156,6 +156,10 @@ func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
 
 func testAccAzureRMMySQLDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -206,6 +210,10 @@ resource "azurerm_mysql_database" "import" {
 
 func testAccAzureRMMySQLDatabase_charsetUppercase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -242,6 +250,10 @@ resource "azurerm_mysql_database" "test" {
 
 func testAccAzureRMMySQLDatabase_charsetMixedcase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

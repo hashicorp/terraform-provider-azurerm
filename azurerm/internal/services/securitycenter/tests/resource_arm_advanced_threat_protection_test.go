@@ -215,6 +215,10 @@ resource "azurerm_advanced_threat_protection" "test" {
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ATP-%d"
   location = "%s"
@@ -248,6 +252,10 @@ resource "azurerm_advanced_threat_protection" "test" {
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ATP-%d"
   location = "%s"

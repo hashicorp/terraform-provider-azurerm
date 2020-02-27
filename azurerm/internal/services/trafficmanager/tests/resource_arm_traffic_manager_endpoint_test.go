@@ -418,6 +418,10 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 
 func testAccAzureRMTrafficManagerEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -486,6 +490,10 @@ resource "azurerm_traffic_manager_endpoint" "import" {
 
 func testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -539,6 +547,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 
 func testAccAzureRMTrafficManagerEndpoint_weight(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -583,6 +595,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 
 func testAccAzureRMTrafficManagerEndpoint_updateWeight(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -626,6 +642,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 }
 func testAccAzureRMTrafficManagerEndpoint_priority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -670,6 +690,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 
 func testAccAzureRMTrafficManagerEndpoint_updatePriority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -714,6 +738,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 
 func testAccAzureRMTrafficManagerEndpoint_subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -768,6 +796,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 
 func testAccAzureRMTrafficManagerEndpoint_updateSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -814,6 +846,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 
 func testAccAzureRMTrafficManagerEndpoint_headers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -862,6 +898,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 
 func testAccAzureRMTrafficManagerEndpoint_updateHeaders(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -910,6 +950,10 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 
 func testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -972,6 +1016,10 @@ resource "azurerm_traffic_manager_endpoint" "externalChild" {
 
 func testAccAzureRMTrafficManagerEndpoint_location(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -1007,6 +1055,10 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 
 func testAccAzureRMTrafficManagerEndpoint_locationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -1042,6 +1094,10 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 
 func testAccAzureRMTrafficManagerEndpoint_geoMappings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -1081,6 +1137,10 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 
 func testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"

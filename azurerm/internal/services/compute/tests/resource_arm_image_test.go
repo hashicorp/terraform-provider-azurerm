@@ -501,6 +501,10 @@ func testCheckAzureRMImageDestroy(s *terraform.State) error {
 
 func testAccAzureRMImage_standaloneImage_setup(data acceptance.TestData, userName string, password string, hostName string, storageType string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -606,6 +610,10 @@ func testAccAzureRMImage_standaloneImage_provision(data acceptance.TestData, use
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -754,6 +762,10 @@ resource "azurerm_image" "import" {
 
 func testAccAzureRMImage_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string, location string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -854,6 +866,10 @@ resource "azurerm_virtual_machine" "testsource" {
 
 func testAccAzureRMImage_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string, location string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1018,6 +1034,10 @@ resource "azurerm_virtual_machine" "testdestination" {
 
 func testAccAzureRMImage_customImage_fromVM_sourceVM(data acceptance.TestData, userName string, password string, hostName string, location string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1098,6 +1118,10 @@ resource "azurerm_virtual_machine" "testsource" {
 
 func testAccAzureRMImage_customImage_fromVM_destinationVM(data acceptance.TestData, userName string, password string, hostName string, location string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1235,6 +1259,10 @@ resource "azurerm_virtual_machine" "testdestination" {
 
 func testAccAzureRMImageVMSS_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string, location string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1335,6 +1363,10 @@ resource "azurerm_virtual_machine" "testsource" {
 
 func testAccAzureRMImageVMSS_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string, location string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

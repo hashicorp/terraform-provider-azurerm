@@ -374,6 +374,10 @@ func TestAccAzureRMSignalRService_cors(t *testing.T) {
 
 func testAccAzureRMSignalRService_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -411,6 +415,10 @@ resource "azurerm_signalr_service" "import" {
 
 func testAccAzureRMSignalRService_standardWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -431,6 +439,10 @@ resource "azurerm_signalr_service" "test" {
 
 func testAccAzureRMSignalRService_withCors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -458,6 +470,10 @@ resource "azurerm_signalr_service" "test" {
 
 func testAccAzureRMSignalRService_withServiceMode(data acceptance.TestData, serviceMode string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

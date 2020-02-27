@@ -47,6 +47,10 @@ func TestAccDataSourceAzureRMDataLakeStore_tier(t *testing.T) {
 
 func testAccDataSourceDataLakeStore_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -67,6 +71,10 @@ data "azurerm_data_lake_store" "test" {
 
 func testAccDataSourceDataLakeStore_tier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

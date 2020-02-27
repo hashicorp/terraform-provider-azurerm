@@ -267,6 +267,10 @@ func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
 
 func testAccAzureRMMySQLServer_basicFiveSix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -295,6 +299,10 @@ resource "azurerm_mysql_server" "test" {
 
 func testAccAzureRMMySQLServer_basicFiveSeven(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -323,6 +331,10 @@ resource "azurerm_mysql_server" "test" {
 
 func testAccAzureRMMySQLServer_basicEightZero(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -376,6 +388,10 @@ resource "azurerm_mysql_server" "import" {
 
 func testAccAzureRMMySQLServer_basicFiveSevenUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -404,6 +420,10 @@ resource "azurerm_mysql_server" "test" {
 
 func testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -432,6 +452,10 @@ resource "azurerm_mysql_server" "test" {
 
 func testAccAzureRMMySQLServer_autogrow(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

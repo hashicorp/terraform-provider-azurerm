@@ -195,6 +195,10 @@ func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsMxRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -226,6 +230,10 @@ resource "azurerm_dns_mx_record" "test" {
 
 func testAccAzureRMDnsMxRecord_rootrecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -280,6 +288,10 @@ resource "azurerm_dns_mx_record" "import" {
 
 func testAccAzureRMDnsMxRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -316,6 +328,10 @@ resource "azurerm_dns_mx_record" "test" {
 
 func testAccAzureRMDnsMxRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -352,6 +368,10 @@ resource "azurerm_dns_mx_record" "test" {
 
 func testAccAzureRMDnsMxRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -270,6 +270,10 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkWatcher_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-watcher-%d"
   location = "%s"
@@ -298,6 +302,10 @@ resource "azurerm_network_watcher" "import" {
 
 func testAccAzureRMNetworkWatcher_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-watcher-%d"
   location = "%s"

@@ -49,6 +49,10 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 
 func testAccDataSourceApplicationSecurityGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -69,6 +73,10 @@ data "azurerm_application_security_group" "test" {
 
 func testAccDataSourceApplicationSecurityGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -188,6 +188,10 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 
 func testAccAzureRMMonitorActivityLogAlert_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -224,6 +228,10 @@ resource "azurerm_monitor_activity_log_alert" "import" {
 
 func testAccAzureRMMonitorActivityLogAlert_singleResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -263,6 +271,10 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 
 func testAccAzureRMMonitorActivityLogAlert_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

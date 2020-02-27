@@ -214,6 +214,10 @@ func TestAccAzureRMLogicAppTriggerRecurrence_startTime(t *testing.T) {
 
 func testAccAzureRMLogicAppTriggerRecurrence_basic(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -236,6 +240,10 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
 
 func testAccAzureRMLogicAppTriggerRecurrence_startTime(data acceptance.TestData, startTime string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

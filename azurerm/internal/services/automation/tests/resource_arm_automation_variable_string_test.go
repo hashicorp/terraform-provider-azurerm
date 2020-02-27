@@ -94,6 +94,10 @@ func testCheckAzureRMAutomationVariableStringDestroy(s *terraform.State) error {
 
 func testAccAzureRMAutomationVariableString_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -117,6 +121,10 @@ resource "azurerm_automation_variable_string" "test" {
 
 func testAccAzureRMAutomationVariableString_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

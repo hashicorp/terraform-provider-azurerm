@@ -231,6 +231,10 @@ func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resou
 
 func testAccAzureRMAppServiceCertificateOrder_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -248,6 +252,10 @@ resource "azurerm_app_service_certificate_order" "test" {
 
 func testAccAzureRMAppServiceCertificateOrder_wildcard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -280,6 +288,10 @@ resource "azurerm_app_service_certificate_order" "import" {
 
 func testAccAzureRMAppServiceCertificateOrder_complete(data acceptance.TestData, keySize int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

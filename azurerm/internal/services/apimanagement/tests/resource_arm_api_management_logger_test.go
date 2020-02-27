@@ -254,6 +254,10 @@ func testCheckAzureRMApiManagementLoggerDestroy(s *terraform.State) error {
 
 func testAccAzureRMApiManagementLogger_basicEventHub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -317,6 +321,10 @@ resource "azurerm_api_management_logger" "import" {
 
 func testAccAzureRMApiManagementLogger_basicApplicationInsights(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -353,6 +361,10 @@ resource "azurerm_api_management_logger" "test" {
 
 func testAccAzureRMApiManagementLogger_complete(data acceptance.TestData, description, buffered string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

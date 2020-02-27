@@ -37,6 +37,10 @@ func TestAccDataSourceAzureRMMsSqlElasticPool_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMMsSqlElasticPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%s"

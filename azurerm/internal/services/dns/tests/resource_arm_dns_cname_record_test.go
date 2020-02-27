@@ -278,6 +278,10 @@ func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsCNameRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -315,6 +319,10 @@ resource "azurerm_dns_cname_record" "import" {
 
 func testAccAzureRMDnsCNameRecord_subdomain(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -337,6 +345,10 @@ resource "azurerm_dns_cname_record" "test" {
 
 func testAccAzureRMDnsCNameRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -359,6 +371,10 @@ resource "azurerm_dns_cname_record" "test" {
 
 func testAccAzureRMDnsCNameRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -386,6 +402,10 @@ resource "azurerm_dns_cname_record" "test" {
 
 func testAccAzureRMDnsCNameRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -412,6 +432,10 @@ resource "azurerm_dns_cname_record" "test" {
 
 func testAccAzureRMDnsCNameRecord_withAlias(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -442,6 +466,10 @@ resource "azurerm_dns_cname_record" "test" {
 
 func testAccAzureRMDnsCNameRecord_withAliasUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -472,6 +500,10 @@ resource "azurerm_dns_cname_record" "test" {
 
 func testAccAzureRMDnsCNameRecord_AliasToRecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -502,6 +534,10 @@ resource "azurerm_dns_cname_record" "test" {
 
 func testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

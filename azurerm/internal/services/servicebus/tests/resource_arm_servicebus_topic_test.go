@@ -294,6 +294,10 @@ func testCheckAzureRMServiceBusTopicExists(resourceName string) resource.TestChe
 
 func testAccAzureRMServiceBusTopic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -328,6 +332,10 @@ resource "azurerm_servicebus_topic" "import" {
 
 func testAccAzureRMServiceBusTopic_basicDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -351,6 +359,10 @@ resource "azurerm_servicebus_topic" "test" {
 
 func testAccAzureRMServiceBusTopic_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -375,6 +387,10 @@ resource "azurerm_servicebus_topic" "test" {
 
 func testAccAzureRMServiceBusTopic_basicPremium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -399,6 +415,10 @@ resource "azurerm_servicebus_topic" "test" {
 
 func testAccAzureRMServiceBusTopic_enablePartitioningStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -423,6 +443,10 @@ resource "azurerm_servicebus_topic" "test" {
 
 func testAccAzureRMServiceBusTopic_enablePartitioningPremium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -448,6 +472,10 @@ resource "azurerm_servicebus_topic" "test" {
 
 func testAccAzureRMServiceBusTopic_enableDuplicateDetection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -471,6 +499,10 @@ resource "azurerm_servicebus_topic" "test" {
 
 func testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

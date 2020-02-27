@@ -455,6 +455,10 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 
 func testAccAzureRMManagedDisk_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -499,6 +503,10 @@ resource "azurerm_managed_disk" "import" {
 
 func testAccAzureRMManagedDisk_empty_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -523,6 +531,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_import(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -565,6 +577,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_copy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -603,6 +619,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_empty_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -769,6 +789,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_create_withUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -795,6 +819,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_update_withUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -957,6 +985,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_managedDiskAttached(data acceptance.TestData, diskSize int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"

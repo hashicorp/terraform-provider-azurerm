@@ -217,6 +217,10 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 
 func testAccAzureRMIotHub_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -263,6 +267,10 @@ resource "azurerm_iothub" "import" {
 
 func testAccAzureRMIotHub_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -287,6 +295,10 @@ resource "azurerm_iothub" "test" {
 
 func testAccAzureRMIotHub_ipFilterRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -317,6 +329,10 @@ resource "azurerm_iothub" "test" {
 
 func testAccAzureRMIotHub_customRoutes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -414,6 +430,10 @@ resource "azurerm_iothub" "test" {
 
 func testAccAzureRMIotHub_fallbackRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -444,6 +464,10 @@ resource "azurerm_iothub" "test" {
 
 func testAccAzureRMIotHub_fileUpload(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

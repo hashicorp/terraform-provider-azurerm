@@ -227,6 +227,10 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) re
 
 func testAccAzureRMMariaDBVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -288,6 +292,10 @@ resource "azurerm_mariadb_virtual_network_rule" "import" {
 
 func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -344,6 +352,10 @@ resource "azurerm_mariadb_virtual_network_rule" "test" {
 
 func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -400,6 +412,10 @@ resource "azurerm_mariadb_virtual_network_rule" "test" {
 
 func testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

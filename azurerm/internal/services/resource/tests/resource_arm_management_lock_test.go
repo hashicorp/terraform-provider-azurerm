@@ -254,6 +254,10 @@ func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
 
 func testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -282,6 +286,10 @@ resource "azurerm_management_lock" "import" {
 
 func testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -298,6 +306,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -313,6 +325,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -329,6 +345,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_publicIPReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -352,6 +372,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

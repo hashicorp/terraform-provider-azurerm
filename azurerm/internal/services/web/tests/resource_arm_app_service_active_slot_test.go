@@ -54,6 +54,10 @@ func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
 
 func testAccAzureRMAppServiceActiveSlot_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -95,6 +99,10 @@ resource "azurerm_app_service_active_slot" "test" {
 
 func testAccAzureRMAppServiceActiveSlot_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -144,6 +152,10 @@ resource "azurerm_app_service_active_slot" "test" {
 
 func testAccAzureRMAppServiceActiveSlot_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

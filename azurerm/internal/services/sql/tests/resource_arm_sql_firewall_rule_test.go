@@ -170,6 +170,10 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 
 func testAccAzureRMSqlFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -210,6 +214,10 @@ resource "azurerm_sql_firewall_rule" "import" {
 
 func testAccAzureRMSqlFirewallRule_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

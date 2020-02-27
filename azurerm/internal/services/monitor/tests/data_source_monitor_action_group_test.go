@@ -138,6 +138,10 @@ func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 
 func testAccDataSourceArmMonitorActionGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -158,6 +162,10 @@ data "azurerm_monitor_action_group" "test" {
 
 func testAccDataSourceArmMonitorActionGroup_disabledBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -179,6 +187,10 @@ data "azurerm_monitor_action_group" "test" {
 
 func testAccDataSourceArmMonitorActionGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

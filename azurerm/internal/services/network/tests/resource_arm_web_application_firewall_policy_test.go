@@ -186,6 +186,10 @@ func testCheckAzureRMWebApplicationFirewallPolicyDestroy(s *terraform.State) err
 
 func testAccAzureRMWebApplicationFirewallPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -201,6 +205,10 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
 func testAccAzureRMWebApplicationFirewallPolicy_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

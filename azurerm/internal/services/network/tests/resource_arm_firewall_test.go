@@ -291,6 +291,10 @@ func testCheckAzureRMFirewallDestroy(s *terraform.State) error {
 
 func testAccAzureRMFirewall_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -334,6 +338,10 @@ resource "azurerm_firewall" "test" {
 
 func testAccAzureRMFirewall_multiplePublicIps(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -409,6 +417,10 @@ resource "azurerm_firewall" "import" {
 
 func testAccAzureRMFirewall_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -457,6 +469,10 @@ resource "azurerm_firewall" "test" {
 
 func testAccAzureRMFirewall_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -505,6 +521,10 @@ resource "azurerm_firewall" "test" {
 func testAccAzureRMFirewall_withZones(data acceptance.TestData, zones []string) string {
 	zoneString := strings.Join(zones, ",")
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

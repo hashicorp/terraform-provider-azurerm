@@ -310,6 +310,10 @@ resource "azurerm_stream_analytics_stream_input_blob" "import" {
 
 func testAccAzureRMStreamAnalyticsStreamInputBlob_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

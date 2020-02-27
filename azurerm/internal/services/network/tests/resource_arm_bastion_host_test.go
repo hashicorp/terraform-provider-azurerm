@@ -80,6 +80,10 @@ func TestAccAzureRMBastionHost_requiresImport(t *testing.T) {
 
 func testAccAzureRMBastionHost_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-bastion-%d"
   location = "%s"
@@ -123,6 +127,10 @@ resource "azurerm_bastion_host" "test" {
 
 func testAccAzureRMBastionHost_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-bastion-%d"
   location = "%s"

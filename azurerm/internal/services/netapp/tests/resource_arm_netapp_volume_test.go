@@ -381,6 +381,10 @@ resource "azurerm_netapp_volume" "test" {
 
 func testAccAzureRMNetAppVolume_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"

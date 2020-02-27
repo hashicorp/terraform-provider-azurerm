@@ -437,6 +437,10 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 
 func testaccAzureRMBatchPool_fixedScale_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchpool"
   location = "%s"
@@ -491,6 +495,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPool_autoScale_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchpool"
   location = "%s"
@@ -550,6 +558,10 @@ EOF
 
 func testaccAzureRMBatchPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchpool"
   location = "%s"
@@ -609,6 +621,10 @@ resource "azurerm_batch_pool" "import" {
 
 func testaccAzureRMBatchPoolStartTask_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchpool"
   location = "%s"
@@ -666,6 +682,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPoolValidateResourceFileWithoutSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -724,6 +744,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPoolValidateResourceFileWithMultipleSources(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -782,6 +806,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -840,6 +868,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPoolValidateResourceFileHttpURLWithoutFilePath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -897,6 +929,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPoolCertificates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -962,6 +998,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPoolContainerConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -1012,6 +1052,10 @@ resource "azurerm_batch_pool" "test" {
 
 func testaccAzureRMBatchPoolCustomImageConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchpool"
   location = "%s"

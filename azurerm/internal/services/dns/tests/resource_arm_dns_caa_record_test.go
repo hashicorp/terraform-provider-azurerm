@@ -174,6 +174,10 @@ func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsCaaRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -257,6 +261,10 @@ resource "azurerm_dns_caa_record" "import" {
 
 func testAccAzureRMDnsCaaRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -308,6 +316,10 @@ resource "azurerm_dns_caa_record" "test" {
 
 func testAccAzureRMDnsCaaRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -346,6 +358,10 @@ resource "azurerm_dns_caa_record" "test" {
 
 func testAccAzureRMDnsCaaRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

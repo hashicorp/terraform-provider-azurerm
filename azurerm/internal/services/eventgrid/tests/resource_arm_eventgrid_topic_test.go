@@ -150,6 +150,10 @@ func testAccAzureRMEventGridTopic_basic(data acceptance.TestData) string {
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -180,6 +184,10 @@ func testAccAzureRMEventGridTopic_basicWithTags(data acceptance.TestData) string
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

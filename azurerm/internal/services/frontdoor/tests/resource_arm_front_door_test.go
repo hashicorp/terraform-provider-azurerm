@@ -240,6 +240,10 @@ func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
 
 func testAccAzureRMFrontDoor_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -353,6 +357,10 @@ resource "azurerm_frontdoor" "import" {
 
 func testAccAzureRMFrontDoor_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -414,6 +422,11 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_waf(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -482,6 +495,10 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_DisableCache(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -544,6 +561,10 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_EnableCache(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -606,6 +627,10 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_CustomHttpsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -671,6 +696,10 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_CustomHttpsDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

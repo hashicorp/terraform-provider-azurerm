@@ -227,6 +227,10 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 
 func testAccAzureRMServiceBusNamespace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -256,6 +260,10 @@ resource "azurerm_servicebus_namespace" "import" {
 
 func testAccAzureRMServiceBusNamespaceNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -272,6 +280,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -289,6 +301,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_basicCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -306,6 +322,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_premiumCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -323,6 +343,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_zoneRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

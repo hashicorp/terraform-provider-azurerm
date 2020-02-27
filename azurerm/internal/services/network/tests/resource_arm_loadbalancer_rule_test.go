@@ -403,6 +403,10 @@ func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.Loa
 
 func testAccAzureRMLoadBalancerRule_template(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-lb-%[1]d"
   location = "%[2]s"

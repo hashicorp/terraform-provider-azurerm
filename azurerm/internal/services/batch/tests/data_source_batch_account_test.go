@@ -75,6 +75,10 @@ func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
 
 func testAccDataSourceAzureRMBatchAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batch"
   location = "%s"
@@ -96,6 +100,10 @@ data "azurerm_batch_account" "test" {
 
 func testAccDataSourceAzureRMBatchAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batch"
   location = "%s"

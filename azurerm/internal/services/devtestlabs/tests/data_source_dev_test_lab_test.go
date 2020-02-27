@@ -47,6 +47,10 @@ func TestAccDataSourceAzureRMDevTestLab_complete(t *testing.T) {
 
 func testAccDataSourceDevTestLab_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -67,6 +71,10 @@ data "azurerm_dev_test_lab" "test" {
 
 func testAccDataSourceDevTestLab_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

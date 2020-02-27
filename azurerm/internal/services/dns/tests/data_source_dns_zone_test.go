@@ -66,6 +66,10 @@ func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 
 func testAccDataSourceDNSZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -85,6 +89,10 @@ data "azurerm_dns_zone" "test" {
 
 func testAccDataSourceDNSZone_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -108,6 +116,10 @@ data "azurerm_dns_zone" "test" {
 
 func testAccDataSourceDNSZone_onlyName(data acceptance.TestData, resourceGroupName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"

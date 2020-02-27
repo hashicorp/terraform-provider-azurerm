@@ -226,6 +226,10 @@ func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkSecurityRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -377,6 +381,10 @@ resource "azurerm_network_security_rule" "test1" {
 
 func testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

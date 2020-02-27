@@ -383,6 +383,10 @@ resource "azurerm_storage_share" "test" {
 
 func testAccAzureRMStorageShare_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

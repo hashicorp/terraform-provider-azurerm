@@ -146,6 +146,10 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -172,6 +176,10 @@ resource "azurerm_dns_zone" "import" {
 
 func testAccAzureRMDnsZone_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -191,6 +199,10 @@ resource "azurerm_dns_zone" "test" {
 
 func testAccAzureRMDnsZone_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

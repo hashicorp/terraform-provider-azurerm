@@ -651,6 +651,10 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 
 func testAccAzureRMStorageAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -701,6 +705,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMStorageAccount_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -723,6 +731,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -745,6 +757,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -768,6 +784,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -791,6 +811,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_isHnsEnabledTrue(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -811,6 +835,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_isHnsEnabledFalse(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -831,6 +859,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -854,6 +886,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobStorageUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -878,6 +914,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blockBlobStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -901,6 +941,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_fileStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -925,6 +969,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_fileStorageUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -949,6 +997,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_storageV2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -972,6 +1024,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_storageV2Update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -996,6 +1052,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1017,6 +1077,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1043,6 +1107,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_networkRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1085,6 +1153,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_networkRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1127,6 +1199,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_networkRulesReverted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1169,6 +1245,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestAzureRMSA-%d"
   location = "%s"
@@ -1201,6 +1281,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobPropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestAzureRMSA-%d"
   location = "%s"
@@ -1240,6 +1324,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_queueProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1288,6 +1376,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_queuePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1344,6 +1436,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_staticWebsiteProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1368,6 +1464,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_staticWebsitePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"

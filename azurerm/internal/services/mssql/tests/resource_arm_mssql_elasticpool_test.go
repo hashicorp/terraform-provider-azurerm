@@ -380,6 +380,10 @@ func testAccAzureRMMsSqlElasticPool_resize_vCore(data acceptance.TestData) strin
 
 func testAccAzureRMMsSqlElasticPool_vCore_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%s"
@@ -418,6 +422,10 @@ resource "azurerm_mssql_elasticpool" "test" {
 
 func testAccAzureRMMsSqlElasticPool_vCore_MaxSizeBytes_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%s"
@@ -456,6 +464,10 @@ resource "azurerm_mssql_elasticpool" "test" {
 
 func testAccAzureRMMsSqlElasticPool_DTU_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%s"

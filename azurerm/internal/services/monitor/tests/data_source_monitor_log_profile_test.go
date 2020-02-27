@@ -64,6 +64,10 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 
 func testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -104,6 +108,10 @@ data "azurerm_monitor_log_profile" "test" {
 
 func testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

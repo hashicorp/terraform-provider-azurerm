@@ -148,6 +148,10 @@ func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
 
 func testAccAzureRMLogicAppWorkflow_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -176,6 +180,10 @@ resource "azurerm_logic_app_workflow" "import" {
 
 func testAccAzureRMLogicAppWorkflow_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

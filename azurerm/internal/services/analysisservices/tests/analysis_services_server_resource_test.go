@@ -211,6 +211,10 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 
 func testAccAzureRMAnalysisServicesServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -227,6 +231,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -247,6 +255,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -268,6 +280,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data acceptance.TestData, connectionMode string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -285,6 +301,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_firewallSettings1(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -302,6 +322,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_firewallSettings2(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -325,6 +349,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_firewallSettings3(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -354,6 +382,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_adminUsers(data acceptance.TestData, adminUsers []string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -371,6 +403,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_serverFullName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -387,6 +423,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

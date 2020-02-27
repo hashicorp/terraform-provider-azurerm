@@ -1397,6 +1397,10 @@ func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.Te
 
 func testAccAzureRMVirtualMachineScaleSet_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1534,6 +1538,10 @@ resource "azurerm_virtual_machine_scale_set" "import" {
 
 func testAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1621,6 +1629,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_standardSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1707,6 +1719,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_withPPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1801,6 +1817,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicPublicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1892,6 +1912,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -1987,6 +2011,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2082,6 +2110,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2178,6 +2210,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2273,6 +2309,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2365,6 +2405,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2451,6 +2495,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicIPForwarding(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2537,6 +2585,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicDNSSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2626,6 +2678,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_bootDiagnostic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2715,6 +2771,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_networkSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2813,6 +2873,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2907,6 +2971,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2993,6 +3061,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_linux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3109,6 +3181,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_linuxUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3229,6 +3305,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_linuxCustomDataUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3345,6 +3425,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_linuxKeyDataUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3461,6 +3545,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3528,6 +3616,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk_withZones(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3595,6 +3687,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(data acceptance.TestData, vmSize string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3681,6 +3777,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3747,6 +3847,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetApplicationGatewayTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -3942,6 +4046,10 @@ resource "azurerm_application_gateway" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4055,6 +4163,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetOverProvisionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4137,6 +4249,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetPriorityTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4221,6 +4337,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetSystemAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4315,6 +4435,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4417,6 +4541,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetExtensionTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4530,6 +4658,10 @@ SETTINGS
 
 func testAccAzureRMVirtualMachineScaleSetExtensionTemplateUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4644,6 +4776,10 @@ SETTINGS
 
 func testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4757,6 +4893,10 @@ SETTINGS
 
 func testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4871,6 +5011,10 @@ SETTINGS
 
 func testAccAzureRMVirtualMachineScaleSet_osDiskTypeConflict(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -4939,6 +5083,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplateManagedDataDisks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -5033,6 +5181,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -5118,6 +5270,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_planManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -5190,6 +5346,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_customImage(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -5349,6 +5509,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -5445,6 +5609,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSet_rollingAutoUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -5587,6 +5755,10 @@ func testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data acceptance.Test
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -5713,6 +5885,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetMultipleAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"

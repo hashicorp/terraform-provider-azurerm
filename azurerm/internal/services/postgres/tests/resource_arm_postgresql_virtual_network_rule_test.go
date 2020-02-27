@@ -239,6 +239,10 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDisappears(resourceName string)
 
 func testAccAzureRMPostgreSQLVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -302,6 +306,10 @@ resource "azurerm_postgresql_virtual_network_rule" "import" {
 
 func testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -359,6 +367,10 @@ resource "azurerm_postgresql_virtual_network_rule" "test" {
 
 func testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -416,6 +428,10 @@ resource "azurerm_postgresql_virtual_network_rule" "test" {
 
 func testAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"

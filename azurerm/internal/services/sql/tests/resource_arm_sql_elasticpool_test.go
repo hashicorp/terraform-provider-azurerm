@@ -180,6 +180,10 @@ func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.Test
 
 func testAccAzureRMSqlElasticPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%[1]d"
   location = "%s"
@@ -224,6 +228,10 @@ resource "azurerm_sql_elasticpool" "import" {
 
 func testAccAzureRMSqlElasticPool_resizedDtu(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%[1]d"
   location = "%s"

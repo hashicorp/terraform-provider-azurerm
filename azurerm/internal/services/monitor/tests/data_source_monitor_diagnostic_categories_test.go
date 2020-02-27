@@ -46,6 +46,10 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T
 
 func testAccDataSourceArmMonitorDiagnosticCategories_appService(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -77,6 +81,10 @@ data "azurerm_monitor_diagnostic_categories" "test" {
 
 func testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

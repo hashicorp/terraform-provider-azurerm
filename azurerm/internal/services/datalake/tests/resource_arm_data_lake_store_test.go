@@ -232,6 +232,10 @@ func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
 
 func testAccAzureRMDataLakeStore_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -260,6 +264,10 @@ resource "azurerm_data_lake_store" "import" {
 
 func testAccAzureRMDataLakeStore_tier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -276,6 +284,10 @@ resource "azurerm_data_lake_store" "test" {
 
 func testAccAzureRMDataLakeStore_encryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -292,6 +304,10 @@ resource "azurerm_data_lake_store" "test" {
 
 func testAccAzureRMDataLakeStore_firewall(data acceptance.TestData, firewallState string, firewallAllowAzureIPs string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -309,6 +325,10 @@ resource "azurerm_data_lake_store" "test" {
 
 func testAccAzureRMDataLakeStore_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -329,6 +349,10 @@ resource "azurerm_data_lake_store" "test" {
 
 func testAccAzureRMDataLakeStore_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

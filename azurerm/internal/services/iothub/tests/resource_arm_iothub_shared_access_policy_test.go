@@ -84,6 +84,10 @@ func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
 
 func testAccAzureRMIotHubSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -133,6 +137,10 @@ resource "azurerm_iothub_shared_access_policy" "import" {
 
 func testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -135,6 +135,10 @@ func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName 
 
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -165,6 +169,10 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -196,6 +204,10 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -233,6 +245,10 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"

@@ -247,6 +247,10 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 
 func testAccAzureRMMySqlVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -296,6 +300,10 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
 
 func testAccAzureRMMySqlVirtualNetworkRule_badsubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -358,6 +366,10 @@ resource "azurerm_mysql_virtual_network_rule" "import" {
 
 func testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -415,6 +427,10 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
 
 func testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -472,6 +488,10 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
 
 func testAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

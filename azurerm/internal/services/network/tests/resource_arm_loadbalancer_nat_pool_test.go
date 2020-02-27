@@ -232,6 +232,10 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 
 func testAccAzureRMLoadBalancerNatPool_basic(data acceptance.TestData, natPoolName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -288,6 +292,10 @@ resource "azurerm_lb_nat_pool" "import" {
 
 func testAccAzureRMLoadBalancerNatPool_removal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -315,6 +323,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancerNatPool_multiplePools(data acceptance.TestData, natPoolName, natPool2Name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -367,6 +379,10 @@ resource "azurerm_lb_nat_pool" "test2" {
 
 func testAccAzureRMLoadBalancerNatPool_multiplePoolsUpdate(data acceptance.TestData, natPoolName, natPool2Name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

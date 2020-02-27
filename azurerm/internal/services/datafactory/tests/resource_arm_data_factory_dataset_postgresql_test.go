@@ -126,6 +126,10 @@ func testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy(s *terraform.State) err
 
 func testAccAzureRMDataFactoryDatasetPostgreSQL_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -155,6 +159,10 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
 
 func testAccAzureRMDataFactoryDatasetPostgreSQL_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -205,6 +213,10 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
 
 func testAccAzureRMDataFactoryDatasetPostgreSQL_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

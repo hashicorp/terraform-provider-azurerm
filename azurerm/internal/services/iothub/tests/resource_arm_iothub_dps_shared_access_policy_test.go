@@ -91,6 +91,10 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *t
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -118,6 +122,10 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -145,6 +153,10 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -172,6 +184,10 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

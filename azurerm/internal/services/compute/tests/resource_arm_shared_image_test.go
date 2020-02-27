@@ -140,6 +140,10 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 
 func testAccAzureRMSharedImage_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -190,6 +194,10 @@ resource "azurerm_shared_image" "import" {
 
 func testAccAzureRMSharedImage_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

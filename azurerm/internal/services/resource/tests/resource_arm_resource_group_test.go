@@ -186,6 +186,10 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 
 func testAccAzureRMResourceGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -207,6 +211,10 @@ resource "azurerm_resource_group" "import" {
 
 func testAccAzureRMResourceGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -221,6 +229,10 @@ resource "azurerm_resource_group" "test" {
 
 func testAccAzureRMResourceGroup_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

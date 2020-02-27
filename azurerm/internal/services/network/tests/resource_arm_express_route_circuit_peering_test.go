@@ -167,6 +167,10 @@ func testCheckAzureRMExpressRouteCircuitPeeringDestroy(s *terraform.State) error
 
 func testAccAzureRMExpressRouteCircuitPeering_privatePeering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -224,6 +228,10 @@ resource "azurerm_express_route_circuit_peering" "import" {
 
 func testAccAzureRMExpressRouteCircuitPeering_msPeering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -266,6 +274,10 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
 func testAccAzureRMExpressRouteCircuitPeering_privatePeeringWithCircuitUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

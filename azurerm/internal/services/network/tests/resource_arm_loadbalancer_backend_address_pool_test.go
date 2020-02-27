@@ -188,6 +188,10 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 
 func testAccAzureRMLoadBalancerBackEndAddressPool_basic(data acceptance.TestData, addressPoolName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -234,6 +238,10 @@ resource "azurerm_lb_backend_address_pool" "import" {
 
 func testAccAzureRMLoadBalancerBackEndAddressPool_removal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

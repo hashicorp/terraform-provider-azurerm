@@ -340,6 +340,10 @@ func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestChe
 
 func testAccAzureRMServiceBusQueue_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -375,6 +379,10 @@ resource "azurerm_servicebus_queue" "import" {
 
 func testAccAzureRMServiceBusQueue_Premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -400,6 +408,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -424,6 +436,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enablePartitioningStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -448,6 +464,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enableDuplicateDetection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -471,6 +491,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enableRequiresSession(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -495,6 +519,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -519,6 +547,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_lockDuration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -542,6 +574,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_lockDurationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -565,6 +601,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -591,6 +631,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_maxDeliveryCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

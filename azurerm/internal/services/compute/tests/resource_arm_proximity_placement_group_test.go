@@ -196,6 +196,10 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 
 func testAccProximityPlacementGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -224,6 +228,10 @@ resource "azurerm_proximity_placement_group" "import" {
 
 func testAccProximityPlacementGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -244,6 +252,10 @@ resource "azurerm_proximity_placement_group" "test" {
 
 func testAccProximityPlacementGroup_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

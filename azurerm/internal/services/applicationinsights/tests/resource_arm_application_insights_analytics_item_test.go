@@ -174,6 +174,10 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -198,6 +202,10 @@ resource "azurerm_application_insights_analytics_item" "test" {
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_basic2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -222,6 +230,10 @@ resource "azurerm_application_insights_analytics_item" "test" {
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

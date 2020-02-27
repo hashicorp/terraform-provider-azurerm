@@ -132,6 +132,10 @@ func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.Te
 
 func testAccAzureRMLogAnalyticsSolution_containerMonitoring(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -181,6 +185,10 @@ resource "azurerm_log_analytics_solution" "import" {
 
 func testAccAzureRMLogAnalyticsSolution_security(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

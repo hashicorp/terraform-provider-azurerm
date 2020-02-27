@@ -174,6 +174,10 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 
 func testAccAzureRMVirtualMachineExtension_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -297,6 +301,10 @@ resource "azurerm_virtual_machine_extension" "import" {
 
 func testAccAzureRMVirtualMachineExtension_basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -402,6 +410,10 @@ SETTINGS
 
 func testAccAzureRMVirtualMachineExtension_concurrent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -517,6 +529,10 @@ SETTINGS
 
 func testAccAzureRMVirtualMachineExtension_linuxDiagnostics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

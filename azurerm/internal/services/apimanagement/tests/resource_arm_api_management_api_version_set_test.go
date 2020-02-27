@@ -257,6 +257,10 @@ resource "azurerm_api_management_api_version_set" "test" {
 
 func testAccAzureRMApiManagementApiVersionSet_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

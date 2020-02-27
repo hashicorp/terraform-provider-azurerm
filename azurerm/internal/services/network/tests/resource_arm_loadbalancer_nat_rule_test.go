@@ -303,6 +303,10 @@ func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *netwo
 
 func testAccAzureRMLoadBalancerNatRule_template(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-lb-%[1]d"
   location = "%[2]s"

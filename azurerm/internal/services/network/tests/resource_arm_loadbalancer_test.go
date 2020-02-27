@@ -256,6 +256,10 @@ func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
 
 func testAccAzureRMLoadBalancer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -294,6 +298,10 @@ resource "azurerm_lb" "import" {
 
 func testAccAzureRMLoadBalancer_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -315,6 +323,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancer_updatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -334,6 +346,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancer_frontEndConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -373,6 +389,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancer_frontEndConfigRemovalWithIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -407,6 +427,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -435,6 +459,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancer_frontEndConfigRemoval(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -462,6 +490,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMLoadBalancer_emptyIPAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

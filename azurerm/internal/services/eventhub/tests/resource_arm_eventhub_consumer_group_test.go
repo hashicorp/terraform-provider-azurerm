@@ -164,6 +164,10 @@ func testCheckAzureRMEventHubConsumerGroupExists(resourceName string) resource.T
 
 func testAccAzureRMEventHubConsumerGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -209,6 +213,10 @@ resource "azurerm_eventhub_consumer_group" "import" {
 
 func testAccAzureRMEventHubConsumerGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

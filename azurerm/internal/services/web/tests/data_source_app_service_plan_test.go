@@ -101,6 +101,10 @@ func TestAccDataSourceAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) 
 
 func testAccDataSourceAppServicePlan_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -126,6 +130,10 @@ data "azurerm_app_service_plan" "test" {
 
 func testAccDataSourceAppServicePlan_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -158,6 +166,10 @@ data "azurerm_app_service_plan" "test" {
 
 func testAccDataSourceAppServicePlan_premiumSKU(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -191,6 +203,10 @@ data "azurerm_app_service_plan" "test" {
 
 func testAccDataSourceAppServicePlan_basicWindowsContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

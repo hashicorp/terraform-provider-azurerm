@@ -193,6 +193,10 @@ func testCheckAzureRMNetworkProfileDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -262,6 +266,10 @@ resource "azurerm_network_profile" "import" {
 
 func testAccAzureRMNetworkProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -314,6 +322,10 @@ resource "azurerm_network_profile" "test" {
 
 func testAccAzureRMNetworkProfile_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -234,6 +234,10 @@ func testCheckAzureAppConfigurationExists(resourceName string) resource.TestChec
 
 func testAccAzureAppConfiguration_free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -250,6 +254,10 @@ resource "azurerm_app_configuration" "test" {
 
 func testAccAzureAppConfiguration_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -280,6 +288,10 @@ resource "azurerm_app_configuration" "import" {
 
 func testAccAzureAppConfiguration_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -300,6 +312,10 @@ resource "azurerm_app_configuration" "test" {
 
 func testAccAzureAppConfiguration_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -138,6 +138,10 @@ func testCheckAzureRMPrivateDnsZoneDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateDnsZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -164,6 +168,10 @@ resource "azurerm_private_dns_zone" "import" {
 
 func testAccAzureRMPrivateDnsZone_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -183,6 +191,10 @@ resource "azurerm_private_dns_zone" "test" {
 
 func testAccAzureRMPrivateDnsZone_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

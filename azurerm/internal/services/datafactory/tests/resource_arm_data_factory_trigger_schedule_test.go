@@ -120,6 +120,10 @@ func testCheckAzureRMDataFactoryTriggerScheduleDestroy(s *terraform.State) error
 
 func testAccAzureRMDataFactoryTriggerSchedule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -154,6 +158,10 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 
 func testAccAzureRMDataFactoryTriggerSchedule_update(data acceptance.TestData, endTime string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-datafactory-%d"
   location = "%s"

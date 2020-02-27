@@ -62,6 +62,10 @@ func TestAccDataSourceAzureRMStorageAccount_withWriteLock(t *testing.T) {
 
 func testAccDataSourceAzureRMStorageAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"

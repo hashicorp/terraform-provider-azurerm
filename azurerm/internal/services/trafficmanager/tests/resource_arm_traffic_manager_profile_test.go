@@ -236,6 +236,10 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 func testAccAzureRMTrafficManagerProfile_basic(data acceptance.TestData, method string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%[1]d"
   location = "%[2]s"
@@ -286,6 +290,10 @@ resource "azurerm_traffic_manager_profile" "import" {
 
 func testAccAzureRMTrafficManagerProfile_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -325,6 +333,10 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 func testAccAzureRMTrafficManagerProfile_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -363,6 +375,10 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 func testAccAzureRMTrafficManagerProfile_failoverError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"

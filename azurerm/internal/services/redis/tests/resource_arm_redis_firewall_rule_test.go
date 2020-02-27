@@ -158,6 +158,10 @@ func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
 
 func testAccAzureRMRedisFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -221,6 +225,10 @@ resource "azurerm_redis_firewall_rule" "import" {
 
 func testAccAzureRMRedisFirewallRule_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

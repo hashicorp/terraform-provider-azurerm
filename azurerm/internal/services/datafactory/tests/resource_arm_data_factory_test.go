@@ -246,6 +246,10 @@ func testCheckAzureRMDataFactoryDestroy(s *terraform.State) error {
 
 func testAccAzureRMDataFactory_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -261,6 +265,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -280,6 +288,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -300,6 +312,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -319,6 +335,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_github(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -342,6 +362,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_githubUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

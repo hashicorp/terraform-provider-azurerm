@@ -258,6 +258,10 @@ func TestValidateArmStorageTableName(t *testing.T) {
 
 func testAccAzureRMStorageTable_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -296,6 +300,10 @@ resource "azurerm_storage_table" "import" {
 
 func testAccAzureRMStorageTable_acl(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -331,6 +339,10 @@ resource "azurerm_storage_table" "test" {
 
 func testAccAzureRMStorageTable_aclUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

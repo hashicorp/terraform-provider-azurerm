@@ -190,6 +190,10 @@ resource "azurerm_iothub_route" "import" {
 
 func testAccAzureRMIotHubRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
@@ -252,6 +256,10 @@ resource "azurerm_iothub_route" "test" {
 
 func testAccAzureRMIotHubRoute_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
