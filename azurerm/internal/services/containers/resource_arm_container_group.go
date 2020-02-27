@@ -69,7 +69,6 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				Set:      resourceArmContainerGroupPortsHash,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -77,7 +76,6 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							Computed:     true,
 							ValidateFunc: validate.PortNumber,
 						},
 
@@ -85,8 +83,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
-							Computed: true,
-							//Default:  string(containerinstance.TCP), restore in 2.0
+							Default:  string(containerinstance.TCP),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerinstance.TCP),
 								string(containerinstance.UDP),
