@@ -162,7 +162,7 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionSlotRead(d *schema.Resour
 	}
 	d.Set("subnet_id", subnetID)
 	d.Set("app_service_id", appService.ID)
-	d.Set("slot_name", slot.Name)
+	d.Set("slot_name", slotName)
 	return nil
 }
 
