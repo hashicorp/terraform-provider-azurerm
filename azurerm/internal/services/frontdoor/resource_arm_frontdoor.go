@@ -261,6 +261,11 @@ func resourceArmFrontDoor() *schema.Resource {
 							Required:     true,
 							ValidateFunc: ValidateBackendPoolRoutingRuleName,
 						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 						"path": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -862,6 +867,12 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 		protocol := v["protocol"].(string)
 		intervalInSeconds := int32(v["interval_in_seconds"].(int))
 		name := v["name"].(string)
+		enabled := v["enabled"].(bool)
+
+		healthProbeEnabled := frontdoor.HealthProbeEnabledEnabled
+		if !enabled {
+			healthProbeEnabled = frontdoor.HealthProbeEnabledDisabled
+		}
 
 		result := frontdoor.HealthProbeSettingsModel{
 			ID:   utils.String(frontDoorPath + "/HealthProbeSettings/" + name),
@@ -870,6 +881,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 				IntervalInSeconds: utils.Int32(intervalInSeconds),
 				Path:              utils.String(path),
 				Protocol:          frontdoor.Protocol(protocol),
+				EnabledState:      healthProbeEnabled,
 			},
 		}
 
@@ -1295,6 +1307,9 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 			}
 			if path := properties.Path; path != nil {
 				result["path"] = *path
+			}
+			if enabled := properties.EnabledState; enabled != "" {
+				result["enabled"] = (enabled == frontdoor.HealthProbeEnabledEnabled)
 			}
 			result["protocol"] = string(properties.Protocol)
 		}
