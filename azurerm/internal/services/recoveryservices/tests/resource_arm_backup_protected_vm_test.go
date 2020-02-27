@@ -507,10 +507,10 @@ func testAccAzureRMBackupProtectedVm_withVM(data acceptance.TestData) string {
 %s
 
 resource "azurerm_virtual_machine" "test" {
-  name                = "acctestvm-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  vm_size             = "Standard_A0"
+  name                          = "acctestvm-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  vm_size                       = "Standard_A0"
   network_interface_ids         = [azurerm_network_interface.test.id]
   delete_os_disk_on_termination = true
 

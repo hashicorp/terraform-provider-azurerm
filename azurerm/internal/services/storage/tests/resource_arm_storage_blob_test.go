@@ -809,7 +809,8 @@ provider "azurerm" {
   storage_use_azuread = true
 }
 
-%s`, template)
+%s
+`, template)
 }
 
 func testAccAzureRMStorageBlob_blockEmptyMetaData(data acceptance.TestData) string {

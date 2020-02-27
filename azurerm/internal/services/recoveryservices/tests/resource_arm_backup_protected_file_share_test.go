@@ -208,9 +208,9 @@ resource "azurerm_storage_share" "test" {
   name                 = "acctest-ss-%[1]d"
   storage_account_name = "${azurerm_storage_account.test.name}"
   metadata             = {}
-  
+
   lifecycle {
-	ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
   }
 }
 

@@ -147,11 +147,11 @@ data "azurerm_key_vault" "test" {
 func testAccDataSourceAzureRMKeyVault_enableSoftDelete(data acceptance.TestData) string {
 	r := testAccAzureRMKeyVault_softDelete(data, true)
 	return fmt.Sprintf(`
-%s 
+%s
 
-data "azurerm_key_vault" "test" { 
-  name                = "${azurerm_key_vault.test.name}" 
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}" 
-} 
+data "azurerm_key_vault" "test" {
+  name                = azurerm_key_vault.test.name
+  resource_group_name = azurerm_key_vault.test.resource_group_name
+}
 `, r)
 }

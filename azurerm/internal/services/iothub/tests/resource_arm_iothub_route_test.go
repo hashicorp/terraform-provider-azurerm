@@ -180,8 +180,8 @@ resource "azurerm_iothub_route" "import" {
   iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
-  source    = "DeviceMessages"
-  condition = "true"
+  source         = "DeviceMessages"
+  condition      = "true"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = true
 }

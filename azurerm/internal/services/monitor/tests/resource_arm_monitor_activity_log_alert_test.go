@@ -217,7 +217,7 @@ func testAccAzureRMMonitorActivityLogAlert_requiresImport(data acceptance.TestDa
 resource "azurerm_monitor_activity_log_alert" "import" {
   name                = azurerm_monitor_activity_log_alert.test.name
   resource_group_name = azurerm_monitor_activity_log_alert.test.resource_group_name
-  scopes = [azurerm_resource_group.test.id]
+  scopes              = [azurerm_resource_group.test.id]
 
   criteria {
     category = "Recommendation"

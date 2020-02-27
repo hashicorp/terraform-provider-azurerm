@@ -1220,9 +1220,9 @@ func testAccAzureRMVirtualMachine_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_virtual_machine" "import" {
-  name                = azurerm_virtual_machine.test.name
-  location            = azurerm_virtual_machine.test.location
-  resource_group_name = azurerm_virtual_machine.test.resource_group_name
+  name                  = azurerm_virtual_machine.test.name
+  location              = azurerm_virtual_machine.test.location
+  resource_group_name   = azurerm_virtual_machine.test.resource_group_name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 

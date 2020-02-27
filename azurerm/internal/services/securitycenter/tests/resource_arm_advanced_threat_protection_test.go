@@ -237,7 +237,8 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-%s`, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
+%s
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
 }
 
 func testAccAzureRMAdvancedThreatProtection_cosmosAccount(data acceptance.TestData, hasResource, enabled bool) string {
@@ -277,5 +278,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 
-%s`, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
+%s
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
 }

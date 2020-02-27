@@ -729,9 +729,9 @@ resource "azurerm_key_vault" "test" {
   }
 
   network_acls {
-    default_action = "Allow"
-    bypass         = "AzureServices"
-    ip_rules       = ["123.0.0.102/32"]
+    default_action             = "Allow"
+    bypass                     = "AzureServices"
+    ip_rules                   = ["123.0.0.102/32"]
     virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
   }
 }
@@ -999,7 +999,8 @@ resource "azurerm_key_vault" "test" {
   %s
 }
 
-%s`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessPoliciesConfigs, storageAccountConfigs)
+%s
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessPoliciesConfigs, storageAccountConfigs)
 }
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
@@ -1077,7 +1078,8 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

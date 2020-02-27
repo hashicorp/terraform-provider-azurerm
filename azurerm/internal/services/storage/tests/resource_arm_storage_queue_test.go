@@ -237,7 +237,8 @@ provider "azurerm" {
   storage_use_azuread = true
 }
 
-%s`, template)
+%s
+`, template)
 }
 
 func testAccAzureRMStorageQueue_requiresImport(data acceptance.TestData) string {
