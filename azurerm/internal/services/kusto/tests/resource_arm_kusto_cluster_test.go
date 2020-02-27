@@ -30,7 +30,7 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_propsUpdate(t *testing.T) {
+func TestAccAzureRMKustoCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -205,7 +205,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_propsUpdate(data acceptance.TestData) string {
+func testAccAzureRMKustoCluster_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

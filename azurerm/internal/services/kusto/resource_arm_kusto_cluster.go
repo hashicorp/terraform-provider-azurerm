@@ -141,7 +141,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	clusterProperties := kusto.ClusterProperties{
-		EnableDiskEncryption:  utils.Bool(enableDiskEncryption),
+		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(enableStreamingIngest),
 	}
 
