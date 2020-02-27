@@ -30,7 +30,7 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_propsUpdate(t *testing.T) {
+func TestAccAzureRMKustoCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -46,12 +46,22 @@ func TestAccAzureRMKustoCluster_propsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
 				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMKustoCluster_propsUpdate(data),
+				Config: testAccAzureRMKustoCluster_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "true"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKustoCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -205,7 +215,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_propsUpdate(data acceptance.TestData) string {
+func testAccAzureRMKustoCluster_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

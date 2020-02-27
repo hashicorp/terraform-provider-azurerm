@@ -132,8 +132,6 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	enableDiskEncryption := d.Get("enable_disk_encryption").(bool)
-	enableStreamingIngest := d.Get("enable_streaming_ingest").(bool)
 
 	sku, err := expandKustoClusterSku(d)
 	if err != nil {
@@ -141,8 +139,8 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	clusterProperties := kusto.ClusterProperties{
-		EnableDiskEncryption:  utils.Bool(enableDiskEncryption),
-		EnableStreamingIngest: utils.Bool(enableStreamingIngest),
+		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
+		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 	}
 
 	t := d.Get("tags").(map[string]interface{})

@@ -60,6 +60,7 @@ A `sku` block supports the following:
 
 * `capacity` - (Required) Specifies the node count for the cluster. Boundaries depend on the sku name.
 
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -71,6 +72,8 @@ The following attributes are exported:
 * `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
 
 ## Timeouts
+
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
