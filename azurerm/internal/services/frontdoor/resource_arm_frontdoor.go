@@ -1276,12 +1276,13 @@ func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *[]frontd
 }
 
 func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return make([]interface{}, 0)
+		return results
 	}
-	result := make(map[string]interface{})
 
 	for _, v := range *input {
+		result := make(map[string]interface{})
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
@@ -1297,19 +1298,21 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 			}
 			result["protocol"] = string(properties.Protocol)
 		}
+
+		results = append(results, result)
 	}
 
-	return []interface{}{result}
+	return results
 }
 
 func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return make([]interface{}, 0)
+		return results
 	}
 
-	result := make(map[string]interface{})
-
 	for _, v := range *input {
+		result := make(map[string]interface{})
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
@@ -1327,8 +1330,11 @@ func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalanc
 				result["successful_samples_required"] = *successfulSamplesRequired
 			}
 		}
+
+		results = append(results, result)
 	}
-	return []interface{}{result}
+
+	return results
 }
 
 func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}) []interface{} {
