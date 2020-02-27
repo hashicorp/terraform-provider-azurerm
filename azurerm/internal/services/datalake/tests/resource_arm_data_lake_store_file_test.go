@@ -187,14 +187,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   firewall_state      = "Disabled"
 }
 
 resource "azurerm_data_lake_store_file" "test" {
   remote_file_path = "/test/application_gateway_test.cer"
-  account_name     = "${azurerm_data_lake_store.test.name}"
+  account_name     = azurerm_data_lake_store.test.name
   local_file_path  = "./testdata/application_gateway_test.cer"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
@@ -209,14 +209,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
   firewall_state      = "Disabled"
 }
 
 resource "azurerm_data_lake_store_file" "test" {
   remote_file_path = "/test/testAccAzureRMDataLakeStoreFile_largefiles.bin"
-  account_name     = "${azurerm_data_lake_store.test.name}"
+  account_name     = azurerm_data_lake_store.test.name
   local_file_path  = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary, file)
@@ -228,8 +228,8 @@ func testAccAzureRMDataLakeStoreFile_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_data_lake_store_file" "import" {
-  remote_file_path = "${azurerm_data_lake_store_file.test.remote_file_path}"
-  account_name     = "${azurerm_data_lake_store_file.test.name}"
+  remote_file_path = azurerm_data_lake_store_file.test.remote_file_path
+  account_name     = azurerm_data_lake_store_file.test.name
   local_file_path  = "./testdata/application_gateway_test.cer"
 }
 `, template)

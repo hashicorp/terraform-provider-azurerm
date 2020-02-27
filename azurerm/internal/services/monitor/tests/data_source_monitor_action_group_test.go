@@ -145,13 +145,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 data "azurerm_monitor_action_group" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_monitor_action_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_monitor_action_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -165,14 +165,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
   enabled             = false
 }
 
 data "azurerm_monitor_action_group" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_monitor_action_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_monitor_action_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

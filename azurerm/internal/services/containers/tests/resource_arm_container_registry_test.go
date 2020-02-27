@@ -487,8 +487,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Basic"
 
   # make sure network_rule_set is empty for basic SKU
@@ -507,8 +507,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
@@ -520,11 +520,10 @@ func testAccAzureRMContainerRegistry_requiresImport(data acceptance.TestData, sk
 %s
 
 resource "azurerm_container_registry" "import" {
-  name                = "${azurerm_container_registry.test.name}"
-  resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
-  location            = "${azurerm_container_registry.test.location}"
-  sku                 = "${azurerm_container_registry.test.sku}"
-
+  name                = azurerm_container_registry.test.name
+  resource_group_name = azurerm_container_registry.test.resource_group_name
+  location            = azurerm_container_registry.test.location
+  sku                 = azurerm_container_registry.test.sku
 }
 `, template)
 }
@@ -538,8 +537,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   admin_enabled       = false
   sku                 = "Basic"
 
@@ -559,8 +558,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   admin_enabled       = true
   sku                 = "Basic"
 
@@ -580,8 +579,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                     = "testacccr%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   sku                      = "%s"
   georeplication_locations = ["%s"]
 }
@@ -597,8 +596,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
@@ -613,8 +612,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Basic"
 
   # make sure network_rule_set is empty for basic SKU
@@ -633,8 +632,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testAccCr%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
   admin_enabled       = false
 
@@ -664,15 +663,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "virtualNetwork1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 
   service_endpoints = ["Microsoft.ContainerRegistry"]
@@ -680,8 +679,8 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testAccCr%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   admin_enabled       = false
 
@@ -695,7 +694,7 @@ resource "azurerm_container_registry" "test" {
 
     virtual_network {
       action    = "Allow"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 }
@@ -711,15 +710,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "virtualNetwork1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 
   service_endpoints = ["Microsoft.ContainerRegistry"]
@@ -727,8 +726,8 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_container_registry" "test" {
   name                = "testAccCr%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   admin_enabled       = false
 
@@ -742,7 +741,7 @@ resource "azurerm_container_registry" "test" {
 
     virtual_network {
       action    = "Allow"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 }

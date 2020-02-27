@@ -171,16 +171,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_runbook" "test" {
   name                    = "Get-AzureVMTutorial"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
 
   log_verbose  = "true"
   log_progress = "true"
@@ -200,10 +200,10 @@ func testAccAzureRMAutomationRunbook_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_automation_runbook" "import" {
-  name                    = "${azurerm_automation_runbook.test.name}"
-  location                = "${azurerm_automation_runbook.test.location}"
-  resource_group_name     = "${azurerm_automation_runbook.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_runbook.test.automation_account_name}"
+  name                    = azurerm_automation_runbook.test.name
+  location                = azurerm_automation_runbook.test.location
+  resource_group_name     = azurerm_automation_runbook.test.resource_group_name
+  automation_account_name = azurerm_automation_runbook.test.automation_account_name
 
   log_verbose  = "true"
   log_progress = "true"
@@ -226,16 +226,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_runbook" "test" {
   name                    = "Get-AzureVMTutorial"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
 
   log_verbose  = "true"
   log_progress = "true"
@@ -264,16 +264,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_runbook" "test" {
   name                    = "Get-AzureVMTutorial"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
 
   log_verbose  = "true"
   log_progress = "true"
@@ -288,6 +288,7 @@ resource "azurerm_automation_runbook" "test" {
 # Some test content
 # for Terraform acceptance test
 CONTENT
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

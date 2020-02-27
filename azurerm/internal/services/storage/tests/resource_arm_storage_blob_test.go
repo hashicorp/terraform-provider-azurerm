@@ -763,8 +763,8 @@ func testAccAzureRMStorageBlob_appendEmpty(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Append"
 }
 `, template)
@@ -777,8 +777,8 @@ func testAccAzureRMStorageBlob_appendEmptyMetaData(data acceptance.TestData) str
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Append"
 
   metadata = {
@@ -795,8 +795,8 @@ func testAccAzureRMStorageBlob_blockEmpty(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
 }
 `, template)
@@ -809,8 +809,7 @@ provider "azurerm" {
   storage_use_azuread = true
 }
 
-%s
-`, template)
+%s`, template)
 }
 
 func testAccAzureRMStorageBlob_blockEmptyMetaData(data acceptance.TestData) string {
@@ -820,8 +819,8 @@ func testAccAzureRMStorageBlob_blockEmptyMetaData(data acceptance.TestData) stri
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
 
   metadata = {
@@ -838,8 +837,8 @@ func testAccAzureRMStorageBlob_blockEmptyAccessTier(data acceptance.TestData, ac
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   access_tier            = "%s"
 }
@@ -853,8 +852,8 @@ func testAccAzureRMStorageBlob_blockFromInlineContent(data acceptance.TestData) 
 
 resource "azurerm_storage_blob" "test" {
   name                   = "rick.morty"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source_content         = "Wubba Lubba Dub Dub"
 }
@@ -868,8 +867,8 @@ func testAccAzureRMStorageBlob_blockFromPublicBlob(data acceptance.TestData) str
 
 resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
@@ -877,17 +876,17 @@ resource "azurerm_storage_blob" "source" {
 
 resource "azurerm_storage_container" "second" {
   name                  = "second"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.second.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.second.name
   type                   = "Block"
-  source_uri             = "${azurerm_storage_blob.source.id}"
-  content_type           = "${azurerm_storage_blob.source.content_type}"
+  source_uri             = azurerm_storage_blob.source.id
+  content_type           = azurerm_storage_blob.source.content_type
 }
 `, template)
 }
@@ -899,8 +898,8 @@ func testAccAzureRMStorageBlob_blockFromPublicFile(data acceptance.TestData) str
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
@@ -915,8 +914,8 @@ func testAccAzureRMStorageBlob_blockFromExistingBlob(data acceptance.TestData) s
 
 resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
@@ -924,11 +923,11 @@ resource "azurerm_storage_blob" "source" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
-  source_uri             = "${azurerm_storage_blob.source.id}"
-  content_type           = "${azurerm_storage_blob.source.content_type}"
+  source_uri             = azurerm_storage_blob.source.id
+  content_type           = azurerm_storage_blob.source.content_type
 }
 `, template)
 }
@@ -940,8 +939,8 @@ func testAccAzureRMStorageBlob_blockFromLocalBlob(data acceptance.TestData, file
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source                 = "%s"
 }
@@ -955,8 +954,8 @@ func testAccAzureRMStorageBlob_contentType(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   size                   = 5120
   content_type           = "image/png"
@@ -971,8 +970,8 @@ func testAccAzureRMStorageBlob_contentTypePremium(data acceptance.TestData) stri
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   size                   = 5120
   content_type           = "image/png"
@@ -987,8 +986,8 @@ func testAccAzureRMStorageBlob_contentTypeUpdated(data acceptance.TestData) stri
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.ext"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   size                   = 5120
   content_type           = "image/gif"
@@ -1003,8 +1002,8 @@ func testAccAzureRMStorageBlob_pageEmpty(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   size                   = 5120
 }
@@ -1018,8 +1017,8 @@ func testAccAzureRMStorageBlob_pageEmptyPremium(data acceptance.TestData) string
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   size                   = 5120
 }
@@ -1033,8 +1032,8 @@ func testAccAzureRMStorageBlob_pageEmptyMetaData(data acceptance.TestData) strin
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   size                   = 5120
 
@@ -1052,8 +1051,8 @@ func testAccAzureRMStorageBlob_pageFromExistingBlob(data acceptance.TestData) st
 
 resource "azurerm_storage_blob" "source" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   size                   = 5120
   content_type           = "application/x-iso9660-image"
@@ -1061,11 +1060,11 @@ resource "azurerm_storage_blob" "source" {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "copied.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
-  source_uri             = "${azurerm_storage_blob.source.id}"
-  content_type           = "${azurerm_storage_blob.source.content_type}"
+  source_uri             = azurerm_storage_blob.source.id
+  content_type           = azurerm_storage_blob.source.content_type
 }
 `, template)
 }
@@ -1077,8 +1076,8 @@ func testAccAzureRMStorageBlob_pageFromLocalBlob(data acceptance.TestData, fileN
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Page"
   source                 = "%s"
 }
@@ -1123,11 +1122,11 @@ func testAccAzureRMStorageBlob_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_blob" "import" {
-  name                   = "${azurerm_storage_blob.test.name}"
-  storage_account_name   = "${azurerm_storage_blob.test.storage_account_name}"
-  storage_container_name = "${azurerm_storage_blob.test.storage_container_name}"
-  type                   = "${azurerm_storage_blob.test.type}"
-  size                   = "${azurerm_storage_blob.test.size}"
+  name                   = azurerm_storage_blob.test.name
+  storage_account_name   = azurerm_storage_blob.test.storage_account_name
+  storage_container_name = azurerm_storage_blob.test.storage_container_name
+  type                   = azurerm_storage_blob.test.type
+  size                   = azurerm_storage_blob.test.size
 }
 `, template)
 }
@@ -1139,8 +1138,8 @@ func testAccAzureRMStorageBlob_update(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   size                   = 5120
   content_type           = "vnd/panda+pops"
@@ -1158,8 +1157,8 @@ func testAccAzureRMStorageBlob_updateUpdated(data acceptance.TestData) string {
 
 resource "azurerm_storage_blob" "test" {
   name                   = "example.vhd"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   size                   = 5120
   content_type           = "vnd/mountain-mover-3000"
@@ -1180,15 +1179,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
@@ -1203,8 +1202,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -1212,7 +1211,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
@@ -1227,15 +1226,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Premium"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)

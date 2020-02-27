@@ -108,8 +108,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Basic"
@@ -118,8 +118,8 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 data "azurerm_app_service_plan" "test" {
-  name                = "${azurerm_app_service_plan.test.name}"
-  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  name                = azurerm_app_service_plan.test.name
+  resource_group_name = azurerm_app_service_plan.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -133,8 +133,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Windows"
 
   sku {
@@ -150,8 +150,8 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 data "azurerm_app_service_plan" "test" {
-  name                = "${azurerm_app_service_plan.test.name}"
-  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  name                = azurerm_app_service_plan.test.name
+  resource_group_name = azurerm_app_service_plan.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -165,8 +165,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                         = "acctestASP-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   kind                         = "elastic"
   maximum_elastic_worker_count = 20
 
@@ -183,8 +183,8 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 data "azurerm_app_service_plan" "test" {
-  name                = "${azurerm_app_service_plan.test.name}"
-  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  name                = azurerm_app_service_plan.test.name
+  resource_group_name = azurerm_app_service_plan.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -198,8 +198,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_xenon            = true
   kind                = "xenon"
 
@@ -210,8 +210,8 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 data "azurerm_app_service_plan" "test" {
-  name                = "${azurerm_app_service_plan.test.name}"
-  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  name                = azurerm_app_service_plan.test.name
+  resource_group_name = azurerm_app_service_plan.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

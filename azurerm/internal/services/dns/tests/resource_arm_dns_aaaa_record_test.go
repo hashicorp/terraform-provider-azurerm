@@ -295,13 +295,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 }
@@ -314,9 +314,9 @@ func testAccAzureRMDnsAAAARecord_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_dns_aaaa_record" "import" {
-  name                = "${azurerm_dns_aaaa_record.test.name}"
-  resource_group_name = "${azurerm_dns_aaaa_record.test.resource_group_name}"
-  zone_name           = "${azurerm_dns_aaaa_record.test.zone_name}"
+  name                = azurerm_dns_aaaa_record.test.name
+  resource_group_name = azurerm_dns_aaaa_record.test.resource_group_name
+  zone_name           = azurerm_dns_aaaa_record.test.zone_name
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 }
@@ -332,13 +332,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006", "::1"]
 }
@@ -354,13 +354,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 
@@ -381,13 +381,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 
@@ -407,23 +407,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "mypublicip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-  target_resource_id  = "${azurerm_public_ip.test.id}"
+  target_resource_id  = azurerm_public_ip.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -437,23 +437,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_public_ip" "test2" {
   name                = "mypublicip%d2"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-  target_resource_id  = "${azurerm_public_ip.test2.id}"
+  target_resource_id  = azurerm_public_ip.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -467,23 +467,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "mypublicip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-  target_resource_id  = "${azurerm_public_ip.test.id}"
+  target_resource_id  = azurerm_public_ip.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -497,13 +497,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["3a62:353:8885:293c:a218:45cc:9ee9:4e27", "3a62:353:8885:293c:a218:45cc:9ee9:4e28"]
 }
@@ -519,13 +519,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["2607:f8b0:4005:0800:0000:0000:0000:1003", "2201:1234:1234::1"]
 }

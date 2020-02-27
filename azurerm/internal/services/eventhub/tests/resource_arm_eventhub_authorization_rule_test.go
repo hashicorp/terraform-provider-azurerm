@@ -188,16 +188,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%[1]d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   partition_count   = 2
   message_retention = 1
@@ -205,9 +205,9 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_authorization_rule" "test" {
   name                = "acctest-%[1]d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   listen = %[3]t
   send   = %[4]t
@@ -222,13 +222,13 @@ func testAccAzureRMEventHubAuthorizationRule_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_eventhub_authorization_rule" "import" {
-  name                = "${azurerm_eventhub_authorization_rule.test.name}"
-  namespace_name      = "${azurerm_eventhub_authorization_rule.test.namespace_name}"
-  eventhub_name       = "${azurerm_eventhub_authorization_rule.test.eventhub_name}"
-  resource_group_name = "${azurerm_eventhub_authorization_rule.test.resource_group_name}"
-  listen              = "${azurerm_eventhub_authorization_rule.test.listen}"
-  send                = "${azurerm_eventhub_authorization_rule.test.send}"
-  manage              = "${azurerm_eventhub_authorization_rule.test.manage}"
+  name                = azurerm_eventhub_authorization_rule.test.name
+  namespace_name      = azurerm_eventhub_authorization_rule.test.namespace_name
+  eventhub_name       = azurerm_eventhub_authorization_rule.test.eventhub_name
+  resource_group_name = azurerm_eventhub_authorization_rule.test.resource_group_name
+  listen              = azurerm_eventhub_authorization_rule.test.listen
+  send                = azurerm_eventhub_authorization_rule.test.send
+  manage              = azurerm_eventhub_authorization_rule.test.manage
 }
 `, template)
 }

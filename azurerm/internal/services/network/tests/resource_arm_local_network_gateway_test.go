@@ -329,8 +329,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 }
@@ -343,9 +343,9 @@ func testAccAzureRMLocalNetworkGatewayConfig_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_local_network_gateway" "import" {
-  name                = "${azurerm_local_network_gateway.test.name}"
-  location            = "${azurerm_local_network_gateway.test.location}"
-  resource_group_name = "${azurerm_local_network_gateway.test.resource_group_name}"
+  name                = azurerm_local_network_gateway.test.name
+  location            = azurerm_local_network_gateway.test.location
+  resource_group_name = azurerm_local_network_gateway.test.resource_group_name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 }
@@ -361,8 +361,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 
@@ -382,8 +382,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 
@@ -404,8 +404,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 

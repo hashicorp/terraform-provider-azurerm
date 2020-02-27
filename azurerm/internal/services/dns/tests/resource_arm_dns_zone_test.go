@@ -153,7 +153,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -164,8 +164,8 @@ func testAccAzureRMDnsZone_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dns_zone" "import" {
-  name                = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
+  name                = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_dns_zone.test.resource_group_name
 }
 `, template)
 }
@@ -179,7 +179,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -198,7 +198,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"

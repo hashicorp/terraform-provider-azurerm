@@ -39,15 +39,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
 }
 
 resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
-  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_batch_account.test.name
+  certificate          = filebase64("testdata/batch_certificate.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
@@ -55,9 +55,9 @@ resource "azurerm_batch_certificate" "test" {
 }
 
 data "azurerm_batch_certificate" "test" {
-  name                = "${azurerm_batch_certificate.test.name}"
-  account_name        = "${azurerm_batch_account.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_batch_certificate.test.name
+  account_name        = azurerm_batch_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

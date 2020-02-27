@@ -56,14 +56,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 data "azurerm_cdn_profile" "test" {
-  name                = "${azurerm_cdn_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_cdn_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -77,8 +77,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -88,8 +88,8 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 data "azurerm_cdn_profile" "test" {
-  name                = "${azurerm_cdn_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_cdn_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

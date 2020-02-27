@@ -231,8 +231,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -243,9 +243,9 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImportConfig(data acceptanc
 %s
 
 resource "azurerm_network_ddos_protection_plan" "import" {
-  name                = "${azurerm_network_ddos_protection_plan.test.name}"
-  location            = "${azurerm_network_ddos_protection_plan.test.location}"
-  resource_group_name = "${azurerm_network_ddos_protection_plan.test.resource_group_name}"
+  name                = azurerm_network_ddos_protection_plan.test.name
+  location            = azurerm_network_ddos_protection_plan.test.location
+  resource_group_name = azurerm_network_ddos_protection_plan.test.resource_group_name
 }
 `, basicConfig)
 }
@@ -259,8 +259,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -279,8 +279,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Staging"

@@ -260,8 +260,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -281,8 +281,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16", "10.10.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -303,9 +303,9 @@ func testAccAzureRMVirtualNetwork_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_virtual_network" "import" {
-  name                = "${azurerm_virtual_network.test.name}"
-  location            = "${azurerm_virtual_network.test.location}"
-  resource_group_name = "${azurerm_virtual_network.test.resource_group_name}"
+  name                = azurerm_virtual_network.test.name
+  location            = azurerm_virtual_network.test.location
+  resource_group_name = azurerm_virtual_network.test.resource_group_name
   address_space       = ["10.0.0.0/16"]
 
   subnet {
@@ -325,18 +325,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ddos_protection_plan {
-    id     = "${azurerm_network_ddos_protection_plan.test.id}"
+    id     = azurerm_network_ddos_protection_plan.test.id
     enable = true
   }
 
@@ -358,8 +358,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -384,8 +384,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"

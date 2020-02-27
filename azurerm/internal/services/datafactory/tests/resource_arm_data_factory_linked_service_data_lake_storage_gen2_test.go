@@ -131,17 +131,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                  = "acctestDataLake%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  data_factory_name     = "${azurerm_data_factory.test.name}"
-  service_principal_id  = "${data.azurerm_client_config.current.client_id}"
+  resource_group_name   = azurerm_resource_group.test.name
+  data_factory_name     = azurerm_data_factory.test.name
+  service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "testkey"
   tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://test.azure.com"
@@ -158,17 +159,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                  = "acctestlssql%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  data_factory_name     = "${azurerm_data_factory.test.name}"
-  service_principal_id  = "${data.azurerm_client_config.current.client_id}"
+  resource_group_name   = azurerm_resource_group.test.name
+  data_factory_name     = azurerm_data_factory.test.name
+  service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "testkey"
   tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://test.azure.com"
@@ -197,17 +199,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   name                  = "acctestlssql%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  data_factory_name     = "${azurerm_data_factory.test.name}"
-  service_principal_id  = "${data.azurerm_client_config.current.client_id}"
+  resource_group_name   = azurerm_resource_group.test.name
+  data_factory_name     = azurerm_data_factory.test.name
+  service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "testkey"
   tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://test.azure.com"

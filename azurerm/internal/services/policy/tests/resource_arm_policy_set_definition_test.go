@@ -112,6 +112,7 @@ resource "azurerm_policy_set_definition" "test" {
     }
 PARAMETERS
 
+
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -124,6 +125,7 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
+
 }
 `, data.RandomInteger, data.RandomInteger)
 }
@@ -134,10 +136,10 @@ func testAzureRMPolicySetDefinition_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_policy_set_definition" "import" {
-  name         = "${azurerm_policy_set_definition.test.name}"
-  policy_type  = "${azurerm_policy_set_definition.test.policy_type}"
-  display_name = "${azurerm_policy_set_definition.test.display_name}"
-  parameters   = "${azurerm_policy_set_definition.test.parameters}"
+  name         = azurerm_policy_set_definition.test.name
+  policy_type  = azurerm_policy_set_definition.test.policy_type
+  display_name = azurerm_policy_set_definition.test.display_name
+  parameters   = azurerm_policy_set_definition.test.parameters
 }
 `, template)
 }
@@ -164,6 +166,7 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -176,6 +179,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 
 resource "azurerm_policy_set_definition" "test" {
@@ -196,6 +200,7 @@ resource "azurerm_policy_set_definition" "test" {
     }
 PARAMETERS
 
+
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -208,6 +213,7 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
+
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -222,7 +228,7 @@ resource "azurerm_policy_set_definition" "test" {
   name                = "acctestpolset-%d"
   policy_type         = "Custom"
   display_name        = "acctestpolset-%d"
-  management_group_id = "${azurerm_management_group.test.group_id}"
+  management_group_id = azurerm_management_group.test.group_id
 
   parameters = <<PARAMETERS
     {
@@ -237,6 +243,7 @@ resource "azurerm_policy_set_definition" "test" {
     }
 PARAMETERS
 
+
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -249,6 +256,7 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
+
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

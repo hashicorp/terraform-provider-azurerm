@@ -273,8 +273,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -285,9 +285,9 @@ func testAccAzureRMAvailabilitySet_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_availability_set" "import" {
-  name                = "${azurerm_availability_set.test.name}"
-  location            = "${azurerm_availability_set.test.location}"
-  resource_group_name = "${azurerm_availability_set.test.resource_group_name}"
+  name                = azurerm_availability_set.test.name
+  location            = azurerm_availability_set.test.location
+  resource_group_name = azurerm_availability_set.test.resource_group_name
 }
 `, template)
 }
@@ -301,8 +301,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -321,8 +321,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"
@@ -340,16 +340,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  proximity_placement_group_id = "${azurerm_proximity_placement_group.test.id}"
+  proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -363,8 +363,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                         = "acctestavset-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   platform_update_domain_count = 3
   platform_fault_domain_count  = 3
 }
@@ -380,8 +380,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                         = "acctestavset-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   platform_update_domain_count = 3
   platform_fault_domain_count  = 3
   managed                      = false

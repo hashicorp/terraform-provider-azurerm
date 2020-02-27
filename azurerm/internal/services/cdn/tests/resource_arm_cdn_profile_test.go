@@ -244,8 +244,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -257,10 +257,10 @@ func testAccAzureRMCdnProfile_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cdn_profile" "import" {
-  name                = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_cdn_profile.test.location}"
-  resource_group_name = "${azurerm_cdn_profile.test.resource_group_name}"
-  sku                 = "${azurerm_cdn_profile.test.sku}"
+  name                = azurerm_cdn_profile.test.name
+  location            = azurerm_cdn_profile.test.location
+  resource_group_name = azurerm_cdn_profile.test.resource_group_name
+  sku                 = azurerm_cdn_profile.test.sku
 }
 `, template)
 }
@@ -274,8 +274,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -295,8 +295,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -315,8 +315,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "standard_verizon"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -331,8 +331,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Akamai"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -347,8 +347,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Microsoft"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

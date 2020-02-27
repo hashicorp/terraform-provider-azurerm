@@ -217,11 +217,11 @@ func testAccAzureRMSecurityCenterContact_requiresImportCfg(email, phone string, 
 %s
 
 resource "azurerm_security_center_contact" "import" {
-  email = "${azurerm_security_center_contact.test.email}"
-  phone = "${azurerm_security_center_contact.test.phone}"
+  email = azurerm_security_center_contact.test.email
+  phone = azurerm_security_center_contact.test.phone
 
-  alert_notifications = "${azurerm_security_center_contact.test.alert_notifications}"
-  alerts_to_admins    = "${azurerm_security_center_contact.test.alerts_to_admins}"
+  alert_notifications = azurerm_security_center_contact.test.alert_notifications
+  alerts_to_admins    = azurerm_security_center_contact.test.alerts_to_admins
 }
 `, template)
 }

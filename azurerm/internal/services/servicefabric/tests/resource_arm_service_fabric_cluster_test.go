@@ -787,8 +787,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -814,8 +814,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -845,13 +845,13 @@ func testAccAzureRMServiceFabricCluster_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_service_fabric_cluster" "import" {
-  name                = "${azurerm_service_fabric_cluster.test.name}"
-  resource_group_name = "${azurerm_service_fabric_cluster.test.resource_group_name}"
-  location            = "${azurerm_service_fabric_cluster.test.location}"
-  reliability_level   = "${azurerm_service_fabric_cluster.test.reliability_level}"
-  upgrade_mode        = "${azurerm_service_fabric_cluster.test.upgrade_mode}"
-  vm_image            = "${azurerm_service_fabric_cluster.test.vm_image}"
-  management_endpoint = "${azurerm_service_fabric_cluster.test.management_endpoint}"
+  name                = azurerm_service_fabric_cluster.test.name
+  resource_group_name = azurerm_service_fabric_cluster.test.resource_group_name
+  location            = azurerm_service_fabric_cluster.test.location
+  reliability_level   = azurerm_service_fabric_cluster.test.reliability_level
+  upgrade_mode        = azurerm_service_fabric_cluster.test.upgrade_mode
+  vm_image            = azurerm_service_fabric_cluster.test.vm_image
+  management_endpoint = azurerm_service_fabric_cluster.test.management_endpoint
 
   node_type {
     name                 = "first"
@@ -873,8 +873,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                 = "acctest-%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
   cluster_code_version = "%[3]s"
@@ -901,8 +901,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -929,8 +929,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -969,8 +969,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1015,8 +1015,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1060,8 +1060,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1110,8 +1110,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1151,7 +1151,8 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azuread_application" "cluster_explorer" {
   name                       = "${azurerm_resource_group.test.name}-explorer-AAD"
@@ -1174,7 +1175,7 @@ resource "azuread_application" "cluster_explorer" {
 }
 
 resource "azuread_service_principal" "cluster_explorer" {
-  application_id = "${azuread_application.cluster_explorer.application_id}"
+  application_id = azuread_application.cluster_explorer.application_id
 }
 
 resource "azuread_application" "cluster_console" {
@@ -1196,23 +1197,23 @@ resource "azuread_application" "cluster_console" {
   }
 
   required_resource_access {
-    resource_app_id = "${azuread_application.cluster_explorer.application_id}"
+    resource_app_id = azuread_application.cluster_explorer.application_id
 
     resource_access {
-      id   = "${azuread_application.cluster_explorer.oauth2_permissions.0.id}"
+      id   = azuread_application.cluster_explorer.oauth2_permissions[0].id
       type = "Scope"
     }
   }
 }
 
 resource "azuread_service_principal" "cluster_console" {
-  application_id = "${azuread_application.cluster_console.application_id}"
+  application_id = azuread_application.cluster_console.application_id
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1224,9 +1225,9 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   azure_active_directory {
-    tenant_id              = "${data.azurerm_client_config.current.tenant_id}"
-    cluster_application_id = "${azuread_application.cluster_explorer.application_id}"
-    client_application_id  = "${azuread_application.cluster_console.application_id}"
+    tenant_id              = data.azurerm_client_config.current.tenant_id
+    cluster_application_id = azuread_application.cluster_explorer.application_id
+    client_application_id  = azuread_application.cluster_console.application_id
   }
 
   fabric_settings {
@@ -1255,12 +1256,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1299,27 +1301,27 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
 
   diagnostics_config {
-    storage_account_name       = "${azurerm_storage_account.test.name}"
+    storage_account_name       = azurerm_storage_account.test.name
     protected_account_key_name = "StorageAccountKey1"
-    blob_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
-    queue_endpoint             = "${azurerm_storage_account.test.primary_queue_endpoint}"
-    table_endpoint             = "${azurerm_storage_account.test.primary_table_endpoint}"
+    blob_endpoint              = azurerm_storage_account.test.primary_blob_endpoint
+    queue_endpoint             = azurerm_storage_account.test.primary_queue_endpoint
+    table_endpoint             = azurerm_storage_account.test.primary_table_endpoint
   }
 
   node_type {
@@ -1342,16 +1344,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1377,8 +1379,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1412,8 +1414,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1449,8 +1451,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1484,8 +1486,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
@@ -1525,8 +1527,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"

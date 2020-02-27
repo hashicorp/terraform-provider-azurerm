@@ -161,12 +161,12 @@ func testAccAzureRMAutomationDscConfiguration_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_automation_dsc_configuration" "import" {
-  name                    = "${azurerm_automation_dsc_configuration.test.name}"
-  resource_group_name     = "${azurerm_automation_dsc_configuration.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_dsc_configuration.test.automation_account_name}"
-  location                = "${azurerm_automation_dsc_configuration.test.location}"
-  content_embedded        = "${azurerm_automation_dsc_configuration.test.content_embedded}"
-  description             = "${azurerm_automation_dsc_configuration.test.description}"
+  name                    = azurerm_automation_dsc_configuration.test.name
+  resource_group_name     = azurerm_automation_dsc_configuration.test.resource_group_name
+  automation_account_name = azurerm_automation_dsc_configuration.test.automation_account_name
+  location                = azurerm_automation_dsc_configuration.test.location
+  content_embedded        = azurerm_automation_dsc_configuration.test.content_embedded
+  description             = azurerm_automation_dsc_configuration.test.description
 }
 `, template)
 }

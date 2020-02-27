@@ -140,14 +140,15 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data acceptance.Te
 
 resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function getRandomNumber(in) {
   return in;
 }
 SCRIPT
+
 
   input {
     type = "bigint"
@@ -183,14 +184,15 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(data acceptance.T
 
 resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function getRandomNumber(first, second) {
   return first * second;
 }
 SCRIPT
+
 
   input {
     type = "bigint"
@@ -216,8 +218,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -231,6 +233,7 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

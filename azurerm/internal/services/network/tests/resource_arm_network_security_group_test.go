@@ -323,8 +323,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -335,9 +335,9 @@ func testAccAzureRMNetworkSecurityGroup_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_network_security_group" "test" {
-  name                = "${azurerm_network_security_group.test.name}"
-  location            = "${azurerm_network_security_group.test.location}"
-  resource_group_name = "${azurerm_network_security_group.test.resource_group_name}"
+  name                = azurerm_network_security_group.test.name
+  location            = azurerm_network_security_group.test.location
+  resource_group_name = azurerm_network_security_group.test.resource_group_name
 }
 `, template)
 }
@@ -351,8 +351,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule = []
 }
@@ -368,8 +368,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -395,8 +395,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -434,8 +434,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -466,8 +466,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -497,8 +497,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                         = "test123"
@@ -524,20 +524,20 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_security_group" "first" {
   name                = "acctest-first%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_application_security_group" "second" {
   name                = "acctest-second%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                                       = "test123"
@@ -545,8 +545,8 @@ resource "azurerm_network_security_group" "test" {
     direction                                  = "Inbound"
     access                                     = "Allow"
     protocol                                   = "Tcp"
-    source_application_security_group_ids      = ["${azurerm_application_security_group.first.id}"]
-    destination_application_security_group_ids = ["${azurerm_application_security_group.second.id}"]
+    source_application_security_group_ids      = [azurerm_application_security_group.first.id]
+    destination_application_security_group_ids = [azurerm_application_security_group.second.id]
     source_port_ranges                         = ["10000-40000"]
     destination_port_ranges                    = ["80", "443", "8080", "8190"]
   }

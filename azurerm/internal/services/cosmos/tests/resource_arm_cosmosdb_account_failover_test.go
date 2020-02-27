@@ -145,8 +145,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -154,7 +154,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -170,8 +170,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -181,7 +181,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -197,8 +197,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -206,7 +206,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -222,8 +222,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -231,7 +231,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -247,8 +247,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "MongoDB"
   offer_type          = "Standard"
 
@@ -257,7 +257,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -273,8 +273,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -282,7 +282,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
@@ -298,8 +298,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -309,7 +309,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 

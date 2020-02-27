@@ -193,8 +193,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -208,8 +208,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   custom_rules {
     name      = "Rule1"

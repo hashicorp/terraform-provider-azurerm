@@ -191,13 +191,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = "acctestcname%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record              = "contoso.com"
 }
@@ -210,9 +210,9 @@ func testAccAzureRMPrivateDnsCNameRecord_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_private_dns_cname_record" "import" {
-  name                = "${azurerm_private_dns_cname_record.test.name}"
-  resource_group_name = "${azurerm_private_dns_cname_record.test.resource_group_name}"
-  zone_name           = "${azurerm_private_dns_cname_record.test.zone_name}"
+  name                = azurerm_private_dns_cname_record.test.name
+  resource_group_name = azurerm_private_dns_cname_record.test.resource_group_name
+  zone_name           = azurerm_private_dns_cname_record.test.zone_name
   ttl                 = 300
   record              = "contoso.com"
 }
@@ -228,13 +228,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = "acctestcname%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record              = "test.contoso.com"
 }
@@ -250,13 +250,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = "acctestcname%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record              = "contoso.com"
 }
@@ -272,13 +272,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = "acctestcname%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record              = "contoso.com"
 
@@ -299,13 +299,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = "acctestcname%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record              = "contoso.com"
 

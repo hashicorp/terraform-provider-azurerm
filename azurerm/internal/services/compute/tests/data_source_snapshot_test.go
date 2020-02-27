@@ -54,8 +54,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestmd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -63,15 +63,15 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.test.id}"
+  source_uri          = azurerm_managed_disk.test.id
 }
 
 data "azurerm_snapshot" "snapshot" {
-  name                = "${azurerm_snapshot.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_snapshot.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

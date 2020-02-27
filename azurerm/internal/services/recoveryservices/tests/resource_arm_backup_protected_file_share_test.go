@@ -242,17 +242,17 @@ func testAccAzureRMBackupProtectedFileShare_basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_backup_container_storage_account" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test.id
 }
 
 resource "azurerm_backup_protected_file_share" "test" {
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_backup_container_storage_account.test.storage_account_id}"
-  source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_backup_container_storage_account.test.storage_account_id
+  source_file_share_name    = azurerm_storage_share.test.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
 `, template)
 }
@@ -264,8 +264,8 @@ func testAccAzureRMBackupProtectedFileShare_updatePolicy(data acceptance.TestDat
 
 resource "azurerm_backup_policy_file_share" "test2" {
   name                = "acctest-%d-Secondary"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
@@ -278,17 +278,17 @@ resource "azurerm_backup_policy_file_share" "test2" {
 }
 
 resource "azurerm_backup_container_storage_account" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test.id
 }
 
 resource "azurerm_backup_protected_file_share" "test" {
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_backup_container_storage_account.test.storage_account_id}"
-  source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_policy_file_share.test2.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_backup_container_storage_account.test.storage_account_id
+  source_file_share_name    = azurerm_storage_share.test.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test2.id
 }
 `, template, data.RandomInteger)
 }
@@ -299,11 +299,11 @@ func testAccAzureRMBackupProtectedFileShare_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_backup_protected_file_share" "test_import" {
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_storage_account.test.id}"
-  source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_storage_account.test.id
+  source_file_share_name    = azurerm_storage_share.test.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
 `, template)
 }

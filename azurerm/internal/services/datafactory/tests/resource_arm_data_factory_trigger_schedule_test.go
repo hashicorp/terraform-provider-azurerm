@@ -127,14 +127,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
 
   parameters = {
     test = "testparameter"
@@ -143,9 +143,9 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestdf%d"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  pipeline_name       = "${azurerm_data_factory_pipeline.test.name}"
+  data_factory_name   = azurerm_data_factory.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  pipeline_name       = azurerm_data_factory_pipeline.test.name
 
   annotations = ["test1", "test2", "test3"]
 }
@@ -161,14 +161,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
 
   parameters = {
     test = "testparameter"
@@ -177,11 +177,11 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestDFTS%d"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  pipeline_name       = "${azurerm_data_factory_pipeline.test.name}"
+  data_factory_name   = azurerm_data_factory.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  pipeline_name       = azurerm_data_factory_pipeline.test.name
 
-  pipeline_parameters = "${azurerm_data_factory_pipeline.test.parameters}"
+  pipeline_parameters = azurerm_data_factory_pipeline.test.parameters
   annotations         = ["test5"]
   frequency           = "Day"
   interval            = 5

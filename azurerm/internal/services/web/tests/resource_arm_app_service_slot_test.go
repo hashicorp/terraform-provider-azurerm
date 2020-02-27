@@ -1404,8 +1404,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1415,17 +1415,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1436,11 +1436,11 @@ func testAccAzureRMAppServiceSlot_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_app_service_slot" "import" {
-  name                = "${azurerm_app_service_slot.test.name}"
-  location            = "${azurerm_app_service_slot.test.location}"
-  resource_group_name = "${azurerm_app_service_slot.test.resource_group_name}"
-  app_service_plan_id = "${azurerm_app_service_slot.test.app_service_plan_id}"
-  app_service_name    = "${azurerm_app_service_slot.test.app_service_name}"
+  name                = azurerm_app_service_slot.test.name
+  location            = azurerm_app_service_slot.test.location
+  resource_group_name = azurerm_app_service_slot.test.resource_group_name
+  app_service_plan_id = azurerm_app_service_slot.test.app_service_plan_id
+  app_service_name    = azurerm_app_service_slot.test.app_service_name
 }
 `, template)
 }
@@ -1454,8 +1454,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1465,17 +1465,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     use_32_bit_worker_process = true
@@ -1493,8 +1493,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1504,17 +1504,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -1532,8 +1532,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1543,17 +1543,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     app_command_line = "/sbin/myservice -b 0.0.0.0"
@@ -1571,8 +1571,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1582,17 +1582,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   app_settings = {
     "foo" = "bar"
@@ -1610,8 +1610,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1621,17 +1621,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                    = "acctestASSlot-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
-  app_service_name        = "${azurerm_app_service.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  app_service_plan_id     = azurerm_app_service_plan.test.id
+  app_service_name        = azurerm_app_service.test.name
   client_affinity_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientAffinityEnabled)
@@ -1646,8 +1646,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1657,17 +1657,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   connection_string {
     name  = "First"
@@ -1693,8 +1693,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1704,17 +1704,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   connection_string {
     name  = "Second"
@@ -1740,8 +1740,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -1751,24 +1751,24 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     cors {
       allowed_origins = [
         "http://www.contoso.com",
         "www.contoso.com",
-        "contoso.com"
+        "contoso.com",
       ]
       support_credentials = true
     }
@@ -1785,8 +1785,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -1799,9 +1799,9 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 
   site_config {
     always_on = true
@@ -1810,10 +1810,10 @@ resource "azurerm_app_service" "test" {
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   auth_settings {
     enabled = true
@@ -1844,8 +1844,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -1858,17 +1858,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -1879,7 +1879,7 @@ resource "azurerm_app_service_slot" "test" {
     issuer  = "https://sts.windows.net/%s"
 
     allowed_external_redirect_urls = [
-      "https://terra.form"
+      "https://terra.form",
     ]
 
     active_directory {
@@ -1903,8 +1903,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -1917,17 +1917,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -1959,8 +1959,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -1973,17 +1973,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2015,8 +2015,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2029,17 +2029,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2071,8 +2071,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2085,17 +2085,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2127,8 +2127,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2141,17 +2141,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2181,8 +2181,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2195,17 +2195,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2234,8 +2234,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2248,18 +2248,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2288,8 +2287,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2299,19 +2298,20 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 }
+
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2340,8 +2340,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2354,17 +2354,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2389,8 +2389,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   name                = "acctestRG-%d"
   kind                = "Linux"
   reserved            = true
@@ -2403,17 +2403,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestRG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     always_on = true
@@ -2455,8 +2455,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2466,17 +2466,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     default_documents = [
@@ -2498,8 +2498,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2509,17 +2509,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
   enabled             = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
@@ -2534,8 +2534,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2545,17 +2545,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
   https_only          = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, httpsOnly)
@@ -2570,8 +2570,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2581,17 +2581,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     http2_enabled = true
@@ -2609,8 +2609,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2620,17 +2620,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     ip_restriction {
@@ -2651,21 +2651,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2675,21 +2675,21 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     ip_restriction {
-      virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+      virtual_network_subnet_id = azurerm_subnet.test.id
     }
   }
 }
@@ -2705,8 +2705,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2716,17 +2716,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     ip_restriction = []
@@ -2744,8 +2744,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2755,17 +2755,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     ip_restriction {
@@ -2797,8 +2797,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2808,17 +2808,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     local_mysql_enabled = true
@@ -2836,8 +2836,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2847,17 +2847,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     managed_pipeline_mode = "Classic"
@@ -2875,8 +2875,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2886,17 +2886,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   tags = {
     Hello = "World"
@@ -2914,8 +2914,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2925,17 +2925,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   tags = {
     "Hello"     = "World"
@@ -2954,8 +2954,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2965,17 +2965,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     remote_debugging_enabled = true
@@ -2998,8 +2998,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3009,17 +3009,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     dotnet_framework_version = "%s"
@@ -3037,8 +3037,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3048,17 +3048,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     java_version           = "%s"
@@ -3078,8 +3078,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3089,17 +3089,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     php_version = "7.3"
@@ -3117,8 +3117,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3128,17 +3128,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     python_version = "3.4"
@@ -3156,8 +3156,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3167,17 +3167,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     websockets_enabled = true
@@ -3195,8 +3195,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3206,17 +3206,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   identity {
     type = "SystemAssigned"
@@ -3234,14 +3234,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acct-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3251,21 +3251,21 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   identity {
     type         = "UserAssigned"
-    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -3280,8 +3280,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3291,17 +3291,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     min_tls_version = "%s"
@@ -3319,8 +3319,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3330,17 +3330,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   logs {
     application_logs {
@@ -3364,8 +3364,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3375,17 +3375,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   logs {
     http_logs {
@@ -3408,8 +3408,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3419,17 +3419,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   logs {
     http_logs {
@@ -3452,8 +3452,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -3463,17 +3463,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_slot" "test" {
   name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  app_service_name    = "${azurerm_app_service.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+  app_service_name    = azurerm_app_service.test.name
 
   site_config {
     auto_swap_slot_name = "production"

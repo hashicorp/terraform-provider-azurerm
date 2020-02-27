@@ -150,8 +150,8 @@ func testAccAzureRMCosmosGremlinDatabase_basic(data acceptance.TestData) string 
 
 resource "azurerm_cosmosdb_gremlin_database" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 }
 `, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger)
 }
@@ -161,9 +161,9 @@ func testAccAzureRMCosmosDatabase_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_cosmosdb_gremlin_database" "import" {
-  name                = "${azurerm_cosmosdb_gremlin_database.test.name}"
-  resource_group_name = "${azurerm_cosmosdb_gremlin_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_gremlin_database.test.account_name}"
+  name                = azurerm_cosmosdb_gremlin_database.test.name
+  resource_group_name = azurerm_cosmosdb_gremlin_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_gremlin_database.test.account_name
 }
 `, testAccAzureRMCosmosGremlinDatabase_basic(data))
 }
@@ -174,8 +174,8 @@ func testAccAzureRMCosmosGremlinDatabase_complete(data acceptance.TestData, thro
 
 resource "azurerm_cosmosdb_gremlin_database" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
   throughput          = %[3]d
 }
 `, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, throughput)

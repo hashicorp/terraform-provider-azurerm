@@ -333,8 +333,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -375,9 +375,9 @@ func testAccAzureRMPostgreSQLServer_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_postgresql_server" "import" {
-  name                = "${azurerm_postgresql_server.test.name}"
-  location            = "${azurerm_postgresql_server.test.location}"
-  resource_group_name = "${azurerm_postgresql_server.test.resource_group_name}"
+  name                = azurerm_postgresql_server.test.name
+  location            = azurerm_postgresql_server.test.location
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
 
   sku_name = "GP_Gen5_2"
 
@@ -404,8 +404,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -432,8 +432,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_4"
 
@@ -460,8 +460,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -489,8 +489,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_32"
 
@@ -517,8 +517,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "MO_Gen5_16"
 
@@ -545,8 +545,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "MO_Gen5_16"
 
   storage_profile {

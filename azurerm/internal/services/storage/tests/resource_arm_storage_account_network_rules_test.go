@@ -89,22 +89,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -114,12 +114,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
 
   default_action             = "Deny"
   ip_rules                   = ["127.0.0.1"]
-  virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+  virtual_network_subnet_ids = [azurerm_subnet.test.id]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
@@ -134,30 +134,30 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "acctestsubnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.3.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -167,12 +167,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
 
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.2", "127.0.0.3"]
-  virtual_network_subnet_ids = ["${azurerm_subnet.test.id}", "${azurerm_subnet.test2.id}"]
+  virtual_network_subnet_ids = [azurerm_subnet.test.id, azurerm_subnet.test2.id]
   bypass                     = ["Metrics"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString)
@@ -187,8 +187,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -198,8 +198,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_name = azurerm_storage_account.test.name
 
   default_action = "Deny"
   bypass         = ["Metrics"]

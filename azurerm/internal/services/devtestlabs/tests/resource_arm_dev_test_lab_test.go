@@ -149,8 +149,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -161,9 +161,9 @@ func testAccAzureRMDevTestLab_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dev_test_lab" "import" {
-  name                = "${azurerm_dev_test_lab.test.name}"
-  location            = "${azurerm_dev_test_lab.test.location}"
-  resource_group_name = "${azurerm_dev_test_lab.test.resource_group_name}"
+  name                = azurerm_dev_test_lab.test.name
+  location            = azurerm_dev_test_lab.test.location
+  resource_group_name = azurerm_dev_test_lab.test.resource_group_name
 }
 `, template)
 }
@@ -177,8 +177,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   storage_type        = "Standard"
 
   tags = {

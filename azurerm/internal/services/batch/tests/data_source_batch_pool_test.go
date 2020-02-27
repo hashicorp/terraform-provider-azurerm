@@ -67,18 +67,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "testaccsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  storage_account_id   = azurerm_storage_account.test.id
 
   tags = {
     env = "test"
@@ -86,9 +86,9 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
-  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_batch_account.test.name
+  certificate          = filebase64("testdata/batch_certificate.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
@@ -97,8 +97,8 @@ resource "azurerm_batch_certificate" "test" {
 
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_batch_account.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
   display_name        = "Test Acc Pool"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
@@ -117,20 +117,18 @@ resource "azurerm_batch_pool" "test" {
   }
 
   certificate {
-    id             = "${azurerm_batch_certificate.test.id}"
+    id             = azurerm_batch_certificate.test.id
     store_location = "CurrentUser"
     visibility     = ["StartTask", "RemoteUser"]
   }
 
   container_configuration {
     type = "DockerCompatible"
-    container_registries = [
-      {
-        registry_server = "myContainerRegistry.azurecr.io"
-        user_name       = "myUserName"
-        password        = "myPassword"
-      },
-    ]
+    container_registries {
+      registry_server = "myContainerRegistry.azurecr.io"
+      user_name       = "myUserName"
+      password        = "myPassword"
+    }
   }
 
   start_task {
@@ -156,9 +154,9 @@ resource "azurerm_batch_pool" "test" {
 }
 
 data "azurerm_batch_pool" "test" {
-  name                = "${azurerm_batch_pool.test.name}"
-  account_name        = "${azurerm_batch_pool.test.account_name}"
-  resource_group_name = "${azurerm_batch_pool.test.resource_group_name}"
+  name                = azurerm_batch_pool.test.name
+  account_name        = azurerm_batch_pool.test.account_name
+  resource_group_name = azurerm_batch_pool.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }

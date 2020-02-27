@@ -130,8 +130,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -141,9 +141,9 @@ func testAccAzureRMUserAssignedIdentity_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_user_assigned_identity" "import" {
-  name                = "${azurerm_user_assigned_identity.test.name}"
-  resource_group_name = "${azurerm_user_assigned_identity.test.resource_group_name}"
-  location            = "${azurerm_user_assigned_identity.test.location}"
+  name                = azurerm_user_assigned_identity.test.name
+  resource_group_name = azurerm_user_assigned_identity.test.resource_group_name
+  location            = azurerm_user_assigned_identity.test.location
 }
 `, testAccAzureRMUserAssignedIdentity_basic(data))
 }

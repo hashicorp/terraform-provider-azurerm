@@ -32,15 +32,17 @@ resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"
 }
+
 resource "azurerm_automation_account" "test" {
   name                = "acctestautomationAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
+
 data "azurerm_automation_account" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_automation_account.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_automation_account.test.name
 }
 `, resourceGroupName, data.Locations.Primary, data.RandomInteger)
 }

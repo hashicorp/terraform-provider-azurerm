@@ -682,8 +682,8 @@ func testAccAzureRMNetworkInterface_publicIPTemplate(data acceptance.TestData) s
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 `, template, data.RandomInteger)

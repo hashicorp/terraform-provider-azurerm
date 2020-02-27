@@ -165,12 +165,13 @@ data "azurerm_role_definition" "test" {
 
 func testAccDataSourceRoleDefinition_basic(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
   description        = "Created by the Data Source Role Definition Acceptance Test"
 
   permissions {
@@ -184,13 +185,13 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 
 data "azurerm_role_definition" "test" {
-  role_definition_id = "${azurerm_role_definition.test.role_definition_id}"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  role_definition_id = azurerm_role_definition.test.role_definition_id
+  scope              = data.azurerm_subscription.primary.id
 }
 `, id, data.RandomInteger)
 }
@@ -200,8 +201,8 @@ func testAccDataSourceRoleDefinition_byName(id string, data acceptance.TestData)
 %s
 
 data "azurerm_role_definition" "byName" {
-  name  = "${azurerm_role_definition.test.name}"
-  scope = "${data.azurerm_subscription.primary.id}"
+  name  = azurerm_role_definition.test.name
+  scope = data.azurerm_subscription.primary.id
 }
 `, testAccDataSourceRoleDefinition_basic(id, data))
 }

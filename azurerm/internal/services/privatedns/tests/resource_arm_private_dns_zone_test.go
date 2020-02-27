@@ -145,7 +145,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -156,8 +156,8 @@ func testAccAzureRMPrivateDnsZone_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_private_dns_zone" "import" {
-  name                = "${azurerm_private_dns_zone.test.name}"
-  resource_group_name = "${azurerm_private_dns_zone.test.resource_group_name}"
+  name                = azurerm_private_dns_zone.test.name
+  resource_group_name = azurerm_private_dns_zone.test.resource_group_name
 }
 `, template)
 }
@@ -171,7 +171,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -190,7 +190,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"

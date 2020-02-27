@@ -114,8 +114,8 @@ func testAccDataSourceAzureRMKeyVault_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_key_vault" "test" {
-  name                = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+  name                = azurerm_key_vault.test.name
+  resource_group_name = azurerm_key_vault.test.resource_group_name
 }
 `, r)
 }
@@ -126,8 +126,8 @@ func testAccDataSourceAzureRMKeyVault_complete(data acceptance.TestData) string 
 %s
 
 data "azurerm_key_vault" "test" {
-  name                = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+  name                = azurerm_key_vault.test.name
+  resource_group_name = azurerm_key_vault.test.resource_group_name
 }
 `, r)
 }
@@ -138,8 +138,8 @@ func testAccDataSourceAzureRMKeyVault_networkAcls(data acceptance.TestData) stri
 %s
 
 data "azurerm_key_vault" "test" {
-  name                = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+  name                = azurerm_key_vault.test.name
+  resource_group_name = azurerm_key_vault.test.resource_group_name
 }
 `, r)
 }

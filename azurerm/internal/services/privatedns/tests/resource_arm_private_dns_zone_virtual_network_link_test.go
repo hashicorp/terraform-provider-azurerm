@@ -180,10 +180,10 @@ func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(data acceptan
 %s
 
 resource "azurerm_private_dns_zone_virtual_network_link" "import" {
-  name                  = "${azurerm_private_dns_zone_virtual_network_link.test.name}"
-  private_dns_zone_name = "${azurerm_private_dns_zone_virtual_network_link.test.private_dns_zone_name}"
-  virtual_network_id    = "${azurerm_private_dns_zone_virtual_network_link.test.virtual_network_id}"
-  resource_group_name   = "${azurerm_private_dns_zone_virtual_network_link.test.resource_group_name}"
+  name                  = azurerm_private_dns_zone_virtual_network_link.test.name
+  private_dns_zone_name = azurerm_private_dns_zone_virtual_network_link.test.private_dns_zone_name
+  virtual_network_id    = azurerm_private_dns_zone_virtual_network_link.test.virtual_network_id
+  resource_group_name   = azurerm_private_dns_zone_virtual_network_link.test.resource_group_name
 }
 `, template)
 }

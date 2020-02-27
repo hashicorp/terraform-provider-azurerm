@@ -326,16 +326,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -353,10 +353,10 @@ func testAccAzureRMCdnEndpoint_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cdn_endpoint" "import" {
-  name                = "${azurerm_cdn_endpoint.test.name}"
-  profile_name        = "${azurerm_cdn_endpoint.test.profile_name}"
-  location            = "${azurerm_cdn_endpoint.test.location}"
-  resource_group_name = "${azurerm_cdn_endpoint.test.resource_group_name}"
+  name                = azurerm_cdn_endpoint.test.name
+  profile_name        = azurerm_cdn_endpoint.test.profile_name
+  location            = azurerm_cdn_endpoint.test.location
+  resource_group_name = azurerm_cdn_endpoint.test.resource_group_name
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -377,16 +377,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   origin_host_header  = "%s"
 
   origin {
@@ -413,16 +413,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
@@ -448,16 +448,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
@@ -482,16 +482,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = false
   is_https_allowed    = true
   origin_path         = "/origin-path"
@@ -528,16 +528,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = false
   is_https_allowed    = true
   optimization_type   = "GeneralWebDelivery"
@@ -561,16 +561,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                          = "acctestcdnend%d"
-  profile_name                  = "${azurerm_cdn_profile.test.name}"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  profile_name                  = azurerm_cdn_profile.test.name
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
   is_http_allowed               = true
   is_https_allowed              = true
   content_types_to_compress     = ["text/html"]
@@ -610,16 +610,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = %s
   is_https_allowed    = %s
 

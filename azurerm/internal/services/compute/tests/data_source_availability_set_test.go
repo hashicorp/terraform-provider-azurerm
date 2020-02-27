@@ -38,8 +38,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "foo" = "bar"
@@ -47,8 +47,8 @@ resource "azurerm_availability_set" "test" {
 }
 
 data "azurerm_availability_set" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_availability_set.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_availability_set.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
