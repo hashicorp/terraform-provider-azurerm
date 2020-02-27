@@ -70,7 +70,7 @@ func TestAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_disappears(t *tes
 			{
 				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDisappears(data.ResourceName),
 				),
@@ -91,15 +91,12 @@ func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(resourceN
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id := rs.Primary.Attributes["id"]
-		parsedID, err := azure.ParseAzureResourceID(id)
+		err, name, slotName, resourceGroup := parseResourceId(rs)
 		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+			return err
 		}
-		name := parsedID.Path["sites"]
-		resourceGroup := parsedID.ResourceGroup
 
-		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
+		resp, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, resourceGroup, name, slotName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Service Virtual Network Association %q (Resource Group: %q) does not exist", name, resourceGroup)
@@ -123,15 +120,12 @@ func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDisappears(resou
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id := rs.Primary.Attributes["id"]
-		parsedID, err := azure.ParseAzureResourceID(id)
+		err, name, slotName, resourceGroup := parseResourceId(rs)
 		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+			return err
 		}
-		name := parsedID.Path["sites"]
-		resourceGroup := parsedID.ResourceGroup
 
-		resp, err := client.DeleteSwiftVirtualNetwork(ctx, resourceGroup, name)
+		resp, err := client.DeleteSwiftVirtualNetworkSlot(ctx, resourceGroup, name, slotName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: Delete on appServicesClient: %+v", err)
@@ -151,15 +145,12 @@ func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy(s *terra
 			continue
 		}
 
-		id := rs.Primary.Attributes["id"]
-		parsedID, err := azure.ParseAzureResourceID(id)
+		err, name, slotName, resourceGroup := parseResourceId(rs)
 		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+			return err
 		}
-		name := parsedID.Path["sites"]
-		resourceGroup := parsedID.ResourceGroup
 
-		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
+		resp, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, resourceGroup, name, slotName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -172,6 +163,18 @@ func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy(s *terra
 	}
 
 	return nil
+}
+
+func parseResourceId(rs *terraform.ResourceState) (error, string, string, string) {
+	id := rs.Primary.Attributes["id"]
+	parsedID, err := azure.ParseAzureResourceID(id)
+	if err != nil {
+		return fmt.Errorf("Error parsing Azure Resource ID %q", id), "", "", ""
+	}
+	name := parsedID.Path["sites"]
+	slotName := parsedID.Path["slots"]
+	resourceGroup := parsedID.ResourceGroup
+	return err, name, slotName, resourceGroup
 }
 
 func testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_base(data acceptance.TestData) string {
