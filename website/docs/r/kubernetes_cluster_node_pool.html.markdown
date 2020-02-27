@@ -43,6 +43,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "example" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.example.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+
+  tags = {
+    Environment = "Production"
+  }
 }
 ```
 
@@ -75,6 +79,8 @@ The following arguments are supported:
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
 
