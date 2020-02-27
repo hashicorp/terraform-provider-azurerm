@@ -5,6 +5,7 @@ IMPROVEMENTS:
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
 * `azurerm_private_endpoint` - exposed `private_ip_address` as a computed attribute [GH-5838]
 * `azurerm_virtual_wan` - support for the `type` property [GH-5877]
+* `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
 
 BUG FIXES:
 
