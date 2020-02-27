@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "${var.location}"
@@ -15,5 +19,5 @@ resource "azurerm_netapp_pool" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   service_level       = "Premium"
-  size_in_4_tb        = "1"
+  size_in_tb          = 4
 }

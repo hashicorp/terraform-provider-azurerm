@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_extension"
-sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
     Manages a Virtual Machine Extension to provide post deployment
     configuration and run automated tasks.
@@ -21,40 +20,40 @@ and run automated tasks.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US"
 }
 
 resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "example" {
   name                = "acctni"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.example.id}"
+    subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "example" {
   name                     = "accsa"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -65,16 +64,16 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "example" {
   name                  = "acctvm"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  network_interface_ids = ["${azurerm_network_interface.example.id}"]
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  network_interface_ids = [azurerm_network_interface.example.id]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -108,9 +107,7 @@ resource "azurerm_virtual_machine" "example" {
 
 resource "azurerm_virtual_machine_extension" "example" {
   name                 = "hostname"
-  location             = "${azurerm_resource_group.example.location}"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_machine_name = "${azurerm_virtual_machine.example.name}"
+  virtual_machine_id   = azurerm_virtual_machine.example.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
@@ -120,6 +117,7 @@ resource "azurerm_virtual_machine_extension" "example" {
 		"commandToExecute": "hostname && uptime"
 	}
 SETTINGS
+
 
   tags = {
     environment = "Production"
@@ -134,15 +132,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the virtual machine extension peering. Changing
     this forces a new resource to be created.
 
-* `location` - (Required) The location where the extension is created. Changing
-    this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the virtual network. Changing this forces a new resource to be
-    created.
-
-* `virtual_machine_name` - (Required) The name of the virtual machine. Changing
-    this forces a new resource to be created.
+* `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers
     can be found by using the Azure CLI.
@@ -177,7 +167,16 @@ $ az vm extension image list --location westus -o table
 
 The following attributes are exported:
 
-* `id` - The Virtual Machine Extension ID.
+* `id` - The ID of the Virtual Machine Extension.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Extension.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Extension.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Extension.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Extension.
 
 ## Import
 

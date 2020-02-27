@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
-sidebar_current: "docs-azurerm-resource-storage-account"
 description: |-
   Manages a Azure Storage Account.
 ---
@@ -21,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "storageaccountname"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -43,30 +42,30 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "virtnetname"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "subnetname"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "example" {
   name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
-  location                 = "${azurerm_resource_group.example.location}"
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
   network_rules {
     default_action             = "Deny"
     ip_rules                   = ["100.0.0.1"]
-    virtual_network_subnet_ids = ["${azurerm_subnet.example.id}"]
+    virtual_network_subnet_ids = [azurerm_subnet.example.id]
   }
 
   tags = {
@@ -85,7 +84,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `Storage`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `StorageV2`.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
@@ -93,32 +92,36 @@ The following arguments are supported:
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
-* `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
-
-* `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
-
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
-    for more information.
-    
-* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
+    for more information. Defaults to `true`.
 
-* `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
+* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
-* `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
-
-~> **Note:** `enable_advanced_threat_protection` is not supported in all regions.
-
 * `identity` - (Optional) A `identity` block as defined below.
+
+* `blob_properties` - (Optional) A `blob_properties` block as defined below.
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
 
+* `static_website` - (Optional) A `static_website` block as defined below.
+
+~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2`
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `blob_properties` block supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
+* `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
 ---
 
@@ -129,9 +132,9 @@ A `cors_rule` block supports the following:
 * `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are
 `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` or `PUT`.
 
-* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS. 
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
 
-* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients. 
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients.
 
 * `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
 
@@ -142,7 +145,13 @@ A `custom_domain` block supports the following:
 * `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
---- 
+---
+
+A `delete_retention_policy` block supports the following:
+
+* `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
 
 A `hour_metrics` block supports the following:
 
@@ -152,7 +161,7 @@ A `hour_metrics` block supports the following:
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
 
 ---
 
@@ -174,7 +183,7 @@ A `logging` block supports the following:
 
 * `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
 
 ---
 
@@ -186,7 +195,7 @@ A `minute_metrics` block supports the following:
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
 
 ---
 
@@ -194,11 +203,13 @@ A `network_rules` block supports the following:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
-any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
+any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
+
+~> **NOTE:** Network Rules can be defined either directly on the `azurerm_storage_account` resource, or using the `azurerm_storage_account_network_rules` resource - but the two cannot be used together. If both are used against the same Storage Account, spurious changes will occur.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
@@ -206,13 +217,21 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 A `queue_properties` block supports the following:
 
-* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+* `cors_rule` - (Optional) A `cors_rule` block as defined above.
 
 * `logging` - (Optional) A `logging` block as defined below.
 
 * `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
+
+---
+
+A `static_website` block supports the following:
+
+* `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
+
+* `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
 
 ## Attributes Reference
 
@@ -297,6 +316,15 @@ The following attributes are exported in addition to the arguments listed above:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
 
 -> You can access the Principal ID via `${azurerm_storage_account.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity.0.tenant_id}`
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Storage Account.
+* `update` - (Defaults to 60 minutes) Used when updating the Storage Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Storage Account.
 
 ## Import
 

@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_database"
-sidebar_current: "docs-azurerm-resource-database-sql-database"
 description: |-
   Manages a SQL Database.
 ---
@@ -21,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
+  resource_group_name          = azurerm_resource_group.example.name
   location                     = "West US"
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
@@ -30,9 +29,9 @@ resource "azurerm_sql_server" "example" {
 
 resource "azurerm_sql_database" "example" {
   name                = "mysqldatabase"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   location            = "West US"
-  server_name         = "${azurerm_sql_server.example.name}"
+  server_name         = azurerm_sql_server.example.name
 
   tags = {
     environment = "production"
@@ -51,7 +50,7 @@ The following arguments are supported:
 
 * `server_name` - (Required) The name of the SQL Server on which to create the database.
 
-* `create_mode` - (Optional) Specifies how to create the database. Must be either `Default` to create a new database or `PointInTimeRestore` to restore from a snapshot. Defaults to `Default`.
+* `create_mode` - (Optional) Specifies how to create the database. Valid values are: `Default`, `Copy`, `OnlineSecondary`, `NonReadableSecondary`,  `PointInTimeRestore`, `Recovery`, `Restore` or `RestoreLongTermRetentionBackup`. Must be `Default` to create a new database. Defaults to `Default`. Please see [Azure SQL Database REST API](https://docs.microsoft.com/en-us/rest/api/sql/databases/createorupdate#createmode)
 
 * `import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
 
@@ -65,10 +64,9 @@ The following arguments are supported:
 
 * `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
-* `requested_service_objective_id` - (Optional) Use `requested_service_objective_id` or `requested_service_objective_name` to set the performance level for the database.
- Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
-
-* `requested_service_objective_name` - (Optional) Use `requested_service_objective_name` or `requested_service_objective_id` to set the performance level for the database. Valid values are: `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
+* `requested_service_objective_id` - (Optional) A GUID/UUID corresponding to a configured Service Level Objective for the Azure SQL database which can be used to configure a performance level.
+.
+* `requested_service_objective_name` - (Optional) The service objective name for the database. Valid values depend on edition and location and may include `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11` and `ElasticPool`. You can list the available names with the cli: ```shell az sql db list-editions -l westus --edition Standard -o table ```. For further information please see [Azure CLI - az sql db](https://docs.microsoft.com/en-us/cli/azure/sql/db?view=azure-cli-latest#az-sql-db-list-editions).
 
 * `source_database_deletion_date` - (Optional) The deletion date time of the source database. Only applies to deleted databases where `create_mode` is `PointInTimeRestore`.
 
@@ -77,6 +75,8 @@ The following arguments are supported:
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
 * `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-read-scale-out).
+
+* `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -110,6 +110,15 @@ The following attributes are exported:
 * `id` - The SQL Database ID.
 * `creation_date` - The creation date of the SQL Database.
 * `default_secondary_location` - The default secondary location of the SQL Database.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the SQL Database.
+* `update` - (Defaults to 60 minutes) Used when updating the SQL Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Database.
+* `delete` - (Defaults to 60 minutes) Used when deleting the SQL Database.
 
 ## Import
 

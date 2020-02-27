@@ -3,7 +3,7 @@ package containers
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,7 +14,7 @@ import (
 func SchemaDefaultNodePool() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -41,7 +41,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
@@ -142,11 +142,6 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 
 func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedClusterAgentPoolProfile, error) {
 	input := d.Get("default_node_pool").([]interface{})
-	// TODO: in 2.0 make this Required
-	// this exists to allow users to migrate to default_node_pool
-	if len(input) == 0 {
-		return nil, nil
-	}
 
 	raw := input[0].(map[string]interface{})
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)

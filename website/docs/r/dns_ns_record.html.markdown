@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_ns_record"
-sidebar_current: "docs-azurerm-resource-dns-ns-record"
 description: |-
   Manages a DNS NS Record.
 ---
@@ -21,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dns_ns_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
@@ -49,15 +48,9 @@ The following arguments are supported:
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `records` - (Optional) A list of values that make up the NS record. *WARNING*: Either `records` or `record` is required.
-
-* `record` - (Optional) A list of values that make up the NS record. Each `record` block supports fields documented below. This field has been deprecated and will be removed in a future release.
+* `records` - (Required) A list of values that make up the NS record. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-The `record` block supports:
-
-* `nsdname` - (Required) The value of the record.
 
 ## Attributes Reference
 
@@ -65,6 +58,17 @@ The following attributes are exported:
 
 * `id` - The DNS NS Record ID.
 * `fqdn` - The FQDN of the DNS NS Record.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS NS Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS NS Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS NS Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS NS Record.
 
 ## Import
 

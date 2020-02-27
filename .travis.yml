@@ -27,17 +27,19 @@ matrix:
   allow_failures:
     - go: tip
   include:
-    - name: "make lintstatic"
-      script: GOGC=15 make lintstatic
-    - name: "make linttravis"
-      script: GOGC=15 make lintrest
+    - name: "make lintrest"
+      script:
+      - GOGC=5 make lintrest
+    # results in a OOM error
+    #- name: "make lintunused"
+    #  script: GOGC=5 make lintunused
     - name: "make tflint"
       script: make tflint
     - name: "make test"
       script: make test
+    - name: "make depscheck"
+      script: make depscheck
     - name: "make website-lint"
       script: make website-lint
     - name: "make website-test"
       script: make website-test
-    - name: "make website-registrycheck"
-      script: make website-registrycheck

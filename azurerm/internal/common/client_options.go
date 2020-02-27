@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -32,9 +31,8 @@ type ClientOptions struct {
 	DisableCorrelationRequestID bool
 	DisableTerraformPartnerID   bool
 	Environment                 azure.Environment
-
-	// TODO: remove me in 2.0
-	PollingDuration time.Duration
+	Features                    features.UserFeatures
+	StorageUseAzureAD           bool
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
@@ -44,12 +42,7 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	c.Sender = sender.BuildSender("AzureRM")
 	c.SkipResourceProviderRegistration = o.SkipProviderReg
 	if !o.DisableCorrelationRequestID {
-		c.RequestInspector = WithCorrelationRequestID(CorrelationRequestID())
-	}
-
-	// TODO: remove in 2.0
-	if !features.SupportsCustomTimeouts() {
-		c.PollingDuration = o.PollingDuration
+		c.RequestInspector = withCorrelationRequestID(correlationRequestID())
 	}
 }
 

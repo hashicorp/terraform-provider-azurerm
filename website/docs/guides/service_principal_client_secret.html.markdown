@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Authenticating via a Service Principal and a Client Secret"
-sidebar_current: "docs-azurerm-guide-authentication-service-principal-client-secret"
 description: |-
   This guide will cover how to use a Service Principal (Shared Account) with a Client Secret as authentication for the Azure Provider.
 
@@ -181,7 +180,7 @@ The following Provider block can be specified - where `1.34.0` is the version of
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.36.0"
+  version = "=1.44.0"
 }
 ```
 
@@ -196,15 +195,16 @@ It's also possible to configure these variables either in-line or from using var
 ~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
-variable "client_secret" {}
+variable "client_secret" {
+}
 
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.36.0"
+  version = "=1.44.0"
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
   client_id       = "00000000-0000-0000-0000-000000000000"
-  client_secret   = "${var.client_secret}"
+  client_secret   = var.client_secret
   tenant_id       = "00000000-0000-0000-0000-000000000000"
 }
 ```

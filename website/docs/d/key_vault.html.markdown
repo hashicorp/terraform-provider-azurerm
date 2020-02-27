@@ -1,10 +1,9 @@
 ---
-subcategory: ""
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
-sidebar_current: "docs-azurerm-datasource-key-vault-x"
 description: |-
-  Gets information about a Key Vault.
+  Gets information about an existing Key Vault.
 ---
 
 # Data Source: azurerm_key_vault
@@ -20,7 +19,7 @@ data "azurerm_key_vault" "example" {
 }
 
 output "vault_uri" {
-  value = "${data.azurerm_key_vault.example.vault_uri}"
+  value = data.azurerm_key_vault.example.vault_uri
 }
 ```
 
@@ -28,9 +27,9 @@ output "vault_uri" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Key Vault.
+* `name` - Specifies the name of the Key Vault.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Key Vault exists.
+* `resource_group_name` - The name of the Resource Group in which the Key Vault exists.
 
 ## Attributes Reference
 
@@ -42,9 +41,9 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the Key Vault exists.
 
-* `sku` - A `sku` block as described below.
-
 * `tenant_id` - The Azure Active Directory Tenant ID used for authenticating requests to the Key Vault.
+
+* `sku_name` - The Name of the SKU used for this Key Vault.
 
 * `access_policy` - One or more `access_policy` blocks as defined below.
 
@@ -54,13 +53,13 @@ The following attributes are exported:
 
 * `enabled_for_template_deployment` - Can Azure Resource Manager retrieve secrets from the Key Vault?
 
+* `soft_delete_enabled` -  Is soft delete enabled on this Key Vault? 
+
+* `purge_protection_enabled` - Is purge protection enabled on this Key Vault?
+
 * `tags` - A mapping of tags assigned to the Key Vault.
 
-A `sku` block exports the following:
-
-* `name` - The name of the SKU used for this Key Vault.
-
-`access_policy` supports the following:
+A `access_policy` block supports the following:
 
 * `tenant_id` - The Azure Active Directory Tenant ID used to authenticate requests for this Key Vault.
 
@@ -75,3 +74,9 @@ A `sku` block exports the following:
 * `secret_permissions` - A list of secret permissions applicable to this Access Policy.
 
 * `storage_permissions` - A list of storage permissions applicable to this Access Policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.

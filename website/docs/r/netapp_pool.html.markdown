@@ -2,15 +2,13 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_pool"
-sidebar_current: "docs-azurerm-resource-netapp-pool"
 description: |-
-  Manages a NetApp Pool.
+  Manages a Pool within a NetApp Account.
 ---
 
 # azurerm_netapp_pool
 
-Manages a NetApp Pool.
-
+Manages a Pool within a NetApp Account.
 
 ## NetApp Pool Usage
 
@@ -22,17 +20,17 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_netapp_account" "example" {
   name                = "example-netappaccount"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_netapp_pool" "example" {
   name                = "example-netapppool"
-  account_name        = "${azurerm_netapp_account.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  account_name        = azurerm_netapp_account.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   service_level       = "Premium"
-  size_in_tb          = "4"
+  size_in_tb          = 4
 }
 ```
 
@@ -44,7 +42,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group where the NetApp Pool should be created. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created.
+* `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -59,6 +57,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the NetApp Pool.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the NetApp Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Pool.
 
 ## Import
 

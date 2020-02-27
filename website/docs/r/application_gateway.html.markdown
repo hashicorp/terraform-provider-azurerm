@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_gateway"
-sidebar_current: "docs-azurerm-resource-network-application-gateway"
 description: |-
   Manages an Application Gateway.
 ---
@@ -21,29 +20,29 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.254.0.0/16"]
 }
 
 resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.254.0.0/24"
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.254.2.0/24"
 }
 
 resource "azurerm_public_ip" "example" {
   name                = "example-pip"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   allocation_method   = "Dynamic"
 }
 
@@ -60,8 +59,8 @@ locals {
 
 resource "azurerm_application_gateway" "network" {
   name                = "example-appgateway"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "Standard_Small"
@@ -71,25 +70,25 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_subnet.frontend.id}"
+    subnet_id = azurerm_subnet.frontend.id
   }
 
   frontend_port {
-    name = "${local.frontend_port_name}"
+    name = local.frontend_port_name
     port = 80
   }
 
   frontend_ip_configuration {
-    name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.example.id}"
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 
   backend_address_pool {
-    name = "${local.backend_address_pool_name}"
+    name = local.backend_address_pool_name
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
+    name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
     path                  = "/path1/"
     port                  = 80
@@ -98,18 +97,18 @@ resource "azurerm_application_gateway" "network" {
   }
 
   http_listener {
-    name                           = "${local.listener_name}"
-    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
-    frontend_port_name             = "${local.frontend_port_name}"
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
+    name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
   }
 }
 ```
@@ -152,9 +151,6 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `disabled_ssl_protocols` - (Optional / **Deprecated**) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
-~> **NOTE:** `disabled_ssl_protocols ` has been deprecated in favour of `disabled_protocols` in the `ssl_policy` block.
-
 * `ssl_policy` (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
@@ -189,9 +185,9 @@ A `authentication_certificate` block supports the following:
 
 A `trusted_root_certificate` block supports the following:
 
-* `name` - (Required) The Name of the Authentication Certificate to use.
+* `name` - (Required) The Name of the Trusted Root Certificate to use.
 
-* `data` - (Required) The contents of the Authentication Certificate which should be used.
+* `data` - (Required) The contents of the Trusted Root Certificate which should be used.
 
 ---
 
@@ -207,11 +203,7 @@ A `backend_address_pool` block supports the following:
 
 * `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
-* `fqdn_list` - (Optional **Deprecated**) A list of FQDN's which should be part of the Backend Address Pool. This field has been deprecated in favour of `fqdns` and will be removed in v2.0 of the AzureRM Provider.
-
 * `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
-
-* `ip_address_list` - (Optional **Deprecated**) A list of IP Addresses which should be part of the Backend Address Pool. This field has been deprecated in favour of `ip_addresses` and will be removed in v2.0 of the AzureRM Provider.
 
 ---
 
@@ -239,6 +231,8 @@ A `backend_http_settings` block supports the following:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
+
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 
 ---
@@ -251,7 +245,7 @@ A `connection_draining` block supports the following:
 
 ---
 
-      
+
 A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
@@ -314,7 +308,7 @@ A `identity` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response. Defaults to `*`.
+* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
 
 * `status_code` - (Optional) A list of allowed status codes for this Health Probe.
 
@@ -428,14 +422,14 @@ A `ssl_policy` block supports the following:
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
-* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and 
+* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and
 are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
 
-* `cipher_suites` - (Required) A List of accepted cipher suites. Possible values are: `TLS_DHE_DSS_WITH_AES_128_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA256`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA256`, `TLS_DHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_DHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_RSA_WITH_3DES_EDE_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA256`, `TLS_RSA_WITH_AES_128_GCM_SHA256`, `TLS_RSA_WITH_AES_256_CBC_SHA`, `TLS_RSA_WITH_AES_256_CBC_SHA256` and `TLS_RSA_WITH_AES_256_GCM_SHA384`.
+* `cipher_suites` - (Optional) A List of accepted cipher suites. Possible values are: `TLS_DHE_DSS_WITH_AES_128_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA256`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA256`, `TLS_DHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_DHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_RSA_WITH_3DES_EDE_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA256`, `TLS_RSA_WITH_AES_128_GCM_SHA256`, `TLS_RSA_WITH_AES_256_CBC_SHA`, `TLS_RSA_WITH_AES_256_CBC_SHA256` and `TLS_RSA_WITH_AES_256_GCM_SHA384`.
 
-* `min_protocol_version` - (Required) The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+* `min_protocol_version` - (Optional) The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
 
 
 
@@ -728,6 +722,15 @@ A `redirect_configuration` block exports the following:
 A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Application Gateway.
 
 ## Import
 

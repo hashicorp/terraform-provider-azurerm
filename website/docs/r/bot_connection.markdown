@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_connection"
-sidebar_current: "docs-azurerm-resource-bot-connection"
 description: |-
   Manages a Bot Connection.
 ---
@@ -17,7 +16,7 @@ Manages a Bot Connection.
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
@@ -26,7 +25,7 @@ resource "azurerm_bot_channels_registration" "example" {
   location            = "global"
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "F0"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  microsoft_app_id    = "${data.azurerm_client_config.current.client_id}"
 }
 
 resource "azurerm_bot_connection" "example" {
@@ -69,7 +68,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Bot Connection ID.
+* `id` - The ID of the Bot Connection.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Bot Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Bot Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Bot Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Bot Connection.
 
 ## Import
 

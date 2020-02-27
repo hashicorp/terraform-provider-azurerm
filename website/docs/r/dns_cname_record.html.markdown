@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_cname_record"
-sidebar_current: "docs-azurerm-resource-dns-cname-record"
 description: |-
   Manages a DNS CNAME Record.
 ---
@@ -21,15 +20,45 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dns_cname_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
   record              = "contoso.com"
+}
+```
+
+## Example Usage (Alias Record)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "acceptanceTestResourceGroup1"
+  location = "West US"
+}
+
+resource "azurerm_dns_zone" "example" {
+  name                = "mydomain.com"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_dns_cname_record" "target" {
+  name                = "target"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  ttl                 = 300
+  record              = "contoso.com"
+}
+
+resource "azurerm_dns_cname_record" "example" {
+  name                = "test"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  ttl                 = 300
+  target_resource_id  = azurerm_dns_cname_record.target.id
 }
 ```
 
@@ -47,7 +76,11 @@ The following arguments are supported:
 
 * `record` - (Required) The target of the CNAME.
 
+* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+~> **Note:** either `record` OR `target_resource_id` must be specified, but not both.
 
 ## Attributes Reference
 
@@ -55,6 +88,17 @@ The following attributes are exported:
 
 * `id` - The DNS CName Record ID.
 * `fqdn` - The FQDN of the DNS CName Record.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS CName Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS CName Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS CName Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS CName Record.
 
 ## Import
 

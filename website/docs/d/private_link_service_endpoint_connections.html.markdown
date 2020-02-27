@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service_endpoint_connections"
-sidebar_current: "docs-azurerm-datasource-private-link-service-endpoint-connections"
 description: |-
   Use this data source to access endpoint connection information about an existing Private Link Service.
 ---
@@ -11,8 +10,9 @@ description: |-
 
 Use this data source to access endpoint connection information about an existing Private Link Service.
 
+-> **NOTE** Private Link is currently in Public Preview.
 
-## Private Link Service Endpoint Connections Usage
+## Example Usage
 
 ```hcl
 data "azurerm_private_link_service_endpoint_connections" "example" {
@@ -30,9 +30,9 @@ output "private_endpoint_status" {
 
 The following arguments are supported:
 
-* `service_id` - (Required) The resource ID of the private link service.
+* `service_id` - The resource ID of the private link service.
 
-* `resource_group_name` - (Required) The name of the resource group in which the private link service resides.
+* `resource_group_name` - The name of the resource group in which the private link service resides.
 
 
 ## Attributes Reference
@@ -54,3 +54,9 @@ The `private_endpoint_connections` block exports the following:
 * `description` -  The request for approval message or the reason for rejection message.
 
 * `status` - Indicates the state of the connection between the private link service and the private link endpoint, possible values are `Pending`, `Approved` or `Rejected`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.

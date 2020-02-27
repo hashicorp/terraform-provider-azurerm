@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_hub"
-sidebar_current: "docs-azurerm-datasource-virtual-hub"
 description: |-
   Gets information about an existing Virtual Hub
 ---
@@ -29,9 +28,9 @@ output "virtual_hub_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Hub.
+* `name` - The name of the Virtual Hub.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the Virtual Hub exists.
+* `resource_group_name` - The Name of the Resource Group where the Virtual Hub exists.
 
 
 ## Attributes Reference
@@ -45,3 +44,9 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the Virtual Hub.
 
 * `virtual_wan_id` - The ID of the Virtual WAN within which the Virtual Hub exists.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub.
