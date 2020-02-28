@@ -458,8 +458,8 @@ func (gen documentationGenerator) timeoutsBlock() string {
 		timeoutsText += fmt.Sprintf("* `update` - (Defaults to %s) Used when updating the %s.\n", friendlyText, gen.brandName)
 	}
 
-	if timeouts.Create != nil {
-		friendlyText := timeoutToFriendlyText(*timeouts.Create)
+	if timeouts.Delete != nil {
+		friendlyText := timeoutToFriendlyText(*timeouts.Delete)
 		timeoutsText += fmt.Sprintf("* `delete` - (Defaults to %s) Used when deleting the %s.\n", friendlyText, gen.brandName)
 	}
 
