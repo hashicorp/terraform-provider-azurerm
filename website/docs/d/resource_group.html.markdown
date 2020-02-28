@@ -18,7 +18,7 @@ data "azurerm_resource_group" "example" {
 }
 
 output "id" {
-  value = data.azurerm_resource_group.example.id"
+  value = data.azurerm_resource_group.example.id
 }
 ```
 
