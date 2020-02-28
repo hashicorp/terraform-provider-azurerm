@@ -224,16 +224,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"tags": {
-				Type:         schema.TypeMap,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateAzureRMStorageAccountTags,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
 			"blob_properties": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -543,6 +533,8 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
