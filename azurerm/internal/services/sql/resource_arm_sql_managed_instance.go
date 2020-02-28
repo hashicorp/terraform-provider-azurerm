@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -240,9 +240,9 @@ func expandManagedInstanceSkuName(skuName string) (*sql.Sku, error) {
 	var tier string
 	switch parts[0] {
 	case "GP":
-		tier = string(sql.GeneralPurpose)
+		tier = "GeneralPurpose"
 	case "BC":
-		tier = string(sql.BusinessCritical)
+		tier = "BusinessCritical"
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
 	}

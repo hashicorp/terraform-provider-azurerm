@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	msi "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -11,7 +12,7 @@ type Client struct {
 	ElasticPoolsClient                    *sql.ElasticPoolsClient
 	FirewallRulesClient                   *sql.FirewallRulesClient
 	FailoverGroupsClient                  *sql.FailoverGroupsClient
-	ManagedInstancesClient                *sql.ManagedInstancesClient
+	ManagedInstancesClient                *msi.ManagedInstancesClient
 	ServersClient                         *sql.ServersClient
 	ServerAzureADAdministratorsClient     *sql.ServerAzureADAdministratorsClient
 	VirtualNetworkRulesClient             *sql.VirtualNetworkRulesClient
@@ -34,7 +35,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	FirewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	ManagedInstancesClient := sql.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	ManagedInstancesClient := msi.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagedInstancesClient.Client, o.ResourceManagerAuthorizer)
 
 	ServersClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
