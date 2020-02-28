@@ -229,9 +229,7 @@ resource "azurerm_subnet" "test" {
   name                      = "subnet-%d"
   resource_group_name       = "${azurerm_resource_group.test.name}"
   virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.0.0/24"  
-  route_table_id            = "${azurerm_route_table.test.id}"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  address_prefix            = "10.0.0.0/24"
 
   delegation {
     name = "managedinstancedelegation"
@@ -241,6 +239,11 @@ resource "azurerm_subnet" "test" {
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
     }
   }
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = "${azurerm_subnet.test.id}"
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
