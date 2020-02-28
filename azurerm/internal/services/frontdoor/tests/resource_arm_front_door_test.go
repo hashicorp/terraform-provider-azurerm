@@ -799,9 +799,9 @@ resource "azurerm_frontdoor" "test" {
     name                              = local.endpoint_name
     host_name                         = "acctestfd-%d.azurefd.net"
     custom_https_provisioning_enabled = false
-	}
-	
-	routing_rule {
+  }
+
+  routing_rule {
     name               = "routing-rule-b"
     accepted_protocols = ["Https"]
     patterns_to_match  = ["/poolb/*"]
