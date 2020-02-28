@@ -33,8 +33,8 @@ func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(data acce
 %s
 
 data "azurerm_log_analytics_workspace" "test" {
-  name                = "${azurerm_log_analytics_workspace.test.name}"
-  resource_group_name = "${azurerm_log_analytics_workspace.test.resource_group_name}"
+  name                = azurerm_log_analytics_workspace.test.name
+  resource_group_name = azurerm_log_analytics_workspace.test.resource_group_name
 }
 `, config)
 }

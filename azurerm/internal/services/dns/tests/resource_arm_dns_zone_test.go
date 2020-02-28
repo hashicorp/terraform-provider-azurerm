@@ -146,6 +146,10 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -153,7 +157,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -164,14 +168,18 @@ func testAccAzureRMDnsZone_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dns_zone" "import" {
-  name                = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
+  name                = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_dns_zone.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMDnsZone_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -179,7 +187,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -191,6 +199,10 @@ resource "azurerm_dns_zone" "test" {
 
 func testAccAzureRMDnsZone_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -198,7 +210,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"

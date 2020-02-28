@@ -228,6 +228,10 @@ func testCheckAzureRMRouteDestroy(s *terraform.State) error {
 
 func testAccAzureRMRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -235,14 +239,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_route" "test" {
   name                = "acctestroute%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  route_table_name    = "${azurerm_route_table.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  route_table_name    = azurerm_route_table.test.name
 
   address_prefix = "10.1.0.0/16"
   next_hop_type  = "vnetlocal"
@@ -254,18 +258,22 @@ func testAccAzureRMRoute_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_route" "import" {
-  name                = "${azurerm_route.test.name}"
-  resource_group_name = "${azurerm_route.test.resource_group_name}"
-  route_table_name    = "${azurerm_route.test.route_table_name}"
+  name                = azurerm_route.test.name
+  resource_group_name = azurerm_route.test.resource_group_name
+  route_table_name    = azurerm_route.test.route_table_name
 
-  address_prefix = "${azurerm_route.test.address_prefix}"
-  next_hop_type  = "${azurerm_route.test.next_hop_type}"
+  address_prefix = azurerm_route.test.address_prefix
+  next_hop_type  = azurerm_route.test.next_hop_type
 }
 `, testAccAzureRMRoute_basic(data))
 }
 
 func testAccAzureRMRoute_basicAppliance(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -273,14 +281,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_route" "test" {
   name                = "acctestroute%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  route_table_name    = "${azurerm_route_table.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  route_table_name    = azurerm_route_table.test.name
 
   address_prefix         = "10.1.0.0/16"
   next_hop_type          = "VirtualAppliance"
@@ -291,6 +299,10 @@ resource "azurerm_route" "test" {
 
 func testAccAzureRMRoute_multipleRoutes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -298,14 +310,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_route" "test1" {
   name                = "acctestroute%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  route_table_name    = "${azurerm_route_table.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  route_table_name    = azurerm_route_table.test.name
 
   address_prefix = "10.2.0.0/16"
   next_hop_type  = "none"

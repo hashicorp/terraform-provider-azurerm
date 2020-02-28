@@ -142,8 +142,8 @@ func testAccAzureRMCosmosDbCassandraKeyspace_basic(data acceptance.TestData) str
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 }
 `, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger)
 }
@@ -154,8 +154,8 @@ func testAccAzureRMCosmosDbCassandraKeyspace_throughput(data acceptance.TestData
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 
   throughput = %[3]d
 }

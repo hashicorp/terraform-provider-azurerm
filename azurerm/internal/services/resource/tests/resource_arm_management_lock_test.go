@@ -254,6 +254,10 @@ func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
 
 func testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -261,7 +265,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_resource_group.test.id}"
+  scope      = azurerm_resource_group.test.id
   lock_level = "ReadOnly"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -273,15 +277,19 @@ func testAccAzureRMManagementLock_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_management_lock" "import" {
-  name       = "${azurerm_management_lock.test.name}"
-  scope      = "${azurerm_management_lock.test.scope}"
-  lock_level = "${azurerm_management_lock.test.lock_level}"
+  name       = azurerm_management_lock.test.name
+  scope      = azurerm_management_lock.test.scope
+  lock_level = azurerm_management_lock.test.lock_level
 }
 `, template)
 }
 
 func testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -289,7 +297,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_resource_group.test.id}"
+  scope      = azurerm_resource_group.test.id
   lock_level = "ReadOnly"
   notes      = "Hello, World!"
 }
@@ -298,6 +306,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -305,7 +317,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_resource_group.test.id}"
+  scope      = azurerm_resource_group.test.id
   lock_level = "CanNotDelete"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -313,6 +325,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -320,7 +336,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_resource_group.test.id}"
+  scope      = azurerm_resource_group.test.id
   lock_level = "CanNotDelete"
   notes      = "Hello, World!"
 }
@@ -329,6 +345,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_publicIPReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -336,15 +356,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                    = "acctestpublicip-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_public_ip.test.id}"
+  scope      = azurerm_public_ip.test.id
   lock_level = "ReadOnly"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -352,6 +372,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -359,15 +383,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                    = "acctestpublicip-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_public_ip.test.id}"
+  scope      = azurerm_public_ip.test.id
   lock_level = "CanNotDelete"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -375,11 +399,16 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_subscriptionReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {
+}
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${data.azurerm_subscription.current.id}"
+  scope      = data.azurerm_subscription.current.id
   lock_level = "ReadOnly"
 }
 `, data.RandomInteger)
@@ -387,11 +416,16 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {
+}
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${data.azurerm_subscription.current.id}"
+  scope      = data.azurerm_subscription.current.id
   lock_level = "CanNotDelete"
 }
 `, data.RandomInteger)

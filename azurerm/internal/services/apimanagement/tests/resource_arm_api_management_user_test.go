@@ -267,8 +267,8 @@ func testAccAzureRMApiManagementUser_basic(data acceptance.TestData) string {
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"
@@ -282,13 +282,13 @@ func testAccAzureRMApiManagementUser_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_api_management_user" "import" {
-  user_id             = "${azurerm_api_management_user.test.user_id}"
-  api_management_name = "${azurerm_api_management_user.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_user.test.resource_group_name}"
-  first_name          = "${azurerm_api_management_user.test.first_name}"
-  last_name           = "${azurerm_api_management_user.test.last_name}"
-  email               = "${azurerm_api_management_user.test.email}"
-  state               = "${azurerm_api_management_user.test.state}"
+  user_id             = azurerm_api_management_user.test.user_id
+  api_management_name = azurerm_api_management_user.test.api_management_name
+  resource_group_name = azurerm_api_management_user.test.resource_group_name
+  first_name          = azurerm_api_management_user.test.first_name
+  last_name           = azurerm_api_management_user.test.last_name
+  email               = azurerm_api_management_user.test.email
+  state               = azurerm_api_management_user.test.state
 }
 `, template)
 }
@@ -300,8 +300,8 @@ func testAccAzureRMApiManagementUser_password(data acceptance.TestData) string {
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"
@@ -318,8 +318,8 @@ func testAccAzureRMApiManagementUser_updatedActive(data acceptance.TestData) str
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"
@@ -335,8 +335,8 @@ func testAccAzureRMApiManagementUser_updatedBlocked(data acceptance.TestData) st
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance Updated"
   last_name           = "Test Updated"
   email               = "azure-acctest%d@example.com"
@@ -352,8 +352,8 @@ func testAccAzureRMApiManagementUser_invited(data acceptance.TestData) string {
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test User"
   email               = "azure-acctest%d@example.com"
@@ -370,8 +370,8 @@ func testAccAzureRMApiManagementUser_signUp(data acceptance.TestData) string {
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test User"
   email               = "azure-acctest%d@example.com"
@@ -388,8 +388,8 @@ func testAccAzureRMApiManagementUser_complete(data acceptance.TestData) string {
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"
@@ -402,6 +402,10 @@ resource "azurerm_api_management_user" "test" {
 
 func testAccAzureRMApiManagementUser_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -409,8 +413,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 

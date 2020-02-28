@@ -86,9 +86,9 @@ func testAccDataSourceAzureRMSqlDatabase_basic(data acceptance.TestData) string 
 %s
 
 data "azurerm_sql_database" "test" {
-  name                = "${azurerm_sql_database.test.name}"
-  server_name         = "${azurerm_sql_database.test.server_name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_sql_database.test.name
+  server_name         = azurerm_sql_database.test.server_name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }
@@ -99,9 +99,9 @@ func testAccDataSourceAzureRMSqlDatabase_elasticPool(data acceptance.TestData) s
 %s
 
 data "azurerm_sql_database" "test" {
-  name                = "${azurerm_sql_database.test.name}"
-  server_name         = "${azurerm_sql_database.test.server_name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_sql_database.test.name
+  server_name         = azurerm_sql_database.test.server_name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }
@@ -112,9 +112,9 @@ func testAccDataSourceAzureRMSqlDatabase_readScale(data acceptance.TestData, rea
 %s
 
 data "azurerm_sql_database" "test" {
-  name                = "${azurerm_sql_database.test.name}"
-  server_name         = "${azurerm_sql_database.test.server_name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_sql_database.test.name
+  server_name         = azurerm_sql_database.test.server_name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

@@ -178,6 +178,10 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName strin
 
 func testAccAzureRMEventHubNamespaceAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -185,16 +189,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctest-EHN-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "acctest-EHN-AR%[1]d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   listen = %[3]t
   send   = %[4]t
@@ -209,12 +213,12 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(data accept
 %s
 
 resource "azurerm_eventhub_namespace_authorization_rule" "import" {
-  name                = "${azurerm_eventhub_namespace_authorization_rule.test.name}"
-  namespace_name      = "${azurerm_eventhub_namespace_authorization_rule.test.namespace_name}"
-  resource_group_name = "${azurerm_eventhub_namespace_authorization_rule.test.resource_group_name}"
-  listen              = "${azurerm_eventhub_namespace_authorization_rule.test.listen}"
-  send                = "${azurerm_eventhub_namespace_authorization_rule.test.send}"
-  manage              = "${azurerm_eventhub_namespace_authorization_rule.test.manage}"
+  name                = azurerm_eventhub_namespace_authorization_rule.test.name
+  namespace_name      = azurerm_eventhub_namespace_authorization_rule.test.namespace_name
+  resource_group_name = azurerm_eventhub_namespace_authorization_rule.test.resource_group_name
+  listen              = azurerm_eventhub_namespace_authorization_rule.test.listen
+  send                = azurerm_eventhub_namespace_authorization_rule.test.send
+  manage              = azurerm_eventhub_namespace_authorization_rule.test.manage
 }
 `, template)
 }

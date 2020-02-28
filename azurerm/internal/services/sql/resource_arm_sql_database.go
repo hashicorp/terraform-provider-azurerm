@@ -181,6 +181,12 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Computed: true,
 			},
 
+			"max_size_gb": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"requested_service_objective_id": {
 				Type:         schema.TypeString,
 				Optional:     true,

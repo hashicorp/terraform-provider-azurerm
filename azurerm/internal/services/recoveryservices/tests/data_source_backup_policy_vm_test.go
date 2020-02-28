@@ -31,7 +31,7 @@ func TestAccDataSourceAzureRMBackupPolicyVm_basic(t *testing.T) {
 
 func testAccDataSourceBackupPolicyVm_basic(data acceptance.TestData) string {
 	template := testAccAzureRMBackupProtectionPolicyVM_basicDaily(data)
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 data "azurerm_backup_policy_vm" "test" {

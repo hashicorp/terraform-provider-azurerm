@@ -207,6 +207,10 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 
 func testAccAzureRMStorageAccountCustomerManagedKey_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 provider "azurerm" {

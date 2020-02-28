@@ -651,6 +651,10 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 
 func testAccAzureRMStorageAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -658,9 +662,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -677,11 +681,11 @@ func testAccAzureRMStorageAccount_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_storage_account" "import" {
-  name                     = "${azurerm_storage_account.test.name}"
-  resource_group_name      = "${azurerm_storage_account.test.resource_group_name}"
-  location                 = "${azurerm_storage_account.test.location}"
-  account_tier             = "${azurerm_storage_account.test.account_tier}"
-  account_replication_type = "${azurerm_storage_account.test.account_replication_type}"
+  name                     = azurerm_storage_account.test.name
+  resource_group_name      = azurerm_storage_account.test.resource_group_name
+  location                 = azurerm_storage_account.test.location
+  account_tier             = azurerm_storage_account.test.account_tier
+  account_replication_type = azurerm_storage_account.test.account_replication_type
 }
 `, template)
 }
@@ -693,7 +697,7 @@ func testAccAzureRMStorageAccount_writeLock(data acceptance.TestData) string {
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_storage_account.test.id}"
+  scope      = azurerm_storage_account.test.id
   lock_level = "ReadOnly"
 }
 `, template, data.RandomInteger)
@@ -701,6 +705,10 @@ resource "azurerm_management_lock" "test" {
 
 func testAccAzureRMStorageAccount_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -708,9 +716,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Premium"
   account_replication_type = "LRS"
 
@@ -723,6 +731,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -730,9 +742,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -745,6 +757,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -752,9 +768,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                  = "${azurerm_resource_group.test.location}"
+  location                  = azurerm_resource_group.test.location
   account_tier              = "Standard"
   account_replication_type  = "LRS"
   enable_https_traffic_only = true
@@ -768,6 +784,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -775,9 +795,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                  = "${azurerm_resource_group.test.location}"
+  location                  = azurerm_resource_group.test.location
   account_tier              = "Standard"
   account_replication_type  = "LRS"
   enable_https_traffic_only = false
@@ -791,6 +811,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_isHnsEnabledTrue(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -798,9 +822,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -811,6 +835,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_isHnsEnabledFalse(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -818,9 +846,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -831,6 +859,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -838,9 +870,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -854,6 +886,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobStorageUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -861,9 +897,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -878,6 +914,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blockBlobStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -885,9 +925,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlockBlobStorage"
   account_tier             = "Premium"
   account_replication_type = "LRS"
@@ -901,6 +941,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_fileStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -908,9 +952,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "FileStorage"
   account_tier             = "Premium"
   account_replication_type = "LRS"
@@ -925,6 +969,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_fileStorageUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -932,9 +980,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "FileStorage"
   account_tier             = "Premium"
   account_replication_type = "LRS"
@@ -949,6 +997,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_storageV2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -956,9 +1008,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -972,6 +1024,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_storageV2Update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -979,9 +1035,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -996,6 +1052,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1003,8 +1063,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "standard"
   account_replication_type = "lrs"
 
@@ -1017,6 +1077,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1024,9 +1088,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1043,6 +1107,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_networkRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1051,29 +1119,29 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
   network_rules {
     default_action             = "Deny"
     ip_rules                   = ["127.0.0.1"]
-    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    virtual_network_subnet_ids = [azurerm_subnet.test.id]
   }
 
   tags = {
@@ -1085,6 +1153,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_networkRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1093,22 +1165,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1127,6 +1199,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_networkRulesReverted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1135,29 +1211,29 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
   network_rules {
     default_action             = "Allow"
     ip_rules                   = ["127.0.0.1"]
-    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    virtual_network_subnet_ids = [azurerm_subnet.test.id]
   }
 
   tags = {
@@ -1169,6 +1245,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestAzureRMSA-%d"
   location = "%s"
@@ -1176,9 +1256,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1201,6 +1281,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_blobPropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestAzureRMSA-%d"
   location = "%s"
@@ -1208,9 +1292,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1240,6 +1324,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_queueProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1247,9 +1335,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1288,6 +1376,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_queuePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1295,9 +1387,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1344,6 +1436,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_staticWebsiteProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1351,9 +1447,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -1368,6 +1464,10 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_staticWebsitePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -1375,9 +1475,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
