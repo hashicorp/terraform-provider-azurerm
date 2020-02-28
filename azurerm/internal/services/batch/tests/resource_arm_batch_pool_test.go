@@ -1225,14 +1225,16 @@ resource "azurerm_batch_pool" "test" {
 
   network_configuration {
     subnet_id = "${azurerm_subnet.test.id}"
+
     endpoint_configuration {
-      name = "SSH"
-      protocol = "TCP"
-      backend_port = 22
+      name                = "SSH"
+      protocol            = "TCP"
+      backend_port        = 22
       frontend_port_range = "4000-4100"
+
       network_security_group_rules {
-        access = "Deny"
-        priority = 1001
+        access                = "Deny"
+        priority              = 1001
         source_address_prefix = "*"
       }
     }
