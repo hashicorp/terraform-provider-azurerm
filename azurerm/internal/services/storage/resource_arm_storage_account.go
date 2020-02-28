@@ -534,7 +534,14 @@ func resourceArmStorageAccount() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -542,8 +549,8 @@ func resourceArmStorageAccount() *schema.Resource {
 func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []string, errors []error) {
 	tagsMap := v.(map[string]interface{})
 
-	if len(tagsMap) > 15 {
-		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to storage account ARM resource"))
+	if len(tagsMap) > 50 {
+		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to storage account ARM resource"))
 	}
 
 	for k, v := range tagsMap {
