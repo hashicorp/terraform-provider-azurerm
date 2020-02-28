@@ -90,6 +90,10 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringLenBetween(1, 140),
 						},
+						"private_ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -166,6 +170,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 
 func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -193,7 +198,20 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if props := resp.PrivateEndpointProperties; props != nil {
+		privateIpAddress := ""
+
+		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
+			nic := (*nics)[0]
+			if nic.ID != nil && *nic.ID != "" {
+				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
+			}
+		}
+
 		flattenedConnection := flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections)
+		for _, item := range flattenedConnection {
+			v := item.(map[string]interface{})
+			v["private_ip_address"] = privateIpAddress
+		}
 		if err := d.Set("private_service_connection", flattenedConnection); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}

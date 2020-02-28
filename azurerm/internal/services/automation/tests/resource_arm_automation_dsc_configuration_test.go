@@ -28,6 +28,8 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "log_verbose"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "state"),
 					resource.TestCheckResourceAttr(data.ResourceName, "content_embedded", "configuration acctest {}"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
 				),
 			},
 			data.ImportStep(),
@@ -145,6 +147,10 @@ resource "azurerm_automation_dsc_configuration" "test" {
   location                = "${azurerm_resource_group.test.location}"
   content_embedded        = "configuration acctest {}"
   description             = "test"
+
+  tags = {
+    ENV = "prod"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

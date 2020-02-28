@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 locals {
   custom_data_params  = "Param($ComputerName = \"${local.virtual_machine_name}\")"
   custom_data_content = "${local.custom_data_params} ${file("./files/winrm.ps1")}"

@@ -175,7 +175,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Default:  false,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
@@ -185,11 +185,11 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(frontdoor.StripAll),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
 										}, false),
-										Default: string(frontdoor.StripNone),
 									},
 									"custom_forwarding_path": {
 										Type:     schema.TypeString,
@@ -198,12 +198,12 @@ func resourceArmFrontDoor() *schema.Resource {
 									"forwarding_protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(frontdoor.HTTPSOnly),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.HTTPOnly),
 											string(frontdoor.HTTPSOnly),
 											string(frontdoor.MatchRequest),
 										}, false),
-										Default: string(frontdoor.HTTPSOnly),
 									},
 								},
 							},

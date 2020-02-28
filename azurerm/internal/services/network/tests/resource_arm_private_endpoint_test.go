@@ -24,6 +24,7 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "private_service_connection.0.private_ip_address"),
 				),
 			},
 			data.ImportStep(),
