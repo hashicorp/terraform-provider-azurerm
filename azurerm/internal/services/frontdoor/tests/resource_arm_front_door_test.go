@@ -518,7 +518,6 @@ resource "azurerm_frontdoor" "test" {
     forwarding_configuration {
       forwarding_protocol = "MatchRequest"
       backend_pool_name   = local.backend_name
-      cache_enabled       = false
     }
   }
 
@@ -581,6 +580,7 @@ resource "azurerm_frontdoor" "test" {
     forwarding_configuration {
       forwarding_protocol = "MatchRequest"
       backend_pool_name   = local.backend_name
+      cache_enabled       = true
     }
   }
 
