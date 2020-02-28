@@ -1430,7 +1430,8 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 						if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
 							c["cache_query_parameter_strip_directive"] = string(stripDirective)
 						} else {
-							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
+							// Default value if not set
+							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripAll)
 						}
 
 						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {

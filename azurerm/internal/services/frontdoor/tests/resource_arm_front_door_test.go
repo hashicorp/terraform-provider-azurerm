@@ -28,7 +28,7 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMFrontDoor_healthProbeDisabledMethod(data),
+				Config: testAccAzureRMFrontDoor_basicDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_health_probe.0.enabled", "false"),
@@ -297,6 +297,69 @@ resource "azurerm_frontdoor" "test" {
     }
 
     load_balancing_name = local.load_balancing_name
+    health_probe_name   = local.health_probe_name
+  }
+
+  frontend_endpoint {
+    name                              = local.endpoint_name
+    host_name                         = "acctestfd-%d.azurefd.net"
+    custom_https_provisioning_enabled = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFrontDoor_basicDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+locals {
+  backend_name        = "backend-bing"
+  endpoint_name       = "frontend-endpoint"
+  health_probe_name   = "health-probe"
+  load_balancing_name = "load-balancing-setting"
+}
+
+resource "azurerm_frontdoor" "test" {
+  name                                         = "acctestfd-%d"
+  location                                     = azurerm_resource_group.test.location
+  resource_group_name                          = azurerm_resource_group.test.name
+  enforce_backend_pools_certificate_name_check = false
+
+  routing_rule {
+    name               = "routing-rule"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = [local.endpoint_name]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = local.backend_name
+    }
+  }
+
+  backend_pool_load_balancing {
+    name = local.load_balancing_name
+  }
+
+  backend_pool_health_probe {
+    name = local.health_probe_name
+    enabled      = false
+    probe_method = "HEAD"
+  }
+
+  backend_pool {
+    name = local.backend_name
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
+
+  load_balancing_name = local.load_balancing_name
     health_probe_name   = local.health_probe_name
   }
 
@@ -736,107 +799,6 @@ resource "azurerm_frontdoor" "test" {
     name                              = local.endpoint_name
     host_name                         = "acctestfd-%d.azurefd.net"
     custom_https_provisioning_enabled = false
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMFrontDoor_healthProbeDisabledMethod(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-locals {
-  backend_name        = "backend-bing"
-  endpoint_name       = "frontend-endpoint"
-  health_probe_name   = "health-probe"
-  load_balancing_name = "load-balancing-setting"
-}
-
-resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
-  location                                     = azurerm_resource_group.test.location
-  resource_group_name                          = azurerm_resource_group.test.name
-  enforce_backend_pools_certificate_name_check = false
-
-  routing_rule {
-    name               = "routing-rule"
-    accepted_protocols = ["Http", "Https"]
-    patterns_to_match  = ["/*"]
-    frontend_endpoints = [local.endpoint_name]
-    forwarding_configuration {
-      forwarding_protocol = "MatchRequest"
-      backend_pool_name   = local.backend_name
-    }
-  }
-
-  backend_pool_load_balancing {
-    name = "${local.load_balancing_name}-A"
-  }
-
-  backend_pool_health_probe {
-    name         = "${local.health_probe_name}-A"
-    enabled      = false
-    probe_method = "HEAD"
-  }
-
-  backend_pool {
-    name = local.backend_name
-    backend {
-      host_header = "www.bing.com"
-      address     = "www.bing.com"
-      http_port   = 80
-      https_port  = 443
-    }
-
-    load_balancing_name = "${local.load_balancing_name}-A"
-    health_probe_name   = "${local.health_probe_name}-A"
-  }
-
-  frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
-    custom_https_provisioning_enabled = false
-  }
-
-  routing_rule {
-    name               = "routing-rule-b"
-    accepted_protocols = ["Https"]
-    patterns_to_match  = ["/poolb/*"]
-    frontend_endpoints = [local.endpoint_name]
-    forwarding_configuration {
-      forwarding_protocol = "MatchRequest"
-      backend_pool_name   = "PoolB"
-    }
-  }
-
-  backend_pool_load_balancing {
-    name                            = "PoolBLB"
-    additional_latency_milliseconds = 0
-    sample_size                     = 4
-    successful_samples_required     = 2
-  }
-
-  backend_pool_health_probe {
-    name     = "PoolBHealth"
-    protocol = "Https"
-  }
-
-  backend_pool {
-    name                = "PoolB"
-    load_balancing_name = "PoolBLB"
-    health_probe_name   = "PoolBHealth"
-
-    backend {
-      host_header = "google.com"
-      address     = "google.com"
-      http_port   = 80
-      https_port  = 443
-      weight      = 75
-      enabled     = true
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
