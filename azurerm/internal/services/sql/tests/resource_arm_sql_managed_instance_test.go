@@ -246,11 +246,6 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = "${azurerm_network_security_group.test.id}"
 }
 
-resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = "${azurerm_subnet.test.id}"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-
 resource "azurerm_route_table" "test" {
   name                          = "routetable-%d"
   location                      = "${azurerm_resource_group.test.location}"
