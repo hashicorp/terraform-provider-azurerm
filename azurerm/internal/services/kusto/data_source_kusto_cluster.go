@@ -41,7 +41,7 @@ func dataSourceArmKustoCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
