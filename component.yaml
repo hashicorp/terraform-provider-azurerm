@@ -1,0 +1,2 @@
+name: terraform-provider-azurerm
+kind: go-library
