@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -118,39 +117,13 @@ func resourceArmHPCCacheCreate(d *schema.ResourceData, meta interface{}) error {
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache)
+	if err != nil {
 		return fmt.Errorf("Error creating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{string(storagecache.Creating)},
-		Target:     []string{string(storagecache.Succeeded)},
-		MinTimeout: 30 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, resourceGroup, name)
-			if err != nil {
-				return resp, "Error", fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", resourceGroup, name, err)
-			}
-
-			if properties := resp.CacheProperties; properties != nil {
-				return resp, string(properties.ProvisioningState), nil
-			}
-
-			return resp, "Unknown", nil
-		},
-	}
-
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		}
-	} else {
-		stateConf.Timeout = 30 * time.Minute
-	}
-
-	_, err := stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("Error waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", resourceGroup, name, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
