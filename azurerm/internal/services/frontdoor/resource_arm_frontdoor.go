@@ -3,6 +3,7 @@ package frontdoor
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
@@ -280,6 +281,15 @@ func resourceArmFrontDoor() *schema.Resource {
 							}, false),
 							Default: string(frontdoor.HTTP),
 						},
+						"probe_method": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(frontdoor.GET),
+								string(frontdoor.HEAD),
+							}, false),
+							Default: string(frontdoor.GET),
+						},
 						"interval_in_seconds": {
 							Type:     schema.TypeInt,
 							Optional: true,
@@ -489,6 +499,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
 	enabledState := d.Get("load_balancer_enabled").(bool)
+
 	t := d.Get("tags").(map[string]interface{})
 
 	frontDoorParameters := frontdoor.FrontDoor{
@@ -867,11 +878,17 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 		protocol := v["protocol"].(string)
 		intervalInSeconds := int32(v["interval_in_seconds"].(int))
 		name := v["name"].(string)
+		probeMethod := v["probe_method"].(string)
 		enabled := v["enabled"].(bool)
 
 		healthProbeEnabled := frontdoor.HealthProbeEnabledEnabled
 		if !enabled {
 			healthProbeEnabled = frontdoor.HealthProbeEnabledDisabled
+		}
+
+		healthProbeMethod := frontdoor.GET
+		if probeMethod == string(frontdoor.HEAD) {
+			healthProbeMethod = frontdoor.HEAD
 		}
 
 		result := frontdoor.HealthProbeSettingsModel{
@@ -881,6 +898,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 				IntervalInSeconds: utils.Int32(intervalInSeconds),
 				Path:              utils.String(path),
 				Protocol:          frontdoor.Protocol(protocol),
+				HealthProbeMethod: healthProbeMethod,
 				EnabledState:      healthProbeEnabled,
 			},
 		}
@@ -1307,6 +1325,11 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 			}
 			if path := properties.Path; path != nil {
 				result["path"] = *path
+			}
+			if healthProbeMethod := properties.HealthProbeMethod; healthProbeMethod != "" {
+				// I have to upper this as the frontdoor.GET and frondoor.HEAD types are uppercased
+				// but Azure stores them in the resource as pascal cased (e.g. "Get" and "Head")
+				result["probe_method"] = strings.ToUpper(string(healthProbeMethod))
 			}
 			if enabled := properties.EnabledState; enabled != "" {
 				result["enabled"] = (enabled == frontdoor.HealthProbeEnabledEnabled)
