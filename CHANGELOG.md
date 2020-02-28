@@ -10,6 +10,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
+* `azurerm_app_service_plan` - no longer sends an empty `app_service_environment_id` property on update [GH-5915]
 
 ## 2.0.0 (February 24, 2020)
 
