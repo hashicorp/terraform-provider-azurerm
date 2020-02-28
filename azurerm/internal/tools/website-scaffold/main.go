@@ -348,7 +348,7 @@ func (gen documentationGenerator) exampleUsageBlock() string {
 }
 
 output "id" {
-  value = data.%s.example.id"
+  value = data.%s.example.id
 }`, gen.resourceName, requiredFields, gen.resourceName)
 	}
 
