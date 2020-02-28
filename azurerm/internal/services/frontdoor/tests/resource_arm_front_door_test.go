@@ -144,7 +144,7 @@ func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
 					testCheckAzureRMFrontDoorExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripAll"),
 				),
 			},
 			{
@@ -153,7 +153,7 @@ func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
 					testCheckAzureRMFrontDoorExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripAll"),
 				),
 			},
 			{
@@ -162,7 +162,7 @@ func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
 					testCheckAzureRMFrontDoorExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripAll"),
 				),
 			},
 			data.ImportStep(),
