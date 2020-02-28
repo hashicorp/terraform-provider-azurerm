@@ -186,7 +186,6 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Default:  string(frontdoor.StripAll),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
@@ -1106,7 +1105,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 
 		if cacheQueryParameterStripDirective == "" {
 			// Set Default Value for strip directive is not in the key slice and cache is enabled
-			cacheQueryParameterStripDirective = string(frontdoor.StripNone)
+			cacheQueryParameterStripDirective = string(frontdoor.StripAll)
 		}
 
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
