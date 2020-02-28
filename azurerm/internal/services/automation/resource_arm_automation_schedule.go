@@ -82,7 +82,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validate.RFC3339DateInFutureBy(time.Duration(5) * time.Minute),
+				ValidateFunc:     validate.RFC3339Time,
 				//defaults to now + 7 minutes in create function if not set
 			},
 
@@ -240,6 +240,10 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	//start time can default to now + 7 (5 could be invalid by the time the API is called)
 	if v, ok := d.GetOk("start_time"); ok {
 		t, _ := time.Parse(time.RFC3339, v.(string)) //should be validated by the schema
+		duration := time.Duration(5) * time.Minute
+		if time.Until(t) < duration {
+			return fmt.Errorf("start_time is %q and should be at least %q in the future", t, duration)
+		}
 		properties.StartTime = &date.Time{Time: t}
 	} else {
 		properties.StartTime = &date.Time{Time: time.Now().Add(time.Duration(7) * time.Minute)}
