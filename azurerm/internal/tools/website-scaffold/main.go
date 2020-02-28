@@ -27,10 +27,10 @@ func main() {
 	resourceType := f.String("type", "", "Whether this is a Data Source (data) or a Resource (resource)")
 	websitePath := f.String("website-path", "", "The relative path to the website folder")
 
-	f.Parse(os.Args[1:])
+	_ = f.Parse(os.Args[1:])
 
 	var quitWithError = func(message string) {
-		log.Printf(message)
+		log.Print(message)
 		os.Exit(1)
 	}
 
@@ -71,7 +71,6 @@ func main() {
 }
 
 func run(resourceName, brandName string, resourceId *string, isResource bool, websitePath string) error {
-
 	content, err := getContent(resourceName, brandName, resourceId, isResource)
 	if err != nil {
 		return fmt.Errorf("Error building content: %s", err)
@@ -665,7 +664,7 @@ func (gen documentationGenerator) determineDefaultValueForExample(name string, f
 
 func (gen documentationGenerator) distinctBlockNames(input []string) []string {
 	// this is a delightful hack to work around multiple blocks being a thing
-	temp := make(map[string]struct{}, 0)
+	temp := make(map[string]struct{})
 	for _, v := range input {
 		temp[v] = struct{}{}
 	}
@@ -759,12 +758,12 @@ func (gen documentationGenerator) sortFields(input map[string]*schema.Schema) []
 
 func (gen documentationGenerator) uniqueBlockNamesForArgument(fields map[string]*schema.Schema) ([]string, map[string]map[string]*schema.Schema) {
 	blockNames := make([]string, 0)
-	blocks := make(map[string]map[string]*schema.Schema, 0)
+	blocks := make(map[string]map[string]*schema.Schema)
 
 	for _, fieldName := range gen.sortFields(fields) {
 		field := fields[fieldName]
 
-		// compute-only fields can be omited
+		// compute-only fields can be omitted
 		if field.Computed && !(field.Optional || field.Required) {
 			continue
 		}
@@ -823,7 +822,7 @@ func (gen documentationGenerator) uniqueBlockNamesForArgument(fields map[string]
 
 func (gen documentationGenerator) uniqueBlockNamesForAttribute(fields map[string]*schema.Schema) ([]string, map[string]map[string]*schema.Schema) {
 	blockNames := make([]string, 0)
-	blocks := make(map[string]map[string]*schema.Schema, 0)
+	blocks := make(map[string]map[string]*schema.Schema)
 
 	for _, fieldName := range gen.sortFields(fields) {
 		field := fields[fieldName]
