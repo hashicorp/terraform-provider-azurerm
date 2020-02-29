@@ -108,7 +108,7 @@ func testCheckAzureRMHPCCacheDestroy(s *terraform.State) error {
 func testAccAzureRMHPCCache_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
