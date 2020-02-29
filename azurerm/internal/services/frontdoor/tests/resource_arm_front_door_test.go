@@ -95,6 +95,28 @@ func TestAccAzureRMFrontDoor_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFrontDoor_multiplePools(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFrontDoor_multiplePools(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_health_probe.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_load_balancing.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.#", "2"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -250,8 +272,12 @@ func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
 
 func testAccAzureRMFrontDoor_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -263,7 +289,7 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -311,8 +337,12 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_basicDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -324,7 +354,7 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -359,7 +389,7 @@ resource "azurerm_frontdoor" "test" {
       https_port  = 443
     }
 
-  load_balancing_name = local.load_balancing_name
+    load_balancing_name = local.load_balancing_name
     health_probe_name   = local.health_probe_name
   }
 
@@ -426,8 +456,12 @@ resource "azurerm_frontdoor" "import" {
 
 func testAccAzureRMFrontDoor_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -439,7 +473,7 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -487,8 +521,12 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_waf(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -506,7 +544,7 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -555,8 +593,12 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_DisableCache(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -568,7 +610,7 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -616,8 +658,12 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_EnableCache(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -629,7 +675,7 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -679,8 +725,12 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_CustomHttpsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -692,7 +742,7 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -744,8 +794,12 @@ resource "azurerm_frontdoor" "test" {
 
 func testAccAzureRMFrontDoor_CustomHttpsDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-frontdoor-%d"
   location = "%s"
 }
 
@@ -757,7 +811,7 @@ locals {
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%d"
+  name                                         = "acctest-FD-%d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
@@ -802,4 +856,116 @@ resource "azurerm_frontdoor" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFrontDoor_multiplePools(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_frontdoor" "test" {
+  name                                         = "acctestfd-%[1]d"
+  location                                     = azurerm_resource_group.test.location
+  resource_group_name                          = azurerm_resource_group.test.name
+  enforce_backend_pools_certificate_name_check = false
+
+  frontend_endpoint {
+    name                              = "acctest-%[1]d-default-FE"
+    host_name                         = "acctestfd-%[1]d.azurefd.net"
+    custom_https_provisioning_enabled = false
+  }
+
+  # --- Pool 1
+
+  routing_rule {
+    name               = "acctest-%[1]d-bing-RR"
+    accepted_protocols = ["Https"]
+    patterns_to_match  = ["/poolBing/*"]
+    frontend_endpoints = ["acctest-%[1]d-default-FE"]
+
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = "acctest-%[1]d-pool-bing"
+      cache_enabled       = true
+    }
+  }
+
+  backend_pool_load_balancing {
+    name                            = "acctest-%[1]d-bing-LB"
+    additional_latency_milliseconds = 0
+    sample_size                     = 4
+    successful_samples_required     = 2
+  }
+
+  backend_pool_health_probe {
+    name         = "acctest-%[1]d-bing-HP"
+    protocol     = "Https"
+    enabled      = true
+    probe_method = "HEAD"
+  }
+
+  backend_pool {
+    name                = "acctest-%[1]d-pool-bing"
+    load_balancing_name = "acctest-%[1]d-bing-LB"
+    health_probe_name   = "acctest-%[1]d-bing-HP"
+
+    backend {
+      host_header = "bing.com"
+      address     = "bing.com"
+      http_port   = 80
+      https_port  = 443
+      weight      = 75
+      enabled     = true
+    }
+  }
+
+  # --- Pool 2
+
+  routing_rule {
+    name               = "acctest-%[1]d-google-RR"
+    accepted_protocols = ["Https"]
+    patterns_to_match  = ["/poolGoogle/*"]
+    frontend_endpoints = ["acctest-%[1]d-default-FE"]
+
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = "acctest-%[1]d-pool-google"
+      cache_enabled       = true
+    }
+  }
+
+  backend_pool_load_balancing {
+    name                            = "acctest-%[1]d-google-LB"
+    additional_latency_milliseconds = 0
+    sample_size                     = 4
+    successful_samples_required     = 2
+  }
+
+  backend_pool_health_probe {
+    name     = "acctest-%[1]d-google-HP"
+    protocol = "Https"
+  }
+
+  backend_pool {
+    name                = "acctest-%[1]d-pool-google"
+    load_balancing_name = "acctest-%[1]d-google-LB"
+    health_probe_name   = "acctest-%[1]d-google-HP"
+
+    backend {
+      host_header = "google.com"
+      address     = "google.com"
+      http_port   = 80
+      https_port  = 443
+      weight      = 75
+      enabled     = true
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

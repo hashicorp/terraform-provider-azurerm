@@ -275,20 +275,20 @@ func resourceArmFrontDoor() *schema.Resource {
 						"protocol": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  string(frontdoor.HTTP),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(frontdoor.HTTP),
 								string(frontdoor.HTTPS),
 							}, false),
-							Default: string(frontdoor.HTTP),
 						},
 						"probe_method": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  string(frontdoor.GET),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(frontdoor.GET),
 								string(frontdoor.HEAD),
 							}, false),
-							Default: string(frontdoor.GET),
 						},
 						"interval_in_seconds": {
 							Type:     schema.TypeInt,
@@ -333,14 +333,14 @@ func resourceArmFrontDoor() *schema.Resource {
 									"weight": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 1000),
 										Default:      50,
+										ValidateFunc: validation.IntBetween(1, 1000),
 									},
 									"priority": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 5),
 										Default:      1,
+										ValidateFunc: validation.IntBetween(1, 5),
 									},
 									"host_header": {
 										Type:     schema.TypeString,
@@ -416,11 +416,11 @@ func resourceArmFrontDoor() *schema.Resource {
 									"certificate_source": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(frontdoor.CertificateSourceFrontDoor),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.CertificateSourceAzureKeyVault),
 											string(frontdoor.CertificateSourceFrontDoor),
 										}, false),
-										Default: string(frontdoor.CertificateSourceFrontDoor),
 									},
 									"minimum_tls_version": {
 										Type:     schema.TypeString,
@@ -886,11 +886,6 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 			healthProbeEnabled = frontdoor.HealthProbeEnabledDisabled
 		}
 
-		healthProbeMethod := frontdoor.GET
-		if probeMethod == string(frontdoor.HEAD) {
-			healthProbeMethod = frontdoor.HEAD
-		}
-
 		result := frontdoor.HealthProbeSettingsModel{
 			ID:   utils.String(frontDoorPath + "/HealthProbeSettings/" + name),
 			Name: utils.String(name),
@@ -898,7 +893,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 				IntervalInSeconds: utils.Int32(intervalInSeconds),
 				Path:              utils.String(path),
 				Protocol:          frontdoor.Protocol(protocol),
-				HealthProbeMethod: healthProbeMethod,
+				HealthProbeMethod: frontdoor.HealthProbeMethod(v["probe_method"].(string)),
 				EnabledState:      healthProbeEnabled,
 			},
 		}
