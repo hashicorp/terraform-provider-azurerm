@@ -34,8 +34,8 @@ func testAccProximityPlacementGroupDataSource_basic(data acceptance.TestData) st
 %s
 
 data "azurerm_proximity_placement_group" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_proximity_placement_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_proximity_placement_group.test.name
 }
 `, testAccProximityPlacementGroup_withTags(data))
 }

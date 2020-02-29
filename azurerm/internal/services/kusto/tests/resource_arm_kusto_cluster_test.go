@@ -128,6 +128,10 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 
 func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -135,8 +139,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -148,6 +152,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -155,8 +163,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -172,6 +180,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -179,8 +191,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -197,6 +209,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_skuUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -204,8 +220,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Standard_D11_v2"

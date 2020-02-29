@@ -254,6 +254,10 @@ func testCheckAzureRMApiManagementLoggerDestroy(s *terraform.State) error {
 
 func testAccAzureRMApiManagementLogger_basicEventHub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -261,23 +265,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "azurerm_resource_group.test.location"
+  resource_group_name = "azurerm_resource_group.test.name"
   sku_name            = "Basic_1"
 }
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = "azurerm_eventhub_namespace.test.name"
+  resource_group_name = "azurerm_resource_group.test.name"
   partition_count     = 2
   message_retention   = 1
 }
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "azurerm_resource_group.test.location"
+  resource_group_name = "azurerm_resource_group.test.name"
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -286,12 +290,12 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_logger" "test" {
   name                = "acctestapimnglogger-%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "azurerm_api_management.test.name"
+  resource_group_name = "azurerm_resource_group.test.name"
 
   eventhub {
-    name              = "${azurerm_eventhub.test.name}"
-    connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
+    name              = "azurerm_eventhub.test.name"
+    connection_string = "azurerm_eventhub_namespace.test.default_primary_connection_string"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -303,13 +307,13 @@ func testAccAzureRMApiManagementLogger_requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_api_management_logger" "import" {
-  name                = "${azurerm_api_management_logger.test.name}"
-  api_management_name = "${azurerm_api_management_logger.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_logger.test.resource_group_name}"
+  name                = azurerm_api_management_logger.test.name
+  api_management_name = azurerm_api_management_logger.test.api_management_name
+  resource_group_name = azurerm_api_management_logger.test.resource_group_name
 
   eventhub {
-    name              = "${azurerm_eventhub.test.name}"
-    connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
+    name              = azurerm_eventhub.test.name
+    connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
   }
 }
 `, template)
@@ -317,6 +321,10 @@ resource "azurerm_api_management_logger" "import" {
 
 func testAccAzureRMApiManagementLogger_basicApplicationInsights(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -324,15 +332,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "Other"
 }
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -341,11 +349,11 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_logger" "test" {
   name                = "acctestapimnglogger-%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   application_insights {
-    instrumentation_key = "${azurerm_application_insights.test.instrumentation_key}"
+    instrumentation_key = azurerm_application_insights.test.instrumentation_key
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -353,6 +361,10 @@ resource "azurerm_api_management_logger" "test" {
 
 func testAccAzureRMApiManagementLogger_complete(data acceptance.TestData, description, buffered string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -360,15 +372,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "Other"
 }
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -377,13 +389,13 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_logger" "test" {
   name                = "acctestapimnglogger-%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   description         = "%s"
   buffered            = %s
 
   application_insights {
-    instrumentation_key = "${azurerm_application_insights.test.instrumentation_key}"
+    instrumentation_key = azurerm_application_insights.test.instrumentation_key
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, description, buffered)

@@ -157,6 +157,10 @@ func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
 
 func testAzureRMPolicyAssignment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -176,6 +180,7 @@ resource "azurerm_policy_definition" "test" {
     }
   }
 POLICY_RULE
+
 }
 
 resource "azurerm_resource_group" "test" {
@@ -185,8 +190,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%d"
-  scope                = "${azurerm_resource_group.test.id}"
-  policy_definition_id = "${azurerm_policy_definition.test.id}"
+  scope                = azurerm_resource_group.test.id
+  policy_definition_id = azurerm_policy_definition.test.id
 }
 `, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -197,15 +202,19 @@ func testAzureRMPolicyAssignment_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_policy_assignment" "import" {
-  name                 = "${azurerm_policy_assignment.test.name}"
-  scope                = "${azurerm_policy_assignment.test.scope}"
-  policy_definition_id = "${azurerm_policy_assignment.test.policy_definition_id}"
+  name                 = azurerm_policy_assignment.test.name
+  scope                = azurerm_policy_assignment.test.scope
+  policy_definition_id = azurerm_policy_assignment.test.policy_definition_id
 }
 `, template)
 }
 
 func testAzureRMPolicyAssignment_deployIfNotExists_policy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -261,6 +270,7 @@ resource "azurerm_policy_definition" "test" {
 	}
 }
 POLICY_RULE
+
 }
 
 resource "azurerm_resource_group" "test" {
@@ -270,8 +280,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%d"
-  scope                = "${azurerm_resource_group.test.id}"
-  policy_definition_id = "${azurerm_policy_definition.test.id}"
+  scope                = azurerm_resource_group.test.id
+  policy_definition_id = azurerm_policy_definition.test.id
 
   identity {
     type = "SystemAssigned"
@@ -284,6 +294,10 @@ resource "azurerm_policy_assignment" "test" {
 
 func testAzureRMPolicyAssignment_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -304,6 +318,7 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -316,6 +331,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 
 resource "azurerm_resource_group" "test" {
@@ -325,8 +341,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%d"
-  scope                = "${azurerm_resource_group.test.id}"
-  policy_definition_id = "${azurerm_policy_definition.test.id}"
+  scope                = azurerm_resource_group.test.id
+  policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
   display_name         = "Acceptance Test Run %d"
 
@@ -337,13 +353,19 @@ resource "azurerm_policy_assignment" "test" {
   }
 }
 PARAMETERS
+
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAzureRMPolicyAssignment_not_scopes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {
+}
 
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
@@ -365,6 +387,7 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -377,6 +400,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 
 resource "azurerm_resource_group" "test" {
@@ -386,10 +410,10 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%d"
-  scope                = "${data.azurerm_subscription.current.id}"
-  policy_definition_id = "${azurerm_policy_definition.test.id}"
+  scope                = data.azurerm_subscription.current.id
+  policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
-  not_scopes           = ["${azurerm_resource_group.test.id}"]
+  not_scopes           = [azurerm_resource_group.test.id]
   display_name         = "Acceptance Test Run %d"
 
   parameters = <<PARAMETERS
@@ -399,6 +423,7 @@ resource "azurerm_policy_assignment" "test" {
   }
 }
 PARAMETERS
+
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }

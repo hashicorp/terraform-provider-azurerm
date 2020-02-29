@@ -80,8 +80,8 @@ func testAccDataSourceAzureRMRouteTable_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_route_table" "test" {
-  name                = "${azurerm_route_table.test.name}"
-  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+  name                = azurerm_route_table.test.name
+  resource_group_name = azurerm_route_table.test.resource_group_name
 }
 `, r)
 }
@@ -92,8 +92,8 @@ func testAccDataSourceAzureRMRouteTable_singleRoute(data acceptance.TestData) st
 %s
 
 data "azurerm_route_table" "test" {
-  name                = "${azurerm_route_table.test.name}"
-  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+  name                = azurerm_route_table.test.name
+  resource_group_name = azurerm_route_table.test.resource_group_name
 }
 `, r)
 }
@@ -104,8 +104,8 @@ func testAccDataSourceAzureRMRouteTable_multipleRoutes(data acceptance.TestData)
 %s
 
 data "azurerm_route_table" "test" {
-  name                = "${azurerm_route_table.test.name}"
-  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+  name                = azurerm_route_table.test.name
+  resource_group_name = azurerm_route_table.test.resource_group_name
 }
 `, r)
 }

@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "${var.location}"
@@ -13,7 +17,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_share" "example" {
   name                 = "aci-test-share"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
   storage_account_name = "${azurerm_storage_account.example.name}"
   quota                = 50
 }

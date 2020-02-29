@@ -67,6 +67,10 @@ func TestAccDataSourceAzureRMPublicIP_dynamic(t *testing.T) {
 
 func testAccDataSourceAzureRMPublicIP_static(name string, resourceGroupName string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"
@@ -74,8 +78,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                    = "%s"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   domain_name_label       = "acctest-%d"
   idle_timeout_in_minutes = 30
@@ -86,14 +90,18 @@ resource "azurerm_public_ip" "test" {
 }
 
 data "azurerm_public_ip" "test" {
-  name                = "${azurerm_public_ip.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_public_ip.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, resourceGroupName, data.Locations.Primary, name, data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMPublicIP_dynamic(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -101,8 +109,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
 
   ip_version = "%s"
@@ -113,8 +121,8 @@ resource "azurerm_public_ip" "test" {
 }
 
 data "azurerm_public_ip" "test" {
-  name                = "${azurerm_public_ip.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_public_ip.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
 }
