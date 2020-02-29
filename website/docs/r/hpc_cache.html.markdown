@@ -10,7 +10,7 @@ description: |-
 
 Manages a HPC Cache.
 
-~> **Note**: During the first several months of the GA release, a request must be made to the Azure HPC Cache team to add your subscription to the access list before it can be used to create a cache instance.
+~> **Note**: During the first several months of the GA release, a request must be made to the Azure HPC Cache team to add your subscription to the access list before it can be used to create a cache instance. Fill out [this form](https://aka.ms/onboard-hpc-cache) to request access.
 
 ## Example Usage
 
@@ -23,23 +23,23 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "examplevn"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "examplesubnet"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_hpc_cache" "example" {
   name                = "examplehpccache"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  cache_size          = 3072
-  subnet_id           = "${azurerm_subnet.example.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.example.id
   sku_name            = "Standard_2G"
 }
 ```
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure Region where the HPC Cache should be created. Changing this forces a new resource to be created.
 
-* `cache_size` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `24576`, and `49152`. Changing this forces a new resource to be created.
+* `cache_size_in_gb` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `24576`, and `49152`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet for the HPC Cache. Changing this forces a new resource to be created.
 
@@ -65,6 +65,14 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The `id` of the HPC Cache.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the HPC Cache.
+* `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache.
+* `delete` - (Defaults to 30 minutes) Used when deleting the HPC Cache.
 
 ## Import
 

@@ -107,6 +107,10 @@ func testCheckAzureRMHPCCacheDestroy(s *terraform.State) error {
 
 func testAccAzureRMHPCCache_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+	features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -115,23 +119,23 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VN-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_hpc_cache" "test" {
   name                = "acctest-HPCC-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  cache_size          = 3072
-  subnet_id           = "${azurerm_subnet.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cache_size_in_gb    = 3072
+  subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -143,12 +147,12 @@ func testAccAzureRMHPCCahce_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_hpc_cache" "import" {
-  name                = "${azurerm_hpc_cache.test.name}"
-  resource_group_name = "${azurerm_hpc_cache.test.resource_group_name}"
-  location            = "${azurerm_hpc_cache.test.location}"
-  cache_size          = "${azurerm_hpc_cache.test.cache_size}"
-  subnet_id           = "${azurerm_hpc_cache.test.subnet_id}"
-  sku_name            = "${azurerm_hpc_cache.test.sku_name}"
+  name                = azurerm_hpc_cache.test.name
+  resource_group_name = azurerm_hpc_cache.test.resource_group_name
+  location            = azurerm_hpc_cache.test.location
+  cache_size_in_gb    = azurerm_hpc_cache.test.cache_size_in_gb
+  subnet_id           = azurerm_hpc_cache.test.subnet_id
+  sku_name            = azurerm_hpc_cache.test.sku_name
 }
 `, template)
 }
