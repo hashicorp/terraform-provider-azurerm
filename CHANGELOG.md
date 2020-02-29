@@ -1,5 +1,8 @@
 ## 2.1.0 (Unreleased)
 
+FEATURES:
+* **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
+
 IMPROVEMENTS:
 
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
