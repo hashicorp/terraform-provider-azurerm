@@ -345,7 +345,7 @@ resource "azurerm_frontdoor" "test" {
   }
 
   backend_pool_health_probe {
-    name = local.health_probe_name
+    name         = local.health_probe_name
     enabled      = false
     probe_method = "HEAD"
   }

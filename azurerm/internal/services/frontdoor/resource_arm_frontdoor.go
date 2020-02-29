@@ -186,6 +186,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(frontdoor.StripAll),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
