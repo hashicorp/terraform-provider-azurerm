@@ -185,9 +185,9 @@ func testAccAzureRMCosmosDbMongoCollection_basic(data acceptance.TestData) strin
 
 resource "azurerm_cosmosdb_mongo_collection" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
 }
 `, testAccAzureRMCosmosDbMongoDatabase_basic(data), data.RandomInteger)
 }
@@ -198,9 +198,9 @@ func testAccAzureRMCosmosDbMongoCollection_complete(data acceptance.TestData) st
 
 resource "azurerm_cosmosdb_mongo_collection" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   shard_key           = "seven"
   default_ttl_seconds = 707
@@ -214,9 +214,9 @@ func testAccAzureRMCosmosDbMongoCollection_updated(data acceptance.TestData) str
 
 resource "azurerm_cosmosdb_mongo_collection" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   shard_key           = "seven"
   default_ttl_seconds = 70707
@@ -230,9 +230,9 @@ func testAccAzureRMCosmosDbMongoCollection_throughput(data acceptance.TestData, 
 
 resource "azurerm_cosmosdb_mongo_collection" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
-  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   throughput = %[3]d
 }

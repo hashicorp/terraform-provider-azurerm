@@ -38,6 +38,10 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 
 func testAccAzureRMAppServiceSourceControlToken(token, tokenSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_app_service_source_control_token" "test" {
   type         = "GitHub"
   token        = "%s"

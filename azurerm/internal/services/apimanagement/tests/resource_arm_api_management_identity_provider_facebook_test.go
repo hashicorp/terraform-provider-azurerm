@@ -137,6 +137,10 @@ func testCheckAzureRMApiManagementIdentityProviderFacebookExists(resourceName st
 
 func testAccAzureRMApiManagementIdentityProviderFacebook_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-api-%d"
   location = "%s"
@@ -144,16 +148,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_identity_provider_facebook" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   app_id              = "00000000000000000000000000000000"
   app_secret          = "00000000000000000000000000000000"
 }
@@ -162,6 +166,10 @@ resource "azurerm_api_management_identity_provider_facebook" "test" {
 
 func testAccAzureRMApiManagementIdentityProviderFacebook_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-api-%d"
   location = "%s"
@@ -169,16 +177,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_identity_provider_facebook" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   app_id              = "11111111111111111111111111111111"
   app_secret          = "11111111111111111111111111111111"
 }
@@ -191,10 +199,10 @@ func testAccAzureRMApiManagementIdentityProviderFacebook_requiresImport(data acc
 %s
 
 resource "azurerm_api_management_identity_provider_facebook" "import" {
-  resource_group_name = "${azurerm_api_management_identity_provider_facebook.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_identity_provider_facebook.test.api_management_name}"
-  app_id              = "${azurerm_api_management_identity_provider_facebook.test.app_id}"
-  app_secret          = "${azurerm_api_management_identity_provider_facebook.test.app_secret}"
+  resource_group_name = azurerm_api_management_identity_provider_facebook.test.resource_group_name
+  api_management_name = azurerm_api_management_identity_provider_facebook.test.api_management_name
+  app_id              = azurerm_api_management_identity_provider_facebook.test.app_id
+  app_secret          = azurerm_api_management_identity_provider_facebook.test.app_secret
 }
 `, template)
 }

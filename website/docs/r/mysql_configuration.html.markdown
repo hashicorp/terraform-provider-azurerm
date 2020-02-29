@@ -10,6 +10,10 @@ description: |-
 
 Sets a MySQL Configuration value on a MySQL Server.
 
+## Disclaimers
+
+~> **Note:** Since this resource is provisioned by default, the Azure Provider will not check for the presence of an existing resource prior to attempting to create it.
+
 ## Example Usage
 
 ```hcl
@@ -64,8 +68,6 @@ The following attributes are exported:
 * `id` - The ID of the MySQL Configuration.
 
 ## Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

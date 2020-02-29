@@ -61,6 +61,33 @@ func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(t *testi
 	})
 }
 
+func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_updateSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_network_security_group_association", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSubnetNetworkSecurityGroupAssociation_updateSubnet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_network_security_group_association", "test")
 
@@ -212,7 +239,63 @@ func testCheckAzureRMSubnetHasNoNetworkSecurityGroup(resourceName string) resour
 }
 
 func testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetNetworkSecurityGroupAssociation_template(data)
 	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+`, template)
+}
+
+func testAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet_network_security_group_association" "internal" {
+  subnet_id                 = azurerm_subnet_network_security_group_association.test.subnet_id
+  network_security_group_id = azurerm_subnet_network_security_group_association.test.network_security_group_id
+}
+`, template)
+}
+
+func testAccAzureRMSubnetNetworkSecurityGroupAssociation_updateSubnet(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetNetworkSecurityGroupAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+`, template)
+}
+
+func testAccAzureRMSubnetNetworkSecurityGroupAssociation_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -221,22 +304,14 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                      = "acctestsubnet%d"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.2.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -250,18 +325,5 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 }
-
-resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = "${azurerm_subnet.test.id}"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(data)
-	return fmt.Sprintf(`
-%s
-
-`, template)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

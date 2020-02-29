@@ -56,25 +56,19 @@ func dataSourceAppServicePlan() *schema.Resource {
 				},
 			},
 
-			"properties": {
-				Type:     schema.TypeList,
+			"app_service_environment_id": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"app_service_environment_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"reserved": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"per_site_scaling": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-					},
-				},
+			},
+
+			"reserved": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"per_site_scaling": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"maximum_number_of_workers": {
@@ -125,9 +119,11 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.AppServicePlanProperties; props != nil {
-		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
-			return fmt.Errorf("Error setting `properties`: %+v", err)
+		if profile := props.HostingEnvironmentProfile; profile != nil {
+			d.Set("app_service_environment_id", profile.ID)
 		}
+		d.Set("per_site_scaling", props.PerSiteScaling)
+		d.Set("reserved", props.Reserved)
 
 		if props.MaximumNumberOfWorkers != nil {
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))

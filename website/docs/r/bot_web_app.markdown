@@ -25,7 +25,7 @@ resource "azurerm_bot_web_app" "example" {
   location            = "global"
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "F0"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  microsoft_app_id    = "${data.azurerm_client_config.current.client_id}"
 }
 ```
 
@@ -67,8 +67,6 @@ The following attributes are exported:
 * `id` - The ID of the Bot Web App.
 
 ## Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

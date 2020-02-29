@@ -199,6 +199,10 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 
 func testAccAzureRMBatchAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchaccount"
   location = "%s"
@@ -206,8 +210,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -218,16 +222,20 @@ func testAccAzureRMBatchAccount_requiresImport(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "import" {
-  name                 = "${azurerm_batch_account.test.name}"
-  resource_group_name  = "${azurerm_batch_account.test.resource_group_name}"
-  location             = "${azurerm_batch_account.test.location}"
-  pool_allocation_mode = "${azurerm_batch_account.test.pool_allocation_mode}"
+  name                 = azurerm_batch_account.test.name
+  resource_group_name  = azurerm_batch_account.test.resource_group_name
+  location             = azurerm_batch_account.test.location
+  pool_allocation_mode = azurerm_batch_account.test.pool_allocation_mode
 }
 `, template)
 }
 
 func testAccAzureRMBatchAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchaccount"
   location = "%s"
@@ -235,18 +243,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "testaccsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  storage_account_id   = azurerm_storage_account.test.id
 
   tags = {
     env = "test"
@@ -257,6 +265,10 @@ resource "azurerm_batch_account" "test" {
 
 func testAccAzureRMBatchAccount_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchaccount"
   location = "%s"
@@ -264,18 +276,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "testaccsa%s2"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  storage_account_id   = azurerm_storage_account.test.id
 
   tags = {
     env     = "test"
@@ -287,6 +299,10 @@ resource "azurerm_batch_account" "test" {
 
 func testAccAzureRMBatchAccount_userSubscription(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azuread_service_principal" "test" {
   display_name = "Microsoft Azure Batch"
 }

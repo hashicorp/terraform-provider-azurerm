@@ -102,6 +102,10 @@ func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 
 func testAccAzureRMBatchCertificatePfx(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -109,15 +113,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
 }
 
 resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
-  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_batch_account.test.name
+  certificate          = filebase64("testdata/batch_certificate.pfx")
   format               = "Pfx"
   password             = "terraform"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
@@ -128,6 +132,10 @@ resource "azurerm_batch_certificate" "test" {
 
 func testAccAzureRMBatchCertificatePfxWithoutPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -135,15 +143,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
 }
 
 resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
-  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_batch_account.test.name
+  certificate          = filebase64("testdata/batch_certificate.pfx")
   format               = "Pfx"
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
@@ -152,6 +160,10 @@ resource "azurerm_batch_certificate" "test" {
 }
 func testAccAzureRMBatchCertificateCer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -159,15 +171,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
 }
 
 resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
-  certificate          = "${filebase64("testdata/batch_certificate.cer")}"
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_batch_account.test.name
+  certificate          = filebase64("testdata/batch_certificate.cer")
   format               = "Cer"
   thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
@@ -176,6 +188,10 @@ resource "azurerm_batch_certificate" "test" {
 }
 func testAccAzureRMBatchCertificateCerWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
   location = "%s"
@@ -183,15 +199,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
 }
 
 resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
-  certificate          = "${filebase64("testdata/batch_certificate.cer")}"
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_batch_account.test.name
+  certificate          = filebase64("testdata/batch_certificate.cer")
   format               = "Cer"
   password             = "should not have a password for Cer"
   thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"

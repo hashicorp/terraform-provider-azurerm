@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,14 +47,6 @@ func AzureProvider() terraform.ResourceProvider {
 			}
 
 			resources[k] = v
-		}
-	}
-
-	// TODO: remove all of this in 2.0 once Custom Timeouts are supported
-	if !features.SupportsCustomTimeouts() {
-		// ensure any timeouts configured on the resources are removed until 2.0
-		for _, v := range resources {
-			v.Timeouts = nil
 		}
 	}
 
@@ -145,10 +136,9 @@ func AzureProvider() terraform.ResourceProvider {
 			},
 
 			"disable_correlation_request_id": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				// TODO: add an ARM_ prefix in 2.0w
-				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_CORRELATION_REQUEST_ID", false),
 				Description: "This will disable the x-ms-correlation-request-id header.",
 			},
 

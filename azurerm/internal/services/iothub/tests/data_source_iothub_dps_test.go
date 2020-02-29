@@ -36,8 +36,8 @@ func testAccDataSourceAzureRMIotHubDPS_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_iothub_dps" "test" {
-  name                = "${azurerm_iothub_dps.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_iothub_dps.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

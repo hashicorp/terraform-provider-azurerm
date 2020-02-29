@@ -217,10 +217,14 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"secret": windowsSecretSchema(),
 
 			"source_image_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: computeValidate.ImageID,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					computeValidate.ImageID,
+					computeValidate.SharedImageID,
+					computeValidate.SharedImageVersionID,
+				),
 			},
 
 			"source_image_reference": sourceImageReferenceSchema(true),
@@ -913,7 +917,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := ParseVirtualMachineID(d.Id())

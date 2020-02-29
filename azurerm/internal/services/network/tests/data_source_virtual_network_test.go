@@ -58,6 +58,10 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 
 func testAccDataSourceArmVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"
@@ -66,8 +70,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_servers         = ["10.0.0.4"]
 
   subnet {
@@ -77,14 +81,18 @@ resource "azurerm_virtual_network" "test" {
 }
 
 data "azurerm_virtual_network" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_virtual_network.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_virtual_network.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceArmVirtualNetwork_peering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"
@@ -93,28 +101,32 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test1" {
   name                = "acctestvnet-1-%d"
   address_space       = ["10.0.1.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvnet-2-%d"
   address_space       = ["10.0.2.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
   name                      = "peer-1to2"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test1.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test1.name
+  remote_virtual_network_id = azurerm_virtual_network.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccDataSourceArmVirtualNetwork_peeringWithDataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"
@@ -123,27 +135,27 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test1" {
   name                = "acctestvnet-1-%d"
   address_space       = ["10.0.1.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvnet-2-%d"
   address_space       = ["10.0.2.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
   name                      = "peer-1to2"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test1.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test1.name
+  remote_virtual_network_id = azurerm_virtual_network.test2.id
 }
 
 data "azurerm_virtual_network" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_virtual_network.test1.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_virtual_network.test1.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

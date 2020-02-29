@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -51,13 +50,6 @@ func dataSourceArmSubnet() *schema.Resource {
 				Computed: true,
 			},
 
-			"ip_configurations": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
-			},
-
 			"service_endpoints": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -104,32 +96,23 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
-		if pe := props.PrivateEndpointNetworkPolicies; pe != nil {
-			d.Set("enforce_private_link_endpoint_network_policies", strings.EqualFold("Disabled", *pe))
-		}
+		d.Set("enforce_private_link_endpoint_network_policies", flattenSubnetPrivateLinkNetworkPolicy(props.PrivateEndpointNetworkPolicies))
+		d.Set("enforce_private_link_service_network_policies", flattenSubnetPrivateLinkNetworkPolicy(props.PrivateLinkServiceNetworkPolicies))
 
-		if ps := props.PrivateLinkServiceNetworkPolicies; ps != nil {
-			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *ps))
+		networkSecurityGroupId := ""
+		if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.ID != nil {
+			networkSecurityGroupId = *props.NetworkSecurityGroup.ID
 		}
+		d.Set("network_security_group_id", networkSecurityGroupId)
 
-		if props.NetworkSecurityGroup != nil {
-			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
-		} else {
-			d.Set("network_security_group_id", "")
+		routeTableId := ""
+		if props.RouteTable != nil && props.RouteTable.ID != nil {
+			routeTableId = *props.RouteTable.ID
 		}
-
-		if props.RouteTable != nil {
-			d.Set("route_table_id", props.RouteTable.ID)
-		} else {
-			d.Set("route_table_id", "")
-		}
-
-		if err := d.Set("ip_configurations", flattenSubnetIPConfigurations(props.IPConfigurations)); err != nil {
-			return err
-		}
+		d.Set("route_table_id", routeTableId)
 
 		if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
-			return err
+			return fmt.Errorf("Error setting `service_endpoints`: %+v", err)
 		}
 	}
 

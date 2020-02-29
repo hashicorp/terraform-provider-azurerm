@@ -51,10 +51,8 @@ func resourceArmMySqlServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:          schema.TypeString,
-				Optional:      true, // required in 2.0
-				Computed:      true, // remove in 2.0
-				ConflictsWith: []string{"sku"},
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"B_Gen4_1",
 					"B_Gen4_2",
@@ -77,82 +75,6 @@ func resourceArmMySqlServer() *schema.Resource {
 					"MO_Gen5_16",
 					"MO_Gen5_32",
 				}, false),
-			},
-
-			// remove in 2.0
-			"sku": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"sku_name"},
-				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"B_Gen4_1",
-								"B_Gen4_2",
-								"B_Gen5_1",
-								"B_Gen5_2",
-								"GP_Gen4_2",
-								"GP_Gen4_4",
-								"GP_Gen4_8",
-								"GP_Gen4_16",
-								"GP_Gen4_32",
-								"GP_Gen5_2",
-								"GP_Gen5_4",
-								"GP_Gen5_8",
-								"GP_Gen5_16",
-								"GP_Gen5_32",
-								"GP_Gen5_64",
-								"MO_Gen5_2",
-								"MO_Gen5_4",
-								"MO_Gen5_8",
-								"MO_Gen5_16",
-								"MO_Gen5_32",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"capacity": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ValidateFunc: validation.IntInSlice([]int{
-								1,
-								2,
-								4,
-								8,
-								16,
-								32,
-								64,
-							}),
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mysql.Basic),
-								string(mysql.GeneralPurpose),
-								string(mysql.MemoryOptimized),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"family": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Gen4",
-								"Gen5",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
 			},
 
 			"administrator_login": {
@@ -239,10 +161,10 @@ func resourceArmMySqlServer() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			tier, _ := diff.GetOk("sku.0.tier")
+			tier, _ := diff.GetOk("sku_name")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
 
-			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
+			if strings.HasPrefix(tier.(string), "B_") && storageMB.(int) > 1048576 {
 				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
 			}
 
@@ -275,17 +197,9 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	var sku *mysql.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandServerSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandMySQLServerSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for MySQL Server %q (Resource Group %q)", name, resourceGroup)
+	sku, err := expandServerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	properties := mysql.ServerForCreate{
@@ -335,17 +249,9 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	var sku *mysql.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandServerSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandMySQLServerSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for MySQL Server %q (Resource Group %q)", name, resourceGroup)
+	sku, err := expandServerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	properties := mysql.ServerUpdateParameters{
@@ -419,10 +325,6 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
-	if err := d.Set("sku", flattenMySQLServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
-	}
-
 	if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
@@ -488,23 +390,6 @@ func expandServerSkuName(skuName string) (*mysql.Sku, error) {
 	}, nil
 }
 
-func expandMySQLServerSku(d *schema.ResourceData) *mysql.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
-
-	name := sku["name"].(string)
-	capacity := sku["capacity"].(int)
-	tier := sku["tier"].(string)
-	family := sku["family"].(string)
-
-	return &mysql.Sku{
-		Name:     utils.String(name),
-		Tier:     mysql.SkuTier(tier),
-		Capacity: utils.Int32(int32(capacity)),
-		Family:   utils.String(family),
-	}
-}
-
 func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 	storageprofiles := d.Get("storage_profile").([]interface{})
 	storageprofile := storageprofiles[0].(map[string]interface{})
@@ -520,26 +405,6 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 		StorageMB:           utils.Int32(int32(storageMB)),
 		StorageAutogrow:     mysql.StorageAutogrow(autoGrow),
 	}
-}
-
-func flattenMySQLServerSku(resp *mysql.Sku) []interface{} {
-	values := map[string]interface{}{}
-
-	if name := resp.Name; name != nil {
-		values["name"] = *name
-	}
-
-	if capacity := resp.Capacity; capacity != nil {
-		values["capacity"] = *capacity
-	}
-
-	values["tier"] = string(resp.Tier)
-
-	if family := resp.Family; family != nil {
-		values["family"] = *family
-	}
-
-	return []interface{}{values}
 }
 
 func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {

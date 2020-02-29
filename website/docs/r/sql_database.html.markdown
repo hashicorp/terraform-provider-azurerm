@@ -76,6 +76,8 @@ The following arguments are supported:
 
 * `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-read-scale-out).
 
+* `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `import` supports the following:
@@ -110,8 +112,6 @@ The following attributes are exported:
 * `default_secondary_location` - The default secondary location of the SQL Database.
 
 ## Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

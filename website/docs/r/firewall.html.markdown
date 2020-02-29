@@ -104,14 +104,14 @@ A `ip_configuration` block exports the following:
 
 ## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 40 minutes) Used when creating the Firewall.
-* `update` - (Defaults to 40 minutes) Used when updating the Firewall.
+* `create` - (Defaults to 90 minutes) Used when creating the Firewall.
+* `update` - (Defaults to 90 minutes) Used when updating the Firewall.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall.
-* `delete` - (Defaults to 40 minutes) Used when deleting the Firewall.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Firewall.
 
 ## Import
 

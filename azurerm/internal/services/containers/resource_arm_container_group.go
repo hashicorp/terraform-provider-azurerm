@@ -239,33 +239,10 @@ func resourceArmContainerGroup() *schema.Resource {
 							},
 						},
 
-						"port": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ForceNew:     true,
-							Computed:     true,
-							Deprecated:   "Deprecated in favor of `ports`",
-							ValidateFunc: validate.PortNumber,
-						},
-
-						"protocol": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							ForceNew:         true,
-							Computed:         true,
-							Deprecated:       "Deprecated in favor of `ports`",
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerinstance.TCP),
-								string(containerinstance.UDP),
-							}, true),
-						},
-
 						"ports": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							ForceNew: true,
-							Computed: true,
 							Set:      resourceArmContainerGroupPortsHash,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -273,7 +250,6 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ForceNew:     true,
-										Computed:     true,
 										ValidateFunc: validate.PortNumber,
 									},
 
@@ -281,8 +257,7 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ForceNew: true,
-										Computed: true,
-										//Default:  string(containerinstance.TCP), restore in 2.0
+										Default:  string(containerinstance.TCP),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerinstance.TCP),
 											string(containerinstance.UDP),
@@ -309,14 +284,6 @@ func resourceArmContainerGroup() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-						},
-
-						"command": {
-							Type:       schema.TypeString,
-							Optional:   true,
-							ForceNew:   true,
-							Computed:   true,
-							Deprecated: "Use `commands` instead.",
 						},
 
 						"commands": {
@@ -664,12 +631,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, resourceGroup, name),
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
-		}
-
-		if features.SupportsCustomTimeouts() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-		} else {
-			stateConf.Timeout = 10 * time.Minute
+			Timeout:                   d.Timeout(schema.TimeoutDelete),
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
@@ -787,26 +749,6 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 				})
 			}
 			container.Ports = &ports
-		} else {
-			if v := int32(data["port"].(int)); v != 0 {
-				ports := []containerinstance.ContainerPort{
-					{
-						Port: &v,
-					},
-				}
-
-				port := containerinstance.Port{
-					Port: &v,
-				}
-
-				if v, ok := data["protocol"].(string); ok {
-					ports[0].Protocol = containerinstance.ContainerNetworkProtocol(v)
-					port.Protocol = containerinstance.ContainerGroupNetworkProtocol(v)
-				}
-
-				container.Ports = &ports
-				containerGroupPorts = append(containerGroupPorts, port)
-			}
 		}
 
 		// Set both sensitive and non-secure environment variables
@@ -837,13 +779,6 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			}
 
 			container.Command = &command
-		}
-
-		if container.Command == nil {
-			if v := data["command"]; v != "" {
-				command := strings.Split(v.(string), " ")
-				container.Command = &command
-			}
 		}
 
 		if v, ok := data["volume"]; ok {
@@ -1160,24 +1095,6 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 				ports = append(ports, port)
 			}
 			containerConfig["ports"] = schema.NewSet(resourceArmContainerGroupPortsHash, ports)
-
-			//old deprecated code
-			containerPort := *(*cPorts)[0].Port
-			containerConfig["port"] = containerPort
-			// protocol isn't returned in container config, have to search in container group ports
-			protocol := ""
-			if ipAddress != nil {
-				if containerGroupPorts := ipAddress.Ports; containerGroupPorts != nil {
-					for _, cgPort := range *containerGroupPorts {
-						if *cgPort.Port == containerPort {
-							protocol = string(cgPort.Protocol)
-						}
-					}
-				}
-			}
-			if protocol != "" {
-				containerConfig["protocol"] = protocol
-			}
 		}
 
 		if container.EnvironmentVariables != nil {
@@ -1194,7 +1111,6 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 		commands := make([]string, 0)
 		if command := container.Command; command != nil {
-			containerConfig["command"] = strings.Join(*command, " ")
 			commands = *command
 		}
 		containerConfig["commands"] = commands

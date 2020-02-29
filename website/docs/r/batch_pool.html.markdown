@@ -309,8 +309,6 @@ The following attributes are exported:
 
 ## Timeouts
 
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 & 1.44 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
-
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Pool.
@@ -323,5 +321,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Batch Pools can be imported using the `resource id`, e.g.
 
 ```shell
- terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
+terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Batch/batchAccounts/myBatchAccount1/pools/myBatchPool1
 ```

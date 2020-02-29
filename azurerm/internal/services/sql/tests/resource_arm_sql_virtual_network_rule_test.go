@@ -440,6 +440,10 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resour
 */
 func testAccAzureRMSqlVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -448,22 +452,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadmin"
   administrator_login_password = "${md5(%d)}!"
@@ -471,9 +475,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_virtual_network_rule" "test" {
   name                                 = "acctestsqlvnetrule%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_sql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.test.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_sql_server.test.name
+  subnet_id                            = azurerm_subnet.test.id
   ignore_missing_vnet_service_endpoint = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -483,11 +487,11 @@ func testAccAzureRMSqlVirtualNetworkRule_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_sql_virtual_network_rule" "import" {
-  name                                 = "${azurerm_sql_virtual_network_rule.test.name}"
-  resource_group_name                  = "${azurerm_sql_virtual_network_rule.test.resource_group_name}"
-  server_name                          = "${azurerm_sql_virtual_network_rule.test.server_name}"
-  subnet_id                            = "${azurerm_sql_virtual_network_rule.test.subnet_id}"
-  ignore_missing_vnet_service_endpoint = "${azurerm_sql_virtual_network_rule.test.ignore_missing_vnet_service_endpoint}"
+  name                                 = azurerm_sql_virtual_network_rule.test.name
+  resource_group_name                  = azurerm_sql_virtual_network_rule.test.resource_group_name
+  server_name                          = azurerm_sql_virtual_network_rule.test.server_name
+  subnet_id                            = azurerm_sql_virtual_network_rule.test.subnet_id
+  ignore_missing_vnet_service_endpoint = azurerm_sql_virtual_network_rule.test.ignore_missing_vnet_service_endpoint
 }
 `, testAccAzureRMSqlVirtualNetworkRule_basic(data))
 }
@@ -499,6 +503,10 @@ resource "azurerm_sql_virtual_network_rule" "import" {
 */
 func testAccAzureRMSqlVirtualNetworkRule_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -507,22 +515,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadmin"
   administrator_login_password = "${md5(%d)}!"
@@ -530,9 +538,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_virtual_network_rule" "test" {
   name                                 = "acctestsqlvnetrule%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_sql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.test.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_sql_server.test.name
+  subnet_id                            = azurerm_subnet.test.id
   ignore_missing_vnet_service_endpoint = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -545,6 +553,10 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 */
 func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -553,30 +565,30 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.128/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadmin"
   administrator_login_password = "${md5(%d)}!"
@@ -584,9 +596,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_virtual_network_rule" "test" {
   name                = "acctestsqlvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test1.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
+  subnet_id           = azurerm_subnet.test1.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -599,6 +611,10 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 */
 func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -607,30 +623,30 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.128/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadmin"
   administrator_login_password = "${md5(%d)}!"
@@ -638,9 +654,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_virtual_network_rule" "test" {
   name                = "acctestsqlvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test2.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
+  subnet_id           = azurerm_subnet.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -653,6 +669,10 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 */
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -661,22 +681,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadmin"
   administrator_login_password = "${md5(%d)}!"
@@ -684,9 +704,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_virtual_network_rule" "test" {
   name                                 = "acctestsqlvnetrule%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_sql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.test.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_sql_server.test.name
+  subnet_id                            = azurerm_subnet.test.id
   ignore_missing_vnet_service_endpoint = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -700,6 +720,10 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 */
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -708,22 +732,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadmin"
   administrator_login_password = "${md5(%d)}!"
@@ -731,9 +755,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_virtual_network_rule" "test" {
   name                                 = "acctestsqlvnetrule%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_sql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.test.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_sql_server.test.name
+  subnet_id                            = azurerm_subnet.test.id
   ignore_missing_vnet_service_endpoint = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -746,6 +770,10 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 */
 func testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -754,45 +782,45 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "vnet1" {
   name                = "acctestvnet1%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "vnet2" {
   name                = "acctestvnet2%d"
   address_space       = ["10.1.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "vnet1_subnet1" {
   name                 = "acctestsubnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "vnet1_subnet2" {
   name                 = "acctestsubnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefix       = "10.7.29.128/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "vnet2_subnet1" {
   name                 = "acctestsubnet3%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet2.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet2.name
   address_prefix       = "10.1.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver1%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadmin"
   administrator_login_password = "${md5(%d)}!"
@@ -800,25 +828,25 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_virtual_network_rule" "rule1" {
   name                                 = "acctestsqlvnetrule1%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_sql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.vnet1_subnet1.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_sql_server.test.name
+  subnet_id                            = azurerm_subnet.vnet1_subnet1.id
   ignore_missing_vnet_service_endpoint = false
 }
 
 resource "azurerm_sql_virtual_network_rule" "rule2" {
   name                                 = "acctestsqlvnetrule2%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_sql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.vnet1_subnet2.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_sql_server.test.name
+  subnet_id                            = azurerm_subnet.vnet1_subnet2.id
   ignore_missing_vnet_service_endpoint = false
 }
 
 resource "azurerm_sql_virtual_network_rule" "rule3" {
   name                                 = "acctestsqlvnetrule3%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_sql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.vnet2_subnet1.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_sql_server.test.name
+  subnet_id                            = azurerm_subnet.vnet2_subnet1.id
   ignore_missing_vnet_service_endpoint = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -184,6 +184,10 @@ func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
 
 func testAccAzureRMSqlFailoverGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -191,8 +195,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test_primary" {
   name                         = "acctestmssql%[1]d-primary"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -200,7 +204,7 @@ resource "azurerm_sql_server" "test_primary" {
 
 resource "azurerm_sql_server" "test_secondary" {
   name                         = "acctestmssql%[1]d-secondary"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  resource_group_name          = azurerm_resource_group.test.name
   location                     = "%[3]s"
   version                      = "12.0"
   administrator_login          = "mradministrator"
@@ -209,9 +213,9 @@ resource "azurerm_sql_server" "test_secondary" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%[1]d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test_primary.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test_primary.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -220,12 +224,12 @@ resource "azurerm_sql_database" "test" {
 
 resource "azurerm_sql_failover_group" "test" {
   name                = "acctestsfg%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test_primary.name}"
-  databases           = ["${azurerm_sql_database.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test_primary.name
+  databases           = [azurerm_sql_database.test.id]
 
   partner_servers {
-    id = "${azurerm_sql_server.test_secondary.id}"
+    id = azurerm_sql_server.test_secondary.id
   }
 
   read_write_endpoint_failover_policy {
@@ -241,18 +245,18 @@ func testAccAzureRMSqlFailoverGroup_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_sql_failover_group" "import" {
-  name                = "${azurerm_sql_failover_group.test.name}"
-  resource_group_name = "${azurerm_sql_failover_group.test.resource_group_name}"
-  server_name         = "${azurerm_sql_failover_group.test.server_name}"
-  databases           = "${azurerm_sql_failover_group.test.databases}"
+  name                = azurerm_sql_failover_group.test.name
+  resource_group_name = azurerm_sql_failover_group.test.resource_group_name
+  server_name         = azurerm_sql_failover_group.test.server_name
+  databases           = azurerm_sql_failover_group.test.databases
 
   partner_servers {
-    id = "${azurerm_sql_failover_group.test.partner_servers.0.id}"
+    id = azurerm_sql_failover_group.test.partner_servers[0].id
   }
 
   read_write_endpoint_failover_policy {
-    mode          = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.mode}"
-    grace_minutes = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.grace_minutes}"
+    mode          = azurerm_sql_failover_group.test.read_write_endpoint_failover_policy[0].mode
+    grace_minutes = azurerm_sql_failover_group.test.read_write_endpoint_failover_policy[0].grace_minutes
   }
 }
 `, testAccAzureRMSqlFailoverGroup_basic(data))
@@ -260,6 +264,10 @@ resource "azurerm_sql_failover_group" "import" {
 
 func testAccAzureRMSqlFailoverGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -267,8 +275,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test_primary" {
   name                         = "acctestmssql%[1]d-primary"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -276,7 +284,7 @@ resource "azurerm_sql_server" "test_primary" {
 
 resource "azurerm_sql_server" "test_secondary" {
   name                         = "acctestmssql%[1]d-secondary"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  resource_group_name          = azurerm_resource_group.test.name
   location                     = "%[3]s"
   version                      = "12.0"
   administrator_login          = "mradministrator"
@@ -285,9 +293,9 @@ resource "azurerm_sql_server" "test_secondary" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%[1]d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test_primary.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test_primary.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -296,12 +304,12 @@ resource "azurerm_sql_database" "test" {
 
 resource "azurerm_sql_failover_group" "test" {
   name                = "acctestsfg%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test_primary.name}"
-  databases           = ["${azurerm_sql_database.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test_primary.name
+  databases           = [azurerm_sql_database.test.id]
 
   partner_servers {
-    id = "${azurerm_sql_server.test_secondary.id}"
+    id = azurerm_sql_server.test_secondary.id
   }
   read_write_endpoint_failover_policy {
     mode          = "Automatic"
@@ -317,6 +325,10 @@ resource "azurerm_sql_failover_group" "test" {
 
 func testAccAzureRMSqlFailoverGroup_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -324,8 +336,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test_primary" {
   name                         = "acctestmssql%[1]d-primary"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -333,7 +345,7 @@ resource "azurerm_sql_server" "test_primary" {
 
 resource "azurerm_sql_server" "test_secondary" {
   name                         = "acctestmssql%[1]d-secondary"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  resource_group_name          = azurerm_resource_group.test.name
   location                     = "%[3]s"
   version                      = "12.0"
   administrator_login          = "mradministrator"
@@ -342,9 +354,9 @@ resource "azurerm_sql_server" "test_secondary" {
 
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%[1]d"
-  resource_group_name              = "${azurerm_resource_group.test.name}"
-  server_name                      = "${azurerm_sql_server.test_primary.name}"
-  location                         = "${azurerm_resource_group.test.location}"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test_primary.name
+  location                         = azurerm_resource_group.test.location
   edition                          = "Standard"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes                   = "1073741824"
@@ -353,12 +365,12 @@ resource "azurerm_sql_database" "test" {
 
 resource "azurerm_sql_failover_group" "test" {
   name                = "acctestsfg%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test_primary.name}"
-  databases           = ["${azurerm_sql_database.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test_primary.name
+  databases           = [azurerm_sql_database.test.id]
 
   partner_servers {
-    id = "${azurerm_sql_server.test_secondary.id}"
+    id = azurerm_sql_server.test_secondary.id
   }
   read_write_endpoint_failover_policy {
     mode          = "Automatic"

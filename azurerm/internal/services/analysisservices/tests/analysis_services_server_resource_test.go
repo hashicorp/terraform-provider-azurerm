@@ -211,6 +211,10 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 
 func testAccAzureRMAnalysisServicesServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -218,8 +222,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "B1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -227,6 +231,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -234,8 +242,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "B1"
 
   tags = {
@@ -247,6 +255,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -254,8 +266,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "B1"
 
   tags = {
@@ -268,6 +280,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data acceptance.TestData, connectionMode string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -275,8 +291,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                      = "acctestass%d"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
   sku                       = "B1"
   querypool_connection_mode = "%s"
 }
@@ -285,6 +301,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_firewallSettings1(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -292,8 +312,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                    = "acctestass%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   sku                     = "B1"
   enable_power_bi_service = %t
 }
@@ -302,6 +322,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_firewallSettings2(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -309,8 +333,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                    = "acctestass%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   sku                     = "B1"
   enable_power_bi_service = %t
 
@@ -325,6 +349,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_firewallSettings3(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -332,8 +360,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                    = "acctestass%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   sku                     = "B1"
   enable_power_bi_service = %t
 
@@ -354,6 +382,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_adminUsers(data acceptance.TestData, adminUsers []string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -361,8 +393,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "B1"
   admin_users         = ["%s"]
 }
@@ -371,6 +403,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_serverFullName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -378,8 +414,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "B1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -387,6 +423,10 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -394,8 +434,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestass%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -403,13 +443,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "assbackup"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 data "azurerm_storage_account_blob_container_sas" "test" {
-  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-  container_name    = "${azurerm_storage_container.test.name}"
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  container_name    = azurerm_storage_container.test.name
   https_only        = true
 
   start  = "2018-06-01"
@@ -427,8 +467,8 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 
 resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "B1"
 
   backup_blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}${data.azurerm_storage_account_blob_container_sas.test.sas}"

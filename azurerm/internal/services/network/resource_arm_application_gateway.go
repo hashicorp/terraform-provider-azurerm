@@ -113,7 +113,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"fqdns": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -123,33 +122,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validate.IPv4Address,
-							},
-						},
-
-						// TODO: remove in 2.0
-						"fqdn_list": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "`fqdn_list` has been deprecated in favour of the `fqdns` field",
-							MinItems:   1,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-
-						// TODO: remove in 2.0
-						"ip_address_list": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "`ip_address_list` has been deprecated in favour of the `ip_addresses` field",
-							MinItems:   1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
@@ -755,23 +728,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
-			// TODO: remove in 2.0
-			"disabled_ssl_protocols": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "has been replaced by `ssl_policy`.`disabled_protocols`",
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(network.TLSv10),
-						string(network.TLSv11),
-						string(network.TLSv12),
-					}, true),
-				},
-			},
-
 			"ssl_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -781,7 +737,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"disabled_protocols": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -900,7 +855,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"body": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Default:  "*",
 									},
 
 									"status_code": {
@@ -1574,10 +1528,6 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `backend_http_settings`: %+v", setErr)
 		}
 
-		if setErr := d.Set("disabled_ssl_protocols", flattenApplicationGatewayDisabledSSLProtocols(props.SslPolicy)); setErr != nil {
-			return fmt.Errorf("Error setting `disabled_ssl_protocols`: %+v", setErr)
-		}
-
 		if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
 			return fmt.Errorf("Error setting `ssl_policy`: %+v", setErr)
 		}
@@ -1888,21 +1838,6 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 			})
 		}
 
-		if len(backendAddresses) == 0 {
-			// TODO: remove in 2.0
-			for _, ip := range v["ip_address_list"].([]interface{}) {
-				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-					IPAddress: utils.String(ip.(string)),
-				})
-			}
-			// TODO: remove in 2.0
-			for _, ip := range v["fqdn_list"].([]interface{}) {
-				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-					Fqdn: utils.String(ip.(string)),
-				})
-			}
-		}
-
 		name := v["name"].(string)
 		output := network.ApplicationGatewayBackendAddressPool{
 			Name: utils.String(name),
@@ -1942,10 +1877,6 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 		output := map[string]interface{}{
 			"fqdns":        fqdnList,
 			"ip_addresses": ipAddressList,
-
-			// TODO: deprecated - remove in 2.0
-			"ip_address_list": ipAddressList,
-			"fqdn_list":       fqdnList,
 		}
 
 		if config.ID != nil {
@@ -2191,24 +2122,10 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 	disabledSSLPolicies := make([]network.ApplicationGatewaySslProtocol, 0)
 
 	vs := d.Get("ssl_policy").([]interface{})
-	vsdsp := d.Get("disabled_ssl_protocols").([]interface{})
-
-	if len(vsdsp) == 0 && len(vs) == 0 {
-		policy = network.ApplicationGatewaySslPolicy{
-			DisabledSslProtocols: &disabledSSLPolicies,
-		}
-	}
-
-	for _, policy := range vsdsp {
-		disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
-	}
 
 	if len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
-
-		// reset disabledSSLPolicies here to always use the new disabled_protocols block in favor of disabled_ssl_protocols
-		disabledSSLPolicies = disabledSSLPolicies[:0]
 
 		for _, policy := range v["disabled_protocols"].([]interface{}) {
 			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
@@ -2274,19 +2191,6 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 	output["disabled_protocols"] = disabledSslProtocols
 
 	results = append(results, output)
-	return results
-}
-
-func flattenApplicationGatewayDisabledSSLProtocols(input *network.ApplicationGatewaySslPolicy) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil || input.DisabledSslProtocols == nil {
-		return results
-	}
-
-	for _, v := range *input.DisabledSslProtocols {
-		results = append(results, string(v))
-	}
-
 	return results
 }
 
