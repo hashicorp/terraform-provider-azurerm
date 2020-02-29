@@ -233,6 +233,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -240,8 +244,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                    = "acctestkc%s"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   enable_disk_encryption  = true
   enable_streaming_ingest = true
 
