@@ -54,7 +54,6 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure Region where the HPC Cache should be created. Changing this forces a new resource to be created.
 
-
 * `cache_size` - (Required) The size of the HPC Cache, in GB. Possible values are `3072`, `6144`, `12288`, `24576`, and `49152`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet for the HPC Cache. Changing this forces a new resource to be created.

@@ -108,12 +108,12 @@ func testCheckAzureRMHPCCacheDestroy(s *terraform.State) error {
 func testAccAzureRMHPCCache_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
+  name                = "acctest-VN-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -127,7 +127,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_hpc_cache" "test" {
-  name                = "acctesthpcc-%d"
+  name                = "acctest-HPCC-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cache_size          = 3072

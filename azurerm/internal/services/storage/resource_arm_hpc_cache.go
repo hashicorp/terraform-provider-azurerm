@@ -44,7 +44,7 @@ func resourceArmHPCCache() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"cache_size": {
+			"cache_size_in_gb": {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
