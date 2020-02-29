@@ -15,6 +15,7 @@ BUG FIXES:
 
 * `azurerm_app_service_plan` - no longer sends an empty `app_service_environment_id` property on update [GH-5915]
 * `azurerm_automation_schedule` - fix time validation [GH-5876]
+* `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
 * `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource [GH-5935]
 
