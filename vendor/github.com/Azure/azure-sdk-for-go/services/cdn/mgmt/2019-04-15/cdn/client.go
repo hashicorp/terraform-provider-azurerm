@@ -1,4 +1,4 @@
-// Package cdn implements the Azure ARM Cdn service API version 2017-10-12.
+// Package cdn implements the Azure ARM Cdn service API version 2019-04-15.
 //
 // Cdn Management Client
 package cdn
@@ -100,7 +100,7 @@ func (client BaseClient) CheckNameAvailability(ctx context.Context, checkNameAva
 
 // CheckNameAvailabilityPreparer prepares the CheckNameAvailability request.
 func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, checkNameAvailabilityInput CheckNameAvailabilityInput) (*http.Request, error) {
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -184,7 +184,7 @@ func (client BaseClient) CheckNameAvailabilityWithSubscriptionPreparer(ctx conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -268,7 +268,7 @@ func (client BaseClient) ValidateProbePreparer(ctx context.Context, validateProb
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

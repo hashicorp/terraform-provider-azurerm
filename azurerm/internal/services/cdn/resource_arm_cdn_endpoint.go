@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -196,6 +196,8 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"delivery_policy": EndpointDeliveryPolicy(),
 
 			"tags": tags.Schema(),
 		},

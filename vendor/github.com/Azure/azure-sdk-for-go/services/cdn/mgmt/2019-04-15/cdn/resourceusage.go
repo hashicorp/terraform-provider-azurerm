@@ -80,7 +80,7 @@ func (client ResourceUsageClient) ListPreparer(ctx context.Context) (*http.Reque
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
