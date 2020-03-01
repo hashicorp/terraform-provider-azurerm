@@ -16,11 +16,11 @@ func EndpointDeliveryPolicy() *schema.Schema {
 					Required: false,
 				},
 
-				"delivery_rule": {
+				"rule": {
 					Type:     schema.TypeList,
 					Required: true,
 					MinItems: 1,
-					MaxItems: 5,
+					MaxItems: 4,
 					Elem:     EndpointDeliveryRule(),
 				},
 			},
