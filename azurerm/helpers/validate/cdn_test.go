@@ -58,3 +58,136 @@ func TestCdnEndpointDeliveryPolicyRuleName(t *testing.T) {
 		})
 	}
 }
+
+func TestRuleActionUrlRedirectPath(t *testing.T) {
+	cases := []struct {
+		Path        string
+		ShouldError bool
+	}{
+		{
+			Path:        "",
+			ShouldError: false,
+		},
+		{
+			Path:        "a",
+			ShouldError: true,
+		},
+		{
+			Path:        "/",
+			ShouldError: false,
+		},
+		{
+			Path:        "/abc",
+			ShouldError: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Path, func(t *testing.T) {
+			_, errors := RuleActionUrlRedirectPath()(tc.Path, "name")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.Path)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.Path, len(errors))
+			}
+		})
+	}
+}
+
+func TestRuleActionUrlRedirectQueryString(t *testing.T) {
+	cases := []struct {
+		QueryString string
+		ShouldError bool
+	}{
+		{
+			QueryString: "",
+			ShouldError: false,
+		},
+		{
+			QueryString: "a",
+			ShouldError: true,
+		},
+		{
+			QueryString: "&a=b",
+			ShouldError: true,
+		},
+		{
+			QueryString: "?a=b",
+			ShouldError: true,
+		},
+		{
+			QueryString: "a=b",
+			ShouldError: false,
+		},
+		{
+			QueryString: "a=b&",
+			ShouldError: false,
+		},
+		{
+			QueryString: "a=b&c=d",
+			ShouldError: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.QueryString, func(t *testing.T) {
+			_, errors := RuleActionUrlRedirectQueryString()(tc.QueryString, "name")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.QueryString)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.QueryString, len(errors))
+			}
+		})
+	}
+}
+
+func TestRuleActionUrlRedirectFragment(t *testing.T) {
+	cases := []struct {
+		Fragment    string
+		ShouldError bool
+	}{
+		{
+			Fragment:    "",
+			ShouldError: false,
+		},
+		{
+			Fragment:    "a",
+			ShouldError: false,
+		},
+		{
+			Fragment:    "#",
+			ShouldError: true,
+		},
+		{
+			Fragment:    "#5fgdfg",
+			ShouldError: true,
+		},
+		{
+			Fragment:    "5fgdfg",
+			ShouldError: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Fragment, func(t *testing.T) {
+			_, errors := RuleActionUrlRedirectFragment()(tc.Fragment, "name")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.Fragment)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.Fragment, len(errors))
+			}
+		})
+	}
+}
