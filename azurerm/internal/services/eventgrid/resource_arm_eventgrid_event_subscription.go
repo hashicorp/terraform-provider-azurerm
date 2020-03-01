@@ -3,10 +3,12 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-01-01-preview/eventgrid"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -17,6 +19,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func getEnpointTypes() []string {
+	return []string{"service_bus_queue_endpoint", "eventhub_endpoint", "hybrid_connection_endpoint", "webhook_endpoint", "storage_queue_endpoint"}
+}
+
+// RemoveFromStringArray ...
+func RemoveFromStringArray(elements []string, remove string) []string {
+	for i, v := range elements {
+		if v == remove {
+			return append(elements[:i], elements[i+1:]...)
+		}
+	}
+	return elements
+}
 
 func resourceArmEventGridEventSubscription() *schema.Resource {
 	return &schema.Resource{
@@ -56,10 +72,16 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				ForceNew: true,
 				Default:  string(eventgrid.EventGridSchema),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(eventgrid.CloudEventV01Schema),
-					string(eventgrid.CustomInputSchema),
 					string(eventgrid.EventGridSchema),
+					string(eventgrid.CloudEventSchemaV10),
+					string(eventgrid.CustomInputSchema),
 				}, false),
+			},
+
+			"expiration_time_utc": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"topic_name": {
@@ -72,7 +94,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"eventhub_endpoint", "hybrid_connection_endpoint", "webhook_endpoint"},
+				ConflictsWith: RemoveFromStringArray(getEnpointTypes(), "storage_queue_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_account_id": {
@@ -89,11 +111,27 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				},
 			},
 
+			"service_bus_queue_endpoint": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: RemoveFromStringArray(getEnpointTypes(), "service_bus_queue_endpoint"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"service_bus_queue_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
+
 			"eventhub_endpoint": {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"storage_queue_endpoint", "hybrid_connection_endpoint", "webhook_endpoint"},
+				ConflictsWith: RemoveFromStringArray(getEnpointTypes(), "eventhub_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"eventhub_id": {
@@ -109,7 +147,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"storage_queue_endpoint", "eventhub_endpoint", "webhook_endpoint"},
+				ConflictsWith: RemoveFromStringArray(getEnpointTypes(), "hybrid_connection_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"hybrid_connection_id": {
@@ -125,7 +163,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"storage_queue_endpoint", "eventhub_endpoint", "hybrid_connection_endpoint"},
+				ConflictsWith: RemoveFromStringArray(getEnpointTypes(), "hybrid_connection_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {
@@ -142,7 +180,8 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -163,6 +202,105 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 						"case_sensitive": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+					},
+				},
+			},
+
+			"advanced_filter_scalar": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"operator_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventgrid.OperatorTypeAdvancedFilter),
+								string(eventgrid.OperatorTypeBoolEquals),
+								string(eventgrid.OperatorTypeNumberGreaterThan),
+								string(eventgrid.OperatorTypeNumberGreaterThanOrEquals),
+								string(eventgrid.OperatorTypeNumberLessThan),
+								string(eventgrid.OperatorTypeNumberLessThanOrEquals),
+							}, false),
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if strings.ToLower(old) == strings.ToLower(new) {
+									return true
+								} else if o, err := strconv.ParseFloat(old, 64); err == nil {
+									n, err := strconv.ParseFloat(new, 64)
+									if err == nil {
+										return o == n
+									}
+								} else if o, err := strconv.ParseBool(old); err == nil {
+									n, err := strconv.ParseBool(new)
+									if err == nil {
+										return o == n
+									}
+								}
+								return false
+							},
+						},
+					},
+				},
+			},
+
+			"advanced_filter_array": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"operator_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventgrid.OperatorTypeNumberIn),
+								string(eventgrid.OperatorTypeNumberNotIn),
+								string(eventgrid.OperatorTypeStringBeginsWith),
+								string(eventgrid.OperatorTypeStringContains),
+								string(eventgrid.OperatorTypeStringEndsWith),
+								string(eventgrid.OperatorTypeStringIn),
+								string(eventgrid.OperatorTypeStringNotIn),
+							}, false),
+						},
+						"values": {
+							Type:     schema.TypeList,
+							MinItems: 1,
+							MaxItems: 5,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+								DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+									if strings.ToLower(old) == strings.ToLower(new) {
+										return true
+									} else if o, err := strconv.ParseFloat(old, 64); err == nil {
+										n, err := strconv.ParseFloat(new, 64)
+										if err == nil {
+											return o == n
+										}
+									} else if o, err := strconv.ParseBool(old); err == nil {
+										n, err := strconv.ParseBool(new)
+										if err == nil {
+											return o == n
+										}
+									}
+									return false
+								},
+							},
 						},
 					},
 				},
@@ -243,16 +381,29 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 
 	destination := expandEventGridEventSubscriptionDestination(d)
 	if destination == nil {
-		return fmt.Errorf("One of `webhook_endpoint`, eventhub_endpoint` `hybrid_connection_endpoint` or `storage_queue_endpoint` must be specificed to create an EventGrid Event Subscription")
+		return fmt.Errorf("One of the following endpoint types must be specificed to create an EventGrid Event Subscription: %q", getEnpointTypes())
 	}
+
+	filter, err := expandEventGridEventSubscriptionFilter(d)
+	if err != nil {
+		return fmt.Errorf("Error creating/updating EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+	}
+
+	parsedTime, err := date.ParseTime(time.RFC3339, d.Get("expiration_time_utc").(string))
+	if err != nil {
+		return fmt.Errorf("Error creating/updating EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+	}
+
+	expirationTime := date.Time{parsedTime}
 
 	eventSubscriptionProperties := eventgrid.EventSubscriptionProperties{
 		Destination:           destination,
-		Filter:                expandEventGridEventSubscriptionFilter(d),
+		Filter:                filter,
 		DeadLetterDestination: expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d),
 		RetryPolicy:           expandEventGridEventSubscriptionRetryPolicy(d),
 		Labels:                utils.ExpandStringSlice(d.Get("labels").([]interface{})),
 		EventDeliverySchema:   eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
+		ExpirationTimeUtc:     &expirationTime,
 	}
 
 	if v, ok := d.GetOk("topic_name"); ok {
@@ -312,7 +463,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	d.Set("scope", id.Scope)
 
 	if props := resp.EventSubscriptionProperties; props != nil {
-		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
+		d.Set("expiration_time_utc", props.ExpirationTimeUtc)
 
 		if props.Topic != nil && *props.Topic != "" {
 			d.Set("topic_name", props.Topic)
@@ -321,6 +472,11 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 		if storageQueueEndpoint, ok := props.Destination.AsStorageQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("storage_queue_endpoint", flattenEventGridEventSubscriptionStorageQueueEndpoint(storageQueueEndpoint)); err != nil {
 				return fmt.Errorf("Error setting `storage_queue_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			}
+		}
+		if serviceBusQueueEndpoint, ok := props.Destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
+			if err := d.Set("service_bus_queue_endpoint", flattenEventGridEventSubscriptionServiceBusQueueEndpoint(serviceBusQueueEndpoint)); err != nil {
+				return fmt.Errorf("Error setting `service_bus_queue_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
 		if eventHubEndpoint, ok := props.Destination.AsEventHubEventSubscriptionDestination(); ok {
@@ -347,6 +503,14 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			d.Set("included_event_types", filter.IncludedEventTypes)
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
 				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			}
+
+			if err := d.Set("advanced_filter_scalar", flattenEventGridEventSubscriptionScalarAdvancedFilter(filter.AdvancedFilters)); err != nil {
+				return fmt.Errorf("Error setting `advanced_filter_scalar` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+			}
+
+			if err := d.Set("advanced_filter_array", flattenEventGridEventSubscriptionArrayAdvancedFilter(filter.AdvancedFilters)); err != nil {
+				return fmt.Errorf("Error setting `advanced_filter_array` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
 
@@ -425,6 +589,10 @@ func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgr
 		return expandEventGridEventSubscriptionStorageQueueEndpoint(d)
 	}
 
+	if _, ok := d.GetOk("service_bus_queue_endpoint"); ok {
+		return expandEventGridEventSubscriptionServiceBusQueueEndpoint(d)
+	}
+
 	if _, ok := d.GetOk("eventhub_endpoint"); ok {
 		return expandEventGridEventSubscriptionEventHubEndpoint(d)
 	}
@@ -450,6 +618,19 @@ func expandEventGridEventSubscriptionStorageQueueEndpoint(d *schema.ResourceData
 		StorageQueueEventSubscriptionDestinationProperties: &eventgrid.StorageQueueEventSubscriptionDestinationProperties{
 			ResourceID: &storageAccountID,
 			QueueName:  &queueName,
+		},
+	}
+	return storageQueueEndpoint
+}
+
+func expandEventGridEventSubscriptionServiceBusQueueEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+	props := d.Get("service_bus_queue_endpoint").([]interface{})[0].(map[string]interface{})
+	serviceBusQueueID := props["service_bus_queue_id"].(string)
+
+	storageQueueEndpoint := eventgrid.ServiceBusQueueEventSubscriptionDestination{
+		EndpointType: eventgrid.EndpointTypeServiceBusQueue,
+		ServiceBusQueueEventSubscriptionDestinationProperties: &eventgrid.ServiceBusQueueEventSubscriptionDestinationProperties{
+			ResourceID: &serviceBusQueueID,
 		},
 	}
 	return storageQueueEndpoint
@@ -494,7 +675,7 @@ func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eve
 	return webhookEndpoint
 }
 
-func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.EventSubscriptionFilter {
+func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.EventSubscriptionFilter, error) {
 	filter := &eventgrid.EventSubscriptionFilter{}
 
 	if includedEvents, ok := d.GetOk("included_event_types"); ok {
@@ -512,7 +693,120 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.E
 		filter.IsSubjectCaseSensitive = &caseSensitive
 	}
 
-	return filter
+	advancedFilters := make([]eventgrid.BasicAdvancedFilter, 0)
+
+	if advancedFilterScalar, ok := d.GetOk("advanced_filter_scalar"); ok {
+		for _, v := range advancedFilterScalar.([]interface{}) {
+			config := v.(map[string]interface{})
+
+			key := config["key"].(string)
+			operatorType := config["operator_type"].(string)
+			value := config["value"].(string)
+
+			filter, err := expandScalarAdvancedFilter(key, operatorType, value)
+			if err != nil {
+				return nil, err
+			}
+
+			advancedFilters = append(advancedFilters, filter)
+		}
+	}
+
+	if advancedFilterCompound, ok := d.GetOk("advanced_filter_array"); ok {
+
+		for _, v := range advancedFilterCompound.([]interface{}) {
+			config := v.(map[string]interface{})
+
+			key := config["key"].(string)
+			operatorType := config["operator_type"].(string)
+			values := utils.ExpandStringSlice(config["values"].([]interface{}))
+
+			filter, err := expandArrayAdvancedFilter(key, operatorType, *values)
+			if err != nil {
+				return nil, err
+			}
+
+			advancedFilters = append(advancedFilters, filter)
+		}
+	}
+
+	filter.AdvancedFilters = &advancedFilters
+
+	return filter, nil
+}
+
+func expandArrayAdvancedFilter(key string, operatorType string, values []string) (eventgrid.BasicAdvancedFilter, error) {
+	switch operatorType {
+	case string(eventgrid.OperatorTypeNumberIn):
+		var numbers = []float64{}
+		for _, v := range values {
+			f, err := strconv.ParseFloat(v, 64)
+			if err != nil {
+				return nil, fmt.Errorf("Value %q is not a float number", v)
+			}
+			numbers = append(numbers, f)
+		}
+		return eventgrid.NumberInAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeNumberIn, Values: &numbers}, nil
+	case string(eventgrid.OperatorTypeNumberNotIn):
+		var numbers = []float64{}
+		for _, v := range values {
+			f, err := strconv.ParseFloat(v, 64)
+			if err != nil {
+				return nil, fmt.Errorf("Value %q is not a float number", v)
+			}
+			numbers = append(numbers, f)
+		}
+		return eventgrid.NumberNotInAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeNumberIn, Values: &numbers}, nil
+	case string(eventgrid.OperatorTypeStringIn):
+		return eventgrid.StringInAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeStringIn, Values: &values}, nil
+	case string(eventgrid.OperatorTypeStringNotIn):
+		return eventgrid.StringNotInAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeStringNotIn, Values: &values}, nil
+	case string(eventgrid.OperatorTypeStringBeginsWith):
+		return eventgrid.StringBeginsWithAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeStringBeginsWith, Values: &values}, nil
+	case string(eventgrid.OperatorTypeStringEndsWith):
+		return eventgrid.StringEndsWithAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeStringEndsWith, Values: &values}, nil
+	case string(eventgrid.OperatorTypeStringContains):
+		return eventgrid.StringContainsAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeStringContains, Values: &values}, nil
+	default:
+		return eventgrid.AdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeAdvancedFilter}, nil
+	}
+}
+
+func expandScalarAdvancedFilter(key string, operatorType string, value string) (eventgrid.BasicAdvancedFilter, error) {
+	switch operatorType {
+	case string(eventgrid.OperatorTypeNumberLessThan):
+		v, err := strconv.ParseFloat(value, 64)
+		if err == nil {
+			return eventgrid.NumberLessThanAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeNumberLessThan, Value: &v}, nil
+		}
+		return nil, fmt.Errorf("Value %q is not a float number", value)
+	case string(eventgrid.OperatorTypeNumberGreaterThan):
+		v, err := strconv.ParseFloat(value, 64)
+		if err == nil {
+			return eventgrid.NumberGreaterThanAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeNumberGreaterThan, Value: &v}, nil
+		}
+		return nil, fmt.Errorf("Value %q is not a float number", value)
+	case string(eventgrid.OperatorTypeNumberLessThanOrEquals):
+		v, err := strconv.ParseFloat(value, 64)
+		if err == nil {
+			return eventgrid.NumberLessThanOrEqualsAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeNumberLessThanOrEquals, Value: &v}, nil
+		}
+		return nil, fmt.Errorf("Value %q is not a float number", value)
+	case string(eventgrid.OperatorTypeNumberGreaterThanOrEquals):
+		v, err := strconv.ParseFloat(value, 64)
+		if err == nil {
+			return eventgrid.NumberGreaterThanOrEqualsAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeNumberGreaterThanOrEquals, Value: &v}, nil
+		}
+		return nil, fmt.Errorf("Value %q is not a float number", value)
+	case string(eventgrid.OperatorTypeBoolEquals):
+		v, err := strconv.ParseBool(value)
+		if err == nil {
+			return eventgrid.BoolEqualsAdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeBoolEquals, Value: &v}, nil
+		}
+		return nil, fmt.Errorf("Value %q is not a bool", value)
+	default:
+		return eventgrid.AdvancedFilter{Key: &key, OperatorType: eventgrid.OperatorTypeAdvancedFilter}, nil
+	}
 }
 
 func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *schema.ResourceData) eventgrid.BasicDeadLetterDestination {
@@ -555,6 +849,19 @@ func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.Stor
 	}
 	if input.QueueName != nil {
 		result["queue_name"] = *input.QueueName
+	}
+
+	return []interface{}{result}
+}
+
+func flattenEventGridEventSubscriptionServiceBusQueueEndpoint(input *eventgrid.ServiceBusQueueEventSubscriptionDestination) []interface{} {
+	if input == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+
+	if input.ResourceID != nil {
+		result["service_bus_queue_id"] = *input.ResourceID
 	}
 
 	return []interface{}{result}
@@ -618,6 +925,118 @@ func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubsc
 	}
 
 	return []interface{}{result}
+}
+
+func flattenEventGridEventSubscriptionScalarAdvancedFilter(input *[]eventgrid.BasicAdvancedFilter) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var key interface{}
+		var operatorType eventgrid.OperatorType
+		var value interface{}
+
+		switch f := item.(type) {
+		case eventgrid.AdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+		case eventgrid.BoolEqualsAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			value = strconv.FormatBool(*f.Value)
+		case eventgrid.NumberGreaterThanAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			value = strconv.FormatFloat(*f.Value, 'f', -1, 64)
+		case eventgrid.NumberGreaterThanOrEqualsAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			value = strconv.FormatFloat(*f.Value, 'f', -1, 64)
+		case eventgrid.NumberLessThanAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			value = strconv.FormatFloat(*f.Value, 'f', -1, 64)
+		case eventgrid.NumberLessThanOrEqualsAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			value = strconv.FormatFloat(*f.Value, 'f', -1, 64)
+		}
+
+		results = append(results, map[string]interface{}{
+			"key":           key,
+			"operator_type": operatorType,
+			"value":         value,
+		})
+	}
+
+	return results
+}
+
+func flattenEventGridEventSubscriptionArrayAdvancedFilter(input *[]eventgrid.BasicAdvancedFilter) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var key interface{}
+		var operatorType eventgrid.OperatorType
+		var values []interface{}
+
+		switch f := item.(type) {
+		case eventgrid.AdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+		case eventgrid.NumberInAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			var numbers = []string{}
+			for _, f := range *f.Values {
+				number := strconv.FormatFloat(f, 'f', -1, 64)
+				numbers = append(numbers, number)
+			}
+			values = utils.FlattenStringSlice(&numbers)
+		case eventgrid.NumberNotInAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			var numbers = []string{}
+			for _, f := range *f.Values {
+				number := strconv.FormatFloat(f, 'f', -1, 64)
+				numbers = append(numbers, number)
+			}
+			values = utils.FlattenStringSlice(&numbers)
+		case eventgrid.StringBeginsWithAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			values = utils.FlattenStringSlice(f.Values)
+		case eventgrid.StringContainsAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			values = utils.FlattenStringSlice(f.Values)
+		case eventgrid.StringEndsWithAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			values = utils.FlattenStringSlice(f.Values)
+		case eventgrid.StringInAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			values = utils.FlattenStringSlice(f.Values)
+		case eventgrid.StringNotInAdvancedFilter:
+			key = *f.Key
+			operatorType = f.OperatorType
+			values = utils.FlattenStringSlice(f.Values)
+		}
+
+		results = append(results, map[string]interface{}{
+			"key":           key,
+			"operator_type": operatorType,
+			"values":        values,
+		})
+	}
+
+	return results
 }
 
 func flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(dest *eventgrid.StorageBlobDeadLetterDestination) []interface{} {

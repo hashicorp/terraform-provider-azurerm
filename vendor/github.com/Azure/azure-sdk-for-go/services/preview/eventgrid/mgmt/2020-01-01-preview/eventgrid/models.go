@@ -23,11 +23,13 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-01-01-preview/eventgrid"
 
 // DomainProvisioningState enumerates the values for domain provisioning state.
 type DomainProvisioningState string
@@ -52,16 +54,45 @@ func PossibleDomainProvisioningStateValues() []DomainProvisioningState {
 	return []DomainProvisioningState{Canceled, Creating, Deleting, Failed, Succeeded, Updating}
 }
 
+// DomainTopicProvisioningState enumerates the values for domain topic provisioning state.
+type DomainTopicProvisioningState string
+
+const (
+	// DomainTopicProvisioningStateCanceled ...
+	DomainTopicProvisioningStateCanceled DomainTopicProvisioningState = "Canceled"
+	// DomainTopicProvisioningStateCreating ...
+	DomainTopicProvisioningStateCreating DomainTopicProvisioningState = "Creating"
+	// DomainTopicProvisioningStateDeleting ...
+	DomainTopicProvisioningStateDeleting DomainTopicProvisioningState = "Deleting"
+	// DomainTopicProvisioningStateFailed ...
+	DomainTopicProvisioningStateFailed DomainTopicProvisioningState = "Failed"
+	// DomainTopicProvisioningStateSucceeded ...
+	DomainTopicProvisioningStateSucceeded DomainTopicProvisioningState = "Succeeded"
+	// DomainTopicProvisioningStateUpdating ...
+	DomainTopicProvisioningStateUpdating DomainTopicProvisioningState = "Updating"
+)
+
+// PossibleDomainTopicProvisioningStateValues returns an array of possible values for the DomainTopicProvisioningState const type.
+func PossibleDomainTopicProvisioningStateValues() []DomainTopicProvisioningState {
+	return []DomainTopicProvisioningState{DomainTopicProvisioningStateCanceled, DomainTopicProvisioningStateCreating, DomainTopicProvisioningStateDeleting, DomainTopicProvisioningStateFailed, DomainTopicProvisioningStateSucceeded, DomainTopicProvisioningStateUpdating}
+}
+
 // EndpointType enumerates the values for endpoint type.
 type EndpointType string
 
 const (
+	// EndpointTypeAzureFunction ...
+	EndpointTypeAzureFunction EndpointType = "AzureFunction"
 	// EndpointTypeEventHub ...
 	EndpointTypeEventHub EndpointType = "EventHub"
 	// EndpointTypeEventSubscriptionDestination ...
 	EndpointTypeEventSubscriptionDestination EndpointType = "EventSubscriptionDestination"
 	// EndpointTypeHybridConnection ...
 	EndpointTypeHybridConnection EndpointType = "HybridConnection"
+	// EndpointTypeServiceBusQueue ...
+	EndpointTypeServiceBusQueue EndpointType = "ServiceBusQueue"
+	// EndpointTypeServiceBusTopic ...
+	EndpointTypeServiceBusTopic EndpointType = "ServiceBusTopic"
 	// EndpointTypeStorageQueue ...
 	EndpointTypeStorageQueue EndpointType = "StorageQueue"
 	// EndpointTypeWebHook ...
@@ -70,7 +101,7 @@ const (
 
 // PossibleEndpointTypeValues returns an array of possible values for the EndpointType const type.
 func PossibleEndpointTypeValues() []EndpointType {
-	return []EndpointType{EndpointTypeEventHub, EndpointTypeEventSubscriptionDestination, EndpointTypeHybridConnection, EndpointTypeStorageQueue, EndpointTypeWebHook}
+	return []EndpointType{EndpointTypeAzureFunction, EndpointTypeEventHub, EndpointTypeEventSubscriptionDestination, EndpointTypeHybridConnection, EndpointTypeServiceBusQueue, EndpointTypeServiceBusTopic, EndpointTypeStorageQueue, EndpointTypeWebHook}
 }
 
 // EndpointTypeBasicDeadLetterDestination enumerates the values for endpoint type basic dead letter
@@ -93,8 +124,8 @@ func PossibleEndpointTypeBasicDeadLetterDestinationValues() []EndpointTypeBasicD
 type EventDeliverySchema string
 
 const (
-	// CloudEventV01Schema ...
-	CloudEventV01Schema EventDeliverySchema = "CloudEventV01Schema"
+	// CloudEventSchemaV10 ...
+	CloudEventSchemaV10 EventDeliverySchema = "CloudEventSchemaV1_0"
 	// CustomInputSchema ...
 	CustomInputSchema EventDeliverySchema = "CustomInputSchema"
 	// EventGridSchema ...
@@ -103,7 +134,7 @@ const (
 
 // PossibleEventDeliverySchemaValues returns an array of possible values for the EventDeliverySchema const type.
 func PossibleEventDeliverySchemaValues() []EventDeliverySchema {
-	return []EventDeliverySchema{CloudEventV01Schema, CustomInputSchema, EventGridSchema}
+	return []EventDeliverySchema{CloudEventSchemaV10, CustomInputSchema, EventGridSchema}
 }
 
 // EventSubscriptionProvisioningState enumerates the values for event subscription provisioning state.
@@ -135,8 +166,8 @@ func PossibleEventSubscriptionProvisioningStateValues() []EventSubscriptionProvi
 type InputSchema string
 
 const (
-	// InputSchemaCloudEventV01Schema ...
-	InputSchemaCloudEventV01Schema InputSchema = "CloudEventV01Schema"
+	// InputSchemaCloudEventSchemaV10 ...
+	InputSchemaCloudEventSchemaV10 InputSchema = "CloudEventSchemaV1_0"
 	// InputSchemaCustomEventSchema ...
 	InputSchemaCustomEventSchema InputSchema = "CustomEventSchema"
 	// InputSchemaEventGridSchema ...
@@ -145,7 +176,7 @@ const (
 
 // PossibleInputSchemaValues returns an array of possible values for the InputSchema const type.
 func PossibleInputSchemaValues() []InputSchema {
-	return []InputSchema{InputSchemaCloudEventV01Schema, InputSchemaCustomEventSchema, InputSchemaEventGridSchema}
+	return []InputSchema{InputSchemaCloudEventSchemaV10, InputSchemaCustomEventSchema, InputSchemaEventGridSchema}
 }
 
 // InputSchemaMappingType enumerates the values for input schema mapping type.
@@ -261,8 +292,10 @@ func PossibleTopicTypeProvisioningStateValues() []TopicTypeProvisioningState {
 	return []TopicTypeProvisioningState{TopicTypeProvisioningStateCanceled, TopicTypeProvisioningStateCreating, TopicTypeProvisioningStateDeleting, TopicTypeProvisioningStateFailed, TopicTypeProvisioningStateSucceeded, TopicTypeProvisioningStateUpdating}
 }
 
-// BasicAdvancedFilter represents an advanced filter that can be used to filter events based on various event
-// envelope/data fields.
+// BasicAdvancedFilter this is the base type that represents an advanced filter. To configure an advanced filter, do
+// not directly instantiate an object of this class. Instead, instantiate an object of a derived class such as
+// BoolEqualsAdvancedFilter, NumberInAdvancedFilter, StringEqualsAdvancedFilter etc. depending on the type of the key
+// based on which you want to filter.
 type BasicAdvancedFilter interface {
 	AsNumberInAdvancedFilter() (*NumberInAdvancedFilter, bool)
 	AsNumberNotInAdvancedFilter() (*NumberNotInAdvancedFilter, bool)
@@ -279,10 +312,12 @@ type BasicAdvancedFilter interface {
 	AsAdvancedFilter() (*AdvancedFilter, bool)
 }
 
-// AdvancedFilter represents an advanced filter that can be used to filter events based on various event
-// envelope/data fields.
+// AdvancedFilter this is the base type that represents an advanced filter. To configure an advanced filter, do
+// not directly instantiate an object of this class. Instead, instantiate an object of a derived class such as
+// BoolEqualsAdvancedFilter, NumberInAdvancedFilter, StringEqualsAdvancedFilter etc. depending on the type of
+// the key based on which you want to filter.
 type AdvancedFilter struct {
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -452,11 +487,122 @@ func (af AdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter, bool) {
 	return &af, true
 }
 
-// BoolEqualsAdvancedFilter boolEquals Filter
+// AzureFunctionEventSubscriptionDestination information about the azure function destination for an event
+// subscription.
+type AzureFunctionEventSubscriptionDestination struct {
+	// AzureFunctionEventSubscriptionDestinationProperties - Azure Function Properties of the event subscription destination.
+	*AzureFunctionEventSubscriptionDestinationProperties `json:"properties,omitempty"`
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
+	EndpointType EndpointType `json:"endpointType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) MarshalJSON() ([]byte, error) {
+	afesd.EndpointType = EndpointTypeAzureFunction
+	objectMap := make(map[string]interface{})
+	if afesd.AzureFunctionEventSubscriptionDestinationProperties != nil {
+		objectMap["properties"] = afesd.AzureFunctionEventSubscriptionDestinationProperties
+	}
+	if afesd.EndpointType != "" {
+		objectMap["endpointType"] = afesd.EndpointType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsWebHookEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsWebHookEventSubscriptionDestination() (*WebHookEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsEventHubEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsEventHubEventSubscriptionDestination() (*EventHubEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsStorageQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsStorageQueueEventSubscriptionDestination() (*StorageQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsHybridConnectionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
+	return &afesd, true
+}
+
+// AsEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsEventSubscriptionDestination() (*EventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsBasicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for AzureFunctionEventSubscriptionDestination.
+func (afesd AzureFunctionEventSubscriptionDestination) AsBasicEventSubscriptionDestination() (BasicEventSubscriptionDestination, bool) {
+	return &afesd, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for AzureFunctionEventSubscriptionDestination struct.
+func (afesd *AzureFunctionEventSubscriptionDestination) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var azureFunctionEventSubscriptionDestinationProperties AzureFunctionEventSubscriptionDestinationProperties
+				err = json.Unmarshal(*v, &azureFunctionEventSubscriptionDestinationProperties)
+				if err != nil {
+					return err
+				}
+				afesd.AzureFunctionEventSubscriptionDestinationProperties = &azureFunctionEventSubscriptionDestinationProperties
+			}
+		case "endpointType":
+			if v != nil {
+				var endpointType EndpointType
+				err = json.Unmarshal(*v, &endpointType)
+				if err != nil {
+					return err
+				}
+				afesd.EndpointType = endpointType
+			}
+		}
+	}
+
+	return nil
+}
+
+// AzureFunctionEventSubscriptionDestinationProperties the properties that represent the Azure Function
+// destination of an event subscription.
+type AzureFunctionEventSubscriptionDestinationProperties struct {
+	// ResourceID - The Azure Resource Id that represents the endpoint of the Azure Function destination of an event subscription.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// MaxEventsPerBatch - Maximum number of events per batch.
+	MaxEventsPerBatch *int32 `json:"maxEventsPerBatch,omitempty"`
+	// PreferredBatchSizeInKilobytes - Preferred batch size in Kilobytes.
+	PreferredBatchSizeInKilobytes *int32 `json:"preferredBatchSizeInKilobytes,omitempty"`
+}
+
+// BoolEqualsAdvancedFilter boolEquals Advanced Filter.
 type BoolEqualsAdvancedFilter struct {
-	// Value - The filter value
+	// Value - The boolean filter value.
 	Value *bool `json:"value,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -734,10 +880,12 @@ type DomainProperties struct {
 	ProvisioningState DomainProvisioningState `json:"provisioningState,omitempty"`
 	// Endpoint - READ-ONLY; Endpoint for the domain.
 	Endpoint *string `json:"endpoint,omitempty"`
-	// InputSchema - This determines the format that Event Grid should expect for incoming events published to the domain. Possible values include: 'InputSchemaEventGridSchema', 'InputSchemaCustomEventSchema', 'InputSchemaCloudEventV01Schema'
+	// InputSchema - This determines the format that Event Grid should expect for incoming events published to the domain. Possible values include: 'InputSchemaEventGridSchema', 'InputSchemaCustomEventSchema', 'InputSchemaCloudEventSchemaV10'
 	InputSchema InputSchema `json:"inputSchema,omitempty"`
 	// InputSchemaMapping - Information about the InputSchemaMapping which specified the info about mapping event payload.
 	InputSchemaMapping BasicInputSchemaMapping `json:"inputSchemaMapping,omitempty"`
+	// MetricResourceID - READ-ONLY; Metric resource id for the domain.
+	MetricResourceID *string `json:"metricResourceId,omitempty"`
 }
 
 // UnmarshalJSON is the custom unmarshaler for DomainProperties struct.
@@ -783,6 +931,15 @@ func (dp *DomainProperties) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				dp.InputSchemaMapping = inputSchemaMapping
+			}
+		case "metricResourceId":
+			if v != nil {
+				var metricResourceID string
+				err = json.Unmarshal(*v, &metricResourceID)
+				if err != nil {
+					return err
+				}
+				dp.MetricResourceID = &metricResourceID
 			}
 		}
 	}
@@ -862,6 +1019,145 @@ type DomainsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - A collection of Domains
 	Value *[]Domain `json:"value,omitempty"`
+	// NextLink - A link for the next page of domains
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DomainsListResultIterator provides access to a complete listing of Domain values.
+type DomainsListResultIterator struct {
+	i    int
+	page DomainsListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DomainsListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DomainsListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DomainsListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DomainsListResultIterator) Response() DomainsListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DomainsListResultIterator) Value() Domain {
+	if !iter.page.NotDone() {
+		return Domain{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DomainsListResultIterator type.
+func NewDomainsListResultIterator(page DomainsListResultPage) DomainsListResultIterator {
+	return DomainsListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dlr DomainsListResult) IsEmpty() bool {
+	return dlr.Value == nil || len(*dlr.Value) == 0
+}
+
+// domainsListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dlr DomainsListResult) domainsListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if dlr.NextLink == nil || len(to.String(dlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dlr.NextLink)))
+}
+
+// DomainsListResultPage contains a page of Domain values.
+type DomainsListResultPage struct {
+	fn  func(context.Context, DomainsListResult) (DomainsListResult, error)
+	dlr DomainsListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DomainsListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.dlr)
+	if err != nil {
+		return err
+	}
+	page.dlr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DomainsListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DomainsListResultPage) NotDone() bool {
+	return !page.dlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DomainsListResultPage) Response() DomainsListResult {
+	return page.dlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DomainsListResultPage) Values() []Domain {
+	if page.dlr.IsEmpty() {
+		return nil
+	}
+	return *page.dlr.Value
+}
+
+// Creates a new instance of the DomainsListResultPage type.
+func NewDomainsListResultPage(getNextPage func(context.Context, DomainsListResult) (DomainsListResult, error)) DomainsListResultPage {
+	return DomainsListResultPage{fn: getNextPage}
 }
 
 // DomainsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -896,6 +1192,8 @@ func (future *DomainsUpdateFuture) Result(client DomainsClient) (d Domain, err e
 // DomainTopic domain Topic
 type DomainTopic struct {
 	autorest.Response `json:"-"`
+	// DomainTopicProperties - Properties of the Domain Topic
+	*DomainTopicProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Name of the resource
@@ -904,11 +1202,268 @@ type DomainTopic struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DomainTopic.
+func (dt DomainTopic) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dt.DomainTopicProperties != nil {
+		objectMap["properties"] = dt.DomainTopicProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DomainTopic struct.
+func (dt *DomainTopic) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var domainTopicProperties DomainTopicProperties
+				err = json.Unmarshal(*v, &domainTopicProperties)
+				if err != nil {
+					return err
+				}
+				dt.DomainTopicProperties = &domainTopicProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				dt.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				dt.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				dt.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// DomainTopicProperties properties of the Domain Topic
+type DomainTopicProperties struct {
+	// ProvisioningState - Provisioning state of the domain topic. Possible values include: 'DomainTopicProvisioningStateCreating', 'DomainTopicProvisioningStateUpdating', 'DomainTopicProvisioningStateDeleting', 'DomainTopicProvisioningStateSucceeded', 'DomainTopicProvisioningStateCanceled', 'DomainTopicProvisioningStateFailed'
+	ProvisioningState DomainTopicProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// DomainTopicsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DomainTopicsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DomainTopicsCreateOrUpdateFuture) Result(client DomainTopicsClient) (dt DomainTopic, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainTopicsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if dt.Response.Response, err = future.GetResult(sender); err == nil && dt.Response.Response.StatusCode != http.StatusNoContent {
+		dt, err = client.CreateOrUpdateResponder(dt.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsCreateOrUpdateFuture", "Result", dt.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DomainTopicsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DomainTopicsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DomainTopicsDeleteFuture) Result(client DomainTopicsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("eventgrid.DomainTopicsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // DomainTopicsListResult result of the List Domain Topics operation
 type DomainTopicsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - A collection of Domain Topics
 	Value *[]DomainTopic `json:"value,omitempty"`
+	// NextLink - A link for the next page of domain topics
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DomainTopicsListResultIterator provides access to a complete listing of DomainTopic values.
+type DomainTopicsListResultIterator struct {
+	i    int
+	page DomainTopicsListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DomainTopicsListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainTopicsListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DomainTopicsListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DomainTopicsListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DomainTopicsListResultIterator) Response() DomainTopicsListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DomainTopicsListResultIterator) Value() DomainTopic {
+	if !iter.page.NotDone() {
+		return DomainTopic{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DomainTopicsListResultIterator type.
+func NewDomainTopicsListResultIterator(page DomainTopicsListResultPage) DomainTopicsListResultIterator {
+	return DomainTopicsListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dtlr DomainTopicsListResult) IsEmpty() bool {
+	return dtlr.Value == nil || len(*dtlr.Value) == 0
+}
+
+// domainTopicsListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dtlr DomainTopicsListResult) domainTopicsListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if dtlr.NextLink == nil || len(to.String(dtlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dtlr.NextLink)))
+}
+
+// DomainTopicsListResultPage contains a page of DomainTopic values.
+type DomainTopicsListResultPage struct {
+	fn   func(context.Context, DomainTopicsListResult) (DomainTopicsListResult, error)
+	dtlr DomainTopicsListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DomainTopicsListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainTopicsListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.dtlr)
+	if err != nil {
+		return err
+	}
+	page.dtlr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DomainTopicsListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DomainTopicsListResultPage) NotDone() bool {
+	return !page.dtlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DomainTopicsListResultPage) Response() DomainTopicsListResult {
+	return page.dtlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DomainTopicsListResultPage) Values() []DomainTopic {
+	if page.dtlr.IsEmpty() {
+		return nil
+	}
+	return *page.dtlr.Value
+}
+
+// Creates a new instance of the DomainTopicsListResultPage type.
+func NewDomainTopicsListResultPage(getNextPage func(context.Context, DomainTopicsListResult) (DomainTopicsListResult, error)) DomainTopicsListResultPage {
+	return DomainTopicsListResultPage{fn: getNextPage}
 }
 
 // DomainUpdateParameters properties of the Domain update
@@ -931,7 +1486,7 @@ func (dup DomainUpdateParameters) MarshalJSON() ([]byte, error) {
 type EventHubEventSubscriptionDestination struct {
 	// EventHubEventSubscriptionDestinationProperties - Event Hub Properties of the event subscription destination
 	*EventHubEventSubscriptionDestinationProperties `json:"properties,omitempty"`
-	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection'
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
 
@@ -965,6 +1520,21 @@ func (ehesd EventHubEventSubscriptionDestination) AsStorageQueueEventSubscriptio
 
 // AsHybridConnectionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventHubEventSubscriptionDestination.
 func (ehesd EventHubEventSubscriptionDestination) AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventHubEventSubscriptionDestination.
+func (ehesd EventHubEventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventHubEventSubscriptionDestination.
+func (ehesd EventHubEventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventHubEventSubscriptionDestination.
+func (ehesd EventHubEventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
 	return nil, false
 }
 
@@ -1096,12 +1666,15 @@ type BasicEventSubscriptionDestination interface {
 	AsEventHubEventSubscriptionDestination() (*EventHubEventSubscriptionDestination, bool)
 	AsStorageQueueEventSubscriptionDestination() (*StorageQueueEventSubscriptionDestination, bool)
 	AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool)
+	AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool)
+	AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool)
+	AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool)
 	AsEventSubscriptionDestination() (*EventSubscriptionDestination, bool)
 }
 
 // EventSubscriptionDestination information about the destination for an event subscription
 type EventSubscriptionDestination struct {
-	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection'
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
 
@@ -1129,6 +1702,18 @@ func unmarshalBasicEventSubscriptionDestination(body []byte) (BasicEventSubscrip
 		var hcesd HybridConnectionEventSubscriptionDestination
 		err := json.Unmarshal(body, &hcesd)
 		return hcesd, err
+	case string(EndpointTypeServiceBusQueue):
+		var sbqesd ServiceBusQueueEventSubscriptionDestination
+		err := json.Unmarshal(body, &sbqesd)
+		return sbqesd, err
+	case string(EndpointTypeServiceBusTopic):
+		var sbtesd ServiceBusTopicEventSubscriptionDestination
+		err := json.Unmarshal(body, &sbtesd)
+		return sbtesd, err
+	case string(EndpointTypeAzureFunction):
+		var afesd AzureFunctionEventSubscriptionDestination
+		err := json.Unmarshal(body, &afesd)
+		return afesd, err
 	default:
 		var esd EventSubscriptionDestination
 		err := json.Unmarshal(body, &esd)
@@ -1184,6 +1769,21 @@ func (esd EventSubscriptionDestination) AsHybridConnectionEventSubscriptionDesti
 	return nil, false
 }
 
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventSubscriptionDestination.
+func (esd EventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventSubscriptionDestination.
+func (esd EventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventSubscriptionDestination.
+func (esd EventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
 // AsEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for EventSubscriptionDestination.
 func (esd EventSubscriptionDestination) AsEventSubscriptionDestination() (*EventSubscriptionDestination, bool) {
 	return &esd, true
@@ -1203,13 +1803,12 @@ type EventSubscriptionFilter struct {
 	// SubjectEndsWith - An optional string to filter events for an event subscription based on a resource path suffix.
 	// Wildcard characters are not supported in this path.
 	SubjectEndsWith *string `json:"subjectEndsWith,omitempty"`
-	// IncludedEventTypes - A list of applicable event types that need to be part of the event subscription.
-	// If it is desired to subscribe to all event types, the string "all" needs to be specified as an element in this list.
+	// IncludedEventTypes - A list of applicable event types that need to be part of the event subscription. If it is desired to subscribe to all default event types, set the IncludedEventTypes to null.
 	IncludedEventTypes *[]string `json:"includedEventTypes,omitempty"`
 	// IsSubjectCaseSensitive - Specifies if the SubjectBeginsWith and SubjectEndsWith properties of the filter
 	// should be compared in a case sensitive manner.
 	IsSubjectCaseSensitive *bool `json:"isSubjectCaseSensitive,omitempty"`
-	// AdvancedFilters - A list of advanced filters.
+	// AdvancedFilters - An array of advanced filters that are used for filtering event subscriptions.
 	AdvancedFilters *[]BasicAdvancedFilter `json:"advancedFilters,omitempty"`
 }
 
@@ -1293,7 +1892,7 @@ type EventSubscriptionProperties struct {
 	Labels *[]string `json:"labels,omitempty"`
 	// ExpirationTimeUtc - Expiration time of the event subscription.
 	ExpirationTimeUtc *date.Time `json:"expirationTimeUtc,omitempty"`
-	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventGridSchema', 'CloudEventV01Schema', 'CustomInputSchema'
+	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventGridSchema', 'CustomInputSchema', 'CloudEventSchemaV10'
 	EventDeliverySchema EventDeliverySchema `json:"eventDeliverySchema,omitempty"`
 	// RetryPolicy - The retry policy for events. This can be used to configure maximum number of delivery attempts and time to live for events.
 	RetryPolicy *RetryPolicy `json:"retryPolicy,omitempty"`
@@ -1452,6 +2051,145 @@ type EventSubscriptionsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - A collection of EventSubscriptions
 	Value *[]EventSubscription `json:"value,omitempty"`
+	// NextLink - A link for the next page of event subscriptions
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// EventSubscriptionsListResultIterator provides access to a complete listing of EventSubscription values.
+type EventSubscriptionsListResultIterator struct {
+	i    int
+	page EventSubscriptionsListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *EventSubscriptionsListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *EventSubscriptionsListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter EventSubscriptionsListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter EventSubscriptionsListResultIterator) Response() EventSubscriptionsListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter EventSubscriptionsListResultIterator) Value() EventSubscription {
+	if !iter.page.NotDone() {
+		return EventSubscription{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the EventSubscriptionsListResultIterator type.
+func NewEventSubscriptionsListResultIterator(page EventSubscriptionsListResultPage) EventSubscriptionsListResultIterator {
+	return EventSubscriptionsListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (eslr EventSubscriptionsListResult) IsEmpty() bool {
+	return eslr.Value == nil || len(*eslr.Value) == 0
+}
+
+// eventSubscriptionsListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (eslr EventSubscriptionsListResult) eventSubscriptionsListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if eslr.NextLink == nil || len(to.String(eslr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(eslr.NextLink)))
+}
+
+// EventSubscriptionsListResultPage contains a page of EventSubscription values.
+type EventSubscriptionsListResultPage struct {
+	fn   func(context.Context, EventSubscriptionsListResult) (EventSubscriptionsListResult, error)
+	eslr EventSubscriptionsListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *EventSubscriptionsListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.eslr)
+	if err != nil {
+		return err
+	}
+	page.eslr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *EventSubscriptionsListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page EventSubscriptionsListResultPage) NotDone() bool {
+	return !page.eslr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page EventSubscriptionsListResultPage) Response() EventSubscriptionsListResult {
+	return page.eslr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page EventSubscriptionsListResultPage) Values() []EventSubscription {
+	if page.eslr.IsEmpty() {
+		return nil
+	}
+	return *page.eslr.Value
+}
+
+// Creates a new instance of the EventSubscriptionsListResultPage type.
+func NewEventSubscriptionsListResultPage(getNextPage func(context.Context, EventSubscriptionsListResult) (EventSubscriptionsListResult, error)) EventSubscriptionsListResultPage {
+	return EventSubscriptionsListResultPage{fn: getNextPage}
 }
 
 // EventSubscriptionsUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -1493,7 +2231,7 @@ type EventSubscriptionUpdateParameters struct {
 	Labels *[]string `json:"labels,omitempty"`
 	// ExpirationTimeUtc - Information about the expiration time for the event subscription.
 	ExpirationTimeUtc *date.Time `json:"expirationTimeUtc,omitempty"`
-	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventGridSchema', 'CloudEventV01Schema', 'CustomInputSchema'
+	// EventDeliverySchema - The event delivery schema for the event subscription. Possible values include: 'EventGridSchema', 'CustomInputSchema', 'CloudEventSchemaV10'
 	EventDeliverySchema EventDeliverySchema `json:"eventDeliverySchema,omitempty"`
 	// RetryPolicy - The retry policy for events. This can be used to configure maximum number of delivery attempts and time to live for events.
 	RetryPolicy *RetryPolicy `json:"retryPolicy,omitempty"`
@@ -1657,6 +2395,8 @@ type EventTypeProperties struct {
 	Description *string `json:"description,omitempty"`
 	// SchemaURL - Url of the schema for this event type.
 	SchemaURL *string `json:"schemaUrl,omitempty"`
+	// IsInDefaultSet - IsInDefaultSet flag of the event type.
+	IsInDefaultSet *bool `json:"isInDefaultSet,omitempty"`
 }
 
 // EventTypesListResult result of the List Event Types operation
@@ -1671,7 +2411,7 @@ type EventTypesListResult struct {
 type HybridConnectionEventSubscriptionDestination struct {
 	// HybridConnectionEventSubscriptionDestinationProperties - Hybrid connection Properties of the event subscription destination
 	*HybridConnectionEventSubscriptionDestinationProperties `json:"properties,omitempty"`
-	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection'
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
 
@@ -1706,6 +2446,21 @@ func (hcesd HybridConnectionEventSubscriptionDestination) AsStorageQueueEventSub
 // AsHybridConnectionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for HybridConnectionEventSubscriptionDestination.
 func (hcesd HybridConnectionEventSubscriptionDestination) AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool) {
 	return &hcesd, true
+}
+
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for HybridConnectionEventSubscriptionDestination.
+func (hcesd HybridConnectionEventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for HybridConnectionEventSubscriptionDestination.
+func (hcesd HybridConnectionEventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for HybridConnectionEventSubscriptionDestination.
+func (hcesd HybridConnectionEventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
+	return nil, false
 }
 
 // AsEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for HybridConnectionEventSubscriptionDestination.
@@ -1837,7 +2592,7 @@ func (ism InputSchemaMapping) AsBasicInputSchemaMapping() (BasicInputSchemaMappi
 }
 
 // JSONField this is used to express the source of an input schema mapping for a single target field in the
-// Event Grid Event schema. This is currently used in the mappings for the 'id','topic' and 'eventTime'
+// Event Grid Event schema. This is currently used in the mappings for the 'id', 'topic' and 'eventtime'
 // properties. This represents a field in the input event schema.
 type JSONField struct {
 	// SourceField - Name of a field in the input event schema that's to be used as the source of a mapping.
@@ -1845,8 +2600,9 @@ type JSONField struct {
 }
 
 // JSONFieldWithDefault this is used to express the source of an input schema mapping for a single target
-// field in the Event Grid Event schema. This is currently used in the mappings for the
-// 'subject','eventType' and 'dataVersion' properties. This represents a field in the input event schema
+// field
+// in the Event Grid Event schema. This is currently used in the mappings for the 'subject',
+// 'eventtype' and 'dataversion' properties. This represents a field in the input event schema
 // along with a default value to be used, and at least one of these two properties should be provided.
 type JSONFieldWithDefault struct {
 	// SourceField - Name of a field in the input event schema that's to be used as the source of a mapping.
@@ -1942,11 +2698,11 @@ type JSONInputSchemaMappingProperties struct {
 	DataVersion *JSONFieldWithDefault `json:"dataVersion,omitempty"`
 }
 
-// NumberGreaterThanAdvancedFilter numberGreaterThan Filter
+// NumberGreaterThanAdvancedFilter numberGreaterThan Advanced Filter.
 type NumberGreaterThanAdvancedFilter struct {
-	// Value - The filter value
+	// Value - The filter value.
 	Value *float64 `json:"value,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2038,11 +2794,11 @@ func (ngtaf NumberGreaterThanAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvan
 	return &ngtaf, true
 }
 
-// NumberGreaterThanOrEqualsAdvancedFilter numberGreaterThanOrEquals Filter
+// NumberGreaterThanOrEqualsAdvancedFilter numberGreaterThanOrEquals Advanced Filter.
 type NumberGreaterThanOrEqualsAdvancedFilter struct {
-	// Value - The filter value
+	// Value - The filter value.
 	Value *float64 `json:"value,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2134,11 +2890,11 @@ func (ngtoeaf NumberGreaterThanOrEqualsAdvancedFilter) AsBasicAdvancedFilter() (
 	return &ngtoeaf, true
 }
 
-// NumberInAdvancedFilter numberIn filter
+// NumberInAdvancedFilter numberIn Advanced Filter.
 type NumberInAdvancedFilter struct {
-	// Values - The set of filter values
+	// Values - The set of filter values.
 	Values *[]float64 `json:"values,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2230,11 +2986,11 @@ func (niaf NumberInAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter,
 	return &niaf, true
 }
 
-// NumberLessThanAdvancedFilter numberLessThan Filter
+// NumberLessThanAdvancedFilter numberLessThan Advanced Filter.
 type NumberLessThanAdvancedFilter struct {
-	// Value - The filter value
+	// Value - The filter value.
 	Value *float64 `json:"value,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2326,11 +3082,11 @@ func (nltaf NumberLessThanAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvanced
 	return &nltaf, true
 }
 
-// NumberLessThanOrEqualsAdvancedFilter numberLessThanOrEquals Filter
+// NumberLessThanOrEqualsAdvancedFilter numberLessThanOrEquals Advanced Filter.
 type NumberLessThanOrEqualsAdvancedFilter struct {
-	// Value - The filter value
+	// Value - The filter value.
 	Value *float64 `json:"value,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2422,11 +3178,11 @@ func (nltoeaf NumberLessThanOrEqualsAdvancedFilter) AsBasicAdvancedFilter() (Bas
 	return &nltoeaf, true
 }
 
-// NumberNotInAdvancedFilter numberNotIn Filter
+// NumberNotInAdvancedFilter numberNotIn Advanced Filter.
 type NumberNotInAdvancedFilter struct {
-	// Values - The set of filter values
+	// Values - The set of filter values.
 	Values *[]float64 `json:"values,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2567,6 +3323,220 @@ type RetryPolicy struct {
 	EventTimeToLiveInMinutes *int32 `json:"eventTimeToLiveInMinutes,omitempty"`
 }
 
+// ServiceBusQueueEventSubscriptionDestination information about the service bus destination for an event
+// subscription
+type ServiceBusQueueEventSubscriptionDestination struct {
+	// ServiceBusQueueEventSubscriptionDestinationProperties - Service Bus Properties of the event subscription destination
+	*ServiceBusQueueEventSubscriptionDestinationProperties `json:"properties,omitempty"`
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
+	EndpointType EndpointType `json:"endpointType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) MarshalJSON() ([]byte, error) {
+	sbqesd.EndpointType = EndpointTypeServiceBusQueue
+	objectMap := make(map[string]interface{})
+	if sbqesd.ServiceBusQueueEventSubscriptionDestinationProperties != nil {
+		objectMap["properties"] = sbqesd.ServiceBusQueueEventSubscriptionDestinationProperties
+	}
+	if sbqesd.EndpointType != "" {
+		objectMap["endpointType"] = sbqesd.EndpointType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsWebHookEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsWebHookEventSubscriptionDestination() (*WebHookEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsEventHubEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsEventHubEventSubscriptionDestination() (*EventHubEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsStorageQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsStorageQueueEventSubscriptionDestination() (*StorageQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsHybridConnectionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return &sbqesd, true
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsEventSubscriptionDestination() (*EventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsBasicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusQueueEventSubscriptionDestination.
+func (sbqesd ServiceBusQueueEventSubscriptionDestination) AsBasicEventSubscriptionDestination() (BasicEventSubscriptionDestination, bool) {
+	return &sbqesd, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServiceBusQueueEventSubscriptionDestination struct.
+func (sbqesd *ServiceBusQueueEventSubscriptionDestination) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var serviceBusQueueEventSubscriptionDestinationProperties ServiceBusQueueEventSubscriptionDestinationProperties
+				err = json.Unmarshal(*v, &serviceBusQueueEventSubscriptionDestinationProperties)
+				if err != nil {
+					return err
+				}
+				sbqesd.ServiceBusQueueEventSubscriptionDestinationProperties = &serviceBusQueueEventSubscriptionDestinationProperties
+			}
+		case "endpointType":
+			if v != nil {
+				var endpointType EndpointType
+				err = json.Unmarshal(*v, &endpointType)
+				if err != nil {
+					return err
+				}
+				sbqesd.EndpointType = endpointType
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServiceBusQueueEventSubscriptionDestinationProperties the properties that represent the Service Bus
+// destination of an event subscription.
+type ServiceBusQueueEventSubscriptionDestinationProperties struct {
+	// ResourceID - The Azure Resource Id that represents the endpoint of the Service Bus destination of an event subscription.
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+// ServiceBusTopicEventSubscriptionDestination information about the service bus topic destination for an
+// event subscription.
+type ServiceBusTopicEventSubscriptionDestination struct {
+	// ServiceBusTopicEventSubscriptionDestinationProperties - Service Bus Topic Properties of the event subscription destination.
+	*ServiceBusTopicEventSubscriptionDestinationProperties `json:"properties,omitempty"`
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
+	EndpointType EndpointType `json:"endpointType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) MarshalJSON() ([]byte, error) {
+	sbtesd.EndpointType = EndpointTypeServiceBusTopic
+	objectMap := make(map[string]interface{})
+	if sbtesd.ServiceBusTopicEventSubscriptionDestinationProperties != nil {
+		objectMap["properties"] = sbtesd.ServiceBusTopicEventSubscriptionDestinationProperties
+	}
+	if sbtesd.EndpointType != "" {
+		objectMap["endpointType"] = sbtesd.EndpointType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsWebHookEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsWebHookEventSubscriptionDestination() (*WebHookEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsEventHubEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsEventHubEventSubscriptionDestination() (*EventHubEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsStorageQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsStorageQueueEventSubscriptionDestination() (*StorageQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsHybridConnectionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return &sbtesd, true
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsEventSubscriptionDestination() (*EventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsBasicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for ServiceBusTopicEventSubscriptionDestination.
+func (sbtesd ServiceBusTopicEventSubscriptionDestination) AsBasicEventSubscriptionDestination() (BasicEventSubscriptionDestination, bool) {
+	return &sbtesd, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServiceBusTopicEventSubscriptionDestination struct.
+func (sbtesd *ServiceBusTopicEventSubscriptionDestination) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var serviceBusTopicEventSubscriptionDestinationProperties ServiceBusTopicEventSubscriptionDestinationProperties
+				err = json.Unmarshal(*v, &serviceBusTopicEventSubscriptionDestinationProperties)
+				if err != nil {
+					return err
+				}
+				sbtesd.ServiceBusTopicEventSubscriptionDestinationProperties = &serviceBusTopicEventSubscriptionDestinationProperties
+			}
+		case "endpointType":
+			if v != nil {
+				var endpointType EndpointType
+				err = json.Unmarshal(*v, &endpointType)
+				if err != nil {
+					return err
+				}
+				sbtesd.EndpointType = endpointType
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServiceBusTopicEventSubscriptionDestinationProperties the properties that represent the Service Bus
+// Topic destination of an event subscription.
+type ServiceBusTopicEventSubscriptionDestinationProperties struct {
+	// ResourceID - The Azure Resource Id that represents the endpoint of the Service Bus Topic destination of an event subscription.
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
 // StorageBlobDeadLetterDestination information about the storage blob based dead letter destination.
 type StorageBlobDeadLetterDestination struct {
 	// StorageBlobDeadLetterDestinationProperties - The properties of the Storage Blob based deadletter destination
@@ -2649,7 +3619,7 @@ type StorageBlobDeadLetterDestinationProperties struct {
 type StorageQueueEventSubscriptionDestination struct {
 	// StorageQueueEventSubscriptionDestinationProperties - Storage Queue Properties of the event subscription destination
 	*StorageQueueEventSubscriptionDestinationProperties `json:"properties,omitempty"`
-	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection'
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
 
@@ -2683,6 +3653,21 @@ func (sqesd StorageQueueEventSubscriptionDestination) AsStorageQueueEventSubscri
 
 // AsHybridConnectionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for StorageQueueEventSubscriptionDestination.
 func (sqesd StorageQueueEventSubscriptionDestination) AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for StorageQueueEventSubscriptionDestination.
+func (sqesd StorageQueueEventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for StorageQueueEventSubscriptionDestination.
+func (sqesd StorageQueueEventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for StorageQueueEventSubscriptionDestination.
+func (sqesd StorageQueueEventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
 	return nil, false
 }
 
@@ -2737,11 +3722,11 @@ type StorageQueueEventSubscriptionDestinationProperties struct {
 	QueueName *string `json:"queueName,omitempty"`
 }
 
-// StringBeginsWithAdvancedFilter stringBeginsWith Filter
+// StringBeginsWithAdvancedFilter stringBeginsWith Advanced Filter.
 type StringBeginsWithAdvancedFilter struct {
-	// Values - The set of filter values
+	// Values - The set of filter values.
 	Values *[]string `json:"values,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2833,11 +3818,11 @@ func (sbwaf StringBeginsWithAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvanc
 	return &sbwaf, true
 }
 
-// StringContainsAdvancedFilter stringContains Filter
+// StringContainsAdvancedFilter stringContains Advanced Filter.
 type StringContainsAdvancedFilter struct {
-	// Values - The set of filter values
+	// Values - The set of filter values.
 	Values *[]string `json:"values,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -2929,11 +3914,11 @@ func (scaf StringContainsAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedF
 	return &scaf, true
 }
 
-// StringEndsWithAdvancedFilter stringEndsWith Filter
+// StringEndsWithAdvancedFilter stringEndsWith Advanced Filter.
 type StringEndsWithAdvancedFilter struct {
-	// Values - The set of filter values
+	// Values - The set of filter values.
 	Values *[]string `json:"values,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -3025,11 +4010,11 @@ func (sewaf StringEndsWithAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvanced
 	return &sewaf, true
 }
 
-// StringInAdvancedFilter stringIn Filter
+// StringInAdvancedFilter stringIn Advanced Filter.
 type StringInAdvancedFilter struct {
-	// Values - The set of filter values
+	// Values - The set of filter values.
 	Values *[]string `json:"values,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -3121,11 +4106,11 @@ func (siaf StringInAdvancedFilter) AsBasicAdvancedFilter() (BasicAdvancedFilter,
 	return &siaf, true
 }
 
-// StringNotInAdvancedFilter stringNotIn Filter
+// StringNotInAdvancedFilter stringNotIn Advanced Filter.
 type StringNotInAdvancedFilter struct {
-	// Values - The set of filter values
+	// Values - The set of filter values.
 	Values *[]string `json:"values,omitempty"`
-	// Key - The filter key. Represents an event property with up to two levels of nesting.
+	// Key - The field/property in the event based on which you want to filter.
 	Key *string `json:"key,omitempty"`
 	// OperatorType - Possible values include: 'OperatorTypeAdvancedFilter', 'OperatorTypeNumberIn', 'OperatorTypeNumberNotIn', 'OperatorTypeNumberLessThan', 'OperatorTypeNumberGreaterThan', 'OperatorTypeNumberLessThanOrEquals', 'OperatorTypeNumberGreaterThanOrEquals', 'OperatorTypeBoolEquals', 'OperatorTypeStringIn', 'OperatorTypeStringNotIn', 'OperatorTypeStringBeginsWith', 'OperatorTypeStringEndsWith', 'OperatorTypeStringContains'
 	OperatorType OperatorType `json:"operatorType,omitempty"`
@@ -3324,10 +4309,12 @@ type TopicProperties struct {
 	ProvisioningState TopicProvisioningState `json:"provisioningState,omitempty"`
 	// Endpoint - READ-ONLY; Endpoint for the topic.
 	Endpoint *string `json:"endpoint,omitempty"`
-	// InputSchema - This determines the format that Event Grid should expect for incoming events published to the topic. Possible values include: 'InputSchemaEventGridSchema', 'InputSchemaCustomEventSchema', 'InputSchemaCloudEventV01Schema'
+	// InputSchema - This determines the format that Event Grid should expect for incoming events published to the topic. Possible values include: 'InputSchemaEventGridSchema', 'InputSchemaCustomEventSchema', 'InputSchemaCloudEventSchemaV10'
 	InputSchema InputSchema `json:"inputSchema,omitempty"`
 	// InputSchemaMapping - This enables publishing using custom event schemas. An InputSchemaMapping can be specified to map various properties of a source schema to various required properties of the EventGridEvent schema.
 	InputSchemaMapping BasicInputSchemaMapping `json:"inputSchemaMapping,omitempty"`
+	// MetricResourceID - READ-ONLY; Metric resource id for the topic.
+	MetricResourceID *string `json:"metricResourceId,omitempty"`
 }
 
 // UnmarshalJSON is the custom unmarshaler for TopicProperties struct.
@@ -3373,6 +4360,15 @@ func (tp *TopicProperties) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				tp.InputSchemaMapping = inputSchemaMapping
+			}
+		case "metricResourceId":
+			if v != nil {
+				var metricResourceID string
+				err = json.Unmarshal(*v, &metricResourceID)
+				if err != nil {
+					return err
+				}
+				tp.MetricResourceID = &metricResourceID
 			}
 		}
 	}
@@ -3451,6 +4447,145 @@ type TopicsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - A collection of Topics
 	Value *[]Topic `json:"value,omitempty"`
+	// NextLink - A link for the next page of topics
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// TopicsListResultIterator provides access to a complete listing of Topic values.
+type TopicsListResultIterator struct {
+	i    int
+	page TopicsListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *TopicsListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *TopicsListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter TopicsListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter TopicsListResultIterator) Response() TopicsListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter TopicsListResultIterator) Value() Topic {
+	if !iter.page.NotDone() {
+		return Topic{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the TopicsListResultIterator type.
+func NewTopicsListResultIterator(page TopicsListResultPage) TopicsListResultIterator {
+	return TopicsListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (tlr TopicsListResult) IsEmpty() bool {
+	return tlr.Value == nil || len(*tlr.Value) == 0
+}
+
+// topicsListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (tlr TopicsListResult) topicsListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if tlr.NextLink == nil || len(to.String(tlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(tlr.NextLink)))
+}
+
+// TopicsListResultPage contains a page of Topic values.
+type TopicsListResultPage struct {
+	fn  func(context.Context, TopicsListResult) (TopicsListResult, error)
+	tlr TopicsListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *TopicsListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.tlr)
+	if err != nil {
+		return err
+	}
+	page.tlr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *TopicsListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page TopicsListResultPage) NotDone() bool {
+	return !page.tlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page TopicsListResultPage) Response() TopicsListResult {
+	return page.tlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page TopicsListResultPage) Values() []Topic {
+	if page.tlr.IsEmpty() {
+		return nil
+	}
+	return *page.tlr.Value
+}
+
+// Creates a new instance of the TopicsListResultPage type.
+func NewTopicsListResultPage(getNextPage func(context.Context, TopicsListResult) (TopicsListResult, error)) TopicsListResultPage {
+	return TopicsListResultPage{fn: getNextPage}
 }
 
 // TopicsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -3622,7 +4757,7 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 type WebHookEventSubscriptionDestination struct {
 	// WebHookEventSubscriptionDestinationProperties - WebHook Properties of the event subscription destination
 	*WebHookEventSubscriptionDestinationProperties `json:"properties,omitempty"`
-	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection'
+	// EndpointType - Possible values include: 'EndpointTypeEventSubscriptionDestination', 'EndpointTypeWebHook', 'EndpointTypeEventHub', 'EndpointTypeStorageQueue', 'EndpointTypeHybridConnection', 'EndpointTypeServiceBusQueue', 'EndpointTypeServiceBusTopic', 'EndpointTypeAzureFunction'
 	EndpointType EndpointType `json:"endpointType,omitempty"`
 }
 
@@ -3656,6 +4791,21 @@ func (whesd WebHookEventSubscriptionDestination) AsStorageQueueEventSubscription
 
 // AsHybridConnectionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for WebHookEventSubscriptionDestination.
 func (whesd WebHookEventSubscriptionDestination) AsHybridConnectionEventSubscriptionDestination() (*HybridConnectionEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusQueueEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for WebHookEventSubscriptionDestination.
+func (whesd WebHookEventSubscriptionDestination) AsServiceBusQueueEventSubscriptionDestination() (*ServiceBusQueueEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsServiceBusTopicEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for WebHookEventSubscriptionDestination.
+func (whesd WebHookEventSubscriptionDestination) AsServiceBusTopicEventSubscriptionDestination() (*ServiceBusTopicEventSubscriptionDestination, bool) {
+	return nil, false
+}
+
+// AsAzureFunctionEventSubscriptionDestination is the BasicEventSubscriptionDestination implementation for WebHookEventSubscriptionDestination.
+func (whesd WebHookEventSubscriptionDestination) AsAzureFunctionEventSubscriptionDestination() (*AzureFunctionEventSubscriptionDestination, bool) {
 	return nil, false
 }
 
@@ -3709,4 +4859,12 @@ type WebHookEventSubscriptionDestinationProperties struct {
 	EndpointURL *string `json:"endpointUrl,omitempty"`
 	// EndpointBaseURL - READ-ONLY; The base URL that represents the endpoint of the destination of an event subscription.
 	EndpointBaseURL *string `json:"endpointBaseUrl,omitempty"`
+	// MaxEventsPerBatch - Maximum number of events per batch.
+	MaxEventsPerBatch *int32 `json:"maxEventsPerBatch,omitempty"`
+	// PreferredBatchSizeInKilobytes - Preferred batch size in Kilobytes.
+	PreferredBatchSizeInKilobytes *int32 `json:"preferredBatchSizeInKilobytes,omitempty"`
+	// AzureActiveDirectoryTenantID - The Azure Active Directory Tenant ID to get the access token that will be included as the bearer token in delivery requests.
+	AzureActiveDirectoryTenantID *string `json:"azureActiveDirectoryTenantId,omitempty"`
+	// AzureActiveDirectoryApplicationIDOrURI - The Azure Active Directory Application ID or URI to get the access token that will be included as the bearer token in delivery requests.
+	AzureActiveDirectoryApplicationIDOrURI *string `json:"azureActiveDirectoryApplicationIdOrUri,omitempty"`
 }

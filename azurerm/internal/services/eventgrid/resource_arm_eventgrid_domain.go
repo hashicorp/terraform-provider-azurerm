@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-01-01-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -54,7 +54,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 				Default:  string(eventgrid.InputSchemaEventGridSchema),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(eventgrid.InputSchemaCloudEventV01Schema),
+					string(eventgrid.InputSchemaCloudEventSchemaV10),
 					string(eventgrid.InputSchemaCustomEventSchema),
 					string(eventgrid.InputSchemaEventGridSchema),
 				}, false),

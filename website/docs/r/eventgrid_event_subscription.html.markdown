@@ -56,9 +56,13 @@ The following arguments are supported:
 
 * `scope` - (Required) Specifies the scope at which the EventGrid Event Subscription should be created. Changing this forces a new resource to be created.
 
-* `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventV01Schema`, `CustomInputSchema`.
+* `expiration_time_utc` - (Optional) Specifies the expiration time of the event subscription (RFC RFC3339).
+
+* `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventV01Schema`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
 * `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+
+* `service_bus_queue_endpoint` - (Optional) A `service_bus_queue_endpoint` block as defined below.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
@@ -74,11 +78,21 @@ The following arguments are supported:
 
 * `subject_filter` - (Optional) A `subject_filter` block as defined below.
 
+* `advanced_filter_scalar` - (Optional) A `advanced_filter_scalar` block as defined below.
+
+* `advanced_filter_array` - (Optional) A `advanced_filter_array` block as defined below.
+
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
 
 * `labels` - (Optional) A list of labels to assign to the event subscription.
+
+---
+
+A `service_bus_queue_endpoint` supports the following:
+
+* `service_bus_queue_id` - (Required) Specifies the id where the service bus queue is located.
 
 ---
 
@@ -113,6 +127,26 @@ A `subject_filter` supports the following:
 * `subject_ends_with` - (Optional) A string to filter events for an event subscription based on a resource path suffix.
 
 * `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive. This value defaults to `false`.
+
+---
+
+A `advanced_filter_scalar` supports the following:
+
+* `key` - (Required) Specifies the field/property in the event based on which you want to filter.
+
+* `operator_type` - (Required) Specifies the operator used for the filter. Must be one of the following operators: `NumberLessThan`, `NumberGreaterThan`, `NumberLessThanOrEquals`, `NumberGreaterThanOrEquals`, `BoolEquals`.
+
+* `value` - (Required) Specifies the filter value.
+
+---
+
+A `advanced_filter_array` supports the following:
+
+* `key` - (Required) Specifies the field/property in the event based on which you want to filter.
+
+* `operator_type` - (Required) Specifies the operator used for the filter. Must be one of the following operators: `NumberIn`, `NumberNotIn`, `StringIn`, `StringNotIn`, `StringBeginsWith`, `StringEndsWith`. `StringContains`
+
+* `values` - (Required) Specifies the set of filter values (min items: 0, max items: 5)
 
 ---
 

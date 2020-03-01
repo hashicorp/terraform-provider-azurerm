@@ -89,7 +89,7 @@ func (client EventSubscriptionsClient) CreateOrUpdatePreparer(ctx context.Contex
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -173,7 +173,7 @@ func (client EventSubscriptionsClient) DeletePreparer(ctx context.Context, scope
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -260,7 +260,7 @@ func (client EventSubscriptionsClient) GetPreparer(ctx context.Context, scope st
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -342,7 +342,7 @@ func (client EventSubscriptionsClient) GetFullURLPreparer(ctx context.Context, s
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -379,18 +379,27 @@ func (client EventSubscriptionsClient) GetFullURLResponder(resp *http.Response) 
 // resourceGroupName - the name of the resource group within the user's subscription.
 // domainName - name of the top level domain
 // topicName - name of the domain topic
-func (client EventSubscriptionsClient) ListByDomainTopic(ctx context.Context, resourceGroupName string, domainName string, topicName string) (result EventSubscriptionsListResult, err error) {
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListByDomainTopic(ctx context.Context, resourceGroupName string, domainName string, topicName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListByDomainTopic")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListByDomainTopicPreparer(ctx, resourceGroupName, domainName, topicName)
+	result.fn = client.listByDomainTopicNextResults
+	req, err := client.ListByDomainTopicPreparer(ctx, resourceGroupName, domainName, topicName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByDomainTopic", nil, "Failure preparing request")
 		return
@@ -398,12 +407,12 @@ func (client EventSubscriptionsClient) ListByDomainTopic(ctx context.Context, re
 
 	resp, err := client.ListByDomainTopicSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByDomainTopic", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByDomainTopicResponder(resp)
+	result.eslr, err = client.ListByDomainTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByDomainTopic", resp, "Failure responding to request")
 	}
@@ -412,7 +421,7 @@ func (client EventSubscriptionsClient) ListByDomainTopic(ctx context.Context, re
 }
 
 // ListByDomainTopicPreparer prepares the ListByDomainTopic request.
-func (client EventSubscriptionsClient) ListByDomainTopicPreparer(ctx context.Context, resourceGroupName string, domainName string, topicName string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListByDomainTopicPreparer(ctx context.Context, resourceGroupName string, domainName string, topicName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"domainName":        autorest.Encode("path", domainName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -420,9 +429,15 @@ func (client EventSubscriptionsClient) ListByDomainTopicPreparer(ctx context.Con
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -452,24 +467,70 @@ func (client EventSubscriptionsClient) ListByDomainTopicResponder(resp *http.Res
 	return
 }
 
+// listByDomainTopicNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listByDomainTopicNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listByDomainTopicNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByDomainTopicSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listByDomainTopicNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByDomainTopicResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listByDomainTopicNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByDomainTopicComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListByDomainTopicComplete(ctx context.Context, resourceGroupName string, domainName string, topicName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListByDomainTopic")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByDomainTopic(ctx, resourceGroupName, domainName, topicName, filter, top)
+	return
+}
+
 // ListByResource list all event subscriptions that have been created for a specific topic
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // providerNamespace - namespace of the provider of the topic
 // resourceTypeName - name of the resource type
 // resourceName - name of the resource
-func (client EventSubscriptionsClient) ListByResource(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string) (result EventSubscriptionsListResult, err error) {
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListByResource(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListByResource")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListByResourcePreparer(ctx, resourceGroupName, providerNamespace, resourceTypeName, resourceName)
+	result.fn = client.listByResourceNextResults
+	req, err := client.ListByResourcePreparer(ctx, resourceGroupName, providerNamespace, resourceTypeName, resourceName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByResource", nil, "Failure preparing request")
 		return
@@ -477,12 +538,12 @@ func (client EventSubscriptionsClient) ListByResource(ctx context.Context, resou
 
 	resp, err := client.ListByResourceSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByResource", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByResourceResponder(resp)
+	result.eslr, err = client.ListByResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListByResource", resp, "Failure responding to request")
 	}
@@ -491,7 +552,7 @@ func (client EventSubscriptionsClient) ListByResource(ctx context.Context, resou
 }
 
 // ListByResourcePreparer prepares the ListByResource request.
-func (client EventSubscriptionsClient) ListByResourcePreparer(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListByResourcePreparer(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"providerNamespace": autorest.Encode("path", providerNamespace),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -500,9 +561,15 @@ func (client EventSubscriptionsClient) ListByResourcePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -532,21 +599,67 @@ func (client EventSubscriptionsClient) ListByResourceResponder(resp *http.Respon
 	return
 }
 
-// ListGlobalByResourceGroup list all global event subscriptions under a specific Azure subscription and resource group
-// Parameters:
-// resourceGroupName - the name of the resource group within the user's subscription.
-func (client EventSubscriptionsClient) ListGlobalByResourceGroup(ctx context.Context, resourceGroupName string) (result EventSubscriptionsListResult, err error) {
+// listByResourceNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listByResourceNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listByResourceNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByResourceSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listByResourceNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByResourceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listByResourceNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByResourceComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListByResourceComplete(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalByResourceGroup")
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListByResource")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListGlobalByResourceGroupPreparer(ctx, resourceGroupName)
+	result.page, err = client.ListByResource(ctx, resourceGroupName, providerNamespace, resourceTypeName, resourceName, filter, top)
+	return
+}
+
+// ListGlobalByResourceGroup list all global event subscriptions under a specific Azure subscription and resource group
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription.
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListGlobalByResourceGroup(ctx context.Context, resourceGroupName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listGlobalByResourceGroupNextResults
+	req, err := client.ListGlobalByResourceGroupPreparer(ctx, resourceGroupName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalByResourceGroup", nil, "Failure preparing request")
 		return
@@ -554,12 +667,12 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroup(ctx context.Con
 
 	resp, err := client.ListGlobalByResourceGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListGlobalByResourceGroupResponder(resp)
+	result.eslr, err = client.ListGlobalByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalByResourceGroup", resp, "Failure responding to request")
 	}
@@ -568,15 +681,21 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroup(ctx context.Con
 }
 
 // ListGlobalByResourceGroupPreparer prepares the ListGlobalByResourceGroup request.
-func (client EventSubscriptionsClient) ListGlobalByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListGlobalByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -606,23 +725,69 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupResponder(resp *
 	return
 }
 
+// listGlobalByResourceGroupNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listGlobalByResourceGroupNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalByResourceGroupNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListGlobalByResourceGroupSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalByResourceGroupNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListGlobalByResourceGroupResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalByResourceGroupNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListGlobalByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListGlobalByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListGlobalByResourceGroup(ctx, resourceGroupName, filter, top)
+	return
+}
+
 // ListGlobalByResourceGroupForTopicType list all global event subscriptions under a resource group for a specific
 // topic type.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // topicTypeName - name of the topic type
-func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicType(ctx context.Context, resourceGroupName string, topicTypeName string) (result EventSubscriptionsListResult, err error) {
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicType(ctx context.Context, resourceGroupName string, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalByResourceGroupForTopicType")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListGlobalByResourceGroupForTopicTypePreparer(ctx, resourceGroupName, topicTypeName)
+	result.fn = client.listGlobalByResourceGroupForTopicTypeNextResults
+	req, err := client.ListGlobalByResourceGroupForTopicTypePreparer(ctx, resourceGroupName, topicTypeName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalByResourceGroupForTopicType", nil, "Failure preparing request")
 		return
@@ -630,12 +795,12 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicType(ctx
 
 	resp, err := client.ListGlobalByResourceGroupForTopicTypeSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalByResourceGroupForTopicType", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListGlobalByResourceGroupForTopicTypeResponder(resp)
+	result.eslr, err = client.ListGlobalByResourceGroupForTopicTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalByResourceGroupForTopicType", resp, "Failure responding to request")
 	}
@@ -644,16 +809,22 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicType(ctx
 }
 
 // ListGlobalByResourceGroupForTopicTypePreparer prepares the ListGlobalByResourceGroupForTopicType request.
-func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypePreparer(ctx context.Context, resourceGroupName string, topicTypeName string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypePreparer(ctx context.Context, resourceGroupName string, topicTypeName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 		"topicTypeName":     autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -683,19 +854,66 @@ func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypeResp
 	return
 }
 
-// ListGlobalBySubscription list all aggregated global event subscriptions under a specific Azure subscription
-func (client EventSubscriptionsClient) ListGlobalBySubscription(ctx context.Context) (result EventSubscriptionsListResult, err error) {
+// listGlobalByResourceGroupForTopicTypeNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listGlobalByResourceGroupForTopicTypeNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalByResourceGroupForTopicTypeNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListGlobalByResourceGroupForTopicTypeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalByResourceGroupForTopicTypeNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListGlobalByResourceGroupForTopicTypeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalByResourceGroupForTopicTypeNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListGlobalByResourceGroupForTopicTypeComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListGlobalByResourceGroupForTopicTypeComplete(ctx context.Context, resourceGroupName string, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalByResourceGroupForTopicType")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListGlobalBySubscriptionPreparer(ctx)
+	result.page, err = client.ListGlobalByResourceGroupForTopicType(ctx, resourceGroupName, topicTypeName, filter, top)
+	return
+}
+
+// ListGlobalBySubscription list all aggregated global event subscriptions under a specific Azure subscription
+// Parameters:
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListGlobalBySubscription(ctx context.Context, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalBySubscription")
+		defer func() {
+			sc := -1
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listGlobalBySubscriptionNextResults
+	req, err := client.ListGlobalBySubscriptionPreparer(ctx, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalBySubscription", nil, "Failure preparing request")
 		return
@@ -703,12 +921,12 @@ func (client EventSubscriptionsClient) ListGlobalBySubscription(ctx context.Cont
 
 	resp, err := client.ListGlobalBySubscriptionSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListGlobalBySubscriptionResponder(resp)
+	result.eslr, err = client.ListGlobalBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalBySubscription", resp, "Failure responding to request")
 	}
@@ -717,14 +935,20 @@ func (client EventSubscriptionsClient) ListGlobalBySubscription(ctx context.Cont
 }
 
 // ListGlobalBySubscriptionPreparer prepares the ListGlobalBySubscription request.
-func (client EventSubscriptionsClient) ListGlobalBySubscriptionPreparer(ctx context.Context) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListGlobalBySubscriptionPreparer(ctx context.Context, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -754,22 +978,68 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionResponder(resp *h
 	return
 }
 
-// ListGlobalBySubscriptionForTopicType list all global event subscriptions under an Azure subscription for a topic
-// type.
-// Parameters:
-// topicTypeName - name of the topic type
-func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicType(ctx context.Context, topicTypeName string) (result EventSubscriptionsListResult, err error) {
+// listGlobalBySubscriptionNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listGlobalBySubscriptionNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalBySubscriptionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListGlobalBySubscriptionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalBySubscriptionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListGlobalBySubscriptionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalBySubscriptionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListGlobalBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListGlobalBySubscriptionComplete(ctx context.Context, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalBySubscriptionForTopicType")
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalBySubscription")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListGlobalBySubscriptionForTopicTypePreparer(ctx, topicTypeName)
+	result.page, err = client.ListGlobalBySubscription(ctx, filter, top)
+	return
+}
+
+// ListGlobalBySubscriptionForTopicType list all global event subscriptions under an Azure subscription for a topic
+// type.
+// Parameters:
+// topicTypeName - name of the topic type
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicType(ctx context.Context, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalBySubscriptionForTopicType")
+		defer func() {
+			sc := -1
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listGlobalBySubscriptionForTopicTypeNextResults
+	req, err := client.ListGlobalBySubscriptionForTopicTypePreparer(ctx, topicTypeName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalBySubscriptionForTopicType", nil, "Failure preparing request")
 		return
@@ -777,12 +1047,12 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicType(ctx 
 
 	resp, err := client.ListGlobalBySubscriptionForTopicTypeSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalBySubscriptionForTopicType", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListGlobalBySubscriptionForTopicTypeResponder(resp)
+	result.eslr, err = client.ListGlobalBySubscriptionForTopicTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListGlobalBySubscriptionForTopicType", resp, "Failure responding to request")
 	}
@@ -791,15 +1061,21 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicType(ctx 
 }
 
 // ListGlobalBySubscriptionForTopicTypePreparer prepares the ListGlobalBySubscriptionForTopicType request.
-func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicTypePreparer(ctx context.Context, topicTypeName string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicTypePreparer(ctx context.Context, topicTypeName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 		"topicTypeName":  autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -829,23 +1105,69 @@ func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicTypeRespo
 	return
 }
 
+// listGlobalBySubscriptionForTopicTypeNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listGlobalBySubscriptionForTopicTypeNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalBySubscriptionForTopicTypeNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListGlobalBySubscriptionForTopicTypeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalBySubscriptionForTopicTypeNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListGlobalBySubscriptionForTopicTypeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listGlobalBySubscriptionForTopicTypeNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListGlobalBySubscriptionForTopicTypeComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListGlobalBySubscriptionForTopicTypeComplete(ctx context.Context, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListGlobalBySubscriptionForTopicType")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListGlobalBySubscriptionForTopicType(ctx, topicTypeName, filter, top)
+	return
+}
+
 // ListRegionalByResourceGroup list all event subscriptions from the given location under a specific Azure subscription
 // and resource group
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // location - name of the location
-func (client EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.Context, resourceGroupName string, location string) (result EventSubscriptionsListResult, err error) {
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.Context, resourceGroupName string, location string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListRegionalByResourceGroupPreparer(ctx, resourceGroupName, location)
+	result.fn = client.listRegionalByResourceGroupNextResults
+	req, err := client.ListRegionalByResourceGroupPreparer(ctx, resourceGroupName, location, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalByResourceGroup", nil, "Failure preparing request")
 		return
@@ -853,12 +1175,12 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.C
 
 	resp, err := client.ListRegionalByResourceGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListRegionalByResourceGroupResponder(resp)
+	result.eslr, err = client.ListRegionalByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalByResourceGroup", resp, "Failure responding to request")
 	}
@@ -867,16 +1189,22 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.C
 }
 
 // ListRegionalByResourceGroupPreparer prepares the ListRegionalByResourceGroup request.
-func (client EventSubscriptionsClient) ListRegionalByResourceGroupPreparer(ctx context.Context, resourceGroupName string, location string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListRegionalByResourceGroupPreparer(ctx context.Context, resourceGroupName string, location string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"location":          autorest.Encode("path", location),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -906,24 +1234,70 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupResponder(resp
 	return
 }
 
+// listRegionalByResourceGroupNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listRegionalByResourceGroupNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalByResourceGroupNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListRegionalByResourceGroupSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalByResourceGroupNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListRegionalByResourceGroupResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalByResourceGroupNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListRegionalByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListRegionalByResourceGroupComplete(ctx context.Context, resourceGroupName string, location string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListRegionalByResourceGroup(ctx, resourceGroupName, location, filter, top)
+	return
+}
+
 // ListRegionalByResourceGroupForTopicType list all event subscriptions from the given location under a specific Azure
 // subscription and resource group and topic type
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // location - name of the location
 // topicTypeName - name of the topic type
-func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicType(ctx context.Context, resourceGroupName string, location string, topicTypeName string) (result EventSubscriptionsListResult, err error) {
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicType(ctx context.Context, resourceGroupName string, location string, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalByResourceGroupForTopicType")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListRegionalByResourceGroupForTopicTypePreparer(ctx, resourceGroupName, location, topicTypeName)
+	result.fn = client.listRegionalByResourceGroupForTopicTypeNextResults
+	req, err := client.ListRegionalByResourceGroupForTopicTypePreparer(ctx, resourceGroupName, location, topicTypeName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalByResourceGroupForTopicType", nil, "Failure preparing request")
 		return
@@ -931,12 +1305,12 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicType(c
 
 	resp, err := client.ListRegionalByResourceGroupForTopicTypeSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalByResourceGroupForTopicType", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListRegionalByResourceGroupForTopicTypeResponder(resp)
+	result.eslr, err = client.ListRegionalByResourceGroupForTopicTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalByResourceGroupForTopicType", resp, "Failure responding to request")
 	}
@@ -945,7 +1319,7 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicType(c
 }
 
 // ListRegionalByResourceGroupForTopicTypePreparer prepares the ListRegionalByResourceGroupForTopicType request.
-func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypePreparer(ctx context.Context, resourceGroupName string, location string, topicTypeName string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypePreparer(ctx context.Context, resourceGroupName string, location string, topicTypeName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"location":          autorest.Encode("path", location),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -953,9 +1327,15 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypePr
 		"topicTypeName":     autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -985,21 +1365,67 @@ func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypeRe
 	return
 }
 
-// ListRegionalBySubscription list all event subscriptions from the given location under a specific Azure subscription
-// Parameters:
-// location - name of the location
-func (client EventSubscriptionsClient) ListRegionalBySubscription(ctx context.Context, location string) (result EventSubscriptionsListResult, err error) {
+// listRegionalByResourceGroupForTopicTypeNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listRegionalByResourceGroupForTopicTypeNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalByResourceGroupForTopicTypeNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListRegionalByResourceGroupForTopicTypeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalByResourceGroupForTopicTypeNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListRegionalByResourceGroupForTopicTypeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalByResourceGroupForTopicTypeNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListRegionalByResourceGroupForTopicTypeComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListRegionalByResourceGroupForTopicTypeComplete(ctx context.Context, resourceGroupName string, location string, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalByResourceGroupForTopicType")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListRegionalBySubscriptionPreparer(ctx, location)
+	result.page, err = client.ListRegionalByResourceGroupForTopicType(ctx, resourceGroupName, location, topicTypeName, filter, top)
+	return
+}
+
+// ListRegionalBySubscription list all event subscriptions from the given location under a specific Azure subscription
+// Parameters:
+// location - name of the location
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListRegionalBySubscription(ctx context.Context, location string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalBySubscription")
+		defer func() {
+			sc := -1
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listRegionalBySubscriptionNextResults
+	req, err := client.ListRegionalBySubscriptionPreparer(ctx, location, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalBySubscription", nil, "Failure preparing request")
 		return
@@ -1007,12 +1433,12 @@ func (client EventSubscriptionsClient) ListRegionalBySubscription(ctx context.Co
 
 	resp, err := client.ListRegionalBySubscriptionSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListRegionalBySubscriptionResponder(resp)
+	result.eslr, err = client.ListRegionalBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalBySubscription", resp, "Failure responding to request")
 	}
@@ -1021,15 +1447,21 @@ func (client EventSubscriptionsClient) ListRegionalBySubscription(ctx context.Co
 }
 
 // ListRegionalBySubscriptionPreparer prepares the ListRegionalBySubscription request.
-func (client EventSubscriptionsClient) ListRegionalBySubscriptionPreparer(ctx context.Context, location string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListRegionalBySubscriptionPreparer(ctx context.Context, location string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"location":       autorest.Encode("path", location),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1059,23 +1491,69 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionResponder(resp 
 	return
 }
 
+// listRegionalBySubscriptionNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listRegionalBySubscriptionNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalBySubscriptionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListRegionalBySubscriptionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalBySubscriptionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListRegionalBySubscriptionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalBySubscriptionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListRegionalBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListRegionalBySubscriptionComplete(ctx context.Context, location string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalBySubscription")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListRegionalBySubscription(ctx, location, filter, top)
+	return
+}
+
 // ListRegionalBySubscriptionForTopicType list all event subscriptions from the given location under a specific Azure
 // subscription and topic type.
 // Parameters:
 // location - name of the location
 // topicTypeName - name of the topic type
-func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicType(ctx context.Context, location string, topicTypeName string) (result EventSubscriptionsListResult, err error) {
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicType(ctx context.Context, location string, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalBySubscriptionForTopicType")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.eslr.Response.Response != nil {
+				sc = result.eslr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListRegionalBySubscriptionForTopicTypePreparer(ctx, location, topicTypeName)
+	result.fn = client.listRegionalBySubscriptionForTopicTypeNextResults
+	req, err := client.ListRegionalBySubscriptionForTopicTypePreparer(ctx, location, topicTypeName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalBySubscriptionForTopicType", nil, "Failure preparing request")
 		return
@@ -1083,12 +1561,12 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicType(ct
 
 	resp, err := client.ListRegionalBySubscriptionForTopicTypeSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.eslr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalBySubscriptionForTopicType", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListRegionalBySubscriptionForTopicTypeResponder(resp)
+	result.eslr, err = client.ListRegionalBySubscriptionForTopicTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "ListRegionalBySubscriptionForTopicType", resp, "Failure responding to request")
 	}
@@ -1097,16 +1575,22 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicType(ct
 }
 
 // ListRegionalBySubscriptionForTopicTypePreparer prepares the ListRegionalBySubscriptionForTopicType request.
-func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypePreparer(ctx context.Context, location string, topicTypeName string) (*http.Request, error) {
+func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypePreparer(ctx context.Context, location string, topicTypeName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"location":       autorest.Encode("path", location),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 		"topicTypeName":  autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1133,6 +1617,43 @@ func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypeRes
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listRegionalBySubscriptionForTopicTypeNextResults retrieves the next set of results, if any.
+func (client EventSubscriptionsClient) listRegionalBySubscriptionForTopicTypeNextResults(ctx context.Context, lastResults EventSubscriptionsListResult) (result EventSubscriptionsListResult, err error) {
+	req, err := lastResults.eventSubscriptionsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalBySubscriptionForTopicTypeNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListRegionalBySubscriptionForTopicTypeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalBySubscriptionForTopicTypeNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListRegionalBySubscriptionForTopicTypeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsClient", "listRegionalBySubscriptionForTopicTypeNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListRegionalBySubscriptionForTopicTypeComplete enumerates all values, automatically crossing page boundaries as required.
+func (client EventSubscriptionsClient) ListRegionalBySubscriptionForTopicTypeComplete(ctx context.Context, location string, topicTypeName string, filter string, top *int32) (result EventSubscriptionsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventSubscriptionsClient.ListRegionalBySubscriptionForTopicType")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListRegionalBySubscriptionForTopicType(ctx, location, topicTypeName, filter, top)
 	return
 }
 
@@ -1181,7 +1702,7 @@ func (client EventSubscriptionsClient) UpdatePreparer(ctx context.Context, scope
 		"scope":                 scope,
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
