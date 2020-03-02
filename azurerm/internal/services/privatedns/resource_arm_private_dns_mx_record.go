@@ -81,6 +81,11 @@ func resourceArmPrivateDnsMxRecord() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 2147483647),
 			},
 
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -165,6 +170,7 @@ func resourceArmPrivateDnsMxRecordRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
+	d.Set("fqdn", resp.Fqdn)
 
 	if err := d.Set("record", flattenAzureRmPrivateDnsMxRecords(resp.MxRecords)); err != nil {
 		return err
