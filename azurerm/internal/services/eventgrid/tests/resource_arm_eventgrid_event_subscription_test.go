@@ -521,15 +521,15 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   }
 
   advanced_filter_scalar {
-    key = "data.filesize"
-	  operator_type = "NumberLessThan"
-	  value = 2000.0
+    key           = "data.filesize"
+    operator_type = "NumberLessThan"
+    value         = 42.0
   }
 
   advanced_filter_array {
-    key = "topic"
-	  operator_type = "StringBeginsWith"
-	  value = ["topic_prefix"]
+    key           = "topic"
+    operator_type = "StringBeginsWith"
+    value         = ["topic_prefix"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)

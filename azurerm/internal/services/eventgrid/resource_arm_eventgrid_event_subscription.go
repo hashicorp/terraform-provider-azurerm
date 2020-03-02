@@ -233,7 +233,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								if strings.ToLower(old) == strings.ToLower(new) {
+								if strings.EqualFold(old, new) {
 									return true
 								} else if o, err := strconv.ParseFloat(old, 64); err == nil {
 									n, err := strconv.ParseFloat(new, 64)
@@ -285,7 +285,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 								DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-									if strings.ToLower(old) == strings.ToLower(new) {
+									if strings.EqualFold(old, new) {
 										return true
 									} else if o, err := strconv.ParseFloat(old, 64); err == nil {
 										n, err := strconv.ParseFloat(new, 64)
@@ -394,7 +394,7 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 		return fmt.Errorf("Error creating/updating EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 	}
 
-	expirationTime := date.Time{parsedTime}
+	expirationTime := date.Time{Time: parsedTime}
 
 	eventSubscriptionProperties := eventgrid.EventSubscriptionProperties{
 		Destination:           destination,
@@ -463,7 +463,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	d.Set("scope", id.Scope)
 
 	if props := resp.EventSubscriptionProperties; props != nil {
-		d.Set("expiration_time_utc", props.ExpirationTimeUtc)
+		d.Set("expiration_time_utc", props.ExpirationTimeUtc.Format(time.RFC3339))
 
 		if props.Topic != nil && *props.Topic != "" {
 			d.Set("topic_name", props.Topic)
@@ -712,9 +712,8 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.
 		}
 	}
 
-	if advancedFilterCompound, ok := d.GetOk("advanced_filter_array"); ok {
-
-		for _, v := range advancedFilterCompound.([]interface{}) {
+	if advancedFilterArray, ok := d.GetOk("advanced_filter_array"); ok {
+		for _, v := range advancedFilterArray.([]interface{}) {
 			config := v.(map[string]interface{})
 
 			key := config["key"].(string)

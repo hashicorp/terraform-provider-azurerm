@@ -139,10 +139,10 @@ resource "azurerm_eventgrid_domain" "test" {
 }
 
 resource "azurerm_eventgrid_domain_topic" "test" {
-	name                = "acctestegtopic-%d"
-	domain_name         = azurerm_eventgrid_domain.test.name
-	resource_group_name = azurerm_resource_group.test.name
-  }
+  name                = "acctestegtopic-%d"
+  domain_name         = azurerm_eventgrid_domain.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
