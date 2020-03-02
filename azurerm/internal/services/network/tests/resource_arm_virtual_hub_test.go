@@ -354,7 +354,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-nevhub2-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
