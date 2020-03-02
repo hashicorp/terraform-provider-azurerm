@@ -336,7 +336,7 @@ The following properties apply when using Unmanaged Disks:
 
 A `storage_os_disk` block supports the following:
 
-* `name` - (Required) Specifies the name of the OS Disk.
+* `name` - (Required) Specifies the name of the OS Disk. Changing this forces a new resource to be created.
 
 * `create_option` - (Required) Specifies how the OS Disk should be created. Possible values are `Attach` (managed disks only) and `FromImage`.
 
