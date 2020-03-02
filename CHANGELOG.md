@@ -7,6 +7,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_application_gateway` - add support for 125 capacity with V2 SKU's [GH-5906]
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
 * `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
 * `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
