@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
+* **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
 
 IMPROVEMENTS:
 
