@@ -24,6 +24,7 @@ func TestAccAzureRMPrivateDnsSrvRecord_basic(t *testing.T) {
 				Config: testAccAzureRMPrivateDnsSrvRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsSrvRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
 			data.ImportStep(),
