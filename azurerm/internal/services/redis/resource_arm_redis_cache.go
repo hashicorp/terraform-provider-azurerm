@@ -930,5 +930,5 @@ func validateRedisBackupFrequency(v interface{}, _ string) (warnings []string, e
 }
 
 func getRedisConnectionString(redisHostName string, sslPort int32, accessKey string, enableSslPort bool) string {
-	return fmt.Sprintf("%s:%s,password=%s,ssl=%t,abortConnect=False", redisHostName, sslPort, accessKey, enableSslPort)
+	return fmt.Sprintf("%s:%d,password=%s,ssl=%t,abortConnect=False", redisHostName, sslPort, accessKey, enableSslPort)
 }
