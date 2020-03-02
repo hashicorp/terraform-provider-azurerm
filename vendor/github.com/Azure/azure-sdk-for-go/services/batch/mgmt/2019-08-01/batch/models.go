@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 
 // AccountKeyType enumerates the values for account key type.
 type AccountKeyType string
@@ -159,7 +159,8 @@ const (
 	// remotely access the node.
 	CertificateVisibilityRemoteUser CertificateVisibility = "RemoteUser"
 	// CertificateVisibilityStartTask The certificate should be visible to the user account under which the
-	// start task is run.
+	// start task is run. Note that if AutoUser Scope is Pool for both the StartTask and a Task, this
+	// certificate will be visible to the Task as well.
 	CertificateVisibilityStartTask CertificateVisibility = "StartTask"
 	// CertificateVisibilityTask The certificate should be visible to the user accounts under which job tasks
 	// are run.
@@ -208,6 +209,23 @@ const (
 // PossibleComputeNodeFillTypeValues returns an array of possible values for the ComputeNodeFillType const type.
 func PossibleComputeNodeFillTypeValues() []ComputeNodeFillType {
 	return []ComputeNodeFillType{Pack, Spread}
+}
+
+// ContainerWorkingDirectory enumerates the values for container working directory.
+type ContainerWorkingDirectory string
+
+const (
+	// ContainerImageDefault Using container image defined working directory. Beware that this directory will
+	// not contain the resource files downloaded by Batch.
+	ContainerImageDefault ContainerWorkingDirectory = "ContainerImageDefault"
+	// TaskWorkingDirectory Use the standard Batch service task working directory, which will contain the Task
+	// resource files populated by Batch.
+	TaskWorkingDirectory ContainerWorkingDirectory = "TaskWorkingDirectory"
+)
+
+// PossibleContainerWorkingDirectoryValues returns an array of possible values for the ContainerWorkingDirectory const type.
+func PossibleContainerWorkingDirectoryValues() []ContainerWorkingDirectory {
+	return []ContainerWorkingDirectory{ContainerImageDefault, TaskWorkingDirectory}
 }
 
 // ElevationLevel enumerates the values for elevation level.
@@ -781,10 +799,14 @@ type AccountProperties struct {
 	KeyVaultReference *KeyVaultReference `json:"keyVaultReference,omitempty"`
 	// AutoStorage - READ-ONLY
 	AutoStorage *AutoStorageProperties `json:"autoStorage,omitempty"`
-	// DedicatedCoreQuota - READ-ONLY
+	// DedicatedCoreQuota - READ-ONLY; For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned.
 	DedicatedCoreQuota *int32 `json:"dedicatedCoreQuota,omitempty"`
-	// LowPriorityCoreQuota - READ-ONLY
+	// LowPriorityCoreQuota - READ-ONLY; For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned.
 	LowPriorityCoreQuota *int32 `json:"lowPriorityCoreQuota,omitempty"`
+	// DedicatedCoreQuotaPerVMFamily - READ-ONLY; A list of the dedicated core quota per Virtual Machine family for the Batch account. For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned.
+	DedicatedCoreQuotaPerVMFamily *[]VirtualMachineFamilyCoreQuota `json:"dedicatedCoreQuotaPerVMFamily,omitempty"`
+	// DedicatedCoreQuotaPerVMFamilyEnforced - READ-ONLY; Batch is transitioning its core quota system for dedicated cores to be enforced per Virtual Machine family. During this transitional phase, the dedicated core quota per Virtual Machine family may not yet be enforced. If this flag is false, dedicated core quota is enforced via the old dedicatedCoreQuota property on the account and does not consider Virtual Machine family. If this flag is true, dedicated core quota is enforced via the dedicatedCoreQuotaPerVMFamily property on the account, and the old dedicatedCoreQuota does not apply.
+	DedicatedCoreQuotaPerVMFamilyEnforced *bool `json:"dedicatedCoreQuotaPerVMFamilyEnforced,omitempty"`
 	// PoolQuota - READ-ONLY
 	PoolQuota *int32 `json:"poolQuota,omitempty"`
 	// ActiveJobAndJobScheduleQuota - READ-ONLY
@@ -1102,10 +1124,36 @@ type AutoStorageProperties struct {
 
 // AutoUserSpecification ...
 type AutoUserSpecification struct {
-	// Scope - The default value is task. Possible values include: 'AutoUserScopeTask', 'AutoUserScopePool'
+	// Scope - The default value is Pool. If the pool is running Windows a value of Task should be specified if stricter isolation between tasks is required. For example, if the task mutates the registry in a way which could impact other tasks, or if certificates have been specified on the pool which should not be accessible by normal tasks but should be accessible by start tasks. Possible values include: 'AutoUserScopeTask', 'AutoUserScopePool'
 	Scope AutoUserScope `json:"scope,omitempty"`
-	// ElevationLevel - nonAdmin - The auto user is a standard user without elevated access. admin - The auto user is a user with elevated access and operates with full Administrator permissions. The default value is nonAdmin. Possible values include: 'NonAdmin', 'Admin'
+	// ElevationLevel - The default value is nonAdmin. Possible values include: 'NonAdmin', 'Admin'
 	ElevationLevel ElevationLevel `json:"elevationLevel,omitempty"`
+}
+
+// AzureBlobFileSystemConfiguration ...
+type AzureBlobFileSystemConfiguration struct {
+	AccountName   *string `json:"accountName,omitempty"`
+	ContainerName *string `json:"containerName,omitempty"`
+	// AccountKey - This property is mutually exclusive with sasKey and one must be specified.
+	AccountKey *string `json:"accountKey,omitempty"`
+	// SasKey - This property is mutually exclusive with accountKey and one must be specified.
+	SasKey *string `json:"sasKey,omitempty"`
+	// BlobfuseOptions - These are 'net use' options in Windows and 'mount' options in Linux.
+	BlobfuseOptions *string `json:"blobfuseOptions,omitempty"`
+	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
+	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+}
+
+// AzureFileShareConfiguration ...
+type AzureFileShareConfiguration struct {
+	AccountName *string `json:"accountName,omitempty"`
+	// AzureFileURL - This is of the form 'https://{account}.file.core.windows.net/'.
+	AzureFileURL *string `json:"azureFileUrl,omitempty"`
+	AccountKey   *string `json:"accountKey,omitempty"`
+	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
+	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+	// MountOptions - These are 'net use' options in Windows and 'mount' options in Linux.
+	MountOptions *string `json:"mountOptions,omitempty"`
 }
 
 // Certificate contains information about a certificate.
@@ -1402,6 +1450,17 @@ type CheckNameAvailabilityResult struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// CIFSMountConfiguration ...
+type CIFSMountConfiguration struct {
+	Username *string `json:"username,omitempty"`
+	Source   *string `json:"source,omitempty"`
+	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
+	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+	// MountOptions - These are 'net use' options in Windows and 'mount' options in Linux.
+	MountOptions *string `json:"mountOptions,omitempty"`
+	Password     *string `json:"password,omitempty"`
+}
+
 // CloudError an error response from the Batch service.
 type CloudError struct {
 	Error *CloudErrorBody `json:"error,omitempty"`
@@ -1421,7 +1480,7 @@ type CloudErrorBody struct {
 
 // CloudServiceConfiguration ...
 type CloudServiceConfiguration struct {
-	// OsFamily - Possible values are: 2 - OS Family 2, equivalent to Windows Server 2008 R2 SP1. 3 - OS Family 3, equivalent to Windows Server 2012. 4 - OS Family 4, equivalent to Windows Server 2012 R2. 5 - OS Family 5, equivalent to Windows Server 2016. For more information, see Azure Guest OS Releases (https://azure.microsoft.com/documentation/articles/cloud-services-guestos-update-matrix/#releases).
+	// OsFamily - Possible values are: 2 - OS Family 2, equivalent to Windows Server 2008 R2 SP1. 3 - OS Family 3, equivalent to Windows Server 2012. 4 - OS Family 4, equivalent to Windows Server 2012 R2. 5 - OS Family 5, equivalent to Windows Server 2016. 6 - OS Family 6, equivalent to Windows Server 2019. For more information, see Azure Guest OS Releases (https://azure.microsoft.com/documentation/articles/cloud-services-guestos-update-matrix/#releases).
 	OsFamily *string `json:"osFamily,omitempty"`
 	// OsVersion - The default value is * which specifies the latest operating system version for the specified OS family.
 	OsVersion *string `json:"osVersion,omitempty"`
@@ -1444,8 +1503,8 @@ type ContainerRegistry struct {
 	Password       *string `json:"password,omitempty"`
 }
 
-// DataDisk data Disk settings which will be used by the data disks associated to Compute Nodes in the
-// pool.
+// DataDisk settings which will be used by the data disks associated to Compute Nodes in the Pool. When
+// using attached data disks, you need to mount and format the disks from within a VM to use them.
 type DataDisk struct {
 	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun.
 	Lun *int32 `json:"lun,omitempty"`
@@ -1506,11 +1565,11 @@ type ImageReference struct {
 	Publisher *string `json:"publisher,omitempty"`
 	// Offer - For example, UbuntuServer or WindowsServer.
 	Offer *string `json:"offer,omitempty"`
-	// Sku - For example, 14.04.0-LTS or 2012-R2-Datacenter.
+	// Sku - For example, 18.04-LTS or 2019-Datacenter.
 	Sku *string `json:"sku,omitempty"`
 	// Version - A value of 'latest' can be specified to select the latest version of an image. If omitted, the default is 'latest'.
 	Version *string `json:"version,omitempty"`
-	// ID - This property is mutually exclusive with other properties. The virtual machine image must be in the same region and subscription as the Azure Batch account. For information about the firewall settings for Batch node agent to communicate with Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration .
+	// ID - This property is mutually exclusive with other properties. For Virtual Machine Image it must be in the same region and subscription as the Azure Batch account. For SIG image it must have replicas in the same region as the Azure Batch account. For information about the firewall settings for the Batch node agent to communicate with the Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -2147,12 +2206,26 @@ type MetadataItem struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// MountConfiguration ...
+type MountConfiguration struct {
+	// AzureBlobFileSystemConfiguration - This property is mutually exclusive with all other properties.
+	AzureBlobFileSystemConfiguration *AzureBlobFileSystemConfiguration `json:"azureBlobFileSystemConfiguration,omitempty"`
+	// NfsMountConfiguration - This property is mutually exclusive with all other properties.
+	NfsMountConfiguration *NFSMountConfiguration `json:"nfsMountConfiguration,omitempty"`
+	// CifsMountConfiguration - This property is mutually exclusive with all other properties.
+	CifsMountConfiguration *CIFSMountConfiguration `json:"cifsMountConfiguration,omitempty"`
+	// AzureFileShareConfiguration - This property is mutually exclusive with all other properties.
+	AzureFileShareConfiguration *AzureFileShareConfiguration `json:"azureFileShareConfiguration,omitempty"`
+}
+
 // NetworkConfiguration the network configuration for a pool.
 type NetworkConfiguration struct {
 	// SubnetID - The virtual network must be in the same region and subscription as the Azure Batch account. The specified subnet should have enough free IP addresses to accommodate the number of nodes in the pool. If the subnet doesn't have enough free IP addresses, the pool will partially allocate compute nodes, and a resize error will occur. The 'MicrosoftAzureBatch' service principal must have the 'Classic Virtual Machine Contributor' Role-Based Access Control (RBAC) role for the specified VNet. The specified subnet must allow communication from the Azure Batch service to be able to schedule tasks on the compute nodes. This can be verified by checking if the specified VNet has any associated Network Security Groups (NSG). If communication to the compute nodes in the specified subnet is denied by an NSG, then the Batch service will set the state of the compute nodes to unusable. For pools created via virtualMachineConfiguration the Batch account must have poolAllocationMode userSubscription in order to use a VNet. If the specified VNet has any associated Network Security Groups (NSG), then a few reserved system ports must be enabled for inbound communication. For pools created with a virtual machine configuration, enable ports 29876 and 29877, as well as port 22 for Linux and port 3389 for Windows. For pools created with a cloud service configuration, enable ports 10100, 20100, and 30100. Also enable outbound connections to Azure Storage on port 443. For more details see: https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration
 	SubnetID *string `json:"subnetId,omitempty"`
 	// EndpointConfiguration - Pool endpoint configuration is only supported on pools with the virtualMachineConfiguration property.
 	EndpointConfiguration *PoolEndpointConfiguration `json:"endpointConfiguration,omitempty"`
+	// PublicIPs - The number of IPs specified here limits the maximum size of the Pool - 50 dedicated nodes or 20 low-priority nodes can be allocated for each public IP. For example, a pool needing 150 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
+	PublicIPs *[]string `json:"publicIPs,omitempty"`
 }
 
 // NetworkSecurityGroupRule ...
@@ -2163,6 +2236,17 @@ type NetworkSecurityGroupRule struct {
 	Access NetworkSecurityGroupRuleAccess `json:"access,omitempty"`
 	// SourceAddressPrefix - Valid values are a single IP address (i.e. 10.10.10.10), IP subnet (i.e. 192.168.1.0/24), default tag, or * (for all addresses).  If any other values are provided the request fails with HTTP status code 400.
 	SourceAddressPrefix *string `json:"sourceAddressPrefix,omitempty"`
+	// SourcePortRanges - Valid values are '*' (for all ports 0 - 65535) or arrays of ports or port ranges (i.e. 100-200). The ports should in the range of 0 to 65535 and the port ranges or ports can't overlap. If any other values are provided the request fails with HTTP status code 400. Default value will be *.
+	SourcePortRanges *[]string `json:"sourcePortRanges,omitempty"`
+}
+
+// NFSMountConfiguration ...
+type NFSMountConfiguration struct {
+	Source *string `json:"source,omitempty"`
+	// RelativeMountPath - All file systems are mounted relative to the Batch mounts directory, accessible via the AZ_BATCH_NODE_MOUNTS_DIR environment variable.
+	RelativeMountPath *string `json:"relativeMountPath,omitempty"`
+	// MountOptions - These are 'net use' options in Windows and 'mount' options in Linux.
+	MountOptions *string `json:"mountOptions,omitempty"`
 }
 
 // Operation ...
@@ -2497,21 +2581,25 @@ type PoolProperties struct {
 	// InterNodeCommunication - This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to 'Disabled'. Possible values include: 'Enabled', 'Disabled'
 	InterNodeCommunication InterNodeCommunicationState `json:"interNodeCommunication,omitempty"`
 	NetworkConfiguration   *NetworkConfiguration       `json:"networkConfiguration,omitempty"`
-	MaxTasksPerNode        *int32                      `json:"maxTasksPerNode,omitempty"`
-	TaskSchedulingPolicy   *TaskSchedulingPolicy       `json:"taskSchedulingPolicy,omitempty"`
-	UserAccounts           *[]UserAccount              `json:"userAccounts,omitempty"`
+	// MaxTasksPerNode - The default value is 1. The maximum value is the smaller of 4 times the number of cores of the vmSize of the pool or 256.
+	MaxTasksPerNode *int32 `json:"maxTasksPerNode,omitempty"`
+	// TaskSchedulingPolicy - If not specified, the default is spread.
+	TaskSchedulingPolicy *TaskSchedulingPolicy `json:"taskSchedulingPolicy,omitempty"`
+	UserAccounts         *[]UserAccount        `json:"userAccounts,omitempty"`
 	// Metadata - The Batch service does not assign any meaning to metadata; it is solely for the use of user code.
 	Metadata *[]MetadataItem `json:"metadata,omitempty"`
 	// StartTask - In an PATCH (update) operation, this property can be set to an empty object to remove the start task from the pool.
 	StartTask *StartTask `json:"startTask,omitempty"`
 	// Certificates - For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable AZ_BATCH_CERTIFICATES_DIR is supplied to the task to query for this location. For certificates with visibility of 'remoteUser', a 'certs' directory is created in the user's home directory (e.g., /home/{user-name}/certs) and certificates are placed in that directory.
 	Certificates *[]CertificateReference `json:"certificates,omitempty"`
-	// ApplicationPackages - Changes to application packages affect all new compute nodes joining the pool, but do not affect compute nodes that are already in the pool until they are rebooted or reimaged.
+	// ApplicationPackages - Changes to application package references affect all new compute nodes joining the pool, but do not affect compute nodes that are already in the pool until they are rebooted or reimaged. There is a maximum of 10 application package references on any given pool.
 	ApplicationPackages *[]ApplicationPackageReference `json:"applicationPackages,omitempty"`
 	// ApplicationLicenses - The list of application licenses must be a subset of available Batch service application licenses. If a license is requested which is not supported, pool creation will fail.
 	ApplicationLicenses *[]string `json:"applicationLicenses,omitempty"`
 	// ResizeOperationStatus - READ-ONLY
 	ResizeOperationStatus *ResizeOperationStatus `json:"resizeOperationStatus,omitempty"`
+	// MountConfiguration - This supports Azure Files, NFS, CIFS/SMB, and Blobfuse.
+	MountConfiguration *[]MountConfiguration `json:"mountConfiguration,omitempty"`
 }
 
 // ProxyResource a definition of an Azure resource.
@@ -2596,7 +2684,11 @@ type ScaleSettings struct {
 	AutoScale *AutoScaleSettings `json:"autoScale,omitempty"`
 }
 
-// StartTask ...
+// StartTask in some cases the start task may be re-run even though the node was not rebooted. Due to this,
+// start tasks should be idempotent and exit gracefully if the setup they're performing has already been
+// done. Special care should be taken to avoid start tasks which create breakaway process or install/launch
+// services from the start task working directory, as this will block Batch from being able to re-run the
+// start task.
 type StartTask struct {
 	// CommandLine - The command line does not run under a shell, and therefore cannot take advantage of shell features such as environment variable expansion. If you want to take advantage of such features, you should invoke the shell in the command line, for example using "cmd /c MyCommand" in Windows or "/bin/sh -c MyCommand" in Linux. Required if any other properties of the startTask are specified.
 	CommandLine         *string               `json:"commandLine,omitempty"`
@@ -2606,7 +2698,7 @@ type StartTask struct {
 	UserIdentity *UserIdentity `json:"userIdentity,omitempty"`
 	// MaxTaskRetryCount - The Batch service retries a task if its exit code is nonzero. Note that this value specifically controls the number of retries. The Batch service will try the task once, and may then retry up to this limit. For example, if the maximum retry count is 3, Batch tries the task up to 4 times (one initial try and 3 retries). If the maximum retry count is 0, the Batch service does not retry the task. If the maximum retry count is -1, the Batch service retries the task without limit.
 	MaxTaskRetryCount *int32 `json:"maxTaskRetryCount,omitempty"`
-	// WaitForSuccess - If true and the start task fails on a compute node, the Batch service retries the start task up to its maximum retry count (maxTaskRetryCount). If the task has still not completed successfully after all retries, then the Batch service marks the compute node unusable, and will not schedule tasks to it. This condition can be detected via the node state and scheduling error detail. If false, the Batch service will not wait for the start task to complete. In this case, other tasks can start executing on the compute node while the start task is still running; and even if the start task fails, new tasks will continue to be scheduled on the node. The default is false.
+	// WaitForSuccess - If true and the start task fails on a compute node, the Batch service retries the start task up to its maximum retry count (maxTaskRetryCount). If the task has still not completed successfully after all retries, then the Batch service marks the compute node unusable, and will not schedule tasks to it. This condition can be detected via the node state and scheduling error detail. If false, the Batch service will not wait for the start task to complete. In this case, other tasks can start executing on the compute node while the start task is still running; and even if the start task fails, new tasks will continue to be scheduled on the node. The default is true.
 	WaitForSuccess *bool `json:"waitForSuccess,omitempty"`
 	// ContainerSettings - When this is specified, all directories recursively below the AZ_BATCH_NODE_ROOT_DIR (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
 	ContainerSettings *TaskContainerSettings `json:"containerSettings,omitempty"`
@@ -2620,6 +2712,8 @@ type TaskContainerSettings struct {
 	ImageName *string `json:"imageName,omitempty"`
 	// Registry - This setting can be omitted if was already provided at pool creation.
 	Registry *ContainerRegistry `json:"registry,omitempty"`
+	// WorkingDirectory - Possible values include: 'TaskWorkingDirectory', 'ContainerImageDefault'
+	WorkingDirectory ContainerWorkingDirectory `json:"workingDirectory,omitempty"`
 }
 
 // TaskSchedulingPolicy ...
@@ -2663,6 +2757,14 @@ type VirtualMachineConfiguration struct {
 	LicenseType *string `json:"licenseType,omitempty"`
 	// ContainerConfiguration - If specified, setup is performed on each node in the pool to allow tasks to run in containers. All regular tasks and job manager tasks run on this pool must specify the containerSettings property, and all other tasks may specify it.
 	ContainerConfiguration *ContainerConfiguration `json:"containerConfiguration,omitempty"`
+}
+
+// VirtualMachineFamilyCoreQuota a VM Family and its associated core quota for the Batch account.
+type VirtualMachineFamilyCoreQuota struct {
+	// Name - READ-ONLY; The Virtual Machine family name.
+	Name *string `json:"name,omitempty"`
+	// CoreQuota - READ-ONLY; The core quota for the VM family for the Batch account.
+	CoreQuota *int32 `json:"coreQuota,omitempty"`
 }
 
 // WindowsConfiguration ...

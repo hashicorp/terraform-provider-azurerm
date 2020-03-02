@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -571,6 +571,15 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 		}
 	}
 
+	if v, ok := networkConfigValue["public_ips"]; ok {
+		confPublicIPs := v.([]interface{})
+		publicIPs := make([]string, 0, len(confPublicIPs))
+		for _, publicIP := range confPublicIPs {
+			publicIPs = append(publicIPs, publicIP.(string))
+		}
+		networkConfiguration.PublicIPs = &publicIPs
+	}
+
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
 		endpoint, err := ExpandBatchPoolEndpointConfiguration(v.([]interface{}))
 		if err != nil {
@@ -659,6 +668,10 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 
 	if networkConfig.SubnetID != nil {
 		result["subnet_id"] = *networkConfig.SubnetID
+	}
+
+	if networkConfig.PublicIPs != nil {
+		result["public_ips"] = *networkConfig.PublicIPs
 	}
 
 	if cfg := networkConfig.EndpointConfiguration; cfg != nil && cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
