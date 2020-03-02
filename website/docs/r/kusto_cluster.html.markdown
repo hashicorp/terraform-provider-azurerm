@@ -46,6 +46,10 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
+
+* `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
