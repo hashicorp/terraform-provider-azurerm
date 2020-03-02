@@ -3103,10 +3103,6 @@ resource "azurerm_application_gateway" "test" {
     capacity = 1
   }
 
-  disabled_ssl_protocols = [
-    "TLSv1_0",
-  ]
-
   waf_configuration {
     enabled                  = true
     firewall_mode            = "Detection"
