@@ -143,6 +143,13 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
+			// Add deprecated field back to get plan working, but don't do anything with it
+			"enable_advanced_threat_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enable_blob_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,

@@ -152,7 +152,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"mac_address": {
-				Type:     schema.TypeString,
+				Type: schema.TypeString,
+				// make these optional so they can be set in config
+				Optional: true,
 				Computed: true,
 			},
 
@@ -170,7 +172,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"virtual_machine_id": {
-				Type:     schema.TypeString,
+				Type: schema.TypeString,
+				// make these optional so they can be set in config
+				Optional: true,
 				Computed: true,
 			},
 		},
