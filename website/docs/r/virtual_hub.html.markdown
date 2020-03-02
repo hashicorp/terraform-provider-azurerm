@@ -51,6 +51,8 @@ The following arguments are supported:
 
 * `route` - (Optional) One or more `route` blocks as defined below.
 
+* `virtual_network_connection` - (Optional) One or more `virtual_network_connection` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the Virtual Hub.
 
 ---
@@ -60,6 +62,20 @@ The `route` block supports the following:
 * `address_prefixes` - (Required) A list of Address Prefixes.
 
 * `next_hop_ip_address` - (Required) The IP Address that Packets should be forwarded to as the Next Hop.
+
+---
+
+The `virtual_network_connection` block supports the following:	
+
+* `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.	
+
+* `remote_virtual_network_id` - (Required) The ID of a Virtual Network.	
+
+* `allow_hub_to_remote_vnet_transit` - (Optional) Should the Virtual Hub be able to transit via Remote Virtual Networks?	
+
+* `allow_remote_vnet_to_use_hub_vnet_gateways` - (Optional) Should the Remote Virtual Network be able to use the Hub's Virtual Network Gateways?	
+
+* `enable_internet_security` - (Optional) Should internet security be enabled?
 
 ---
 
