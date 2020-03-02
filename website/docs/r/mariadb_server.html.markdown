@@ -75,7 +75,7 @@ A `storage_profile` block supports the following:
 
 * `auto_grow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
 
--> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier.
+-> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier, and is only allowed during server create. Once the server is provisioned, you cannot change the backup storage redundancy option. [More information available here.](https://docs.microsoft.com/en-us/azure/mariadb/concepts-backup#backup-redundancy-options)
 
 ## Attributes Reference
 
