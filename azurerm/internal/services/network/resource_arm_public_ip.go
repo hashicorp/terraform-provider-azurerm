@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -62,29 +61,12 @@ func resourceArmPublicIp() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"allocation_method": {
-				Type: schema.TypeString,
-				//Required:         true, //revert in 2.0
-				Optional:      true,
-				Computed:      true, // remove in 2.0
-				ConflictsWith: []string{"public_ip_address_allocation"},
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.Static),
 					string(network.Dynamic),
 				}, false),
-			},
-
-			"public_ip_address_allocation": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				StateFunc:        state.IgnoreCase,
-				ConflictsWith:    []string{"allocation_method"},
-				Computed:         true,
-				Deprecated:       "this property has been deprecated in favor of `allocation_method` to better match the api",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Static),
-					string(network.Dynamic),
-				}, true),
 			},
 
 			"ip_version": {
@@ -168,15 +150,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
 	ipVersion := network.IPVersion(d.Get("ip_version").(string))
-
-	ipAllocationMethod := ""
-	if v, ok := d.GetOk("allocation_method"); ok {
-		ipAllocationMethod = v.(string)
-	} else if v, ok := d.GetOk("public_ip_address_allocation"); ok {
-		ipAllocationMethod = v.(string)
-	} else {
-		return fmt.Errorf("Either `allocation_method` or `public_ip_address_allocation` must be specified.")
-	}
+	ipAllocationMethod := d.Get("allocation_method").(string)
 
 	if strings.EqualFold(string(ipVersion), string(network.IPv6)) {
 		if strings.EqualFold(ipAllocationMethod, "static") {
@@ -299,7 +273,6 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
-		d.Set("public_ip_address_allocation", string(props.PublicIPAllocationMethod))
 		d.Set("allocation_method", string(props.PublicIPAllocationMethod))
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
 

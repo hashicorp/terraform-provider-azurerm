@@ -20,17 +20,17 @@ data "azurerm_api_management_group" "example" {
 }
 
 output "group_type" {
-  value = "${data.azurerm_api_management_group.example.type}"
+  value = data.azurerm_api_management_group.example.type
 }
 ```
 
 ## Argument Reference
 
-* `api_management_name` - (Required) The Name of the API Management Service in which this Group exists.
+* `api_management_name` - The Name of the API Management Service in which this Group exists.
 
-* `name` - (Required) The Name of the API Management Group.
+* `name` - The Name of the API Management Group.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
 ## Attributes Reference
 
@@ -44,9 +44,7 @@ output "group_type" {
 
 * `type` - The type of this API Management Group, such as `custom` or `external`.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -20,14 +20,12 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example-public" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  zone_type           = "Public"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dns_zone" "example-private" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  zone_type           = "Private"
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 ## Argument Reference
@@ -38,15 +36,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `registration_virtual_network_ids` - (Optional) A list of Virtual Network ID's that register hostnames in this DNS zone. This field can only be set when `zone_type` is set to `Private`.
-
-* `resolution_virtual_network_ids` - (Optional) A list of Virtual Network ID's that resolve records in this DNS zone. This field can only be set when `zone_type` is set to `Private`.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `zone_type` - (Optional / **Deprecated**) Specifies the type of this DNS zone. Possible values are `Public` or `Private` (Defaults to `Public`).
-
-~> **NOTE:** This field was part of the initial Preview for Private DNS Zones - which has been [replaced by the separate resource `azurerm_private_dns_zone`](private_dns_zone.html) and will be removed in v2.0 of the Azure Provider.
 
 ## Attributes Reference
 
@@ -57,9 +47,9 @@ The following attributes are exported:
 * `number_of_record_sets` - (Optional) The number of records already in the zone.
 * `name_servers` - (Optional) A list of values that make up the NS record for the zone.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

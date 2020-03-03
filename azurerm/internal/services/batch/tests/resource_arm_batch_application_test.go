@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,13 +67,14 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Batch Application not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["account_name"]
+		id, err := parse.BatchApplicationID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Batch Application %q (Account Name %q / Resource Group %q) does not exist", name, accountName, resourceGroup)
+				return fmt.Errorf("Bad: Batch Application %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.AccountName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on batchApplicationClient: %+v", err)
 		}
@@ -90,11 +92,12 @@ func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["account_name"]
+		id, err := parse.BatchApplicationID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on batchApplicationClient: %+v", err)
 			}
@@ -108,6 +111,10 @@ func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
 
 func testAccAzureRMBatchApplication_template(data acceptance.TestData, displayName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -115,24 +122,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
   name                 = "acctestba%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  storage_account_id   = azurerm_storage_account.test.id
 }
 
 resource "azurerm_batch_application" "test" {
   name                = "acctestbatchapp-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_batch_account.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
   %s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, displayName)

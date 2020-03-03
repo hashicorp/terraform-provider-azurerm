@@ -64,8 +64,8 @@ func testAccDataSourceAzureRMServiceBusNamespace_basic(data acceptance.TestData)
 %s
 
 data "azurerm_servicebus_namespace" "test" {
-  name                = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_servicebus_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }
@@ -76,8 +76,8 @@ func testAccDataSourceAzureRMServiceBusNamespace_premium(data acceptance.TestDat
 %s
 
 data "azurerm_servicebus_namespace" "test" {
-  name                = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_servicebus_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

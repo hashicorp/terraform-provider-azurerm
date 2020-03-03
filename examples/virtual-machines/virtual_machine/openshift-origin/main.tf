@@ -1,4 +1,6 @@
 provider "azurerm" {
+  features {}
+
   subscription_id = "${var.subscription_id}"
   client_id       = "${var.aad_client_id}"
   client_secret   = "${var.aad_client_secret}"
@@ -831,4 +833,3 @@ resource "azurerm_virtual_machine" "node" {
 # }
 # SETTINGS
 # }
-

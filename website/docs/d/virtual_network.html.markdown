@@ -19,14 +19,14 @@ data "azurerm_virtual_network" "example" {
 }
 
 output "virtual_network_id" {
-  value = "${data.azurerm_virtual_network.example.id}"
+  value = data.azurerm_virtual_network.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Network.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Network is located in.
+* `name` - Specifies the name of the Virtual Network.
+* `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.
 
 ## Attributes Reference
 
@@ -37,9 +37,7 @@ output "virtual_network_id" {
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
 * `vnet_peerings` - A mapping of name - virtual network id of the virtual network peerings.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

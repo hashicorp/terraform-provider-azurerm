@@ -20,15 +20,15 @@ data "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_gremlin_database" "example" {
   name                = "tfex-cosmos-gremlin-db"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
 }
 
 resource "azurerm_cosmosdb_gremlin_graph" "example" {
   name                = "tfex-cosmos-gremlin-graph"
-  resource_group_name = "${azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.example.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.example.name}"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+  database_name       = azurerm_cosmosdb_gremlin_database.example.name
   partition_key_path  = "/Example"
   throughput          = 400
 
@@ -102,9 +102,7 @@ The following attributes are exported:
 
 * `id` - The ID of the CosmosDB Gremlin Graph.
 ``
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

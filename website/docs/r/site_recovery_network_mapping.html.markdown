@@ -25,48 +25,48 @@ resource "azurerm_resource_group" "secondary" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.secondary.location}"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
   sku                 = "Standard"
 }
 
 resource "azurerm_site_recovery_fabric" "primary" {
   name                = "primary-fabric"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  location            = "${azurerm_resource_group.primary.location}"
+  resource_group_name = azurerm_resource_group.secondary.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  location            = azurerm_resource_group.primary.location
 }
 
 resource "azurerm_site_recovery_fabric" "secondary" {
   name                = "secondary-fabric"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  location            = "${azurerm_resource_group.secondary.location}"
-  depends_on          = ["azurerm_site_recovery_fabric.primary"] # Avoids issues with crearing fabrics simultainusly
+  resource_group_name = azurerm_resource_group.secondary.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  location            = azurerm_resource_group.secondary.location
+  depends_on          = [azurerm_site_recovery_fabric.primary] # Avoids issues with crearing fabrics simultainusly
 }
 
 resource "azurerm_virtual_network" "primary" {
   name                = "network1"
-  resource_group_name = "${azurerm_resource_group.primary.name}"
+  resource_group_name = azurerm_resource_group.primary.name
   address_space       = ["192.168.1.0/24"]
-  location            = "${azurerm_resource_group.primary.location}"
+  location            = azurerm_resource_group.primary.location
 }
 
 resource "azurerm_virtual_network" "secondary" {
   name                = "network2"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  resource_group_name = azurerm_resource_group.secondary.name
   address_space       = ["192.168.2.0/24"]
-  location            = "${azurerm_resource_group.secondary.location}"
+  location            = azurerm_resource_group.secondary.location
 }
 
 resource "azurerm_site_recovery_network_mapping" "recovery-mapping" {
   name                        = "recovery-network-mapping-1"
-  resource_group_name         = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name         = "${azurerm_recovery_services_vault.vault.name}"
+  resource_group_name         = azurerm_resource_group.secondary.name
+  recovery_vault_name         = azurerm_recovery_services_vault.vault.name
   source_recovery_fabric_name = "primary-fabric"
   target_recovery_fabric_name = "secondary-fabric"
-  source_network_id           = "${azurerm_virtual_network.primary.id}"
-  target_network_id           = "${azurerm_virtual_network.secondary.id}"
+  source_network_id           = azurerm_virtual_network.primary.id
+  target_network_id           = azurerm_virtual_network.secondary.id
 }
 ```
 
@@ -94,9 +94,7 @@ In addition to the arguments above, the following attributes are exported:
 
 * `id` - The ID of the Site Recovery Network Mapping.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

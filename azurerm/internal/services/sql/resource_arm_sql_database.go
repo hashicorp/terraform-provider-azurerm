@@ -181,6 +181,12 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Computed: true,
 			},
 
+			"max_size_gb": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"requested_service_objective_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -318,6 +324,11 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Default:  false,
 			},
 
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"blob_extended_auditing_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -381,6 +392,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
+	zoneRedundant := d.Get("zone_redundant").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -404,7 +416,8 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	properties := sql.Database{
 		Location: utils.String(location),
 		DatabaseProperties: &sql.DatabaseProperties{
-			CreateMode: sql.CreateMode(createMode),
+			CreateMode:    sql.CreateMode(createMode),
+			ZoneRedundant: utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -501,14 +514,6 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		importFuture, err2 := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
 		if err2 != nil {
 			return err2
-		}
-
-		// TODO: remove me in 2.0
-		if !features.SupportsCustomTimeouts() {
-			// this is set in config.go, but something sets
-			// it back to 15 minutes, which isn't long enough
-			// for most imports
-			client.Client.PollingDuration = 60 * time.Minute
 		}
 
 		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -617,6 +622,8 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		} else {
 			d.Set("read_scale", false)
 		}
+
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	auditingClient := meta.(*clients.Client).Sql.ExtendedDatabaseBlobAuditingPoliciesClient
@@ -805,11 +812,11 @@ func expandAzureRmSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDa
 		StorageAccountAccessKey: utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
 		StorageEndpoint:         utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
 	}
-	if isStorageSecondaryKeyInUse, ok := dbBlobAuditingPolicies["is_storage_secondary_key_in_use"]; ok {
-		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(isStorageSecondaryKeyInUse.(bool))
+	if v, ok := dbBlobAuditingPolicies["is_storage_secondary_key_in_use"]; ok {
+		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
 	}
-	if retentionDays, ok := dbBlobAuditingPolicies["retention_days"]; ok {
-		ExtendedDatabaseBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(retentionDays.(int)))
+	if v, ok := dbBlobAuditingPolicies["retention_days"]; ok {
+		ExtendedDatabaseBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
 	}
 
 	return &ExtendedDatabaseBlobAuditingPolicyProperties

@@ -23,8 +23,8 @@ data "azurerm_api_management_api" "example" {
 
 resource "azurerm_api_management_authorization_server" "example" {
   name                         = "test-server"
-  api_management_name          = "${data.azurerm_api_management.example.name}"
-  resource_group_name          = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name          = data.azurerm_api_management.example.name
+  resource_group_name          = data.azurerm_api_management.example.resource_group_name
   display_name                 = "Test Server"
   authorization_endpoint       = "https://example.mydomain.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
@@ -100,9 +100,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Authorization Server.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
@@ -119,9 +117,7 @@ API Management Authorization Servers can be imported using the `resource id`, e.
 terraform import azurerm_api_management_authorization_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/authorizationServers/server1
 ```
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

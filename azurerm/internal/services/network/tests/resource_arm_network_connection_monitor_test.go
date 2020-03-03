@@ -323,6 +323,10 @@ func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkConnectionMonitor_baseConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-watcher-%d"
   location = "%s"
@@ -412,21 +416,21 @@ func testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data acceptance.T
 
 resource "azurerm_network_interface" "dest" {
   name                = "acctni-dest%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "dest" {
   name                  = "acctvm-dest%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.dest.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.dest.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -463,12 +467,12 @@ func testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data acceptance.T
 
 resource "azurerm_network_connection_monitor" "test" {
   name                 = "acctestcm-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_network_watcher.test.location}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_network_watcher.test.location
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
   destination {
@@ -476,7 +480,7 @@ resource "azurerm_network_connection_monitor" "test" {
     port    = 80
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.src"]
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config, data.RandomInteger)
 }
@@ -488,15 +492,15 @@ func testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data acceptanc
 
 resource "azurerm_network_connection_monitor" "test" {
   name                 = "acctestcm-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_network_watcher.test.location}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_network_watcher.test.location
 
   auto_start          = %s
   interval_in_seconds = 30
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
     port               = 20020
   }
 
@@ -509,7 +513,7 @@ resource "azurerm_network_connection_monitor" "test" {
     env = "test"
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.src"]
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config, data.RandomInteger, autoStart)
 }
@@ -521,20 +525,20 @@ func testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data acceptance.TestDa
 
 resource "azurerm_network_connection_monitor" "test" {
   name                 = "acctestcm-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_network_watcher.test.location}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_network_watcher.test.location
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
   destination {
-    virtual_machine_id = "${azurerm_virtual_machine.dest.id}"
+    virtual_machine_id = azurerm_virtual_machine.dest.id
     port               = 80
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.src"]
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config, data.RandomInteger)
 }
@@ -546,20 +550,20 @@ func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.Tes
 
 resource "azurerm_network_connection_monitor" "test" {
   name                 = "acctestcm-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_network_watcher.test.location}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_network_watcher.test.location
 
   auto_start          = %s
   interval_in_seconds = 30
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
     port               = 20020
   }
 
   destination {
-    virtual_machine_id = "${azurerm_virtual_machine.dest.id}"
+    virtual_machine_id = azurerm_virtual_machine.dest.id
     port               = 443
   }
 
@@ -567,7 +571,7 @@ resource "azurerm_network_connection_monitor" "test" {
     env = "test"
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.src"]
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config, data.RandomInteger, autoStart)
 }
@@ -579,19 +583,19 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data accept
 
 resource "azurerm_network_connection_monitor" "test" {
   name                 = "acctestcm-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_network_watcher.test.location}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_network_watcher.test.location
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
   destination {
     port = 80
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.src"]
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config, data.RandomInteger)
 }
@@ -603,21 +607,21 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data a
 
 resource "azurerm_network_connection_monitor" "test" {
   name                 = "acctestcm-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_network_watcher.test.location}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_network_watcher.test.location
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
   destination {
     address            = "terraform.io"
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
     port               = 80
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.src"]
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config, data.RandomInteger)
 }
@@ -628,13 +632,13 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImportConfig(data acceptance
 %s
 
 resource "azurerm_network_connection_monitor" "import" {
-  name                 = "${azurerm_network_connection_monitor.test.name}"
-  network_watcher_name = "${azurerm_network_connection_monitor.test.network_watcher_name}"
-  resource_group_name  = "${azurerm_network_connection_monitor.test.resource_group_name}"
-  location             = "${azurerm_network_connection_monitor.test.location}"
+  name                 = azurerm_network_connection_monitor.test.name
+  network_watcher_name = azurerm_network_connection_monitor.test.network_watcher_name
+  resource_group_name  = azurerm_network_connection_monitor.test.resource_group_name
+  location             = azurerm_network_connection_monitor.test.location
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
   destination {
@@ -642,7 +646,7 @@ resource "azurerm_network_connection_monitor" "import" {
     port    = 80
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.src"]
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config)
 }

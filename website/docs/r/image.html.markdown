@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_image" "example" {
   name                = "acctest"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   os_disk {
     os_type  = "Linux"
@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_image" "example" {
   name                      = "acctest"
   location                  = "West US"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
+  resource_group_name       = azurerm_resource_group.example.name
   source_virtual_machine_id = "{vm_id}"
 }
 ```
@@ -90,9 +90,9 @@ The following attributes are exported:
 
 * `id` - The ID of the Image.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

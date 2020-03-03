@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_analysis_services_server" "server" {
   name                    = "analysisservicesserver"
   location                = "northeurope"
-  resource_group_name     = "${azurerm_resource_group.rg.name}"
+  resource_group_name     = azurerm_resource_group.rg.name
   sku                     = "S0"
   admin_users             = ["myuser@domain.tld"]
   enable_power_bi_service = true
@@ -79,9 +79,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `server_full_name` - The full name of the Analysis Services Server.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

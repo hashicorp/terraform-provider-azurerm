@@ -19,15 +19,15 @@ data "azurerm_dev_test_lab" "example" {
 }
 
 output "unique_identifier" {
-  value = "${data.azurerm_dev_test_lab.example.unique_identifier}"
+  value = data.azurerm_dev_test_lab.example.unique_identifier
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Dev Test Lab.
+* `name` - The name of the Dev Test Lab.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the Dev Test Lab exists.
+* `resource_group_name` - The Name of the Resource Group where the Dev Test Lab exists.
 
 ## Attributes Reference
 
@@ -51,9 +51,7 @@ output "unique_identifier" {
 
 * `unique_identifier` - The unique immutable identifier of the Dev Test Lab.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

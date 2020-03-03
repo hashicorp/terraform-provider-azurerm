@@ -68,7 +68,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile(`^[(\da-zA-Z)\.]{1,255}$`),
+								regexp.MustCompile(`^[(\da-zA-Z-)\.]{1,255}$`),
 								`The domain name must end with a letter or number before dot and start with a letter or number after dot and can not be longer than 255 characters in length.`,
 							),
 						},

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_monitor_action_group" "example" {
   name                = "CriticalAlertsAction"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   short_name          = "p0action"
 
   arm_role_receiver {
@@ -213,9 +213,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Action Group.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -196,6 +196,10 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 
 func testAccProximityPlacementGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -203,8 +207,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -215,15 +219,19 @@ func testAccProximityPlacementGroup_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_proximity_placement_group" "import" {
-  name                = "${azurerm_proximity_placement_group.test.name}"
-  location            = "${azurerm_proximity_placement_group.test.location}"
-  resource_group_name = "${azurerm_proximity_placement_group.test.resource_group_name}"
+  name                = azurerm_proximity_placement_group.test.name
+  location            = azurerm_proximity_placement_group.test.location
+  resource_group_name = azurerm_proximity_placement_group.test.resource_group_name
 }
 `, template)
 }
 
 func testAccProximityPlacementGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -231,8 +239,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -244,6 +252,10 @@ resource "azurerm_proximity_placement_group" "test" {
 
 func testAccProximityPlacementGroup_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -251,8 +263,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"
