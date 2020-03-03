@@ -1290,7 +1290,8 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id  = "${azurerm_subnet.test.id}"
+    public_ips = [azurerm_public_ip.test.id]
 
     endpoint_configuration {
       name                = "SSH"
