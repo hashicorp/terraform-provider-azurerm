@@ -308,7 +308,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     ]
     
     custom_header {
-    	name = "foo"
+    	name  = "foo"
 	value = "bar"
     }
 
@@ -351,7 +351,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     ]
     
     custom_header {
-    	name = "foo2"
+    	name  = "foo2"
 	value = "bar2"
     }
 
