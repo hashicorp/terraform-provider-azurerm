@@ -106,7 +106,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							},
 						},
 
-						"custom_headers": {
+						"custom_header": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -306,7 +306,7 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 	monitorSets := d.Get("monitor_config").([]interface{})
 	monitor := monitorSets[0].(map[string]interface{})
 
-	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_headers"].([]interface{}))
+	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
 
 	cfg := trafficmanager.MonitorConfig{
 		Protocol:                  trafficmanager.MonitorProtocol(monitor["protocol"].(string)),
@@ -397,7 +397,7 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 
 	result["protocol"] = string(cfg.Protocol)
 	result["port"] = int(*cfg.Port)
-	result["custom_headers"] = flattenArmTrafficManagerCustomHeadersConfig(cfg.CustomHeaders)
+	result["custom_header"] = flattenArmTrafficManagerCustomHeadersConfig(cfg.CustomHeaders)
 
 	if cfg.Path != nil {
 		result["path"] = *cfg.Path
