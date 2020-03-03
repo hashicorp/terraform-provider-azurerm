@@ -44,7 +44,7 @@ func TestAccAzureRMEventGridEventSubscription_eventhub(t *testing.T) {
 				Config: testAccAzureRMEventGridEventSubscription_eventhub(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventV01Schema"),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "eventhub_endpoint.#", "1"),
 				),
 			},
@@ -65,8 +65,50 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusQueue(t *testing.T) {
 				Config: testAccAzureRMEventGridEventSubscription_serviceBusQueue(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventV01Schema"),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_bus_queue_endpoint.#", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMEventGridEventSubscription_serviceBusTopic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridEventSubscription_serviceBusTopic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_bus_topic_endpoint.#", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMEventGridEventSubscription_azureFunction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridEventSubscription_azureFunction(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_endpoint.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -149,9 +191,12 @@ func TestAccAzureRMEventGridEventSubscription_advancedFilter(t *testing.T) {
 				Config: testAccAzureRMEventGridEventSubscription_advancedFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.0.key", "topic"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.0.operator_type", "Microsoft.Storage.BlobDeleted"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.0.value", "topic_prefix"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.0.key", "data.filesite"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.0.operator_type", "NumberLessThan"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.0.value", "42.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.1.key", "topic"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.1.operator_type", "StringBeginsWith"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter_array.1.value", "topic_prefix"),
 				),
 			},
 			data.ImportStep(),
@@ -389,7 +434,7 @@ resource "azurerm_eventhub" "test" {
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                  = "acctesteg-%d"
   scope                 = azurerm_resource_group.test.id
-  event_delivery_schema = "CloudEventV01Schema"
+  event_delivery_schema = "CloudEventSchemaV1_0"
 
   eventhub_endpoint {
     eventhub_id = azurerm_eventhub.test.id
@@ -426,13 +471,104 @@ resource "azurerm_servicebus_queue" "test" {
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                  = "acctesteg-%d"
   scope                 = azurerm_resource_group.test.id
-  event_delivery_schema = "CloudEventV01Schema"
+  event_delivery_schema = "CloudEventSchemaV1_0"
 
   service_bus_queue_endpoint {
     service_bus_queue_id = "${azurerm_servicebus_queue.test.id}"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMEventGridEventSubscription_serviceBusTopic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "acctestservicebusnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name                = "acctestservicebustopic-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  enable_partitioning = true
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                  = "acctesteg-%d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+
+  service_bus_topic_endpoint {
+    service_bus_topic_id = "${azurerm_servicebus_topic.test.id}"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMEventGridEventSubscription_azureFunction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  app_service_plan_id       = azurerm_app_service_plan.test.id
+  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                  = "acctesteg-%d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+
+  azure_function_endpoint {
+    azure_function_id = "${azurerm_function_app.test.id}"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMEventGridEventSubscription_filter(data acceptance.TestData) string {
@@ -520,13 +656,13 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     queue_name         = "${azurerm_storage_queue.test.name}"
   }
 
-  advanced_filter_scalar {
+  advanced_filter {
     key           = "data.filesize"
     operator_type = "NumberLessThan"
     value         = 42.0
   }
 
-  advanced_filter_array {
+  advanced_filter {
     key           = "topic"
     operator_type = "StringBeginsWith"
     value         = ["topic_prefix"]

@@ -56,13 +56,9 @@ The following arguments are supported:
 
 * `scope` - (Required) Specifies the scope at which the EventGrid Event Subscription should be created. Changing this forces a new resource to be created.
 
-* `expiration_time_utc` - (Optional) Specifies the expiration time of the event subscription (RFC RFC3339).
+* `expiration_time_utc` - (Optional) Specifies the expiration time of the event subscription (Datetime Format `RFC 3339`).
 
-* `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventV01Schema`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
-
-* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
-
-* `service_bus_queue_endpoint` - (Optional) A `service_bus_queue_endpoint` block as defined below.
+* `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
@@ -72,27 +68,25 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `storage_queue_endpoint`, `eventhub_endpoint`, `hybrid_connection_endpoint` or `webhook_endpoint` must be specified.
+* `service_bus_queue_endpoint` - (Optional) A `service_bus_queue_endpoint` block as defined below.
+
+* `service_bus_topic_endpoint` - (Optional) A `service_bus_topic_endpoint` block as defined below.
+
+* `azure_function_endpoint` - (Optional) A `azure_function_endpoint` block as defined below.
+
+~> **NOTE:** One of `storage_queue_endpoint`, `eventhub_endpoint`, `hybrid_connection_endpoint`, `webhook_endpoint`, `service_bus_queue_endpoint`, `service_bus_topic_endpoint` or `azure_function_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
 * `subject_filter` - (Optional) A `subject_filter` block as defined below.
 
-* `advanced_filter_scalar` - (Optional) A `advanced_filter_scalar` block as defined below.
-
-* `advanced_filter_array` - (Optional) A `advanced_filter_array` block as defined below.
+* `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
 
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
 
 * `labels` - (Optional) A list of labels to assign to the event subscription.
-
----
-
-A `service_bus_queue_endpoint` supports the following:
-
-* `service_bus_queue_id` - (Required) Specifies the id where the service bus queue is located.
 
 ---
 
@@ -114,9 +108,29 @@ A `hybrid_connection_endpoint` supports the following:
 
 * `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.
 
+---
+
 A `webhook_endpoint` supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
+
+---
+
+A `service_bus_queue_endpoint` supports the following:
+
+* `service_bus_queue_id` - (Required) Specifies the id where the service bus queue is located.
+
+---
+
+A `service_bus_topic_endpoint` supports the following:
+
+* `service_bus_topic_id` - (Required) Specifies the id where the service bus topic is located.
+
+---
+
+A `azure_function_endpoint` supports the following:
+
+* `azure_function_id` - (Required) Specifies the id where the azure function is located.
 
 ---
 
@@ -130,23 +144,15 @@ A `subject_filter` supports the following:
 
 ---
 
-A `advanced_filter_scalar` supports the following:
+A `advanced_filter` supports the following:
 
-* `key` - (Required) Specifies the field/property in the event based on which you want to filter.
+* `key` - (Required) Specifies the field in the event data that you're using for filtering. It can be a number, boolean, or string.
 
-* `operator_type` - (Required) Specifies the operator used for the filter. Must be one of the following operators: `NumberLessThan`, `NumberGreaterThan`, `NumberLessThanOrEquals`, `NumberGreaterThanOrEquals`, `BoolEquals`.
+* `operator_type` - (Required) Specifies the type of comparison. Must be one of the following operators: `NumberLessThan`, `NumberGreaterThan`, `NumberLessThanOrEquals`, `NumberGreaterThanOrEquals`, `BoolEquals`, `NumberIn`, `NumberNotIn`, `StringIn`, `StringNotIn`, `StringBeginsWith`, `StringEndsWith`. `StringContains`.
 
-* `value` - (Required) Specifies the filter value.
+* `value` or `values` - (Required) Specifies the value or values to compare to the key.
 
----
-
-A `advanced_filter_array` supports the following:
-
-* `key` - (Required) Specifies the field/property in the event based on which you want to filter.
-
-* `operator_type` - (Required) Specifies the operator used for the filter. Must be one of the following operators: `NumberIn`, `NumberNotIn`, `StringIn`, `StringNotIn`, `StringBeginsWith`, `StringEndsWith`. `StringContains`
-
-* `values` - (Required) Specifies the set of filter values (min items: 0, max items: 5)
+~> **NOTE:** A maximum of 5 advanced filters are allowed.
 
 ---
 
@@ -170,9 +176,9 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
+* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
