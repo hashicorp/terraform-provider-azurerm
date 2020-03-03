@@ -179,7 +179,7 @@ func dataSourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, me
 	if !ok {
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
-	if err = d.Set("action", azure.FlattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+	if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 		return fmt.Errorf("Error setting `action`: %+v", err)
 	}
 	severity, err := strconv.Atoi(string(action.Severity))
@@ -188,7 +188,7 @@ func dataSourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, me
 	}
 	d.Set("severity", severity)
 	d.Set("throttling", action.ThrottlingInMin)
-	if err = d.Set("trigger", azure.FlattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
+	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
 		return fmt.Errorf("Error setting `trigger`: %+v", err)
 	}
 

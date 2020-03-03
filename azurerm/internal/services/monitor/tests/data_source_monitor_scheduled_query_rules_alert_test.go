@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMMonitorScheduledQueryRulesAlertingAction(t *testing.T) {
+func TestAccDataSourceAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRulesAlertingAction(t *testing
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionConfig(data),
+				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_AlertingActionConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
@@ -26,7 +26,7 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRulesAlertingAction(t *testing
 	})
 }
 
-func TestAccDataSourceAzureRMMonitorScheduledQueryRulesAlertingActionCrossResource(t *testing.T) {
+func TestAccDataSourceAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRulesAlertingActionCrossResour
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionCrossResourceConfig(data),
+				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_AlertingActionCrossResourceConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
@@ -43,9 +43,9 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRulesAlertingActionCrossResour
 	})
 }
 
-func testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionConfig(data acceptance.TestData) string {
+func testAccDataSourceAzureRMMonitorScheduledQueryRules_AlertingActionConfig(data acceptance.TestData) string {
 	ts := time.Now().Format(time.RFC3339)
-	template := testAccAzureRMMonitorScheduledQueryRulesAlertingActionConfig_basic(data, ts)
+	template := testAccAzureRMMonitorScheduledQueryRules_AlertingActionConfigBasic(data, ts)
 
 	return fmt.Sprintf(`
 %s
@@ -57,8 +57,8 @@ data "azurerm_monitor_scheduled_query_rules_alert" "test" {
 `, template)
 }
 
-func testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionCrossResourceConfig(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorScheduledQueryRules_alertingActionCrossResourceConfig(data)
+func testAccDataSourceAzureRMMonitorScheduledQueryRules_AlertingActionCrossResourceConfig(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResourceConfig(data)
 	return fmt.Sprintf(`
 %s
 

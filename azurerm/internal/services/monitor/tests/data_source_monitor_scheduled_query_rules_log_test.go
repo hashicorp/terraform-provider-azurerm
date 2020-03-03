@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMMonitorScheduledQueryRulesLogToMetricAction(t *testing.T) {
+func TestAccDataSourceAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_scheduled_query_rules_log", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRulesLogToMetricAction(t *test
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_logToMetricActionConfig(data),
+				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_LogToMetricActionConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
@@ -25,8 +25,8 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRulesLogToMetricAction(t *test
 	})
 }
 
-func testAccDataSourceAzureRMMonitorScheduledQueryRules_logToMetricActionConfig(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorScheduledQueryRulesLogToMetricActionConfig_basic(data)
+func testAccDataSourceAzureRMMonitorScheduledQueryRules_LogToMetricActionConfig(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigBasic(data)
 	return fmt.Sprintf(`
 %s
 

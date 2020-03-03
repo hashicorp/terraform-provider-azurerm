@@ -3,12 +3,12 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_alert"
 description: |-
-  Get information about the specified AlertingAction Scheduled Query Rule.
+  Get information about the specified AlertingAction Scheduled Query Rules resource.
 ---
 
 # Data Source: azurerm_monitor_scheduled_query_rules_alert
 
-Use this data source to access the properties of an AlertingAction Scheduled Query Rule.
+Use this data source to access the properties of an AlertingAction scheduled query rule.
 
 ## Example Usage
 
@@ -25,17 +25,17 @@ output "query_rule_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Scheduled Query Rule.
-* `resource_group_name` - (Required) Specifies the name of the resource group where the Scheduled Query Rule is located.
+* `name` - (Required) Specifies the name of the scheduled query rule.
+* `resource_group_name` - (Required) Specifies the name of the resource group where the scheduled query rule is located.
 
 ## Attributes Reference
 
-* `id` - The ID of the Scheduled Query Rule.
+* `id` - The ID of the scheduled query rule.
 * `action` - An `action` block as defined below.
 * `authorized_resource_ids` - List of Resource IDs referred into query.
 * `data_source_id` - The resource URI over which log search query is to be run.
-* `description` - The description of the Scheduled Query Rule.
-* `enabled` - Whether this Scheduled Query Rule is enabled.
+* `description` - The description of the scheduled query rule.
+* `enabled` - Whether this scheduled query rule is enabled.
 * `frequency` - Frequency at which rule condition should be evaluated.
 * `query` - Log search query.
 * `time_window` - Time window for which data needs to be fetched for query.

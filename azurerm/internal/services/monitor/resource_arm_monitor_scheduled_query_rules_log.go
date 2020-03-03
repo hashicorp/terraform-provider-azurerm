@@ -153,7 +153,7 @@ func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData
 
 	location := azure.NormalizeLocation(d.Get("location"))
 
-	source := azure.ExpandMonitorScheduledQueryRulesCommonSource(d)
+	source := expandMonitorScheduledQueryRulesCommonSource(d)
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -224,7 +224,7 @@ func resourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta i
 	if !ok {
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
-	if err = d.Set("criteria", azure.FlattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
+	if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
 		return fmt.Errorf("Error setting `criteria`: %+v", err)
 	}
 

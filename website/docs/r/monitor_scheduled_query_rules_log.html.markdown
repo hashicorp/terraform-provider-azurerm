@@ -3,12 +3,12 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_log"
 description: |-
-  Manages a LogToMetricAction Scheduled Query Rule within Azure Monitor
+  Manages a LogToMetricAction Scheduled Query Rules resources within Azure Monitor
 ---
 
 # azurerm_monitor_scheduled_query_rules_log
 
-Manages a LogToMetricAction Scheduled Query Rule within Azure Monitor.
+Manages a LogToMetricAction Scheduled Query Rules resource within Azure Monitor.
 
 ## Example Usage
 
@@ -26,8 +26,7 @@ resource "azurerm_log_analytics_workspace" "example" {
   retention_in_days   = 30
 }
 
-# Create Azure Monitor metric from log analytics data for 
-# the Computer named 'targetVM'.
+# Example: LogToMetric Action for the named Computer
 resource "azurerm_scheduled_query_rule_log" "example" {
   name                = format("%s-queryrule", var.prefix)
   location            = azurerm_resource_group.example.location
@@ -57,7 +56,7 @@ resource "azurerm_monitor_action_group" "example" {
   }
 }
 
-# Create an alert on the new Scheduled Query Rules metric
+# Example: Creates alert using the new Scheduled Query Rules metric
 resource "azurerm_monitor_metric_alert" "example" {
   name                = "example-metricalert"
   resource_group_name = azurerm_resource_group.example.name
@@ -84,12 +83,12 @@ resource "azurerm_monitor_metric_alert" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Scheduled Query Rule. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Scheduled Query Rule instance.
+* `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance.
 * `criteria` - (Required) A `criteria` block as defined below.
 * `data_source_id` - (Required) The resource uri over which log search query is to be run.
-* `description` - (Optional) The description of the Scheduled Query Rule.
-* `enabled` - (Optional) Whether this Scheduled Query Rule is enabled.  Default is `true`.
+* `description` - (Optional) The description of the scheduled query rule.
+* `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
 
 ---
 
@@ -110,7 +109,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Scheduled Query Rule.
+* `id` - The ID of the scheduled query rule.
 
 ## Import
 

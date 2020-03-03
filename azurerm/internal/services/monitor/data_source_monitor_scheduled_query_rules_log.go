@@ -126,7 +126,7 @@ func dataSourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta
 	if !ok {
 		return fmt.Errorf("Wrong action type in Scheduled Query Rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
-	if err = d.Set("criteria", azure.FlattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
+	if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
 		return fmt.Errorf("Error setting `criteria`: %+v", err)
 	}
 

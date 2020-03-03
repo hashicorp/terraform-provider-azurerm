@@ -3,12 +3,12 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_log"
 description: |-
-  Get information about the specified LogToMetricAction Scheduled Query Rule.
+  Get information about the specified LogToMetricAction Scheduled Query Rules resource.
 ---
 
 # Data Source: azurerm_monitor_scheduled_query_rules_log
 
-Use this data source to access the properties of a LogToMetricAction Scheduled Query Rule.
+Use this data source to access the properties of a LogToMetricAction scheduled query rule.
 
 ## Example Usage
 
@@ -25,16 +25,16 @@ output "query_rule_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Scheduled Query Rule.
-* `resource_group_name` - (Required) Specifies the name of the resource group where the Scheduled Query Rule is located.
+* `name` - (Required) Specifies the name of the scheduled query rule.
+* `resource_group_name` - (Required) Specifies the name of the resource group where the scheduled query rule is located.
 
 ## Attributes Reference
 
-* `id` - The ID of the Scheduled Query Rule.
+* `id` - The ID of the scheduled query rule.
 * `criteria` - A `criteria` block as defined below.
 * `data_source_id` - The resource URI over which log search query is to be run.
-* `description` - The description of the Scheduled Query Rule.
-* `enabled` - Whether this Scheduled Query Rule is enabled.
+* `description` - The description of the scheduled query rule.
+* `enabled` - Whether this scheduled query rule is enabled.
 
 ---
 

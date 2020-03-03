@@ -3,12 +3,12 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_alert"
 description: |-
-  Manages an AlertingAction Scheduled Query Rule within Azure Monitor
+  Manages an AlertingAction Scheduled Query Rules resource within Azure Monitor
 ---
 
 # azurerm_monitor_scheduled_query_rules_alert
 
-Manages an AlertingAction Scheduled Query Rule within Azure Monitor.
+Manages an AlertingAction Scheduled Query Rules resource within Azure Monitor.
 
 ## Example Usage
 
@@ -33,8 +33,6 @@ resource "azurerm_application_insights" "example2" {
 }
 
 # Example: Alerting Action with result count trigger
-# Alert if more than three HTTP requests returned a >= 500 result code
-# in the past 30 minutes
 resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
   name                = format("%s-queryrule", var.prefix)
   location            = azurerm_resource_group.example.location
@@ -46,11 +44,16 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
     custom_webhook_payload = "{}"
   }
   data_source_id = azurerm_application_insights.example.id
-  description    = "Result count trigger example - alert when total results cross threshold"
+  description    = "Alert when total results cross threshold"
   enabled        = true
-  frequency      = 5
-  query          = "requests | where tolong(resultCode) >= 500 | summarize AggregatedValue = count() by bin(timestamp, 5m)"
+  # Count all requests with server error result code grouped into 5-minute bins
+  query          = <<-QUERY
+  requests
+    | where tolong(resultCode) >= 500
+    | summarize count() by bin(timestamp, 5m)
+  QUERY
   severity       = 1
+  frequency      = 5
   time_window    = 30
   trigger {
     operator  = "GreaterThan"
@@ -59,8 +62,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
 }
 
 # Example: Alerting Action with metric trigger
-# Alert if more than three HTTP requests returned a >= 500 result code
-# in the past 30 minutes that have the same operation (ie: GET /)
 resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
   name                = format("%s-queryrule", var.prefix)
   location            = azurerm_resource_group.example.location
@@ -72,11 +73,16 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
     custom_webhook_payload = "{}"
   }
   data_source_id = azurerm_application_insights.example.id
-  description    = "Metric trigger example - query results grouped by metric; alert when results per metric_column cross threshold"
+  description    = "Query results grouped into AggregatedValue; alert when results cross threshold"
   enabled        = true
-  frequency      = 5
-  query          = "requests | where tolong(resultCode) >= 500 | summarize AggregatedValue = count() by operation_Name, bin(timestamp, 5m)"
+  # Count all requests with server error result code grouped into 5-minute bins by HTTP operation
+  query          = <<-QUERY
+  requests
+    | where tolong(resultCode) >= 500
+    | summarize AggregatedValue = count() by operation_Name, bin(timestamp, 5m)
+QUERY
   severity       = 1
+  frequency      = 5
   time_window    = 30
   trigger {
     operator  = "GreaterThan"
@@ -91,10 +97,6 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
 }
 
 # Example: Alerting Action Cross-Resource
-# Enables use of cross-resource queries to analyze query results across 
-# multiple Application Insights or Log Analytics resources.
-# Alert if more than three HTTP requests returned a >= 500 result code
-# in either of the Insights resources in the past 30 minutes.
 resource "azurerm_monitor_scheduled_query_rules_alert" "example2" {
   name                = format("%s-queryrule2", var.prefix)
   location            = azurerm_resource_group.example.location
@@ -107,11 +109,19 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example2" {
     custom_webhook_payload = "{}"
   }
   data_source_id = azurerm_application_insights.example.id
-  description    = "Scheduled query rule Alerting Action cross-resource example"
+  description    = "Query may access data within multiple resources"
   enabled        = true
-  frequency      = 5
-  query          = format("let a=requests | where toint(resultCode) >= 500 | extend fail=1; let b=app('%s').requests | where toint(resultCode) >= 500 | extend fail=1; a | join b on fail", azurerm_application_insights.example2.id)
+  # Count requests in multiple log resources and group into 5-minute bins by HTTP operation
+  query          = format(<<-QUERY
+  let a=requests
+    | where toint(resultCode) >= 500
+    | extend fail=1; let b=app('%s').requests
+    | where toint(resultCode) >= 500 | extend fail=1; a
+    | join b on fail
+QUERY
+, azurerm_application_insights.example2.id)
   severity       = 1
+  frequency      = 5
   time_window    = 30
   trigger {
     operator  = "GreaterThan"
@@ -124,8 +134,8 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example2" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Scheduled Query Rule. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create the Scheduled Query Rule instance.
+* `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance.
 * `data_source_id` - (Required) The resource URI over which log search query is to be run.
 * `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated.  Values must be between 5 and 1440 (inclusive).
 * `query` - (Required) Log search query.
@@ -133,8 +143,8 @@ The following arguments are supported:
 * `trigger` - (Required) The condition that results in the alert rule being run.
 * `action` - (Required) An `action` block as defined below.
 * `authorized_resource_ids` - (Optional) List of Resource IDs referred into query.
-* `description` - (Optional) The description of the Scheduled Query Rule.
-* `enabled` - (Optional) Whether this Scheduled Query Rule is enabled.  Default is `true`.
+* `description` - (Optional) The description of the scheduled query rule.
+* `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
 * `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.  Values must be between 0 and 10000 (inclusive).
 
@@ -167,7 +177,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Scheduled Query Rule.
+* `id` - The ID of the scheduled query rule.
 
 ## Import
 

@@ -1,4 +1,4 @@
-package azure
+package monitor
 
 import (
 	"fmt"
@@ -8,8 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func FlattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGroup) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGroup) []interface{} {
 	v := make(map[string]interface{})
 
 	if input != nil {
@@ -19,12 +18,10 @@ func FlattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGrou
 		v["email_subject"] = input.EmailSubject
 		v["custom_webhook_payload"] = input.CustomWebhookPayload
 	}
-	result = append(result, v)
-
-	return result
+	return []interface{}{v}
 }
 
-func ExpandMonitorScheduledQueryRulesCommonSource(d *schema.ResourceData) *insights.Source {
+func expandMonitorScheduledQueryRulesCommonSource(d *schema.ResourceData) *insights.Source {
 	authorizedResourceIDs := d.Get("authorized_resource_ids").(*schema.Set).List()
 	dataSourceID := d.Get("data_source_id").(string)
 	query, ok := d.GetOk("query")
@@ -40,7 +37,7 @@ func ExpandMonitorScheduledQueryRulesCommonSource(d *schema.ResourceData) *insig
 	return &source
 }
 
-func FlattenAzureRmScheduledQueryRulesAlertMetricTrigger(input *insights.LogMetricTrigger) []interface{} {
+func flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input *insights.LogMetricTrigger) []interface{} {
 	result := make(map[string]interface{})
 
 	if input == nil {
@@ -61,7 +58,7 @@ func FlattenAzureRmScheduledQueryRulesAlertMetricTrigger(input *insights.LogMetr
 	return []interface{}{result}
 }
 
-func FlattenAzureRmScheduledQueryRulesAlertTrigger(input *insights.TriggerCondition) []interface{} {
+func flattenAzureRmScheduledQueryRulesAlertTrigger(input *insights.TriggerCondition) []interface{} {
 	result := make(map[string]interface{})
 
 	result["operator"] = string(input.ThresholdOperator)
@@ -71,20 +68,20 @@ func FlattenAzureRmScheduledQueryRulesAlertTrigger(input *insights.TriggerCondit
 	}
 
 	if input.MetricTrigger != nil {
-		result["metric_trigger"] = FlattenAzureRmScheduledQueryRulesAlertMetricTrigger(input.MetricTrigger)
+		result["metric_trigger"] = flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input.MetricTrigger)
 	}
 
 	return []interface{}{result}
 }
 
-func FlattenAzureRmScheduledQueryRulesLogCriteria(input *[]insights.Criteria) []interface{} {
+func flattenAzureRmScheduledQueryRulesLogCriteria(input *[]insights.Criteria) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
 		for _, criteria := range *input {
 			v := make(map[string]interface{})
 
-			v["dimension"] = FlattenAzureRmScheduledQueryRulesLogDimension(criteria.Dimensions)
+			v["dimension"] = flattenAzureRmScheduledQueryRulesLogDimension(criteria.Dimensions)
 			v["metric_name"] = *criteria.MetricName
 
 			result = append(result, v)
@@ -94,7 +91,7 @@ func FlattenAzureRmScheduledQueryRulesLogCriteria(input *[]insights.Criteria) []
 	return result
 }
 
-func FlattenAzureRmScheduledQueryRulesLogDimension(input *[]insights.Dimension) []interface{} {
+func flattenAzureRmScheduledQueryRulesLogDimension(input *[]insights.Dimension) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
@@ -123,7 +120,7 @@ func FlattenAzureRmScheduledQueryRulesLogDimension(input *[]insights.Dimension) 
 // ValidateThreshold checks that a threshold value is between 0 and 10000
 // and is a whole number. The azure-sdk-for-go expects this value to be a float64
 // but the user validation rules want an integer.
-func ValidateMonitorScheduledQueryRulesAlertThreshold(i interface{}, k string) (warnings []string, errors []error) {
+func validateMonitorScheduledQueryRulesAlertThreshold(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(float64)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be float64", k))
