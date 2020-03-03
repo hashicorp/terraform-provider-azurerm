@@ -1018,6 +1018,91 @@ resource "azurerm_route_table" "test" {
     address_prefix = "216.220.208.0/20"
     next_hop_type  = "Internet"
   }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-20-33-16-nexthop-internet"
+    address_prefix = "20.33.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-20-48-12-nexthop-internet"
+    address_prefix = "20.48.0.0/12"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-20-64-10-nexthop-internet"
+    address_prefix = "20.64.0.0/10"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-20-135-16-nexthop-internet"
+    address_prefix = "20.135.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-20-136-16-nexthop-internet"
+    address_prefix = "20.136.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-20-143-16-nexthop-internet"
+    address_prefix = "20.143.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-20-192-10-nexthop-internet"
+    address_prefix = "20.192.0.0/10"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-167-105-16-nexthop-internet"
+    address_prefix = "131.107.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-131-107-16-nexthop-internet"
+    address_prefix = "167.105.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-23-96-13-nexthop-internet"
+    address_prefix = "23.96.0.0/13"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-42-159-16-nexthop-internet"
+    address_prefix = "42.159.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-51-13-17-nexthop-internet"
+    address_prefix = "51.13.0.0/17"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-51-120-128-17-nexthop-internet"
+    address_prefix = "51.120.128.0/17"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-37-18-nexthop-internet"
+    address_prefix = "102.37.0.0/18"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-133-16-nexthop-internet"
+    address_prefix = "102.133.0.0/16"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-199-30-16-20-nexthop-internet"
+    address_prefix = "199.30.16.0/20"
+    next_hop_type  = "Internet"
+  }
+  route {
+    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-204-79-180-24-nexthop-internet"
+    address_prefix = "204.79.180.0/24"
+    next_hop_type  = "Internet"
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
