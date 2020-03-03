@@ -51,7 +51,7 @@ func ValidateLinuxName(i interface{}, k string) (warnings []string, errors []err
 		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
 	}
 
-	return
+	return warnings, errors
 }
 
 func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []error) {
@@ -87,7 +87,7 @@ func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []e
 		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
 	}
 
-	return
+	return warnings, errors
 }
 
 func ValidateScaleSetResourceID(i interface{}, k string) (s []string, es []error) {
