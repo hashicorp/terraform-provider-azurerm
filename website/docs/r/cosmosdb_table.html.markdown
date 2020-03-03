@@ -20,8 +20,8 @@ data "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_table" "example" {
   name                = "tfex-cosmos-table"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
   throughput          = 400
 }
 ```
@@ -43,12 +43,21 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Table ID.
+* `id` - The ID of the CosmosDB Table.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Table.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Table.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Table.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Table.
 
 ## Import
 
-Cosmos Tables can be imported using the `resource id`, e.g.
+CosmosDB Tables can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cosmosdb_table.t1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/table/tables/t1
+terraform import azurerm_cosmosdb_table.table1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/table/tables/table1
 ```

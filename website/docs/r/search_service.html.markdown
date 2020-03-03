@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_search_service" "example" {
   name                = "acceptanceTestSearchService1"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   sku                 = "standard"
 
   tags = {
@@ -68,7 +68,14 @@ A `query_keys` block exports the following:
 
 * `key` - The value of the query key.
 
----
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Search Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Search Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Search Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Search Service.
 
 ## Import
 

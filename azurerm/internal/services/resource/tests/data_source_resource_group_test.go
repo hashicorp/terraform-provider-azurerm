@@ -31,6 +31,10 @@ func TestAccDataSourceAzureRMResourceGroup_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMResourceGroupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRg-%d"
   location = "%s"
@@ -41,7 +45,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 data "azurerm_resource_group" "test" {
-  name = "${azurerm_resource_group.test.name}"
+  name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

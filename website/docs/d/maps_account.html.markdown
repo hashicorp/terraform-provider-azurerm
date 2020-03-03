@@ -19,15 +19,15 @@ data "azurerm_maps_account" "example" {
 }
 
 output "maps_account_id" {
-  value = "${data.azurerm_maps_account.example.id}"
+  value = data.azurerm_maps_account.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Maps Account.
+* `name` - Specifies the name of the Maps Account.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Maps Account is located.
+* `resource_group_name` - Specifies the name of the Resource Group in which the Maps Account is located.
 
 ## Attributes Reference
 
@@ -41,3 +41,9 @@ output "maps_account_id" {
 
 * `x_ms_client_id` - A unique identifier for the Maps Account.
 
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Maps Account.

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
 )
 
 func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
@@ -28,7 +29,6 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 				Config: testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevSpaceControllerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
@@ -76,20 +76,19 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		ctrlName := rs.Primary.Attributes["name"]
-		resGroupName, hasReseGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasReseGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DevSpace Controller: %s", ctrlName)
+		id, err := parse.DevSpaceControllerID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		result, err := client.Get(ctx, resGroupName, ctrlName)
+		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err == nil {
 			return nil
 		}
 
 		if result.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DevSpace Controller %q (Resource Group: %q) does not exist", ctrlName, resGroupName)
+			return fmt.Errorf("Bad: DevSpace Controller %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return fmt.Errorf("Bad: Get devSpaceControllerClient: %+v", err)
@@ -107,10 +106,12 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 
 		log.Printf("[WARN] azurerm_devspace_controller still exists in state file.")
 
-		ctrlName := rs.Primary.Attributes["name"]
-		resGroupName := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DevSpaceControllerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		result, err := client.Get(ctx, resGroupName, ctrlName)
+		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err == nil {
 			return fmt.Errorf("DevSpace Controller still exists:\n%#v", result)
@@ -126,6 +127,10 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevSpaceController_basic(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -145,10 +150,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
-    name    = "default"
-    count   = "1"
-    vm_size = "Standard_DS2_v2"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -159,15 +164,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 resource "azurerm_devspace_controller" "test" {
   name                                     = "acctestdsc%d"
-  location                                 = "${azurerm_resource_group.test.location}"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
-  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
-
-  sku {
-    name = "S1"
-    tier = "Standard"
-  }
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  target_container_host_resource_id        = azurerm_kubernetes_cluster.test.id
+  target_container_host_credentials_base64 = base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)
+  sku_name                                 = "S1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, clientId, clientSecret, data.RandomInteger)
 }
@@ -178,16 +179,12 @@ func testAccAzureRMDevSpaceController_requiresImport(data acceptance.TestData, c
 %s
 
 resource "azurerm_devspace_controller" "import" {
-  name                                     = "${azurerm_devspace_controller.test.name}"
-  location                                 = "${azurerm_devspace_controller.test.location}"
-  resource_group_name                      = "${azurerm_devspace_controller.test.resource_group_name}"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
-  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
-
-  sku {
-    name = "S1"
-    tier = "Standard"
-  }
+  name                                     = azurerm_devspace_controller.test.name
+  location                                 = azurerm_devspace_controller.test.location
+  resource_group_name                      = azurerm_devspace_controller.test.resource_group_name
+  target_container_host_resource_id        = azurerm_devspace_controller.test.target_container_host_resource_id
+  target_container_host_credentials_base64 = base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)
+  sku_name                                 = azurerm_devspace_controller.test.sku_name
 }
 `, template)
 }

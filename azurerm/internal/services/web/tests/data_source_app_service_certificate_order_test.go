@@ -93,8 +93,8 @@ func testAccDataSourceAppServiceCertificateOrder_basic(data acceptance.TestData)
 %s
 
 data "azurerm_app_service_certificate_order" "test" {
-  name                = "${azurerm_app_service_certificate_order.test.name}"
-  resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
+  name                = azurerm_app_service_certificate_order.test.name
+  resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
 }
 `, config)
 }
@@ -105,8 +105,8 @@ func testAccDataSourceAppServiceCertificateOrder_wildcard(data acceptance.TestDa
 %s
 
 data "azurerm_app_service_certificate_order" "test" {
-  name                = "${azurerm_app_service_certificate_order.test.name}"
-  resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
+  name                = azurerm_app_service_certificate_order.test.name
+  resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
 }
 `, config)
 }
@@ -117,8 +117,8 @@ func testAccDataSourceAppServiceCertificateOrder_complete(data acceptance.TestDa
 %s
 
 data "azurerm_app_service_certificate_order" "test" {
-  name                = "${azurerm_app_service_certificate_order.test.name}"
-  resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
+  name                = azurerm_app_service_certificate_order.test.name
+  resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
 }
 `, config)
 }

@@ -118,6 +118,10 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 
 func testAccAzureRMMariaDbDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = %q
@@ -125,15 +129,10 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen5"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -149,8 +148,8 @@ resource "azurerm_mariadb_server" "test" {
 
 resource "azurerm_mariadb_database" "test" {
   name                = "acctestmariadb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mariadb_server.test.name
   charset             = "utf8"
   collation           = "utf8_general_ci"
 }
@@ -163,11 +162,11 @@ func testAccAzureRMMariaDbDatabase_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_mariadb_database" "import" {
-  name                = "${azurerm_mariadb_database.test.name}"
-  resource_group_name = "${azurerm_mariadb_database.test.resource_group_name}"
-  server_name         = "${azurerm_mariadb_database.test.server_name}"
-  charset             = "${azurerm_mariadb_database.test.charset}"
-  collation           = "${azurerm_mariadb_database.test.collation}"
+  name                = azurerm_mariadb_database.test.name
+  resource_group_name = azurerm_mariadb_database.test.resource_group_name
+  server_name         = azurerm_mariadb_database.test.server_name
+  charset             = azurerm_mariadb_database.test.charset
+  collation           = azurerm_mariadb_database.test.collation
 }
 `, template)
 }

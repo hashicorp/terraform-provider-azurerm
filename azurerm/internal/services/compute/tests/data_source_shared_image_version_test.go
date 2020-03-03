@@ -48,10 +48,10 @@ func testAccDataSourceSharedImageVersion_basic(data acceptance.TestData, usernam
 %s
 
 data "azurerm_shared_image_version" "test" {
-  name                = "${azurerm_shared_image_version.test.name}"
-  gallery_name        = "${azurerm_shared_image_version.test.gallery_name}"
-  image_name          = "${azurerm_shared_image_version.test.image_name}"
-  resource_group_name = "${azurerm_shared_image_version.test.resource_group_name}"
+  name                = azurerm_shared_image_version.test.name
+  gallery_name        = azurerm_shared_image_version.test.gallery_name
+  image_name          = azurerm_shared_image_version.test.image_name
+  resource_group_name = azurerm_shared_image_version.test.resource_group_name
 }
 `, template)
 }

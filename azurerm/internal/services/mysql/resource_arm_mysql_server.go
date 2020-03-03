@@ -3,6 +3,7 @@ package mysql
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -50,76 +50,31 @@ func resourceArmMySqlServer() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"sku": {
-				Type:     schema.TypeList,
+			"sku_name": {
+				Type:     schema.TypeString,
 				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"B_Gen4_1",
-								"B_Gen4_2",
-								"B_Gen5_1",
-								"B_Gen5_2",
-								"GP_Gen4_2",
-								"GP_Gen4_4",
-								"GP_Gen4_8",
-								"GP_Gen4_16",
-								"GP_Gen4_32",
-								"GP_Gen5_2",
-								"GP_Gen5_4",
-								"GP_Gen5_8",
-								"GP_Gen5_16",
-								"GP_Gen5_32",
-								"GP_Gen5_64",
-								"MO_Gen5_2",
-								"MO_Gen5_4",
-								"MO_Gen5_8",
-								"MO_Gen5_16",
-								"MO_Gen5_32",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"capacity": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ValidateFunc: validate.IntInSlice([]int{
-								1,
-								2,
-								4,
-								8,
-								16,
-								32,
-								64,
-							}),
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mysql.Basic),
-								string(mysql.GeneralPurpose),
-								string(mysql.MemoryOptimized),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"family": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Gen4",
-								"Gen5",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"B_Gen4_1",
+					"B_Gen4_2",
+					"B_Gen5_1",
+					"B_Gen5_2",
+					"GP_Gen4_2",
+					"GP_Gen4_4",
+					"GP_Gen4_8",
+					"GP_Gen4_16",
+					"GP_Gen4_32",
+					"GP_Gen5_2",
+					"GP_Gen5_4",
+					"GP_Gen5_8",
+					"GP_Gen5_16",
+					"GP_Gen5_32",
+					"GP_Gen5_64",
+					"MO_Gen5_2",
+					"MO_Gen5_4",
+					"MO_Gen5_8",
+					"MO_Gen5_16",
+					"MO_Gen5_32",
+				}, false),
 			},
 
 			"administrator_login": {
@@ -153,9 +108,12 @@ func resourceArmMySqlServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(5120, 4194304),
+								validation.IntDivisibleBy(1024),
+							),
 						},
 						"backup_retention_days": {
 							Type:         schema.TypeInt,
@@ -203,10 +161,10 @@ func resourceArmMySqlServer() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			tier, _ := diff.GetOk("sku.0.tier")
+			tier, _ := diff.GetOk("sku_name")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
 
-			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
+			if strings.HasPrefix(tier.(string), "B_") && storageMB.(int) > 1048576 {
 				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
 			}
 
@@ -226,13 +184,6 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	adminLogin := d.Get("administrator_login").(string)
-	adminLoginPassword := d.Get("administrator_login_password").(string)
-	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := d.Get("version").(string)
-	createMode := "Default"
-	t := d.Get("tags").(map[string]interface{})
-
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -246,21 +197,23 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	sku := expandMySQLServerSku(d)
-	storageProfile := expandMySQLStorageProfile(d)
+	sku, err := expandServerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+	}
 
 	properties := mysql.ServerForCreate{
 		Location: &location,
 		Properties: &mysql.ServerPropertiesForDefaultCreate{
-			AdministratorLogin:         utils.String(adminLogin),
-			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			Version:                    mysql.ServerVersion(version),
-			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
-			StorageProfile:             storageProfile,
-			CreateMode:                 mysql.CreateMode(createMode),
+			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			Version:                    mysql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:             mysql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
+			StorageProfile:             expandMySQLStorageProfile(d),
+			CreateMode:                 mysql.CreateMode("Default"),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -296,22 +249,20 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	adminLoginPassword := d.Get("administrator_login_password").(string)
-	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := d.Get("version").(string)
-	sku := expandMySQLServerSku(d)
-	storageProfile := expandMySQLStorageProfile(d)
-	t := d.Get("tags").(map[string]interface{})
+	sku, err := expandServerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+	}
 
 	properties := mysql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
-			StorageProfile:             storageProfile,
-			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			Version:                    mysql.ServerVersion(version),
-			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
+			StorageProfile:             expandMySQLStorageProfile(d),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			Version:                    mysql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:             mysql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -366,13 +317,13 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
-
-	if err := d.Set("sku", flattenMySQLServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
-	}
 
 	if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
@@ -408,21 +359,35 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandMySQLServerSku(d *schema.ResourceData) *mysql.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
+func expandServerSkuName(skuName string) (*mysql.Sku, error) {
+	parts := strings.Split(skuName, "_")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("sku_name (%s) has the worng numberof parts (%d) after splitting on _", skuName, len(parts))
+	}
 
-	name := sku["name"].(string)
-	capacity := sku["capacity"].(int)
-	tier := sku["tier"].(string)
-	family := sku["family"].(string)
+	var tier mysql.SkuTier
+	switch parts[0] {
+	case "B":
+		tier = mysql.Basic
+	case "GP":
+		tier = mysql.GeneralPurpose
+	case "MO":
+		tier = mysql.MemoryOptimized
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
+	}
+
+	capacity, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
+	}
 
 	return &mysql.Sku{
-		Name:     utils.String(name),
-		Tier:     mysql.SkuTier(tier),
+		Name:     utils.String(skuName),
+		Tier:     tier,
 		Capacity: utils.Int32(int32(capacity)),
-		Family:   utils.String(family),
-	}
+		Family:   utils.String(parts[1]),
+	}, nil
 }
 
 func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
@@ -440,26 +405,6 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 		StorageMB:           utils.Int32(int32(storageMB)),
 		StorageAutogrow:     mysql.StorageAutogrow(autoGrow),
 	}
-}
-
-func flattenMySQLServerSku(resp *mysql.Sku) []interface{} {
-	values := map[string]interface{}{}
-
-	if name := resp.Name; name != nil {
-		values["name"] = *name
-	}
-
-	if capacity := resp.Capacity; capacity != nil {
-		values["capacity"] = *capacity
-	}
-
-	values["tier"] = string(resp.Tier)
-
-	if family := resp.Family; family != nil {
-		values["family"] = *family
-	}
-
-	return []interface{}{values}
 }
 
 func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {

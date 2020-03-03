@@ -20,17 +20,17 @@ data "azurerm_notification_hub" "example" {
 }
 
 output "id" {
-  value = "${data.azurerm_notification_hub.example.id}"
+  value = data.azurerm_notification_hub.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Notification Hub.
+* `name` - Specifies the Name of the Notification Hub.
 
-* `namespace_name` - (Required)  Specifies the Name of the Notification Hub Namespace which contains the Notification Hub.
+* `namespace_name` -  Specifies the Name of the Notification Hub Namespace which contains the Notification Hub.
 
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Notification Hub exists.
+* `resource_group_name` - Specifies the Name of the Resource Group within which the Notification Hub exists.
 
 ## Attributes Reference
 
@@ -61,3 +61,9 @@ A `apns_credential` block exports:
 A `gcm_credential` block exports:
 
 * `api_key` - The API Key associated with the Google Cloud Messaging service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Notification Hub within a Notification Hub Namespace.

@@ -179,6 +179,10 @@ func testCheckAzureRMDataLakeStoreFirewallRuleDestroy(s *terraform.State) error 
 
 func testAccAzureRMDataLakeStoreFirewallRule_basic(data acceptance.TestData, startIP, endIP string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -186,14 +190,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_lake_store" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_data_lake_store_firewall_rule" "test" {
   name                = "acctest"
-  account_name        = "${azurerm_data_lake_store.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = azurerm_data_lake_store.test.name
+  resource_group_name = azurerm_resource_group.test.name
   start_ip_address    = "%s"
   end_ip_address      = "%s"
 }
@@ -206,11 +210,11 @@ func testAccAzureRMDataLakeStoreFirewallRule_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_data_lake_store_firewall_rule" "import" {
-  name                = "${azurerm_data_lake_store_firewall_rule.test.name}"
-  account_name        = "${azurerm_data_lake_store_firewall_rule.test.account_name}"
-  resource_group_name = "${azurerm_data_lake_store_firewall_rule.test.resource_group_name}"
-  start_ip_address    = "${azurerm_data_lake_store_firewall_rule.test.start_ip_address}"
-  end_ip_address      = "${azurerm_data_lake_store_firewall_rule.test.end_ip_address}"
+  name                = azurerm_data_lake_store_firewall_rule.test.name
+  account_name        = azurerm_data_lake_store_firewall_rule.test.account_name
+  resource_group_name = azurerm_data_lake_store_firewall_rule.test.resource_group_name
+  start_ip_address    = azurerm_data_lake_store_firewall_rule.test.start_ip_address
+  end_ip_address      = azurerm_data_lake_store_firewall_rule.test.end_ip_address
 }
 `, template)
 }

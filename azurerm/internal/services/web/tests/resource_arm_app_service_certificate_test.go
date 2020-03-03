@@ -71,6 +71,10 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 
 func testAccAzureRMAppServiceCertificatePfx(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestwebcert%d"
   location = "%s"
@@ -88,6 +92,10 @@ resource "azurerm_app_service_certificate" "test" {
 
 func testAccAzureRMAppServiceCertificatePfxNoPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestwebcert%d"
   location = "%s"
@@ -104,6 +112,10 @@ resource "azurerm_app_service_certificate" "test" {
 
 func testAccAzureRMAppServiceCertificateKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "test" {}
 
 data "azuread_service_principal" "test" {
@@ -126,7 +138,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
-    object_id               = data.azurerm_client_config.test.service_principal_object_id
+    object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["delete", "get", "set"]
     certificate_permissions = ["create", "delete", "get", "import"]
   }

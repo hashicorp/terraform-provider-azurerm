@@ -309,6 +309,10 @@ func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
 
 func testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -316,8 +320,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -343,9 +347,9 @@ func testAccAzureRMExpressRouteCircuit_requiresImportConfig(data acceptance.Test
 %s
 
 resource "azurerm_express_route_circuit" "import" {
-  name                  = "${azurerm_express_route_circuit.test.name}"
-  location              = "${azurerm_express_route_circuit.test.location}"
-  resource_group_name   = "${azurerm_express_route_circuit.test.resource_group_name}"
+  name                  = azurerm_express_route_circuit.test.name
+  location              = azurerm_express_route_circuit.test.location
+  resource_group_name   = azurerm_express_route_circuit.test.resource_group_name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -367,6 +371,10 @@ resource "azurerm_express_route_circuit" "import" {
 
 func testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -374,8 +382,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -397,6 +405,10 @@ resource "azurerm_express_route_circuit" "test" {
 
 func testAccAzureRMExpressRouteCircuit_sku(data acceptance.TestData, tier string, family string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -404,8 +416,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -427,6 +439,10 @@ resource "azurerm_express_route_circuit" "test" {
 
 func testAccAzureRMExpressRouteCircuit_allowClassicOperations(data acceptance.TestData, allowClassicOperations string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -434,8 +450,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50

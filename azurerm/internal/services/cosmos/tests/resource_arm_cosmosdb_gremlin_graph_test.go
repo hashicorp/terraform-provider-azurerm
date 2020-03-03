@@ -185,121 +185,132 @@ func testCheckAzureRmCosmosDbGremlinGraphExists(resourceName string) resource.Te
 
 func testAccAzureRMCosmosDbGremlinGraph_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%[1]s
+%[1]s
 
-	resource "azurerm_cosmosdb_gremlin_graph" "test" {
-		name				= "acctest-CGRPC-%[2]d"
-		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  		account_name        = "${azurerm_cosmosdb_account.test.name}"
-		database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
-		throughput		    = 400
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  throughput          = 400
 
-		index_policy {
-			automatic = true
-			indexing_mode = "Consistent"
-			included_paths = ["/*"]
-			excluded_paths = ["/\"_etag\"/?"]
-		}
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
 
-		conflict_resolution_policy {
-			mode                     = "LastWriterWins"
-			conflict_resolution_path = "/_ts"
-		}
-
-	}
-	`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+}
+`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
 }
 
 func testAccAzureRMCosmosDbGremlinGraph_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+%s
 
-	resource "azurerm_cosmosdb_gremlin_graph" "import" {
-		name 				= "${azurerm_cosmosdb_gremlin_graph.test.name}"
-		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  		account_name        = "${azurerm_cosmosdb_account.test.name}"
-  		database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
-	}
-	`, testAccAzureRMCosmosDbGremlinGraph_basic(data))
+resource "azurerm_cosmosdb_gremlin_graph" "import" {
+  name                = azurerm_cosmosdb_gremlin_graph.test.name
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
+
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+}
+`, testAccAzureRMCosmosDbGremlinGraph_basic(data))
 }
 
 func testAccAzureRMCosmosDbGremlinGraph_customConflictResolutionPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%[1]s
+%[1]s
 
-	resource "azurerm_cosmosdb_gremlin_graph" "test" {
-		name				= "acctest-CGRPC-%[2]d"
-		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  		account_name        = "${azurerm_cosmosdb_account.test.name}"
-		database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
-		throughput		    = 400
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  throughput          = 400
 
-		index_policy {
-			automatic = true
-			indexing_mode = "Consistent"
-			included_paths = ["/*"]
-			excluded_paths = ["/\"_etag\"/?"]
-		}
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
 
-		conflict_resolution_policy {
-			mode	= "Custom"
-			conflict_resolution_procedure = "dbs/{0}/colls/{1}/sprocs/{2}"
-		}
-	}
-	`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
+  conflict_resolution_policy {
+    mode                          = "Custom"
+    conflict_resolution_procedure = "dbs/{0}/colls/{1}/sprocs/{2}"
+  }
+}
+`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
 }
 
 func testAccAzureRMCosmosDbGremlinGraph_indexPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%[1]s
+%[1]s
 
-	resource "azurerm_cosmosdb_gremlin_graph" "test" {
-		name				= "acctest-CGRPC-%[2]d"
-		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  		account_name        = "${azurerm_cosmosdb_account.test.name}"
-		database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
-		throughput		    = 400
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  throughput          = 400
 
-		index_policy {
-			automatic = false
-			indexing_mode = "None"
-		}
+  index_policy {
+    automatic     = false
+    indexing_mode = "None"
+  }
 
-		conflict_resolution_policy {
-			mode                     = "LastWriterWins"
-			conflict_resolution_path = "/_ts"
-		}
-	}
-	`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+}
+`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
 }
 
 func testAccAzureRMCosmosDbGremlinGraph_update(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
-	%[1]s
+%[1]s
 
-	resource "azurerm_cosmosdb_gremlin_graph" "test" {
-		name				= "acctest-CGRPC-%[2]d"
-		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  		account_name        = "${azurerm_cosmosdb_account.test.name}"
-		database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
-		partition_key_path	= "/test"
-		throughput			= %[3]d
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
+  throughput          = %[3]d
 
-		index_policy {
-			automatic = true
-			indexing_mode = "Consistent"
-			included_paths = ["/*"]
-			excluded_paths = ["/\"_etag\"/?"]
-		}
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
 
-		conflict_resolution_policy {
-			mode                     = "LastWriterWins"
-			conflict_resolution_path = "/_ts"
-		}
-		
-		unique_key {
-			paths = ["/definition/id1", "/definition/id2"]
-		}
-	}
-	`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger, throughput)
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+
+  unique_key {
+    paths = ["/definition/id1", "/definition/id2"]
+  }
+}
+`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger, throughput)
 }

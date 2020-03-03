@@ -27,13 +27,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_traffic_manager_profile" "example" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = random_id.server.hex
+  resource_group_name = azurerm_resource_group.example.name
 
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "${random_id.server.hex}"
+    relative_name = random_id.server.hex
     ttl           = 100
   }
 
@@ -52,9 +52,9 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 
 resource "azurerm_traffic_manager_endpoint" "example" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  profile_name        = "${azurerm_traffic_manager_profile.example.name}"
+  name                = random_id.server.hex
+  resource_group_name = azurerm_resource_group.example.name
+  profile_name        = azurerm_traffic_manager_profile.example.name
   target              = "terraform.io"
   type                = "externalEndpoints"
   weight              = 100
@@ -122,7 +122,7 @@ A `custom_header` block supports the following:
 
 * `name` - (Required) The name of the custom header.
 
-* `value` - (Required) The value of custom header. Applicable for Http and Https protocol. 
+* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
 
 A `subnet` block supports the following:
 
@@ -138,7 +138,16 @@ A `subnet` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Traffic Manager Endpoint id.
+* `id` - The ID of the Traffic Manager Endpoint.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Traffic Manager Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the Traffic Manager Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Traffic Manager Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Traffic Manager Endpoint.
 
 ## Import
 

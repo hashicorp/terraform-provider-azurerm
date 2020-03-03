@@ -25,7 +25,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testin
 			data.ImportStep(
 				"admin_password",
 				"enable_automatic_updates",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(data, "2019-Datacenter"),
@@ -36,7 +35,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testin
 			data.ImportStep(
 				"admin_password",
 				"enable_automatic_updates",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -71,7 +69,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// then update the image on this Virtual Machine Scale Set
@@ -82,7 +79,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -104,7 +100,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(data, "2019-Datacenter"),
@@ -114,7 +109,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -136,7 +130,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data, "2019-Datacenter"),
@@ -146,7 +139,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -168,7 +160,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(data, "2019-Datacenter"),
@@ -178,7 +169,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -200,7 +190,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -309,9 +298,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   rolling_upgrade_policy {
-    max_batch_instance_percent              = 21
-    max_unhealthy_instance_percent          = 22
-    max_unhealthy_upgraded_instance_percent = 23
+    max_batch_instance_percent              = 100
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
     pause_time_between_batches              = "PT30S"
   }
 
@@ -515,15 +504,22 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {
+    virtual_machine_scale_set {
+      roll_instances_when_required = false
+    }
+  }
+}
+
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                                          = local.vm_name
-  resource_group_name                           = azurerm_resource_group.test.name
-  location                                      = azurerm_resource_group.test.location
-  sku                                           = "Standard_F2"
-  instances                                     = 1
-  admin_username                                = "adminuser"
-  admin_password                                = "P@ssword1234!"
-  terraform_should_roll_instances_when_required = false
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

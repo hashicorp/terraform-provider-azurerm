@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_policy_set_definition
 
-Manages a policy set definition. 
+Manages a policy set definition.
 
 -> **NOTE:**  Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
 
@@ -33,6 +33,7 @@ resource "azurerm_policy_set_definition" "example" {
     }
 PARAMETERS
 
+
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -45,6 +46,7 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
+
 }
 ```
 
@@ -74,7 +76,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The policy set definition id.
+* `id` - The ID of the Policy Set Definition.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Policy Set Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Set Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Policy Set Definition.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Policy Set Definition.
 
 ## Import
 

@@ -137,6 +137,10 @@ func testCheckAzureRMVirtualWanExists(resourceName string) resource.TestCheckFun
 
 func testAccAzureRMVirtualWan_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -165,6 +169,10 @@ resource "azurerm_virtual_wan" "import" {
 
 func testAccAzureRMVirtualWan_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -179,6 +187,7 @@ resource "azurerm_virtual_wan" "test" {
   allow_branch_to_branch_traffic    = true
   allow_vnet_to_vnet_traffic        = true
   office365_local_breakout_category = "All"
+  type                              = "Standard"
 
   tags = {
     Hello = "There"

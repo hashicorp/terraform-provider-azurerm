@@ -140,6 +140,10 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 
 func testAccAzureRMSharedImage_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -147,15 +151,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_shared_image" "test" {
   name                = "acctestimg%d"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
   identifier {
@@ -173,11 +177,11 @@ func testAccAzureRMSharedImage_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_shared_image" "import" {
-  name                = "${azurerm_shared_image.test.name}"
-  gallery_name        = "${azurerm_shared_image.test.gallery_name}"
-  resource_group_name = "${azurerm_shared_image.test.resource_group_name}"
-  location            = "${azurerm_shared_image.test.location}"
-  os_type             = "${azurerm_shared_image.test.os_type}"
+  name                = azurerm_shared_image.test.name
+  gallery_name        = azurerm_shared_image.test.gallery_name
+  resource_group_name = azurerm_shared_image.test.resource_group_name
+  location            = azurerm_shared_image.test.location
+  os_type             = azurerm_shared_image.test.os_type
 
   identifier {
     publisher = "AccTesPublisher%d"
@@ -190,6 +194,10 @@ resource "azurerm_shared_image" "import" {
 
 func testAccAzureRMSharedImage_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -197,15 +205,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_shared_image" "test" {
   name                  = "acctestimg%d"
-  gallery_name          = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  gallery_name          = azurerm_shared_image_gallery.test.name
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
   os_type               = "Linux"
   description           = "Wubba lubba dub dub"
   eula                  = "Do you agree there's infinite Rick's and Infinite Morty's?"

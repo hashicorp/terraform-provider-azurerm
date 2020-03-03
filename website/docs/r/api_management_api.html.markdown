@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
@@ -30,8 +30,8 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_api" "example" {
   name                = "example-api"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  api_management_name = "${azurerm_api_management.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
   revision            = "1"
   display_name        = "Example API"
   path                = "example"
@@ -106,8 +106,6 @@ A `wsdl_selector` block supports the following:
 
 * `endpoint_name` - (Required) The name of endpoint (port) to import from WSDL.
 
----
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -121,6 +119,15 @@ In addition to all arguments above, the following attributes are exported:
 * `version` - The Version number of this API, if this API is versioned.
 
 * `version_set_id` - The ID of the Version Set which this API is associated with.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management API.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management API.
 
 ## Import
 

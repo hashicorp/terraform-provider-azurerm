@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_analysis_services_server" "server" {
   name                    = "analysisservicesserver"
   location                = "northeurope"
-  resource_group_name     = "${azurerm_resource_group.rg.name}"
+  resource_group_name     = azurerm_resource_group.rg.name
   sku                     = "S0"
   admin_users             = ["myuser@domain.tld"]
   enable_power_bi_service = true
@@ -78,6 +78,15 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the Analysis Services Server.
 
 * `server_full_name` - The full name of the Analysis Services Server.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Analysis Services Server.
+* `update` - (Defaults to 30 minutes) Used when updating the Analysis Services Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Analysis Services Server.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Analysis Services Server.
 
 ## Import
 

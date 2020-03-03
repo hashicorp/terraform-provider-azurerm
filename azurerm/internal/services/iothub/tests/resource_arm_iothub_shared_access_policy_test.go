@@ -84,6 +84,10 @@ func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
 
 func testAccAzureRMIotHubSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -91,12 +95,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "B1"
-    tier     = "Basic"
     capacity = "1"
   }
 
@@ -106,8 +109,8 @@ resource "azurerm_iothub" "test" {
 }
 
 resource "azurerm_iothub_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
   registry_read  = true
@@ -122,8 +125,8 @@ func testAccAzureRMIotHubSharedAccessPolicy_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_iothub_shared_access_policy" "import" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
   registry_read  = true
@@ -134,6 +137,10 @@ resource "azurerm_iothub_shared_access_policy" "import" {
 
 func testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -141,12 +148,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "B1"
-    tier     = "Basic"
     capacity = "1"
   }
 
@@ -156,8 +162,8 @@ resource "azurerm_iothub" "test" {
 }
 
 resource "azurerm_iothub_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
   registry_write = true
