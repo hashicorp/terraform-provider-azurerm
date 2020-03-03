@@ -44,17 +44,17 @@ func TestValidateLinuxName(t *testing.T) {
 		},
 		{
 			// can have a dot in the middle
-			input: "hello.world",
+			input:    "hello.world",
 			expected: true,
 		},
 		{
 			// start with a number
-			input: "0abc",
+			input:    "0abc",
 			expected: true,
 		},
 		{
 			// cannot contain only numbers
-			input: "12345",
+			input:    "12345",
 			expected: false,
 		},
 		{
@@ -107,7 +107,7 @@ func TestValidateWindowsName(t *testing.T) {
 		},
 		{
 			// can't contain underscore
-			input: "hello_world",
+			input:    "hello_world",
 			expected: false,
 		},
 		{
@@ -132,17 +132,17 @@ func TestValidateWindowsName(t *testing.T) {
 		},
 		{
 			// can't contain dot
-			input: "hello.world",
+			input:    "hello.world",
 			expected: false,
 		},
 		{
 			// start with a number
-			input: "0abc",
+			input:    "0abc",
 			expected: true,
 		},
 		{
 			// cannot contain only numbers
-			input: "12345",
+			input:    "12345",
 			expected: false,
 		},
 		{
