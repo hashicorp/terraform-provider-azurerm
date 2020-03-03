@@ -47,14 +47,14 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
   description    = "Alert when total results cross threshold"
   enabled        = true
   # Count all requests with server error result code grouped into 5-minute bins
-  query          = <<-QUERY
+  query       = <<-QUERY
   requests
     | where tolong(resultCode) >= 500
     | summarize count() by bin(timestamp, 5m)
   QUERY
-  severity       = 1
-  frequency      = 5
-  time_window    = 30
+  severity    = 1
+  frequency   = 5
+  time_window = 30
   trigger {
     operator  = "GreaterThan"
     threshold = 3
@@ -76,14 +76,14 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example" {
   description    = "Query results grouped into AggregatedValue; alert when results cross threshold"
   enabled        = true
   # Count all requests with server error result code grouped into 5-minute bins by HTTP operation
-  query          = <<-QUERY
+  query       = <<-QUERY
   requests
     | where tolong(resultCode) >= 500
     | summarize AggregatedValue = count() by operation_Name, bin(timestamp, 5m)
 QUERY
-  severity       = 1
-  frequency      = 5
-  time_window    = 30
+  severity    = 1
+  frequency   = 5
+  time_window = 30
   trigger {
     operator  = "GreaterThan"
     threshold = 3
@@ -112,17 +112,17 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "example2" {
   description    = "Query may access data within multiple resources"
   enabled        = true
   # Count requests in multiple log resources and group into 5-minute bins by HTTP operation
-  query          = format(<<-QUERY
+  query = format(<<-QUERY
   let a=requests
     | where toint(resultCode) >= 500
     | extend fail=1; let b=app('%s').requests
     | where toint(resultCode) >= 500 | extend fail=1; a
     | join b on fail
 QUERY
-, azurerm_application_insights.example2.id)
-  severity       = 1
-  frequency      = 5
-  time_window    = 30
+  , azurerm_application_insights.example2.id)
+  severity    = 1
+  frequency   = 5
+  time_window = 30
   trigger {
     operator  = "GreaterThan"
     threshold = 3
