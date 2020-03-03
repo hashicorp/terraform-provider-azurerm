@@ -744,6 +744,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.PoolProperties; props != nil {
 		d.Set("vm_size", props.VMSize)
+		d.Set("max_tasks_per_node", props.MaxTasksPerNode)
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 			if err := d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
