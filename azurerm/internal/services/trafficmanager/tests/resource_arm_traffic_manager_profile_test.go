@@ -307,7 +307,7 @@ resource "azurerm_traffic_manager_profile" "test" {
       "301-303",
     ]
     
-    custom_headers {
+    custom_header {
     	name = "foo"
 	value = "bar"
     }
@@ -350,7 +350,7 @@ resource "azurerm_traffic_manager_profile" "test" {
       "302-304",
     ]
     
-    custom_headers {
+    custom_header {
     	name = "foo2"
 	value = "bar2"
     }
