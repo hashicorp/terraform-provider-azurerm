@@ -252,6 +252,9 @@ resource "azurerm_route_table" "test" {
   resource_group_name           = "${azurerm_resource_group.test.name}"
   disable_bgp_route_propagation = false
   
+  depends_on = [
+    azurerm_subnet.test,
+  ]
 
   route {
     name           = "subnet-to-vnetlocal"
