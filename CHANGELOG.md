@@ -9,6 +9,7 @@ IMPROVEMENTS:
 
 * `azurerm_application_gateway` - support up to `125` for the `capacity` property with V2 SKU's [GH-5906]
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
+* `azurerm_frontdoor` - exposed new attributes in `backend_pool_health_probe` block `enabled` and `probe_method` [GH-5924]
 * `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
 * `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
 * `azurerm_private_dns_a_record` - export the `fqdn` property [GH-5949]
@@ -27,6 +28,7 @@ BUG FIXES:
 * `azurerm_automation_schedule` - fix time validation [GH-5876]
 * `azurerm_batch_pool` - `frontend_port_range ` is now set correctly. [GH-5941]
 * `azurerm_dns_txt_record` - support records up to `1024` characters in length [GH-5837]
+* `azurerm_frontdoor` - fix the way `backend_pool_load_balancing`/`backend_pool_health_probe` [GH-5924]
 * `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
 * `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource [GH-5935]
