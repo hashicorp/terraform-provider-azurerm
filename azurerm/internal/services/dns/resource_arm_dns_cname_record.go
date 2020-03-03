@@ -11,7 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +24,6 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 		Read:   resourceArmDnsCNameRecordRead,
 		Update: resourceArmDnsCNameRecordCreateUpdate,
 		Delete: resourceArmDnsCNameRecordDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -32,6 +31,11 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DnsCNameRecordID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -45,12 +49,6 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-
-			"records": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Removed:  "Use `record` instead. This attribute will be removed in a future version",
 			},
 
 			"record": {
@@ -73,7 +71,7 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"records"},
+				ConflictsWith: []string{"record"},
 			},
 
 			"tags": tags.Schema(),
@@ -156,27 +154,24 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DnsCNameRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["CNAME"]
-	zoneName := id.Path["dnszones"]
-
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, name, dns.CNAME)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CNAME)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving CNAME Record %s (DNS Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
+		return fmt.Errorf("Error retrieving CNAME Record %s (DNS Zone %q / Resource Group %q): %+v", id.Name, id.ZoneName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("zone_name", id.ZoneName)
+
 	d.Set("fqdn", resp.Fqdn)
 	d.Set("ttl", resp.TTL)
 
@@ -202,18 +197,14 @@ func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DnsCNameRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["CNAME"]
-	zoneName := id.Path["dnszones"]
-
-	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.CNAME, "")
+	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting CNAME Record %q (DNS Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
+		return fmt.Errorf("Error deleting CNAME Record %q (DNS Zone %q / Resource Group %q): %+v", id.Name, id.ZoneName, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -19,14 +19,14 @@ data "azurerm_monitor_action_group" "example" {
 }
 
 output "action_group_id" {
-  value = "${data.azurerm_monitor_action_group.example.id}"
+  value = data.azurerm_monitor_action_group.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Action Group.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Action Group is located in.
+* `name` - Specifies the name of the Action Group.
+* `resource_group_name` - Specifies the name of the resource group the Action Group is located in.
 
 ## Attributes Reference
 
@@ -131,3 +131,9 @@ output "action_group_id" {
 * `name` - The name of the webhook receiver.
 * `service_uri` - The URI where webhooks should be sent.
 * `use_common_alert_schema` - Indicates whether to use common alert schema.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Action Group.

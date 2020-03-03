@@ -37,8 +37,8 @@ func testAccDataSourceAzureRMPostgreSqlServer_basic(data acceptance.TestData, ve
 %s
 
 data "azurerm_postgresql_server" "test" {
-  name                = "${azurerm_postgresql_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_postgresql_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, testAccAzureRMPostgreSQLServer_basic(data, version))
 }

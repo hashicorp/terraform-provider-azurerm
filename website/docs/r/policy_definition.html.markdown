@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_policy_definition
 
-Manages a policy rule definition on a management group or your provider subscription. 
+Manages a policy rule definition on a management group or your provider subscription.
 
 Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 
@@ -25,7 +25,9 @@ resource "azurerm_policy_definition" "policy" {
     {
     "category": "General"
     }
-  METADATA
+  
+METADATA
+
 
   policy_rule = <<POLICY_RULE
 	{
@@ -41,6 +43,7 @@ resource "azurerm_policy_definition" "policy" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -53,6 +56,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 ```
 
@@ -94,7 +98,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The policy definition id.
+* `id` - The ID of the Policy Definition.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Policy Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Policy Definition.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Policy Definition.
 
 ## Import
 

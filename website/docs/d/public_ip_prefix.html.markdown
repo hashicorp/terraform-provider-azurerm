@@ -20,14 +20,14 @@ data "azurerm_public_ip_prefix" "example" {
 }
 
 output "public_ip_prefix" {
-  value = "${data.azurerm_public_ip_prefix.example.ip_prefix}"
+  value = data.azurerm_public_ip_prefix.example.ip_prefix
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the public IP prefix.
-* `resource_group_name` - (Required) Specifies the name of the resource group.
+* `name` - Specifies the name of the public IP prefix.
+* `resource_group_name` - Specifies the name of the resource group.
 
 ## Attributes Reference
 
@@ -37,3 +37,9 @@ output "public_ip_prefix" {
 * `sku` - The SKU of the Public IP Prefix.
 * `prefix_length` - The number of bits of the prefix.
 * `tags` - A mapping of tags to assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Prefix.

@@ -693,6 +693,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_availabilitySetConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -728,6 +732,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_availabilityZonesConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1022,6 +1029,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1049,6 +1060,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1079,11 +1094,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-
-  # TODO: remove in 2.0
-  lifecycle {
-    ignore_changes = ["route_table_id"]
-  }
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -1114,6 +1124,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

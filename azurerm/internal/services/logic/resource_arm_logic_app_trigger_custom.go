@@ -46,7 +46,7 @@ func resourceArmLogicAppTriggerCustom() *schema.Resource {
 			"body": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 		},

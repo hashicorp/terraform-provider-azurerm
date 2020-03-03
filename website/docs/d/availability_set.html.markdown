@@ -19,7 +19,7 @@ data "azurerm_availability_set" "example" {
 }
 
 output "availability_set_id" {
-  value = "${data.azurerm_availability_set.example.id}"
+  value = data.azurerm_availability_set.example.id
 }
 ```
 
@@ -46,3 +46,9 @@ The following attributes are exported:
 * `platform_update_domain_count` - The number of update domains that are used.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Availability Set.

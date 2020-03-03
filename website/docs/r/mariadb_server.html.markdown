@@ -85,6 +85,15 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the MariaDB Server.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MariaDB Server.
+* `update` - (Defaults to 60 minutes) Used when updating the MariaDB Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Server.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MariaDB Server.
+
 ## Import
 
 MariaDB Server's can be imported using the `resource id`, e.g.

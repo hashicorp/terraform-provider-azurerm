@@ -20,15 +20,15 @@ data "azurerm_dev_test_virtual_network" "example" {
 }
 
 output "lab_subnet_name" {
-  value = "${data.azurerm_dev_test_virtual_network.example.allowed_subnets.0.lab_subnet_name}"
+  value = data.azurerm_dev_test_virtual_network.example.allowed_subnets[0].lab_subnet_name
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Network.
-* `lab_name` - (Required) Specifies the name of the Dev Test Lab.
-* `resource_group_name` - (Required) Specifies the name of the resource group that contains the Virtual Network.
+* `name` - Specifies the name of the Virtual Network.
+* `lab_name` - Specifies the name of the Dev Test Lab.
+* `resource_group_name` - Specifies the name of the resource group that contains the Virtual Network.
 
 ## Attributes Reference
 
@@ -59,3 +59,9 @@ An `subnets_override` block supports the following:
 * `use_public_ip_permission` - Indicates if the subnet can be assigned public IP addresses.  Possible values are `Allow`, `Default` and `Deny`.
 
 * `virtual_network_pool_name` - The virtual network pool associated with this subnet.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Test Lab Virtual Network.

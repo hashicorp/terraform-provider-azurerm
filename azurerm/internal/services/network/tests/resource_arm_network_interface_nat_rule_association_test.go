@@ -27,6 +27,7 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -75,6 +76,32 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 				),
 				ExpectNonEmptyPlan: true,
 			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterfaceNATRuleAssociation_updateNIC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_updateNIC(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -185,72 +212,28 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(resourceName s
 }
 
 func testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "acctestlb-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  frontend_ip_configuration {
-    name                 = "primary"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-}
-
-resource "azurerm_lb_nat_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "RDPAccess"
-  protocol                       = "Tcp"
-  frontend_port                  = 3389
-  backend_port                   = 3389
-  frontend_ip_configuration_name = "primary"
-}
+%s
 
 resource "azurerm_network_interface" "test" {
   name                = "acctestni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_network_interface_nat_rule_association" "test" {
-  network_interface_id  = "${azurerm_network_interface.test.id}"
+  network_interface_id  = azurerm_network_interface.test.id
   ip_configuration_name = "testconfiguration1"
-  nat_rule_id           = "${azurerm_lb_nat_rule.test.id}"
+  nat_rule_id           = azurerm_lb_nat_rule.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(data acceptance.TestData) string {
@@ -259,9 +242,96 @@ func testAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(data accept
 %s
 
 resource "azurerm_network_interface_nat_rule_association" "import" {
-  network_interface_id  = "${azurerm_network_interface_nat_rule_association.test.network_interface_id}"
-  ip_configuration_name = "${azurerm_network_interface_nat_rule_association.test.ip_configuration_name}"
-  nat_rule_id           = "${azurerm_network_interface_nat_rule_association.test.nat_rule_id}"
+  network_interface_id  = azurerm_network_interface_nat_rule_association.test.network_interface_id
+  ip_configuration_name = azurerm_network_interface_nat_rule_association.test.ip_configuration_name
+  nat_rule_id           = azurerm_network_interface_nat_rule_association.test.nat_rule_id
 }
 `, template)
+}
+
+func testAccAzureRMNetworkInterfaceNATRuleAssociation_updateNIC(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration2"
+    private_ip_address_version    = "IPv6"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+
+resource "azurerm_network_interface_nat_rule_association" "test" {
+  network_interface_id  = azurerm_network_interface.test.id
+  ip_configuration_name = "testconfiguration1"
+  nat_rule_id           = azurerm_lb_nat_rule.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMNetworkInterfaceNATRuleAssociation_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = "primary"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_nat_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  name                           = "RDPAccess"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3389
+  frontend_ip_configuration_name = "primary"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

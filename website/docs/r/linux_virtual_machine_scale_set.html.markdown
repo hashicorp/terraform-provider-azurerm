@@ -1,5 +1,5 @@
 ---
-subcategory: "Beta"
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_linux_virtual_machine_scale_set"
 description: |-
@@ -8,15 +8,15 @@ description: |-
 
 # azurerm_linux_virtual_machine_scale_set
 
-~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
-
-~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
-
 Manages a Linux Virtual Machine Scale Set.
 
-~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+## Disclaimers
 
-~> **NOTE:** Terraform will automatically update & reimage the nodes in the Scale Set if Required during an Update (for example, when changing Sku) - you can opt out of this by setting the `terraform_should_roll_instances_when_required` field to `false`.
+~> **Note**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
+-> **Note** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#features).
+
+~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
 
 ## Example Usage
 
@@ -138,21 +138,21 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
--> **NOTE:** This can only be configured when `priority` is set to `Low`.
+-> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. Changing this forces a new resource to be created. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `max_bid_price` - (Optional) The maximum price you're willing to pay for a low-priority VM Scale Set, in US Dollars; which must be greater than the current low-priority price. If this bid price falls below the current low-priority price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that this VM Scale Set should not be evicted for price reasons.
+* `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in this Scale Set should not be evicted for price reasons.
 
--> **NOTE:** This can only be configured when `priority` is set to `Low`.
+-> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
 * `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `false`.
 
-* `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Low`. Defaults to `Regular`. Changing this value forces a new resource.
+* `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
--> **NOTE:** When `priority` is set to `Low` an `eviction_policy` must be specified.
+-> **NOTE:** When `priority` is set to `Spot` an `eviction_policy` must be specified.
 
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
 
@@ -173,10 +173,6 @@ The following arguments are supported:
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
-
-* `terraform_should_roll_instances_when_required` - (Optional) Should Terraform automatically roll instances within the Virtual Machine Scale Set when required? This happens when the `data_disk`, `os_disk`, `sku`, `source_image_id`, or `source_image_reference` fields change. This field defaults to `true`.
-
--> **NOTE:** This field is specific to Terraform, when required Terraform will automatically roll the instances in a Scale Set one at a time.
 
 * `upgrade_mode` - (Optional) Specifies how Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`.
 
@@ -398,7 +394,7 @@ An `identity` block exports the following:
 
 * `principal_id` - The ID of the System Managed Service Principal.
 
-### Timeouts
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

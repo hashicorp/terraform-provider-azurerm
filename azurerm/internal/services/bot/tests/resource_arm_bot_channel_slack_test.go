@@ -127,9 +127,9 @@ func testAccAzureRMBotChannelSlack_basicConfig(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_slack" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   client_id           = "%s"
   client_secret       = "%s"
   verification_token  = "%s"
@@ -143,9 +143,9 @@ func testAccAzureRMBotChannelSlack_basicUpdate(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_slack" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   client_id           = "%s"
   client_secret       = "%s"
   verification_token  = "%s"

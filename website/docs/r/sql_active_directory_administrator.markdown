@@ -56,7 +56,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The SQL Active Directory Administrator ID.
+* `id` - The ID of the SQL Active Directory Administrator.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SQL Active Directory Administrator.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Active Directory Administrator.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Active Directory Administrator.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SQL Active Directory Administrator.
 
 ## Import
 

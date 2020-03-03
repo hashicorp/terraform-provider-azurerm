@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `nat_ip_configuration` - (Required) One or more (up to 8) `nat_ip_configuration` block as defined below.
 
-* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Frontend IP Configuration ID's from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running. 
+* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Frontend IP Configuration ID's from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running.
 
 ---
 
@@ -131,6 +131,15 @@ The following attributes are exported:
 * `alias` - A globally unique DNS Name for your Private Link Service. You can use this alias to request a connection to your Private Link Service.
 
 * `network_interfaces` - A list of network interface resource ids that are being used by the service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Private Link Service.
+* `update` - (Defaults to 60 minutes) Used when updating the Private Link Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Private Link Service.
 
 ## Import
 

@@ -58,6 +58,15 @@ The following attributes are exported:
 
 * `id` - The ID of the NetApp Pool.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the NetApp Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Pool.
+
 ## Import
 
 NetApp Pool can be imported using the `resource id`, e.g.

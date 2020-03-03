@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "main" {
 
 resource "azurerm_monitor_action_group" "main" {
   name                = "example-actiongroup"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  resource_group_name = azurerm_resource_group.main.name
   short_name          = "p0action"
 
   webhook_receiver {
@@ -31,26 +31,26 @@ resource "azurerm_monitor_action_group" "main" {
 
 resource "azurerm_storage_account" "to_monitor" {
   name                     = "examplesa"
-  resource_group_name      = "${azurerm_resource_group.main.name}"
-  location                 = "${azurerm_resource_group.main.location}"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_monitor_activity_log_alert" "main" {
   name                = "example-activitylogalert"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  scopes              = ["${azurerm_resource_group.main.id}"]
+  resource_group_name = azurerm_resource_group.main.name
+  scopes              = [azurerm_resource_group.main.id]
   description         = "This alert will monitor a specific storage account updates."
 
   criteria {
-    resource_id    = "${azurerm_storage_account.to_monitor.id}"
+    resource_id    = azurerm_storage_account.to_monitor.id
     operation_name = "Microsoft.Storage/storageAccounts/write"
     category       = "Recommendation"
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.main.id}"
+    action_group_id = azurerm_monitor_action_group.main.id
 
     webhook_properties = {
       from = "terraform"
@@ -99,6 +99,16 @@ A `criteria` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the activity log alert.
+
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Activity Log Alert.
+* `update` - (Defaults to 30 minutes) Used when updating the Activity Log Alert.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Activity Log Alert.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Activity Log Alert.
 
 ## Import
 

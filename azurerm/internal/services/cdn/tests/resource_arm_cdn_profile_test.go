@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 )
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
@@ -189,19 +190,18 @@ func testCheckAzureRMCdnProfileExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn profile: %s", name)
+		id, err := parse.CdnProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnProfilesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: CDN Profile %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: CDN Profile %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -217,10 +217,11 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		id, err := parse.CdnProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			return nil
@@ -236,6 +237,10 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 
 func testAccAzureRMCdnProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -243,8 +248,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -256,16 +261,20 @@ func testAccAzureRMCdnProfile_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cdn_profile" "import" {
-  name                = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_cdn_profile.test.location}"
-  resource_group_name = "${azurerm_cdn_profile.test.resource_group_name}"
-  sku                 = "${azurerm_cdn_profile.test.sku}"
+  name                = azurerm_cdn_profile.test.name
+  location            = azurerm_cdn_profile.test.location
+  resource_group_name = azurerm_cdn_profile.test.resource_group_name
+  sku                 = azurerm_cdn_profile.test.sku
 }
 `, template)
 }
 
 func testAccAzureRMCdnProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -273,8 +282,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -287,6 +296,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -294,8 +307,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -307,6 +320,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfileNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -314,8 +331,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "standard_verizon"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -323,6 +340,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_standardAkamai(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -330,8 +351,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Akamai"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -339,6 +360,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_standardMicrosoft(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -346,8 +371,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Microsoft"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

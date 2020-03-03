@@ -33,6 +33,25 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basicAzureADAuth(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -292,10 +311,20 @@ func testAccAzureRMStorageContainer_basic(data acceptance.TestData) string {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
+`, template)
+}
+
+func testAccAzureRMStorageContainer_basicAzureADAuth(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_basic(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+}
+
+%s
 `, template)
 }
 
@@ -305,10 +334,9 @@ func testAccAzureRMStorageContainer_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_storage_container" "import" {
-  name                  = "${azurerm_storage_container.test.name}"
-  resource_group_name   = "${azurerm_storage_container.test.resource_group_name}"
-  storage_account_name  = "${azurerm_storage_container.test.storage_account_name}"
-  container_access_type = "${azurerm_storage_container.test.container_access_type}"
+  name                  = azurerm_storage_container.test.name
+  storage_account_name  = azurerm_storage_container.test.storage_account_name
+  container_access_type = azurerm_storage_container.test.container_access_type
 }
 `, template)
 }
@@ -320,8 +348,7 @@ func testAccAzureRMStorageContainer_update(data acceptance.TestData, accessType 
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
 }
 `, template, accessType)
@@ -334,8 +361,7 @@ func testAccAzureRMStorageContainer_metaData(data acceptance.TestData) string {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 
   metadata = {
@@ -352,8 +378,7 @@ func testAccAzureRMStorageContainer_metaDataUpdated(data acceptance.TestData) st
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 
   metadata = {
@@ -371,12 +396,10 @@ func testAccAzureRMStorageContainer_metaDataEmpty(data acceptance.TestData) stri
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 
-  metadata = {
-  }
+  metadata = {}
 }
 `, template)
 }
@@ -388,8 +411,7 @@ func testAccAzureRMStorageContainer_root(data acceptance.TestData) string {
 
 resource "azurerm_storage_container" "test" {
   name                  = "$root"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, template)
@@ -402,8 +424,7 @@ func testAccAzureRMStorageContainer_web(data acceptance.TestData) string {
 
 resource "azurerm_storage_container" "test" {
   name                  = "$web"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, template)
@@ -411,6 +432,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMStorageContainer_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -418,8 +443,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 

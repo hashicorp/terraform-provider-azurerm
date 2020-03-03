@@ -65,7 +65,16 @@ The following attributes are exported:
 
 * `size` - The size of the database in bytes.
 
----
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Kusto Database.
+* `update` - (Defaults to 60 minutes) Used when updating the Kusto Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Database.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Database.
 
 ## Import
 

@@ -20,23 +20,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "hdinsightstor"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_rserver_cluster" "example" {
   name                = "example-hdicluster"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_version     = "3.6"
   tier                = "Standard"
   rstudio             = true
@@ -48,8 +48,8 @@ resource "azurerm_hdinsight_rserver_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.example.id}"
-    storage_account_key  = "${azurerm_storage_account.example.primary_access_key}"
+    storage_container_id = azurerm_storage_container.example.id
+    storage_account_key  = azurerm_storage_account.example.primary_access_key
     is_default           = true
   }
 
@@ -239,6 +239,17 @@ The following attributes are exported:
 * `https_endpoint` - The HTTPS Connectivity Endpoint for this HDInsight RServer Cluster.
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight RServer Cluster.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the RServer HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the RServer HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the RServer HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the RServer HDInsight Cluster.
 
 ## Import
 

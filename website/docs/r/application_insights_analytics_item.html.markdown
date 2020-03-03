@@ -12,7 +12,7 @@ Manages an Application Insights Analytics Item component.
 
 ## Example Usage
 
-```terraform
+```hcl
 resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
@@ -21,13 +21,13 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_analytics_item" "example" {
   name                    = "testquery"
-  application_insights_id = "${azurerm_application_insights.example.id}"
+  application_insights_id = azurerm_application_insights.example.id
   content                 = "requests //simple example query"
   scope                   = "shared"
   type                    = "query"
@@ -61,6 +61,15 @@ The following attributes are exported:
 * `time_modified` - A string containing the time the Analytics Item was last modified.
 
 * `version` - A string indicating the version of the query format
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Application Insights Analytics Item.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Analytics Item.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Analytics Item.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Analytics Item.
 
 ## Import
 

@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -85,7 +85,7 @@ A `vsts_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Data Factory ID.
+* `id` - The ID of the Data Factory.
 
 * `identity` - An `identity` block as defined below.
 
@@ -97,6 +97,15 @@ The `identity` block exports the following:
 
 * `tenant_id` - The ID of the Azure Active Directory Tenant.
 
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory.
 
 ## Import
 

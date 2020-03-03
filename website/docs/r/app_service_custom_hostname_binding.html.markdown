@@ -29,8 +29,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -39,16 +39,16 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_app_service" "example" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
+  name                = random_id.server.hex
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "example" {
   hostname            = "www.mywebsite.com"
-  app_service_name    = "${azurerm_app_service.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_name    = azurerm_app_service.example.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -77,6 +77,15 @@ The following attributes are exported:
 * `id` - The ID of the App Service Custom Hostname Binding
 
 * `virtual_ip` - The virtual IP address assigned to the hostname if IP based SSL is enabled.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Custom Hostname Binding.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Custom Hostname Binding.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Custom Hostname Binding.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Custom Hostname Binding.
 
 ## Import
 

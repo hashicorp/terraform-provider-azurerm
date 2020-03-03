@@ -329,18 +329,27 @@ func testAccAzureRMMsSqlElasticPool_basic_DTU(data acceptance.TestData) string {
 }
 
 func testAccAzureRMMsSqlElasticPool_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlElasticPool_DTU_Template(data, "BasicPool", "Basic", 50, 5242880000, 0, 5, false)
+	template := testAccAzureRMMsSqlElasticPool_DTU_Template(data, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_mssql_elasticpool" "import" {
-  name                  = "${azurerm_mssql_elasticpool.test.name}"
-  resource_group_name   = "${azurerm_mssql_elasticpool.test.resource_group_name}"
-  location              = "${azurerm_mssql_elasticpool.test.location}"
-  server_name           = "${azurerm_mssql_elasticpool.test.server_name}"
-  max_size_bytes        = "${azurerm_mssql_elasticpool.test.max_size_bytes}"
-  sku                   = "${azurerm_mssql_elasticpool.test.sku}"
-  per_database_settings = "${azurerm_mssql_elasticpool.test.per_database_settings}"
+  name                = azurerm_mssql_elasticpool.test.name
+  resource_group_name = azurerm_mssql_elasticpool.test.resource_group_name
+  location            = azurerm_mssql_elasticpool.test.location
+  server_name         = azurerm_mssql_elasticpool.test.server_name
+  max_size_gb         = 4.8828125
+
+  sku {
+    name     = "BasicPool"
+    tier     = "Basic"
+    capacity = 50
+  }
+
+  per_database_settings {
+    min_capacity = 0
+    max_capacity = 5
+  }
 }
 `, template)
 }
@@ -371,6 +380,10 @@ func testAccAzureRMMsSqlElasticPool_resize_vCore(data acceptance.TestData) strin
 
 func testAccAzureRMMsSqlElasticPool_vCore_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%s"
@@ -378,8 +391,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctest%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -387,9 +400,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-vcore-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
   max_size_gb         = 5
 
   sku {
@@ -409,6 +422,10 @@ resource "azurerm_mssql_elasticpool" "test" {
 
 func testAccAzureRMMsSqlElasticPool_vCore_MaxSizeBytes_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%s"
@@ -416,8 +433,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctest%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -425,9 +442,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-vcore-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
   max_size_bytes      = 214748364800
 
   sku {
@@ -447,6 +464,10 @@ resource "azurerm_mssql_elasticpool" "test" {
 
 func testAccAzureRMMsSqlElasticPool_DTU_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%s"
@@ -454,8 +475,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctest%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -463,9 +484,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_mssql_elasticpool" "test" {
   name                = "acctest-pool-dtu-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
   max_size_gb         = %.7[6]f
   zone_redundant      = %[9]t
 

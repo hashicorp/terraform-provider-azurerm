@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_managed_disk" "example" {
   name                 = "acctestmd"
   location             = "West US 2"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_managed_disk" "source" {
   name                 = "acctestmd1"
   location             = "West US 2"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -56,10 +56,10 @@ resource "azurerm_managed_disk" "source" {
 resource "azurerm_managed_disk" "copy" {
   name                 = "acctestmd2"
   location             = "West US 2"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Copy"
-  source_resource_id   = "${azurerm_managed_disk.source.id}"
+  source_resource_id   = azurerm_managed_disk.source.id
   disk_size_gb         = "1"
 
   tags = {
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 -> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not requested onboarding to `Azure Ultra Disk Storage` private preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
 
-* `create_option` - (Required) The method to use when creating the managed disk. Possible values include:
+* `create_option` - (Required) The method to use when creating the managed disk. Changing this forces a new resource to be created. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
  * `Empty` - Create an empty managed disk.
  * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
@@ -103,6 +103,8 @@ The following arguments are supported:
 
 * `disk_size_gb` - (Optional, Required for a new managed disk) Specifies the size of the managed disk to create in gigabytes. If `create_option` is `Copy` or `FromImage`, then the value must be equal to or greater than the source's size.
 
+~> **NOTE:** Changing this value is disruptive if the disk is attached to a Virtual Machine. The VM will be shut down and de-allocated as required by Azure to action the change. Terraform will attempt to start the machine again after the update if it was in a `running` state when the apply was started.
+
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
@@ -113,7 +115,7 @@ The following arguments are supported:
 
 * `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
 
-* `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`.
+* `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`.  Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -154,6 +156,15 @@ The `key_encryption_key` block supports:
 The following attributes are exported:
 
 * `id` - The ID of the Managed Disk.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Managed Disk.
+* `update` - (Defaults to 30 minutes) Used when updating the Managed Disk.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Managed Disk.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Managed Disk.
 
 ## Import
 

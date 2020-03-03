@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -45,7 +44,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				ForceNew: true,
 				// NOTE: there's no validation requirements listed for this
 				// so we're intentionally doing the minimum we can here
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"target_resource_id": {
@@ -353,12 +352,7 @@ func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 		Refresh:                   monitorDiagnosticSettingDeletedRefreshFunc(ctx, client, targetResourceId, id.name),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 60 * time.Minute
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {

@@ -19,7 +19,7 @@ data "azurerm_application_security_group" "example" {
 }
 
 output "application_security_group_id" {
-  value = "${data.azurerm_application_security_group.example.id}"
+  value = data.azurerm_application_security_group.example.id
 }
 ```
 
@@ -40,3 +40,9 @@ The following attributes are exported:
 * `location` - The supported Azure location where the Application Security Group exists.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Security Group.

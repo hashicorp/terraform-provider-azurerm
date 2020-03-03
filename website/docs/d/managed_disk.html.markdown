@@ -25,9 +25,9 @@ output "id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Managed Disk.
+* `name` - Specifies the name of the Managed Disk.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where this Managed Disk exists.
+* `resource_group_name` - Specifies the name of the Resource Group where this Managed Disk exists.
 
 ## Attributes Reference
 
@@ -52,3 +52,9 @@ output "id" {
 * `tags` - A mapping of tags assigned to the resource.
 
 * `zones` - A list of Availability Zones where the Managed Disk exists.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Managed Disk.
