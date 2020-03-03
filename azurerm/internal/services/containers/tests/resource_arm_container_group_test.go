@@ -433,6 +433,10 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 
 func testAccAzureRMContainerGroup_SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -466,6 +470,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_UserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -507,6 +515,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_MultipleAssignedIdentities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -548,6 +560,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -604,6 +620,10 @@ resource "azurerm_container_group" "import" {
 
 func testAccAzureRMContainerGroup_imageRegistryCredentials(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -611,8 +631,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
@@ -655,6 +675,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -662,8 +686,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
@@ -700,6 +724,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_logTypeUnset(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -707,15 +735,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
@@ -731,8 +759,8 @@ resource "azurerm_container_group" "test" {
 
   diagnostics {
     log_analytics {
-      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
-      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
+      workspace_key = azurerm_log_analytics_workspace.test.primary_shared_key
     }
   }
 
@@ -745,6 +773,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxBasicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -752,8 +784,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
@@ -789,6 +821,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -796,15 +832,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "testvnet"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 
   delegation {
@@ -819,25 +855,25 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_profile" "test" {
   name                = "testnetprofile"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   container_network_interface {
     name = "testcnic"
 
     ip_configuration {
       name      = "testipconfig"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 }
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = "${azurerm_network_profile.test.id}"
+  network_profile_id  = azurerm_network_profile.test.id
   os_type             = "Linux"
 
   container {
@@ -859,6 +895,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_windowsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -866,8 +906,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "windows"
 
@@ -897,6 +937,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_windowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -904,17 +948,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
@@ -924,8 +968,8 @@ resource "azurerm_log_analytics_solution" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "windows"
@@ -980,8 +1024,8 @@ resource "azurerm_container_group" "test" {
 
   diagnostics {
     log_analytics {
-      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
-      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
+      workspace_key = azurerm_log_analytics_workspace.test.primary_shared_key
       log_type      = "ContainerInsights"
 
       metadata = {
@@ -999,6 +1043,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

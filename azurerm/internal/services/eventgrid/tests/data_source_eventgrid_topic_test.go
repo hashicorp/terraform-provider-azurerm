@@ -34,8 +34,8 @@ func testAccDataSourceAzureRMEventGridTopic_basic(data acceptance.TestData) stri
 %s
 
 data "azurerm_eventgrid_topic" "test" {
-  name                = "${azurerm_eventgrid_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_eventgrid_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

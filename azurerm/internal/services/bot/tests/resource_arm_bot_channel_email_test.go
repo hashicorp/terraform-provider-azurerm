@@ -130,9 +130,9 @@ func testAccAzureRMBotChannelEmail_basicConfig(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_email" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   email_address       = "%s"
   email_password      = "%s"
 }
@@ -145,9 +145,9 @@ func testAccAzureRMBotChannelEmail_basicUpdate(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_email" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   email_address       = "%s"
   email_password      = "%s"
 }

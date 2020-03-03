@@ -84,6 +84,10 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 
 func testAccAzureRMKustoDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -111,6 +115,10 @@ resource "azurerm_kusto_database" "test" {
 
 func testAccAzureRMKustoDatabase_softDeletePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -140,6 +148,10 @@ resource "azurerm_kusto_database" "test" {
 
 func testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -169,6 +181,10 @@ resource "azurerm_kusto_database" "test" {
 
 func testAccAzureRMKustoDatabase_hotCachePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -198,6 +214,10 @@ resource "azurerm_kusto_database" "test" {
 
 func testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -173,6 +173,10 @@ func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsNsRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -180,13 +184,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ns_record" "test" {
   name                = "mynsrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
@@ -200,9 +204,9 @@ func testAccAzureRMDnsNsRecord_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dns_ns_record" "import" {
-  name                = "${azurerm_dns_ns_record.test.name}"
-  resource_group_name = "${azurerm_dns_ns_record.test.resource_group_name}"
-  zone_name           = "${azurerm_dns_ns_record.test.zone_name}"
+  name                = azurerm_dns_ns_record.test.name
+  resource_group_name = azurerm_dns_ns_record.test.resource_group_name
+  zone_name           = azurerm_dns_ns_record.test.zone_name
   ttl                 = 300
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
@@ -212,6 +216,10 @@ resource "azurerm_dns_ns_record" "import" {
 
 func testAccAzureRMDnsNsRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -219,13 +227,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ns_record" "test" {
   name                = "mynsrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   records = ["ns1.contoso.com", "ns2.contoso.com", "ns3.contoso.com"]
@@ -235,6 +243,10 @@ resource "azurerm_dns_ns_record" "test" {
 
 func testAccAzureRMDnsNsRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -242,13 +254,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ns_record" "test" {
   name                = "mynsrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]
@@ -263,6 +275,10 @@ resource "azurerm_dns_ns_record" "test" {
 
 func testAccAzureRMDnsNsRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -270,13 +286,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ns_record" "test" {
   name                = "mynsrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   records = ["ns1.contoso.com", "ns2.contoso.com"]

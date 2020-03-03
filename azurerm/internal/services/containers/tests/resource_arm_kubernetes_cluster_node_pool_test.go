@@ -693,6 +693,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_availabilitySetConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -728,6 +732,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_availabilityZonesConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1022,6 +1029,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1049,6 +1060,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1109,6 +1124,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

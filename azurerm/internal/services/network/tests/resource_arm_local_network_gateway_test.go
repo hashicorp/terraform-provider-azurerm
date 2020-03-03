@@ -322,6 +322,10 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 
 func testAccAzureRMLocalNetworkGatewayConfig_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -329,8 +333,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 }
@@ -343,9 +347,9 @@ func testAccAzureRMLocalNetworkGatewayConfig_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_local_network_gateway" "import" {
-  name                = "${azurerm_local_network_gateway.test.name}"
-  location            = "${azurerm_local_network_gateway.test.location}"
-  resource_group_name = "${azurerm_local_network_gateway.test.resource_group_name}"
+  name                = azurerm_local_network_gateway.test.name
+  location            = azurerm_local_network_gateway.test.location
+  resource_group_name = azurerm_local_network_gateway.test.resource_group_name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 }
@@ -354,6 +358,10 @@ resource "azurerm_local_network_gateway" "import" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -361,8 +369,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 
@@ -375,6 +383,10 @@ resource "azurerm_local_network_gateway" "test" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -382,8 +394,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 
@@ -397,6 +409,10 @@ resource "azurerm_local_network_gateway" "test" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_bgpSettingsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -404,8 +420,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 

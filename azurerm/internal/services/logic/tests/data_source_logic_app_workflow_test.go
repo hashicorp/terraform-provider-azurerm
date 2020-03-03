@@ -55,8 +55,8 @@ func testAccDataSourceAzureRMLogicAppWorkflow_basic(data acceptance.TestData) st
 %s
 
 data "azurerm_logic_app_workflow" "test" {
-  name                = "${azurerm_logic_app_workflow.test.name}"
-  resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
+  name                = azurerm_logic_app_workflow.test.name
+  resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
 `, r)
 }
@@ -67,8 +67,8 @@ func testAccDataSourceAzureRMLogicAppWorkflow_tags(data acceptance.TestData) str
 %s
 
 data "azurerm_logic_app_workflow" "test" {
-  name                = "${azurerm_logic_app_workflow.test.name}"
-  resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
+  name                = azurerm_logic_app_workflow.test.name
+  resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
 `, r)
 }

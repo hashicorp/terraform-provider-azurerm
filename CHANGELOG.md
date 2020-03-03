@@ -1,15 +1,36 @@
 ## 2.1.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
+* **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
+
 IMPROVEMENTS:
 
+* `azurerm_application_gateway` - support up to `125` for the `capacity` property with V2 SKU's [GH-5906]
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
+* `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
+* `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
+* `azurerm_private_dns_a_record` - export the `fqdn` property [GH-5949]
+* `azurerm_private_dns_aaaa_record` - export the `fqdn` property [GH-5949]
+* `azurerm_private_dns_cname_record` - export the `fqdn` property [GH-5949]
+* `azurerm_private_dns_mx_record` - export the `fqdn` property [GH-5949]
+* `azurerm_private_dns_ptr_record` - export the `fqdn` property [GH-5949]
+* `azurerm_private_dns_srv_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_endpoint` - exposed `private_ip_address` as a computed attribute [GH-5838]
 * `azurerm_virtual_wan` - support for the `type` property [GH-5877]
-* `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
+* `azurerm_storage_account` - support up to 50 tags [GH-5934]
 
 BUG FIXES:
 
+* `azurerm_app_service_plan` - no longer sends an empty `app_service_environment_id` property on update [GH-5915]
+* `azurerm_automation_schedule` - fix time validation [GH-5876]
+* `azurerm_batch_pool` - `frontend_port_range ` is now set correctly. [GH-5941]
+* `azurerm_dns_txt_record` - support records up to `1024` characters in length [GH-5837]
+* `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
+* `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource [GH-5935]
+
 
 ## 2.0.0 (February 24, 2020)
 

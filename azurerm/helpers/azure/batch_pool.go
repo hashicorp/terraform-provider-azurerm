@@ -673,7 +673,7 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 				inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
 			}
 			if inboundNatPool.FrontendPortRangeStart != nil && inboundNatPool.FrontendPortRangeEnd != nil {
-				inboundNatPoolMap["frontend_port_range"] = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, inboundNatPool.FrontendPortRangeEnd)
+				inboundNatPoolMap["frontend_port_range"] = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, *inboundNatPool.FrontendPortRangeEnd)
 			}
 			inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
 

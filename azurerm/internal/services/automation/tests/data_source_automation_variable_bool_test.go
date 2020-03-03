@@ -31,9 +31,9 @@ func testAccDataSourceAutomationVariableBool_basic(data acceptance.TestData) str
 %s
 
 data "azurerm_automation_variable_bool" "test" {
-  name                    = "${azurerm_automation_variable_bool.test.name}"
-  resource_group_name     = "${azurerm_automation_variable_bool.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_variable_bool.test.automation_account_name}"
+  name                    = azurerm_automation_variable_bool.test.name
+  resource_group_name     = azurerm_automation_variable_bool.test.resource_group_name
+  automation_account_name = azurerm_automation_variable_bool.test.automation_account_name
 }
 `, config)
 }

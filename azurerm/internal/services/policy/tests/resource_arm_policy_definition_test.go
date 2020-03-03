@@ -167,6 +167,10 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 
 func testAzureRMPolicyDefinition_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -187,6 +191,7 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -199,6 +204,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 `, data.RandomInteger, data.RandomInteger)
 }
@@ -209,18 +215,22 @@ func testAzureRMPolicyDefinition_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_policy_definition" "import" {
-  name         = "${azurerm_policy_definition.test.name}"
-  policy_type  = "${azurerm_policy_definition.test.policy_type}"
-  mode         = "${azurerm_policy_definition.test.mode}"
-  display_name = "${azurerm_policy_definition.test.display_name}"
-  policy_rule  = "${azurerm_policy_definition.test.policy_rule}"
-  parameters   = "${azurerm_policy_definition.test.parameters}"
+  name         = azurerm_policy_definition.test.name
+  policy_type  = azurerm_policy_definition.test.policy_type
+  mode         = azurerm_policy_definition.test.mode
+  display_name = azurerm_policy_definition.test.display_name
+  policy_rule  = azurerm_policy_definition.test.policy_rule
+  parameters   = azurerm_policy_definition.test.parameters
 }
 `, template)
 }
 
 func testAzureRMPolicyDefinition_computedMetadata(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctest-%d"
   policy_type  = "Custom"
@@ -249,12 +259,17 @@ resource "azurerm_policy_definition" "test" {
   }
   }
 POLICY_RULE
+
 }
 `, data.RandomInteger)
 }
 
 func testAzureRMPolicyDefinition_ManagementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }
@@ -264,7 +279,7 @@ resource "azurerm_policy_definition" "test" {
   policy_type         = "Custom"
   mode                = "All"
   display_name        = "acctestpol-%d"
-  management_group_id = "${azurerm_management_group.test.group_id}"
+  management_group_id = azurerm_management_group.test.group_id
 
   policy_rule = <<POLICY_RULE
 	{
@@ -280,6 +295,7 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -292,6 +308,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

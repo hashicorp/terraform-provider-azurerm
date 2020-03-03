@@ -682,8 +682,8 @@ func testAccAzureRMNetworkInterface_publicIPTemplate(data acceptance.TestData) s
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 `, template, data.RandomInteger)
@@ -777,6 +777,10 @@ resource "azurerm_network_interface" "test" {
 
 func testAccAzureRMNetworkInterface_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

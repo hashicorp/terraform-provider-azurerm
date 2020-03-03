@@ -32,8 +32,8 @@ func testAccDataSourceAzureRMNotificationHubNamespaceFree(data acceptance.TestDa
 %s
 
 data "azurerm_notification_hub_namespace" "test" {
-  name                = "${azurerm_notification_hub_namespace.test.name}"
-  resource_group_name = "${azurerm_notification_hub_namespace.test.resource_group_name}"
+  name                = azurerm_notification_hub_namespace.test.name
+  resource_group_name = azurerm_notification_hub_namespace.test.resource_group_name
 }
 `, template)
 }

@@ -177,6 +177,10 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsPtrRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -184,13 +188,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 }
@@ -203,9 +207,9 @@ func testAccAzureRMDnsPtrRecord_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_dns_ptr_record" "import" {
-  name                = "${azurerm_dns_ptr_record.test.name}"
-  resource_group_name = "${azurerm_dns_ptr_record.test.resource_group_name}"
-  zone_name           = "${azurerm_dns_ptr_record.test.zone_name}"
+  name                = azurerm_dns_ptr_record.test.name
+  resource_group_name = azurerm_dns_ptr_record.test.resource_group_name
+  zone_name           = azurerm_dns_ptr_record.test.zone_name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 }
@@ -214,6 +218,10 @@ resource "azurerm_dns_ptr_record" "import" {
 
 func testAccAzureRMDnsPtrRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -221,13 +229,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com", "reddit.com"]
 }
@@ -236,6 +244,10 @@ resource "azurerm_dns_ptr_record" "test" {
 
 func testAccAzureRMDnsPtrRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -243,13 +255,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 
@@ -263,6 +275,10 @@ resource "azurerm_dns_ptr_record" "test" {
 
 func testAccAzureRMDnsPtrRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -270,13 +286,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 
