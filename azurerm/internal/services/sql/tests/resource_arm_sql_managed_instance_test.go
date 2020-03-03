@@ -1122,6 +1122,11 @@ resource "azurerm_sql_managed_instance" "test" {
   vcores                       = 4
   storage_size_in_gb           = 32
 
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
   tags = {
 	environment = "staging"
 	database    = "test"
