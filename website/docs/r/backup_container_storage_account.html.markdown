@@ -22,23 +22,23 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
 }
 
 resource "azurerm_storage_account" "sa" {
   name                     = "examplesa"
-  location                 = "${azurerm_resource_group.rg.location}"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
+  location                 = azurerm_resource_group.rg.location
+  resource_group_name      = azurerm_resource_group.rg.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_backup_container_storage_account" "container" {
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  storage_account_id  = "${azurerm_storage_account.sa.id}"
+  resource_group_name = azurerm_resource_group.rg.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  storage_account_id  = azurerm_storage_account.sa.id
 }
 ```
 
@@ -60,9 +60,7 @@ In addition to the arguments above, the following attributes are exported:
 
 * `id` - The ID of the Backup Storage Account Container.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

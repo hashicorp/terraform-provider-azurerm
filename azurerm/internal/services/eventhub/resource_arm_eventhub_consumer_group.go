@@ -57,8 +57,6 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocationDeprecated(),
-
 			"user_metadata": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -147,7 +145,10 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 	d.Set("eventhub_name", eventHubName)
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("user_metadata", resp.ConsumerGroupProperties.UserMetadata)
+
+	if resp.ConsumerGroupProperties != nil {
+		d.Set("user_metadata", resp.ConsumerGroupProperties.UserMetadata)
+	}
 
 	return nil
 }

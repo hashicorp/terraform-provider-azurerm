@@ -189,9 +189,9 @@ func testAccAzureRMCosmosDbGremlinGraph_basic(data acceptance.TestData) string {
 
 resource "azurerm_cosmosdb_gremlin_graph" "test" {
   name                = "acctest-CGRPC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
   throughput          = 400
 
   index_policy {
@@ -205,7 +205,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
     mode                     = "LastWriterWins"
     conflict_resolution_path = "/_ts"
   }
-
 }
 `, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
 }
@@ -215,10 +214,22 @@ func testAccAzureRMCosmosDbGremlinGraph_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_cosmosdb_gremlin_graph" "import" {
-  name                = "${azurerm_cosmosdb_gremlin_graph.test.name}"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
+  name                = azurerm_cosmosdb_gremlin_graph.test.name
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
+
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
 }
 `, testAccAzureRMCosmosDbGremlinGraph_basic(data))
 }
@@ -229,9 +240,9 @@ func testAccAzureRMCosmosDbGremlinGraph_customConflictResolutionPolicy(data acce
 
 resource "azurerm_cosmosdb_gremlin_graph" "test" {
   name                = "acctest-CGRPC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
   throughput          = 400
 
   index_policy {
@@ -255,9 +266,9 @@ func testAccAzureRMCosmosDbGremlinGraph_indexPolicy(data acceptance.TestData) st
 
 resource "azurerm_cosmosdb_gremlin_graph" "test" {
   name                = "acctest-CGRPC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
   throughput          = 400
 
   index_policy {
@@ -279,9 +290,9 @@ func testAccAzureRMCosmosDbGremlinGraph_update(data acceptance.TestData, through
 
 resource "azurerm_cosmosdb_gremlin_graph" "test" {
   name                = "acctest-CGRPC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
   partition_key_path  = "/test"
   throughput          = %[3]d
 

@@ -9,9 +9,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+// NOTE: this resource intentionally doesn't support Requires Import
+//       since a fallback route is created by default
 
 func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
@@ -28,33 +30,6 @@ func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMIotHubFallbackRoute_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_fallback_route"),
-			},
 		},
 	})
 }
@@ -148,25 +123,12 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMIotHubFallbackRoute_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHub_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_iothub_fallback_route" "import" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
-
-  source         = "DeviceMessages"
-  condition      = "true"
-  endpoint_names = ["${azurerm_iothub_endpoint_storage_container.test.name}"]
-  enabled        = true
-}
-`, template)
-}
-
 func testAccAzureRMIotHubFallbackRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
@@ -174,23 +136,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test-%[1]d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -203,24 +164,24 @@ resource "azurerm_iothub" "test" {
 }
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
-  connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
+  connection_string          = azurerm_storage_account.test.primary_blob_connection_string
   batch_frequency_in_seconds = 60
   max_chunk_size_in_bytes    = 10485760
-  container_name             = "${azurerm_storage_container.test.name}"
+  container_name             = azurerm_storage_container.test.name
   encoding                   = "Avro"
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
 }
 
 resource "azurerm_iothub_fallback_route" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
 
   condition      = "true"
-  endpoint_names = ["${azurerm_iothub_endpoint_storage_container.test.name}"]
+  endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -228,6 +189,10 @@ resource "azurerm_iothub_fallback_route" "test" {
 
 func testAccAzureRMIotHubFallbackRoute_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
@@ -235,23 +200,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test-%[1]d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -264,24 +228,24 @@ resource "azurerm_iothub" "test" {
 }
 
 resource "azurerm_iothub_endpoint_storage_container" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
-  connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
+  connection_string          = azurerm_storage_account.test.primary_blob_connection_string
   batch_frequency_in_seconds = 60
   max_chunk_size_in_bytes    = 10485760
-  container_name             = "${azurerm_storage_container.test.name}"
+  container_name             = azurerm_storage_container.test.name
   encoding                   = "Avro"
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
 }
 
 resource "azurerm_iothub_fallback_route" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_name         = "${azurerm_iothub.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
 
   condition      = "true"
-  endpoint_names = ["${azurerm_iothub_endpoint_storage_container.test.name}"]
+  endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

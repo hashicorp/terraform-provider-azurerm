@@ -35,8 +35,8 @@ func testAccDataSourceDedicatedHostGroup_basic(data acceptance.TestData) string 
 %s
 
 data "azurerm_dedicated_host_group" "test" {
-  name                = "${azurerm_dedicated_host_group.test.name}"
-  resource_group_name = "${azurerm_dedicated_host_group.test.resource_group_name}"
+  name                = azurerm_dedicated_host_group.test.name
+  resource_group_name = azurerm_dedicated_host_group.test.resource_group_name
 }
 `, config)
 }

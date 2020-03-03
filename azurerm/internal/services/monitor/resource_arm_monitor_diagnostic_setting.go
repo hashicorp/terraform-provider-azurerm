@@ -352,12 +352,7 @@ func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 		Refresh:                   monitorDiagnosticSettingDeletedRefreshFunc(ctx, client, targetResourceId, id.name),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 60 * time.Minute
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {

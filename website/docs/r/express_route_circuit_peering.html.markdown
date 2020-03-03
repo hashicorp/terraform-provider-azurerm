@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -40,8 +40,8 @@ resource "azurerm_express_route_circuit" "example" {
 
 resource "azurerm_express_route_circuit_peering" "example" {
   peering_type                  = "MicrosoftPeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.example.name}"
-  resource_group_name           = "${azurerm_resource_group.example.name}"
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  resource_group_name           = azurerm_resource_group.example.name
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
   secondary_peer_address_prefix = "123.0.0.4/30"
@@ -91,9 +91,9 @@ The following attributes are exported:
 
 * `secondary_azure_port` - The Secondary Port used by Azure for this Peering.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -106,6 +106,15 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 	return warnings, errors
 }
 
+func validateManagedDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
+	value := v.(int)
+	if value < 1 || value > 32767 {
+		errors = append(errors, fmt.Errorf(
+			"The `disk_size_gb` can only be between 0 and 32767"))
+	}
+	return warnings, errors
+}
+
 func validateDedicatedHostGroupName() func(i interface{}, k string) (warnings []string, errors []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[^_\W][\w-.]{0,78}[\w]$`), "")
 }

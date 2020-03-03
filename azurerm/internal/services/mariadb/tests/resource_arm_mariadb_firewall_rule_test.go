@@ -117,6 +117,10 @@ func testCheckAzureRMMariaDBFirewallRuleDestroy(s *terraform.State) error {
 
 func testAccAzureRMMariaDBFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -161,11 +165,11 @@ func testAccAzureRMMariaDBFirewallRule_requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_mariadb_firewall_rule" "import" {
-  name                = "${azurerm_mariadb_firewall_rule.test.name}"
-  resource_group_name = "${azurerm_mariadb_firewall_rule.test.resource_group_name}"
-  server_name         = "${azurerm_mariadb_firewall_rule.test.server_name}"
-  start_ip_address    = "${azurerm_mariadb_firewall_rule.test.start_ip_address}"
-  end_ip_address      = "${azurerm_mariadb_firewall_rule.test.end_ip_address}"
+  name                = azurerm_mariadb_firewall_rule.test.name
+  resource_group_name = azurerm_mariadb_firewall_rule.test.resource_group_name
+  server_name         = azurerm_mariadb_firewall_rule.test.server_name
+  start_ip_address    = azurerm_mariadb_firewall_rule.test.start_ip_address
+  end_ip_address      = azurerm_mariadb_firewall_rule.test.end_ip_address
 }
 `, testAccAzureRMMariaDBFirewallRule_basic(data))
 }

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_eventhub_namespace" "example" {
   name                = "acceptanceTestEventHubNamespace"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Basic"
   capacity            = 2
 
@@ -32,17 +32,17 @@ resource "azurerm_eventhub_namespace" "example" {
 
 resource "azurerm_eventhub" "example" {
   name                = "acceptanceTestEventHub"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
   partition_count     = 2
   message_retention   = 2
 }
 
 resource "azurerm_eventhub_authorization_rule" "example" {
   name                = "navi"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
-  eventhub_name       = "${azurerm_eventhub.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  eventhub_name       = azurerm_eventhub.example.name
+  resource_group_name = azurerm_resource_group.example.name
   listen              = true
   send                = false
   manage              = false
@@ -83,9 +83,9 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The Secondary Connection String for the Event Hubs Authorization Rule.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

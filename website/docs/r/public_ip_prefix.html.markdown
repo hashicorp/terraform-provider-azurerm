@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_public_ip_prefix" "example" {
   name                = "acceptanceTestPublicIpPrefix1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   prefix_length = 31
 
@@ -35,23 +35,23 @@ resource "azurerm_public_ip_prefix" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Public IP resource . Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Public IP Prefix resource . Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the public IP.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Public IP Prefix.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `sku` - (Optional) The SKU of the Public IP Prefix. Accepted values are `Standard`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
--> **Note** Public IP Prefix can only be created with Standard SKUs at this time.
+-> **Note**: Public IP Prefix can only be created with Standard SKUs at this time.
 
-* `prefix_length` - (Optional) Specifies the number of bits of the prefix. The value can be set between 24 (256 addresses) and 31 (2 addresses). Changing this forces a new resource to be created.
+* `prefix_length` - (Optional) Specifies the number of bits of the prefix. The value can be set between 28 (16 addresses) and 31 (2 addresses). Changing this forces a new resource to be created.
 
--> **Please Note:**: There may be Public IP address limits on the subscription . [More information available here](https://docs.microsoft.com/en-us/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address)
+-> **Please Note**: There may be Public IP address limits on the subscription . [More information available here](https://docs.microsoft.com/en-us/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
+* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP Prefix in.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
@@ -62,9 +62,7 @@ The following attributes are exported:
 * `id` - The Public IP Prefix ID.
 * `ip_prefix` - The IP address prefix value that was allocated.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

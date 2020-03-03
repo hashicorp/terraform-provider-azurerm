@@ -22,38 +22,38 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_public_ip" "example" {
   name                = "example-pip"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "example" {
   name                = "example-lb"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   frontend_ip_configuration {
     name                 = "primary"
-    public_ip_address_id = "${azurerm_public_ip.example.id}"
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
 resource "azurerm_lb_nat_rule" "example" {
-  resource_group_name            = "${azurerm_resource_group.example.name}"
-  loadbalancer_id                = "${azurerm_lb.example.id}"
+  resource_group_name            = azurerm_resource_group.example.name
+  loadbalancer_id                = azurerm_lb.example.id
   name                           = "RDPAccess"
   protocol                       = "Tcp"
   frontend_port                  = 3389
@@ -63,20 +63,20 @@ resource "azurerm_lb_nat_rule" "example" {
 
 resource "azurerm_network_interface" "example" {
   name                = "example-nic"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.example.id}"
+    subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_network_interface_nat_rule_association" "example" {
-  network_interface_id  = "${azurerm_network_interface.example.id}"
+  network_interface_id  = azurerm_network_interface.example.id
   ip_configuration_name = "testconfiguration1"
-  nat_rule_id           = "${azurerm_lb_nat_rule.example.id}"
+  nat_rule_id           = azurerm_lb_nat_rule.example.id
 }
 ```
 
@@ -96,9 +96,7 @@ The following attributes are exported:
 
 * `id` - The (Terraform specific) ID of the Association between the Network Interface and the Load Balancers NAT Rule.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

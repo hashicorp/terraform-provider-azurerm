@@ -186,6 +186,10 @@ func testCheckAzureRMWebApplicationFirewallPolicyDestroy(s *terraform.State) err
 
 func testAccAzureRMWebApplicationFirewallPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -193,14 +197,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMWebApplicationFirewallPolicy_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -208,8 +216,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   custom_rules {
     name      = "Rule1"

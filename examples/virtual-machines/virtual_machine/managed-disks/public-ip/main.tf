@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_public_ip" "example" {
   name                = "${var.prefix}-pip"
   location            = "${azurerm_resource_group.example.location}"

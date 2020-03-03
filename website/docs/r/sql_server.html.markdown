@@ -24,23 +24,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "accstr"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
-  location                     = "${azurerm_resource_group.example.location}"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
   blob_extended_auditing_policy {
-    storage_endpoint                = "${azurerm_storage_account.example.primary_blob_endpoint}"
-    storage_account_access_key      = "${azurerm_storage_account.example.primary_access_key}"
+    storage_endpoint                = azurerm_storage_account.example.primary_blob_endpoint
+    storage_account_access_key      = azurerm_storage_account.example.primary_access_key
     is_storage_secondary_key_in_use = true
     retention_days                  = 6
   }
@@ -110,8 +110,6 @@ A `blob_extended_auditing_policy` block supports the following:
 * `retention_days` - (Optional) Specifies the number of days to keep in the audit logs in the storage account.
 
 ### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

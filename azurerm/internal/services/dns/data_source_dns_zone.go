@@ -51,24 +51,6 @@ func dataSourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"zone_type": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Private DNS Zones are now supported through a separate resource in Azure & Terraform",
-			},
-
-			"registration_virtual_network_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
-			"resolution_virtual_network_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -114,27 +96,6 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.ZoneProperties; props != nil {
 		d.Set("number_of_record_sets", props.NumberOfRecordSets)
 		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
-		d.Set("zone_type", props.ZoneType)
-
-		registrationVNets := make([]string, 0)
-		if rvns := props.RegistrationVirtualNetworks; rvns != nil {
-			for _, rvn := range *rvns {
-				registrationVNets = append(registrationVNets, *rvn.ID)
-			}
-		}
-		if err := d.Set("registration_virtual_network_ids", registrationVNets); err != nil {
-			return err
-		}
-
-		resolutionVNets := make([]string, 0)
-		if rvns := props.ResolutionVirtualNetworks; rvns != nil {
-			for _, rvn := range *rvns {
-				resolutionVNets = append(resolutionVNets, *rvn.ID)
-			}
-		}
-		if err := d.Set("resolution_virtual_network_ids", resolutionVNets); err != nil {
-			return err
-		}
 
 		nameServers := make([]string, 0)
 		if ns := props.NameServers; ns != nil {

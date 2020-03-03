@@ -25,6 +25,7 @@ func TestAccAzureRMPrivateDnsAaaaRecord_basic(t *testing.T) {
 				Config: testAccAzureRMPrivateDnsAaaaRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsAaaaRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
 			data.ImportStep(),
@@ -168,6 +169,10 @@ func testCheckAzureRMPrivateDnsAaaaRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateDnsAaaaRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -175,13 +180,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 }
@@ -194,9 +199,9 @@ func testAccAzureRMPrivateDnsAaaaRecord_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_private_dns_aaaa_record" "import" {
-  name                = "${azurerm_private_dns_aaaa_record.test.name}"
-  resource_group_name = "${azurerm_private_dns_aaaa_record.test.resource_group_name}"
-  zone_name           = "${azurerm_private_dns_aaaa_record.test.zone_name}"
+  name                = azurerm_private_dns_aaaa_record.test.name
+  resource_group_name = azurerm_private_dns_aaaa_record.test.resource_group_name
+  zone_name           = azurerm_private_dns_aaaa_record.test.zone_name
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 }
@@ -205,6 +210,10 @@ resource "azurerm_private_dns_aaaa_record" "import" {
 
 func testAccAzureRMPrivateDnsAaaaRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -212,13 +221,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335", "fd73:5e76:3ab5:d2e9::1"]
 }
@@ -227,6 +236,10 @@ resource "azurerm_private_dns_aaaa_record" "test" {
 
 func testAccAzureRMPrivateDnsAaaaRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -234,13 +247,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 
@@ -254,6 +267,10 @@ resource "azurerm_private_dns_aaaa_record" "test" {
 
 func testAccAzureRMPrivateDnsAaaaRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -261,13 +278,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 

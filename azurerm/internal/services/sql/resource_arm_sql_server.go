@@ -329,11 +329,11 @@ func expandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 		StorageAccountAccessKey: utils.String(serverBlobAuditingPolicies["storage_account_access_key"].(string)),
 		StorageEndpoint:         utils.String(serverBlobAuditingPolicies["storage_endpoint"].(string)),
 	}
-	if isStorageSecondaryKeyInUse, ok := serverBlobAuditingPolicies["is_storage_secondary_key_in_use"]; ok {
-		ExtendedServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(isStorageSecondaryKeyInUse.(bool))
+	if v, ok := serverBlobAuditingPolicies["is_storage_secondary_key_in_use"]; ok {
+		ExtendedServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
 	}
-	if retentionDays, ok := serverBlobAuditingPolicies["retention_days"]; ok {
-		ExtendedServerBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(retentionDays.(int)))
+	if v, ok := serverBlobAuditingPolicies["retention_days"]; ok {
+		ExtendedServerBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
 	}
 
 	return &ExtendedServerBlobAuditingPolicyProperties

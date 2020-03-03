@@ -29,8 +29,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -39,16 +39,16 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_app_service" "example" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
+  name                = random_id.server.hex
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "example" {
   hostname            = "www.mywebsite.com"
-  app_service_name    = "${azurerm_app_service.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_name    = azurerm_app_service.example.name
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -78,9 +78,7 @@ The following attributes are exported:
 
 * `virtual_ip` - The virtual IP address assigned to the hostname if IP based SSL is enabled.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

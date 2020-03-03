@@ -223,7 +223,7 @@ func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]str
 
 		vnetName := vnetResourceID.Path["virtualNetworks"]
 
-		if !SliceContainsValue(vnetNames, vnetName) {
+		if !azure.SliceContainsValue(vnetNames, vnetName) {
 			vnetNames = append(vnetNames, vnetName)
 		}
 	}
@@ -245,4 +245,24 @@ func flattenArmNetworkDDoSProtectionPlanVirtualNetworkIDs(input *[]network.SubRe
 	}
 
 	return vnetIDs
+}
+
+func extractVnetNames(d *schema.ResourceData) (*[]string, error) {
+	vnetIDs := d.Get("virtual_network_ids").([]interface{})
+	vnetNames := make([]string, 0)
+
+	for _, vnetID := range vnetIDs {
+		vnetResourceID, err := azure.ParseAzureResourceID(vnetID.(string))
+		if err != nil {
+			return nil, err
+		}
+
+		vnetName := vnetResourceID.Path["virtualNetworks"]
+
+		if !azure.SliceContainsValue(vnetNames, vnetName) {
+			vnetNames = append(vnetNames, vnetName)
+		}
+	}
+
+	return &vnetNames, nil
 }

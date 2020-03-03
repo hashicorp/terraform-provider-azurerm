@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_service_fabric_cluster" "example" {
   name                 = "example-servicefabric"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  location             = "${azurerm_resource_group.example.location}"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
   cluster_code_version = "6.5.639.9590"
@@ -212,9 +212,7 @@ The following attributes are exported:
 
 * `cluster_endpoint` - The Cluster Endpoint for this Service Fabric Cluster.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

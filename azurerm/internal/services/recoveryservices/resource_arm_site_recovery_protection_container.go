@@ -76,7 +76,7 @@ func resourceArmSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, me
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_recovery_services_protection_container", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container", azure.HandleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 

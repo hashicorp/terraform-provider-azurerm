@@ -19,13 +19,13 @@ Manages a Key Vault Access Policy.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
-  location = "${azurerm_resource_group.example.location}"
+  location = azurerm_resource_group.example.location
 }
 
 resource "azurerm_key_vault" "example" {
   name                = "testvault"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "standard"
 
@@ -39,7 +39,7 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
-  key_vault_id = "${azurerm_key_vault.example.id}"
+  key_vault_id = azurerm_key_vault.example.id
 
   tenant_id = "00000000-0000-0000-0000-000000000000"
   object_id = "11111111-1111-1111-1111-111111111111"
@@ -60,14 +60,6 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) Specifies the id of the Key Vault resource. Changing this
     forces a new resource to be created.
-
--> **NOTE:** At this time the Key Vault `<->` Key Vault Access Policy associations need to be configured using the field `key_vault_id` or using both fields `vault_name` and `resource_group_name`. These fields are now deprecated and will be removed in favour of `key_vault_id` in the next major version (2.0) of the AzureRM Provider.
-
-* `vault_name` - (Required / **Deprecated**) Specifies the name of the Key Vault resource. Changing this
-    forces a new resource to be created.
-
-* `resource_group_name` - (Required / **Deprecated**) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used
     for authenticating requests to the key vault. Changing this forces a new resource
@@ -101,9 +93,9 @@ The following attributes are exported:
 
 -> **NOTE:** This Identifier is unique to Terraform and doesn't map to an existing object within Azure.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

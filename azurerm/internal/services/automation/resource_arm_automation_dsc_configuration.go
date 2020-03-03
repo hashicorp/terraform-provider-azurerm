@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -79,6 +80,8 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -111,6 +114,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := automation.DscConfigurationCreateOrUpdateParameters{
 		DscConfigurationCreateOrUpdateProperties: &automation.DscConfigurationCreateOrUpdateProperties{
@@ -122,6 +126,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 			},
 		},
 		Location: utils.String(location),
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
@@ -192,7 +197,7 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 
 	d.Set("content_embedded", content)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {

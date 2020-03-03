@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "random_id" "workspace" {
   keepers = {
     # Generate a new id each time we switch to a new resource group
-    group_name = "${azurerm_resource_group.example.name}"
+    group_name = azurerm_resource_group.example.name
   }
 
   byte_length = 8
@@ -29,17 +29,17 @@ resource "random_id" "workspace" {
 
 resource "azurerm_log_analytics_workspace" "example" {
   name                = "k8s-workspace-${random_id.workspace.hex}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "example" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.example.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.example.name}"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  workspace_resource_id = azurerm_log_analytics_workspace.example.id
+  workspace_name        = azurerm_log_analytics_workspace.example.name
 
   plan {
     publisher = "Microsoft"
@@ -74,9 +74,7 @@ A `plan` block includes:
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -22,8 +22,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -33,8 +33,8 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "example" {
   name                = "tfex_sevicebus_topic"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
@@ -49,9 +49,6 @@ The following arguments are supported:
 
 * `namespace_name` - (Required) The name of the ServiceBus Namespace to create
     this topic in. Changing this forces a new resource to be created.
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
-    Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
@@ -97,9 +94,7 @@ The following attributes are exported:
 
 * `id` - The ServiceBus Topic ID.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

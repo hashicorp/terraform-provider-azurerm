@@ -23,9 +23,9 @@ data "azurerm_iothub_dps" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Iot Device Provisioning Service resource.
+* `name` - Specifies the name of the Iot Device Provisioning Service resource.
 
-* `resource_group_name` - (Required) The name of the resource group under which the Iot Device Provisioning Service is located in.
+* `resource_group_name` - The name of the resource group under which the Iot Device Provisioning Service is located in.
 
 ## Attributes Reference
 
@@ -43,9 +43,7 @@ The following attributes are exported:
 
 * `service_operations_host_name` - The service endpoint of the IoT Device Provisioning Service.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

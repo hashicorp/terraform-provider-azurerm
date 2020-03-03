@@ -23,22 +23,22 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "B_Gen5_2"
 
@@ -56,9 +56,9 @@ resource "azurerm_postgresql_server" "example" {
 
 resource "azurerm_postgresql_virtual_network_rule" "example" {
   name                                 = "postgresql-vnet-rule"
-  resource_group_name                  = "${azurerm_resource_group.example.name}"
-  server_name                          = "${azurerm_postgresql_server.example.name}"
-  subnet_id                            = "${azurerm_subnet.internal.id}"
+  resource_group_name                  = azurerm_resource_group.example.name
+  server_name                          = azurerm_postgresql_server.example.name
+  subnet_id                            = azurerm_subnet.internal.id
   ignore_missing_vnet_service_endpoint = true
 }
 ```
@@ -88,9 +88,7 @@ The following attributes are exported:
 
 * `id` - The ID of the PostgreSQL Virtual Network Rule.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

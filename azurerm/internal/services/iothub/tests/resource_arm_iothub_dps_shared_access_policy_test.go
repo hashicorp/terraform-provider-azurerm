@@ -91,23 +91,29 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *t
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
     capacity = "1"
   }
 }
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
   service_config      = true
 }
@@ -116,23 +122,29 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
     capacity = "1"
   }
 }
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
   registration_write  = true
 }
@@ -141,23 +153,29 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
     capacity = "1"
   }
 }
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
   enrollment_read     = true
 }
@@ -166,23 +184,29 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
     capacity = "1"
   }
 }
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
   enrollment_write    = true
 }
@@ -240,7 +264,7 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy(s *terraform.State) erro
 
 		for _, sharedAccessPolicy := range *resp.Properties.AuthorizationPolicies {
 			if *sharedAccessPolicy.KeyName == keyName {
-				return fmt.Errorf("Bad: Shared Access Policy %s still exists on IoTHb DPS %s", keyName, iothubDpsName)
+				return fmt.Errorf("Bad: Shared Access Policy %s still exists on IoTHub DPS %s", keyName, iothubDpsName)
 			}
 		}
 	}
