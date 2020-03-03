@@ -85,11 +85,13 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 								string(sqlvirtualmachine.Sunday),
 							}, false),
 						},
+
 						"maintenance_window_duration_in_minutes": {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(30, 180),
 						},
+
 						"maintenance_window_starting_hour": {
 							Type:         schema.TypeInt,
 							Required:     true,
@@ -110,17 +112,9 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 							//api return "sqlvmName:name1,sqlvmName:name2"
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								oldNamelist := strings.Split(old, ",")
-								for _, n := range oldNamelist {
-									cur := strings.Split(n, ":")
-									if len(cur) > 1 && cur[1] == new {
-										return true
-									}
-								}
-								return false
-							},
+							DiffSuppressFunc: mssqlVMCredentialNameDiffSuppressFunc,
 						},
+
 						"azure_key_vault_url": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -128,6 +122,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Sensitive:    true,
 							ValidateFunc: validate.URLIsHTTPS,
 						},
+
 						"service_principal_name": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -135,6 +130,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
 						"service_principal_secret": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -156,6 +152,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
 						"sql_connectivity_type": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -166,18 +163,21 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 								string(sqlvirtualmachine.PUBLIC),
 							}, false),
 						},
+
 						"sql_connectivity_port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      1433,
 							ValidateFunc: validation.IntBetween(1024, 65535),
 						},
+
 						"sql_connectivity_update_password": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
 						"sql_connectivity_update_username": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -217,13 +217,15 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 			return tf.ImportAsExistsError("azurerm_mssql_virtual_machine", *existing.ID)
 		}
 	}
+
 	// get location from vm
 	vmclient := meta.(*clients.Client).Compute.VMClient
 	respvm, err := vmclient.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure Virtual Machine %s: %+v", name, err)
 	}
-	if respvm.Location == nil {
+
+	if *respvm.Location == "" {
 		return fmt.Errorf("Error location is empty from making Read request on Azure Virtual Machine %s: %+v", name, err)
 	}
 
@@ -241,7 +243,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	parameters := sqlvirtualmachine.SQLVirtualMachine{
-		Location:   utils.String(azure.NormalizeLocation(*respvm.Location)),
+		Location:   utils.String(*respvm.Location),
 		Properties: &properties,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -316,17 +318,15 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	resourceGroupName := id.ResourceGroup
-	name := id.Name
 
-	future, err := client.Delete(ctx, resourceGroupName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Error deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+			return fmt.Errorf("Error waiting for deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -351,14 +351,17 @@ func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.Aut
 	if autoPatching == nil || !*autoPatching.Enable {
 		return []interface{}{}
 	}
+
 	var startHour int32
 	if autoPatching.MaintenanceWindowStartingHour != nil {
 		startHour = *autoPatching.MaintenanceWindowStartingHour
 	}
+
 	var duration int32
 	if autoPatching.MaintenanceWindowDuration != nil {
 		duration = *autoPatching.MaintenanceWindowDuration
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"day_of_week":                            string(autoPatching.DayOfWeek),
@@ -387,18 +390,22 @@ func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.K
 	if keyVault == nil || !*keyVault.Enable {
 		return []interface{}{}
 	}
+
 	name := ""
 	if keyVault.CredentialName != nil {
 		name = *keyVault.CredentialName
 	}
+
 	keyVaultUrl := ""
 	if v, ok := d.GetOk("key_vault_credential.0.azure_key_vault_url"); ok {
 		keyVaultUrl = v.(string)
 	}
+
 	servicePrincipalName := ""
 	if v, ok := d.GetOk("key_vault_credential.0.service_principal_name"); ok {
 		servicePrincipalName = v.(string)
 	}
+
 	servicePrincipalSecret := ""
 	if v, ok := d.GetOk("key_vault_credential.0.service_principal_secret"); ok {
 		servicePrincipalSecret = v.(string)
@@ -481,4 +488,15 @@ func flattenArmSqlVirtualMachineServerConfigurationsManagement(serverConfig *sql
 			"sql_connectivity_update_username": userName,
 		},
 	}
+}
+
+func mssqlVMCredentialNameDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	oldNamelist := strings.Split(old, ",")
+	for _, n := range oldNamelist {
+		cur := strings.Split(n, ":")
+		if len(cur) > 1 && cur[1] == new {
+			return true
+		}
+	}
+	return false
 }

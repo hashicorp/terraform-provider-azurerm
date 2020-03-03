@@ -161,22 +161,17 @@ func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.Tes
 			return fmt.Errorf("Sql Virtual Machine not found: %s", resourceName)
 		}
 
-		id, err := parse.VmID(rs.Primary.Attributes["virtual_machine_id"])
+		id, err := parse.MssqlVmID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		if err != nil {
-			return err
-		}
-		name := id.Name
-		resourceGroupName := id.ResourceGroup
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.SQLVirtualMachinesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, resourceGroupName, name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) does not exist", name, resourceGroupName)
+				return fmt.Errorf("Bad: Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on sqlVirtualMachinesClient: %+v", err)
 		}
@@ -194,14 +189,12 @@ func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.VmID(rs.Primary.Attributes["virtual_machine_id"])
+		id, err := parse.MssqlVmID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		name := id.Name
-		resourceGroupName := id.ResourceGroup
 
-		if resp, err := client.Get(ctx, resourceGroupName, name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on sqlVirtualMachinesClient: %+v", err)
 			}
@@ -228,12 +221,15 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                      = "acctest-SN-%[1]d"
-  resource_group_name       = azurerm_resource_group.test.name
-  virtual_network_name      = azurerm_virtual_network.test.name
-  address_prefix            = "10.0.0.0/24"
-  network_security_group_id = azurerm_network_security_group.nsg.id
-  # despite the warning, changing it causes refresh plan not empty
+  name                 = "acctest-SN-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.0.0/24"
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 
 resource "azurerm_public_ip" "vm" {
@@ -243,7 +239,7 @@ resource "azurerm_public_ip" "vm" {
   allocation_method   = "Dynamic"
 }
 
-resource "azurerm_network_security_group" "nsg" {
+resource "azurerm_network_security_group" "test" {
   name                = "acctest-NSG-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -258,9 +254,9 @@ resource "azurerm_network_security_rule" "RDPRule" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = 3389
-  source_address_prefix       = "*"
+  source_address_prefix       = "167.220.255.0/25"
   destination_address_prefix  = "*"
-  network_security_group_name = azurerm_network_security_group.nsg.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_security_rule" "MSSQLRule" {
@@ -272,16 +268,15 @@ resource "azurerm_network_security_rule" "MSSQLRule" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = 1433
-  source_address_prefix       = "*"
+  source_address_prefix       = "167.220.255.0/25"
   destination_address_prefix  = "*"
-  network_security_group_name = azurerm_network_security_group.nsg.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_network_interface" "test" {
   name                      = "acctest-NIC-%[1]d"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
-  network_security_group_id = azurerm_network_security_group.nsg.id
 
   ip_configuration {
     name                          = "testconfiguration1"
@@ -396,15 +391,15 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
   name                = "acckv-%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -427,7 +422,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "generated" {
   name         = "key-%[2]d"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -446,11 +441,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = "${azuread_application.test.application_id}"
+  application_id = azuread_application.test.application_id
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = "${azuread_service_principal.test.id}"
+  service_principal_id = azuread_service_principal.test.id
   value                = "%s"
   end_date             = "2021-01-01T01:02:03Z"
 }
@@ -477,15 +472,15 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
   name                = "acckv-%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -508,7 +503,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "generated" {
   name         = "key-%[2]d"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -527,11 +522,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = "${azuread_application.test.application_id}"
+  application_id = azuread_application.test.application_id
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = "${azuread_service_principal.test.id}"
+  service_principal_id = azuread_service_principal.test.id
   value                = "%s"
   end_date             = "2021-01-01T01:02:03Z"
 }

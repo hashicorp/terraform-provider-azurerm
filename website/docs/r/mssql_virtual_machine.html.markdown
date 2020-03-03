@@ -14,7 +14,7 @@ Manages a Microsoft SQL Virtual Machine
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-resgroup"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -188,6 +188,16 @@ The `server_configuration` block supports the following:
 
 The following attributes are exported:
 * `id` - The ID of the SQL Virtual Machine.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MSSQL Virtual Machine.
+* `update` - (Defaults to 60 minutes) Used when updating the MSSQL Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL Virtual Machine.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MSSQL Virtual Machine.
+
 
 ## Import
 
