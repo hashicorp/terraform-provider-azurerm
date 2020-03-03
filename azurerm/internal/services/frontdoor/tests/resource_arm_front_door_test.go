@@ -328,7 +328,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
@@ -395,7 +395,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
@@ -447,7 +447,7 @@ resource "azurerm_frontdoor" "import" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
@@ -512,7 +512,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
@@ -583,7 +583,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                                    = local.endpoint_name
-    host_name                               = "acctestfd-%d.azurefd.net"
+    host_name                               = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled       = false
     web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.test.id
   }
@@ -649,7 +649,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
@@ -716,7 +716,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
@@ -782,7 +782,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = true
     custom_https_configuration {
       certificate_source = "FrontDoor"
@@ -851,7 +851,7 @@ resource "azurerm_frontdoor" "test" {
 
   frontend_endpoint {
     name                              = local.endpoint_name
-    host_name                         = "acctestfd-%d.azurefd.net"
+    host_name                         = "acctest-FD-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
@@ -865,55 +865,55 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-frontdoor-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "acctestfd-%[1]d"
+  name                                         = "acctest-FD-%[1]d"
   location                                     = azurerm_resource_group.test.location
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
 
   frontend_endpoint {
-    name                              = "acctest-%[1]d-default-FE"
-    host_name                         = "acctestfd-%[1]d.azurefd.net"
+    name                              = "acctest-FD-%[1]d-default-FE"
+    host_name                         = "acctest-FD-%[1]d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 
   # --- Pool 1
 
   routing_rule {
-    name               = "acctest-%[1]d-bing-RR"
+    name               = "acctest-FD-%[1]d-bing-RR"
     accepted_protocols = ["Https"]
     patterns_to_match  = ["/poolBing/*"]
-    frontend_endpoints = ["acctest-%[1]d-default-FE"]
+    frontend_endpoints = ["acctest-FD-%[1]d-default-FE"]
 
     forwarding_configuration {
       forwarding_protocol = "MatchRequest"
-      backend_pool_name   = "acctest-%[1]d-pool-bing"
+      backend_pool_name   = "acctest-FD-%[1]d-pool-bing"
       cache_enabled       = true
     }
   }
 
   backend_pool_load_balancing {
-    name                            = "acctest-%[1]d-bing-LB"
+    name                            = "acctest-FD-%[1]d-bing-LB"
     additional_latency_milliseconds = 0
     sample_size                     = 4
     successful_samples_required     = 2
   }
 
   backend_pool_health_probe {
-    name         = "acctest-%[1]d-bing-HP"
+    name         = "acctest-FD-%[1]d-bing-HP"
     protocol     = "Https"
     enabled      = true
     probe_method = "HEAD"
   }
 
   backend_pool {
-    name                = "acctest-%[1]d-pool-bing"
-    load_balancing_name = "acctest-%[1]d-bing-LB"
-    health_probe_name   = "acctest-%[1]d-bing-HP"
+    name                = "acctest-FD-%[1]d-pool-bing"
+    load_balancing_name = "acctest-FD-%[1]d-bing-LB"
+    health_probe_name   = "acctest-FD-%[1]d-bing-HP"
 
     backend {
       host_header = "bing.com"
@@ -928,34 +928,34 @@ resource "azurerm_frontdoor" "test" {
   # --- Pool 2
 
   routing_rule {
-    name               = "acctest-%[1]d-google-RR"
+    name               = "acctest-FD-%[1]d-google-RR"
     accepted_protocols = ["Https"]
     patterns_to_match  = ["/poolGoogle/*"]
-    frontend_endpoints = ["acctest-%[1]d-default-FE"]
+    frontend_endpoints = ["acctest-FD-%[1]d-default-FE"]
 
     forwarding_configuration {
       forwarding_protocol = "MatchRequest"
-      backend_pool_name   = "acctest-%[1]d-pool-google"
+      backend_pool_name   = "acctest-FD-%[1]d-pool-google"
       cache_enabled       = true
     }
   }
 
   backend_pool_load_balancing {
-    name                            = "acctest-%[1]d-google-LB"
+    name                            = "acctest-FD-%[1]d-google-LB"
     additional_latency_milliseconds = 0
     sample_size                     = 4
     successful_samples_required     = 2
   }
 
   backend_pool_health_probe {
-    name     = "acctest-%[1]d-google-HP"
+    name     = "acctest-FD-%[1]d-google-HP"
     protocol = "Https"
   }
 
   backend_pool {
-    name                = "acctest-%[1]d-pool-google"
-    load_balancing_name = "acctest-%[1]d-google-LB"
-    health_probe_name   = "acctest-%[1]d-google-HP"
+    name                = "acctest-FD-%[1]d-pool-google"
+    load_balancing_name = "acctest-FD-%[1]d-google-LB"
+    health_probe_name   = "acctest-FD-%[1]d-google-HP"
 
     backend {
       host_header = "google.com"

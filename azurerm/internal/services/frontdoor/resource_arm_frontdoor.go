@@ -878,7 +878,6 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 		protocol := v["protocol"].(string)
 		intervalInSeconds := int32(v["interval_in_seconds"].(int))
 		name := v["name"].(string)
-		probeMethod := v["probe_method"].(string)
 		enabled := v["enabled"].(bool)
 
 		healthProbeEnabled := frontdoor.HealthProbeEnabledEnabled
@@ -1434,15 +1433,16 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 							c["cache_use_dynamic_compression"] = bool(string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled))
 						}
 					} else {
+						// if the cache is disabled, set the default values or revert to what they were in the previous plan
 						c["cache_enabled"] = false
+						c["cache_query_parameter_strip_directive"] = string(frontdoor.StripAll)
 
 						if name != nil {
-							//get `forwarding_configuration`
+							// get `forwarding_configuration`
 							if o, ok := oldByName[*name]; ok {
 								ofcs := o["forwarding_configuration"].([]interface{})
 								if len(ofcs) > 0 {
 									ofc := ofcs[0].(map[string]interface{})
-
 									c["cache_query_parameter_strip_directive"] = ofc["cache_query_parameter_strip_directive"]
 									c["cache_use_dynamic_compression"] = ofc["cache_use_dynamic_compression"]
 								}
