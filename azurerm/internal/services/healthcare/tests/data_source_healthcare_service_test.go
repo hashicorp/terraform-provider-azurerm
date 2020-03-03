@@ -36,9 +36,9 @@ func testAccAzureRMDataSourceHealthcareService_basic(data acceptance.TestData) s
 %s
 
 data "azurerm_healthcare_service" "test" {
-  name                = "${azurerm_healthcare_service.test.name}"
-  resource_group_name = "${azurerm_healthcare_service.test.resource_group_name}"
-  location            = "${azurerm_resource_group.test.location}"
+  name                = azurerm_healthcare_service.test.name
+  resource_group_name = azurerm_healthcare_service.test.resource_group_name
+  location            = azurerm_resource_group.test.location
 }
 `, resource)
 }

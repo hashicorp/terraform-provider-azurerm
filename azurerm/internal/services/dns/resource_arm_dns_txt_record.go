@@ -3,10 +3,12 @@ package dns
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -55,8 +57,9 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 1024),
 						},
 					},
 				},
@@ -188,7 +191,7 @@ func flattenAzureRmDnsTxtRecords(records *[]dns.TxtRecord) []map[string]interfac
 			txtRecord := make(map[string]interface{})
 
 			if v := record.Value; v != nil {
-				value := (*v)[0]
+				value := strings.Join(*v, "")
 				txtRecord["value"] = value
 			}
 
@@ -203,9 +206,17 @@ func expandAzureRmDnsTxtRecords(d *schema.ResourceData) *[]dns.TxtRecord {
 	recordStrings := d.Get("record").(*schema.Set).List()
 	records := make([]dns.TxtRecord, len(recordStrings))
 
+	segmentLen := 254
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
-		value := []string{record["value"].(string)}
+		v := record["value"].(string)
+
+		var value []string
+		for len(v) > segmentLen {
+			value = append(value, v[:segmentLen])
+			v = v[segmentLen:]
+		}
+		value = append(value, v)
 
 		txtRecord := dns.TxtRecord{
 			Value: &value,

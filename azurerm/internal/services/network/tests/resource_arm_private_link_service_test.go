@@ -816,6 +816,10 @@ resource "azurerm_private_link_service" "test" {
 
 func testAccAzureRMPrivateLinkService_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {

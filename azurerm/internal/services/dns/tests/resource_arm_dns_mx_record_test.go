@@ -195,6 +195,10 @@ func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsMxRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -202,13 +206,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_mx_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -226,6 +230,10 @@ resource "azurerm_dns_mx_record" "test" {
 
 func testAccAzureRMDnsMxRecord_rootrecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -233,12 +241,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_mx_record" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -260,9 +268,9 @@ func testAccAzureRMDnsMxRecord_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dns_mx_record" "import" {
-  name                = "${azurerm_dns_mx_record.test.name}"
-  resource_group_name = "${azurerm_dns_mx_record.test.resource_group_name}"
-  zone_name           = "${azurerm_dns_mx_record.test.zone_name}"
+  name                = azurerm_dns_mx_record.test.name
+  resource_group_name = azurerm_dns_mx_record.test.resource_group_name
+  zone_name           = azurerm_dns_mx_record.test.zone_name
   ttl                 = 300
 
   record {
@@ -280,6 +288,10 @@ resource "azurerm_dns_mx_record" "import" {
 
 func testAccAzureRMDnsMxRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -287,13 +299,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_mx_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -316,6 +328,10 @@ resource "azurerm_dns_mx_record" "test" {
 
 func testAccAzureRMDnsMxRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -323,13 +339,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_mx_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -352,6 +368,10 @@ resource "azurerm_dns_mx_record" "test" {
 
 func testAccAzureRMDnsMxRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -359,13 +379,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_mx_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {

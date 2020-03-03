@@ -291,6 +291,10 @@ resource "azurerm_subnet_route_table_association" "test" {
 
 func testAccAzureRMSubnetRouteTableAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

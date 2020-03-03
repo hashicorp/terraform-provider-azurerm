@@ -136,6 +136,10 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 
 func testAccAzureRMIotHubConsumerGroup_basic(data acceptance.TestData, eventName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -143,8 +147,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "B1"
@@ -158,9 +162,9 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_iothub_consumer_group" "test" {
   name                   = "test"
-  iothub_name            = "${azurerm_iothub.test.name}"
+  iothub_name            = azurerm_iothub.test.name
   eventhub_endpoint_name = "%s"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, eventName)
 }
@@ -171,10 +175,10 @@ func testAccAzureRMIotHubConsumerGroup_requiresImport(data acceptance.TestData, 
 %s
 
 resource "azurerm_iothub_consumer_group" "import" {
-  name                   = "${azurerm_iothub_consumer_group.test.name}"
-  iothub_name            = "${azurerm_iothub_consumer_group.test.iothub_name}"
-  eventhub_endpoint_name = "${azurerm_iothub_consumer_group.test.eventhub_endpoint_name}"
-  resource_group_name    = "${azurerm_iothub_consumer_group.test.resource_group_name}"
+  name                   = azurerm_iothub_consumer_group.test.name
+  iothub_name            = azurerm_iothub_consumer_group.test.iothub_name
+  eventhub_endpoint_name = azurerm_iothub_consumer_group.test.eventhub_endpoint_name
+  resource_group_name    = azurerm_iothub_consumer_group.test.resource_group_name
 }
 `, template)
 }

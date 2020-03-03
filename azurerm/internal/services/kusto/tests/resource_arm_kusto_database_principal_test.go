@@ -129,6 +129,10 @@ func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.
 
 func testAccAzureRMKustoDatabasePrincipal_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 
