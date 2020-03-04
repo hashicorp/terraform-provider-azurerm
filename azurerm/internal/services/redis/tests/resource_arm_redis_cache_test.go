@@ -25,6 +25,8 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "minimum_tls_version"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
 				),
 			},
 			data.ImportStep(),
