@@ -1,4 +1,4 @@
-package powerbidedicated
+package powerbi
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 )
 
-func ValidateCapacityName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidatePowerBIEmbeddedName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-z][a-z0-9]{3,63}$`).MatchString(value) {
@@ -17,7 +17,7 @@ func ValidateCapacityName(v interface{}, k string) (warnings []string, errors []
 	return warnings, errors
 }
 
-func ValidateCapacityAdministratorName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidatePowerBIEmbeddedAdministratorName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`).MatchString(value) {

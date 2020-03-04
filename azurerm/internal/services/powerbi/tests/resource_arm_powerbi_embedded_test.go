@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPowerBIDedicatedCapacity_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_powerbi_dedicated_capacity", "test")
+func TestAccAzureRMPowerBIEmbedded_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
+		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(data),
+				Config: testAccAzureRMPowerBIEmbedded_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIDedicatedCapacityExists(data.ResourceName),
+					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,45 +31,45 @@ func TestAccAzureRMPowerBIDedicatedCapacity_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPowerBIDedicatedCapacity_requiresImport(t *testing.T) {
+func TestAccAzureRMPowerBIEmbedded_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_powerbi_dedicated_capacity", "test")
+	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
+		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(data),
+				Config: testAccAzureRMPowerBIEmbedded_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIDedicatedCapacityExists(data.ResourceName),
+					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMPowerBIDedicatedCapacity_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_powerbi_dedicated_capacity"),
+				Config:      testAccAzureRMPowerBIEmbedded_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_powerbi_embedded"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMPowerBIDedicatedCapacity_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_powerbi_dedicated_capacity", "test")
+func TestAccAzureRMPowerBIEmbedded_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
+		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(data),
+				Config: testAccAzureRMPowerBIEmbedded_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIDedicatedCapacityExists(data.ResourceName),
+					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
@@ -79,27 +79,35 @@ func TestAccAzureRMPowerBIDedicatedCapacity_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_powerbi_dedicated_capacity", "test")
+func TestAccAzureRMPowerBIEmbedded_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
+		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(data),
+				Config: testAccAzureRMPowerBIEmbedded_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIDedicatedCapacityExists(data.ResourceName),
+					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A1"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(data),
+				Config: testAccAzureRMPowerBIEmbedded_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIDedicatedCapacityExists(data.ResourceName),
+					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPowerBIEmbedded_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A1"),
 				),
 			},
 			data.ImportStep(),
@@ -107,36 +115,36 @@ func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMPowerBIEmbeddedExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Capacity not found: %s", resourceName)
+			return fmt.Errorf("PowerBI Embedded not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).PowerBIDedicated.CapacityClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).PowerBI.CapacityClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.GetDetails(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Capacity (Capacity Name %q / Resource Group %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: PowerBI Embedded (PowerBI Embedded Name %q / Resource Group %q) does not exist", name, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on PowerBI Dedicated.CapacityClient: %+v", err)
+			return fmt.Errorf("Bad: Get on PowerBI.CapacityClient: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMPowerBIDedicatedCapacityDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).PowerBIDedicated.CapacityClient
+func testCheckAzureRMPowerBIEmbeddedDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).PowerBI.CapacityClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_powerbi_dedicated_capacity" {
+		if rs.Type != "azurerm_powerbi_embedded" {
 			continue
 		}
 
@@ -155,13 +163,13 @@ func testCheckAzureRMPowerBIDedicatedCapacityDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPowerBIDedicatedCapacity_basic(data acceptance.TestData) string {
-	template := testAccAzureRMPowerBIDedicatedCapacity_template(data)
+func testAccAzureRMPowerBIEmbedded_basic(data acceptance.TestData) string {
+	template := testAccAzureRMPowerBIEmbedded_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_powerbi_dedicated_capacity" "test" {
-  name                = "acctestpowerbidedicatedcapacity%d"
+resource "azurerm_powerbi_embedded" "test" {
+  name                = "acctestpowerbi%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku_name            = "A1"
@@ -170,25 +178,25 @@ resource "azurerm_powerbi_dedicated_capacity" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMPowerBIDedicatedCapacity_requiresImport(data acceptance.TestData) string {
+func testAccAzureRMPowerBIEmbedded_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_powerbi_dedicated_capacity" "import" {
-  name                = "${azurerm_powerbi_dedicated_capacity.test.name}"
-  location            = "${azurerm_powerbi_dedicated_capacity.test.location}"
+resource "azurerm_powerbi_embedded" "import" {
+  name                = "${azurerm_powerbi_embedded.test.name}"
+  location            = "${azurerm_powerbi_embedded.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, testAccAzureRMPowerBIDedicatedCapacity_basic(data))
+`, testAccAzureRMPowerBIEmbedded_basic(data))
 }
 
-func testAccAzureRMPowerBIDedicatedCapacity_complete(data acceptance.TestData) string {
-	template := testAccAzureRMPowerBIDedicatedCapacity_template(data)
+func testAccAzureRMPowerBIEmbedded_complete(data acceptance.TestData) string {
+	template := testAccAzureRMPowerBIEmbedded_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_powerbi_dedicated_capacity" "test" {
-  name                = "acctestpowerbidedicatedcapacity%d"
+resource "azurerm_powerbi_embedded" "test" {
+  name                = "acctestpowerbi%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku_name            = "A2"
@@ -201,10 +209,14 @@ resource "azurerm_powerbi_dedicated_capacity" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMPowerBIDedicatedCapacity_template(data acceptance.TestData) string {
+func testAccAzureRMPowerBIEmbedded_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-powerbidedicated-%d"
+  name     = "acctestRG-powerbi-%d"
   location = "%s"
 }
 

@@ -1,8 +1,8 @@
-package powerbidedicated
+package powerbi
 
 import "testing"
 
-func TestValidateCapacityName(t *testing.T) {
+func TestValidatePowerBIEmbeddedName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -62,7 +62,7 @@ func TestValidateCapacityName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateCapacityName(v.input, "name")
+		_, errors := ValidatePowerBIEmbeddedName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -70,7 +70,7 @@ func TestValidateCapacityName(t *testing.T) {
 	}
 }
 
-func TestValidateCapacityAdministratorName(t *testing.T) {
+func TestValidatePowerBIEmbeddedAdministratorName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -110,7 +110,7 @@ func TestValidateCapacityAdministratorName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateCapacityAdministratorName(v.input, "administrators")
+		_, errors := ValidatePowerBIEmbeddedAdministratorName(v.input, "administrators")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
