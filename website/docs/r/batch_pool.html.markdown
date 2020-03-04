@@ -275,6 +275,8 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
+* `public_ips` - (Optional) A list of public ip ids that will be allocated to nodes. Changing this forces a new resource to be created.
+
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
 
 ---
