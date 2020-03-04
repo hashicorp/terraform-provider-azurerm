@@ -19,6 +19,16 @@ Manages a Key Vault.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = true
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
@@ -29,7 +39,7 @@ resource "azurerm_key_vault" "example" {
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
   enabled_for_disk_encryption = true
-  tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_enabled         = true
   purge_protection_enabled    = false
 
@@ -37,7 +47,7 @@ resource "azurerm_key_vault" "example" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.service_principal_object_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "get",
@@ -73,7 +83,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku_name` - (Optional) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
+* `sku_name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used for authenticating requests to the key vault.
 
