@@ -486,6 +486,8 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t *test
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.allocated_outbound_port", "8000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes", "10"),
 				),
 			},
 		},
@@ -1211,6 +1213,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "Standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test.id]
+      allocated_outbound_port = 8000
+      idle_timeout_in_minutes = 10
     }
   }
 }
