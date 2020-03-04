@@ -32,6 +32,7 @@ BUG FIXES:
 * `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
 * `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource [GH-5935]
+* `azurerm_app_service_plan` - Updates no longer fail if App Service Environment ID is not specified [GH-5915]
 
 
 ## 2.0.0 (February 24, 2020)
