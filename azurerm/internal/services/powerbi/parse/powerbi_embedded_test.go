@@ -36,7 +36,7 @@ func TestPowerBIEmbeddedId(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "DNS NS Record ID",
+			Name:  "PowerBI Embedded ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.PowerBIDedicated/capacities/capacity1",
 			Expected: &PowerBIEmbeddedId{
 				ResourceGroup: "resGroup1",
