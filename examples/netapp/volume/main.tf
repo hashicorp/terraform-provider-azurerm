@@ -42,6 +42,10 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
+  lifecycle {
+    prevent_destroy = true
+  }
+  
   name                = "${var.prefix}-netappvolume"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"

@@ -47,7 +47,6 @@ func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "protocols.3098200649", "NFSv4.1"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -97,7 +96,6 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -128,7 +126,6 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 			{
@@ -136,7 +133,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -196,7 +193,6 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 			{
@@ -205,7 +201,6 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "1"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},

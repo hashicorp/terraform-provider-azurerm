@@ -57,6 +57,10 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                = "example-netappvolume"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
@@ -95,6 +99,8 @@ The following arguments are supported:
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
+
+-> **Note**: It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type. 
 
 ---
 

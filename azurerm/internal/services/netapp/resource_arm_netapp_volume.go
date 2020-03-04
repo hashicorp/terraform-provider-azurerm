@@ -36,7 +36,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -92,6 +92,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 
 			"protocols": {
 				Type:     schema.TypeSet,
+				ForceNew: true,
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
@@ -110,7 +111,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			},
 
 			"export_policy_rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 5,
 				Elem: &schema.Resource{
@@ -131,10 +132,10 @@ func resourceArmNetAppVolume() *schema.Resource {
 						},
 
 						"protocols_enabled": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
-							MaxItems: 2,
+							MaxItems: 1,
 							MinItems: 1,
 							Elem: &schema.Schema{Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -211,8 +212,9 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	if len(protocols) == 0 {
 		protocols = append(protocols, "NFSv3")
 	}
+
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
+	exportPolicyRule := d.Get("export_policy_rule").([]interface{})
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
@@ -321,11 +323,7 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
 		Refresh: netappVolumeDeleteStateRefreshFunc(ctx, client, resourceGroup, accountName, poolName, name),
-	}
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 60 * time.Minute
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -365,7 +363,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			nfsv41Enabled := false
 
 			if vpe := v["protocols_enabled"]; vpe != nil {
-				protocolsEnabled := vpe.(*schema.Set).List()
+				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
 						if protocol != nil {
