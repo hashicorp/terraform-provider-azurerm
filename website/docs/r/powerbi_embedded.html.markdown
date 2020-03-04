@@ -2,7 +2,6 @@
 subcategory: "PowerBI"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_powerbi_embedded"
-sidebar_current: "docs-azurerm-resource-powerbi-embedded"
 description: |-
   Manages a PowerBI Embedded.
 ---
