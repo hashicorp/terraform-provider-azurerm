@@ -22,8 +22,10 @@ IMPROVEMENTS:
 * `azurerm_private_dns_ptr_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_dns_srv_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_endpoint` - exposed `private_ip_address` as a computed attribute [GH-5838]
-* `azurerm_virtual_wan` - support for the `type` property [GH-5877]
+* `azurerm_redis_cache` - support for the `primary_connection_string` and `secondary_connection_string` properties [GH-5958]
 * `azurerm_storage_account` - support up to 50 tags [GH-5934]
+* `azurerm_virtual_wan` - support for the `type` property [GH-5877]
+
 
 BUG FIXES:
 
