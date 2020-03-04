@@ -378,7 +378,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 						}
 					}
 				} else {
-					// TODO: Remove in v2
+					// TODO: Remove in next major version
 					cifsEnabled = v["cifs_enabled"].(bool)
 					nfsv3Enabled = v["nfsv3_enabled"].(bool)
 					nfsv41Enabled = v["nfsv4_enabled"].(bool)
@@ -422,29 +422,29 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
-		// Start - Remove in v2.0
+		//TODO: Start - Remove in next major version
 		cifsEnabled := false
 		nfsv3Enabled := false
 		nfsv4Enabled := false
-		// End - Remove in v2.0
+		// End - Remove in next major version
 		protocolsEnabled := []string{}
 		if v := item.Cifs; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
 			}
-			cifsEnabled = *v // Remove in v2.0
+			cifsEnabled = *v //TODO: Remove in next major version
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
-			nfsv3Enabled = *v // Remove in v2.0
+			nfsv3Enabled = *v //TODO: Remove in next major version
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
-			nfsv4Enabled = *v // Remove in v2.0
+			nfsv4Enabled = *v //TODO: Remove in next major version
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -461,7 +461,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			"unix_read_only":    unixReadOnly,
 			"unix_read_write":   unixReadWrite,
 			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
-			// Remove in v2.0
+			//TODO: Remove in next major version
 			"cifs_enabled":  cifsEnabled,
 			"nfsv3_enabled": nfsv3Enabled,
 			"nfsv4_enabled": nfsv4Enabled,
