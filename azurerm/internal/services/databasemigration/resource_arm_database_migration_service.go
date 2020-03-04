@@ -94,7 +94,7 @@ func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta inte
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_migration_service", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_database_migration_service", *existing.ID)
 		}
 	}
 
