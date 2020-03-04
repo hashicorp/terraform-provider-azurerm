@@ -398,12 +398,13 @@ func resourceArmBatchPool() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"public_ips": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+							Set: schema.HashString,
 						},
 						"endpoint_configuration": {
 							Type:     schema.TypeList,

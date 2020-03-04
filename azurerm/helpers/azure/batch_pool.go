@@ -572,12 +572,8 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	}
 
 	if v, ok := networkConfigValue["public_ips"]; ok {
-		confPublicIPs := v.([]interface{})
-		publicIPs := make([]string, 0, len(confPublicIPs))
-		for _, publicIP := range confPublicIPs {
-			publicIPs = append(publicIPs, publicIP.(string))
-		}
-		networkConfiguration.PublicIPs = &publicIPs
+		publicIPsRaw := v.(*schema.Set).List()
+		networkConfiguration.PublicIPs = utils.ExpandStringSlice(publicIPsRaw)
 	}
 
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
@@ -671,7 +667,7 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 	}
 
 	if networkConfig.PublicIPs != nil {
-		result["public_ips"] = *networkConfig.PublicIPs
+		result["public_ips"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(networkConfig.PublicIPs))
 	}
 
 	if cfg := networkConfig.EndpointConfiguration; cfg != nil && cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
