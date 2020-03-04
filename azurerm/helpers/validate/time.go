@@ -26,20 +26,9 @@ func ISO8601Duration(i interface{}, k string) (warnings []string, errors []error
 	return warnings, errors
 }
 
-//todo, now in terraform helper, switch over once vended
-// -> https://github.com/hashicorp/terraform/blob/master/helper/validation/validation.go#L263
+// deprecated use validation.IsRFC3339Time instead
 func RFC3339Time(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := date.ParseTime(time.RFC3339, v); err != nil {
-		errors = append(errors, fmt.Errorf("%q has the invalid RFC3339 date format %q: %+v", k, i, err))
-	}
-
-	return warnings, errors
+	return validation.IsRFC3339Time(i, k)
 }
 
 func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error) {
@@ -79,31 +68,12 @@ func RFC3339DateInFutureBy(d time.Duration) schema.SchemaValidateFunc {
 	}
 }
 
+// deprecated use validation.IsDayOfTheWeek instead
 func DayOfTheWeek(ignoreCase bool) schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
-		"Sunday",
-	}, ignoreCase)
+	return validation.IsDayOfTheWeek(ignoreCase)
 }
 
+// deprecated use validation.IsMonth instead
 func Month(ignoreCase bool) schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		"January",
-		"February",
-		"March",
-		"April",
-		"May",
-		"June",
-		"July",
-		"August",
-		"September",
-		"October",
-		"November",
-		"December",
-	}, ignoreCase)
+	return validation.IsMonth(ignoreCase)
 }

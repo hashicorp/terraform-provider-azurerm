@@ -11,11 +11,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
-	config := testAccAzureRMDnsPtrRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +23,7 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsPtrRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -90,8 +90,6 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
-	preConfig := testAccAzureRMDnsPtrRecord_withTags(data)
-	postConfig := testAccAzureRMDnsPtrRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -99,7 +97,7 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsPtrRecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -107,7 +105,7 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsPtrRecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -120,28 +118,27 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 
 func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		ptrName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS PTR record: %s", ptrName)
+		id, err := parse.DnsPtrRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, ptrName, dns.PTR)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
 		if err != nil {
 			return fmt.Errorf("Bad: Get PTR RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS PTR record %s (resource group: %s) does not exist", ptrName, resourceGroup)
+			return fmt.Errorf("Bad: DNS PTR record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -157,11 +154,12 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ptrName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DnsPtrRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, ptrName, dns.PTR)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -179,6 +177,10 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsPtrRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -186,13 +188,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 }
@@ -205,9 +207,9 @@ func testAccAzureRMDnsPtrRecord_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_dns_ptr_record" "import" {
-  name                = "${azurerm_dns_ptr_record.test.name}"
-  resource_group_name = "${azurerm_dns_ptr_record.test.resource_group_name}"
-  zone_name           = "${azurerm_dns_ptr_record.test.zone_name}"
+  name                = azurerm_dns_ptr_record.test.name
+  resource_group_name = azurerm_dns_ptr_record.test.resource_group_name
+  zone_name           = azurerm_dns_ptr_record.test.zone_name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 }
@@ -216,6 +218,10 @@ resource "azurerm_dns_ptr_record" "import" {
 
 func testAccAzureRMDnsPtrRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -223,13 +229,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com", "reddit.com"]
 }
@@ -238,6 +244,10 @@ resource "azurerm_dns_ptr_record" "test" {
 
 func testAccAzureRMDnsPtrRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -245,13 +255,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 
@@ -265,6 +275,10 @@ resource "azurerm_dns_ptr_record" "test" {
 
 func testAccAzureRMDnsPtrRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -272,13 +286,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_ptr_record" "test" {
   name                = "testptrrecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
   records             = ["hashicorp.com", "microsoft.com"]
 

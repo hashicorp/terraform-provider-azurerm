@@ -24,6 +24,7 @@ func TestAccAzureRMPrivateDnsMxRecord_basic(t *testing.T) {
 				Config: testAccAzureRMPrivateDnsMxRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsMxRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
 			data.ImportStep(),
@@ -125,6 +126,9 @@ func TestAccAzureRMPrivateDnsMxRecord_emptyName(t *testing.T) {
 
 func testCheckAzureRMPrivateDnsMxRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -138,8 +142,6 @@ func testCheckAzureRMPrivateDnsMxRecordExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS MX record: %s", mxName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.MX, mxName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get MX RecordSet: %+v", err)
@@ -184,6 +186,10 @@ func testCheckAzureRMPrivateDnsMxRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateDnsMxRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-prvdns-%d"
   location = "%s"
@@ -191,13 +197,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "testzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
   name                = "testaccmx%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     preference = 10
@@ -214,6 +220,10 @@ resource "azurerm_private_dns_mx_record" "test" {
 
 func testAccAzureRMPrivateDnsMxRecord_emptyName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-prvdns-%d"
   location = "%s"
@@ -221,12 +231,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "testzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     preference = 10
@@ -247,9 +257,9 @@ func testAccAzureRMPrivateDnsMxRecord_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_private_dns_mx_record" "import" {
-  name                = "${azurerm_private_dns_mx_record.test.name}"
-  resource_group_name = "${azurerm_private_dns_mx_record.test.resource_group_name}"
-  zone_name           = "${azurerm_private_dns_mx_record.test.zone_name}"
+  name                = azurerm_private_dns_mx_record.test.name
+  resource_group_name = azurerm_private_dns_mx_record.test.resource_group_name
+  zone_name           = azurerm_private_dns_mx_record.test.zone_name
   ttl                 = 300
   record {
     preference = 10
@@ -265,20 +275,24 @@ resource "azurerm_private_dns_mx_record" "import" {
 
 func testAccAzureRMPrivateDnsMxRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-prvdns-%d"
-	location = "%s"
+provider "azurerm" {
+  features {}
 }
-	
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
+}
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
   name                = "testaccmx%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     preference = 10
@@ -298,20 +312,24 @@ resource "azurerm_private_dns_mx_record" "test" {
 
 func testAccAzureRMPrivateDnsMxRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-prvdns-%d"
-	location = "%s"
+provider "azurerm" {
+  features {}
 }
-  
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
+}
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
   name                = "testaccmx%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     preference = 10
@@ -332,20 +350,24 @@ resource "azurerm_private_dns_mx_record" "test" {
 
 func testAccAzureRMPrivateDnsMxRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-prvdns-%d"
-	location = "%s"
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
   name                = "testaccmx%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     preference = 10

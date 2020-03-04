@@ -100,6 +100,9 @@ func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 }
 
 func testCheckAzureRMBackupProtectedFileShareDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_backup_protected_file_share" {
 			continue
@@ -122,9 +125,6 @@ func testCheckAzureRMBackupProtectedFileShareDestroy(s *terraform.State) error {
 		protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageID.ResourceGroup, accountName)
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -142,6 +142,9 @@ func testCheckAzureRMBackupProtectedFileShareDestroy(s *terraform.State) error {
 
 func testCheckAzureRMBackupProtectedFileShareExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -169,9 +172,6 @@ func testCheckAzureRMBackupProtectedFileShareExists(resourceName string) resourc
 		protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageID.ResourceGroup, accountName)
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -186,7 +186,11 @@ func testCheckAzureRMBackupProtectedFileShareExists(resourceName string) resourc
 }
 
 func testAccAzureRMBackupProtectedFileShare_base(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%[1]d"
   location = "%[2]s"
@@ -204,9 +208,9 @@ resource "azurerm_storage_share" "test" {
   name                 = "acctest-ss-%[1]d"
   storage_account_name = "${azurerm_storage_account.test.name}"
   metadata             = {}
-  
+
   lifecycle {
-	ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
   }
 }
 
@@ -215,6 +219,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_file_share" "test1" {
@@ -240,17 +246,17 @@ func testAccAzureRMBackupProtectedFileShare_basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_backup_container_storage_account" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test.id
 }
 
 resource "azurerm_backup_protected_file_share" "test" {
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_backup_container_storage_account.test.storage_account_id}"
-  source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_backup_container_storage_account.test.storage_account_id
+  source_file_share_name    = azurerm_storage_share.test.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
 `, template)
 }
@@ -262,9 +268,9 @@ func testAccAzureRMBackupProtectedFileShare_updatePolicy(data acceptance.TestDat
 
 resource "azurerm_backup_policy_file_share" "test2" {
   name                = "acctest-%d-Secondary"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-	
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
   backup {
     frequency = "Daily"
     time      = "23:00"
@@ -276,17 +282,17 @@ resource "azurerm_backup_policy_file_share" "test2" {
 }
 
 resource "azurerm_backup_container_storage_account" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test.id
 }
 
 resource "azurerm_backup_protected_file_share" "test" {
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_backup_container_storage_account.test.storage_account_id}"
-  source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_policy_file_share.test2.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_backup_container_storage_account.test.storage_account_id
+  source_file_share_name    = azurerm_storage_share.test.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test2.id
 }
 `, template, data.RandomInteger)
 }
@@ -297,11 +303,11 @@ func testAccAzureRMBackupProtectedFileShare_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_backup_protected_file_share" "test_import" {
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_storage_account.test.id}"
-  source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_storage_account.test.id
+  source_file_share_name    = azurerm_storage_share.test.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
 `, template)
 }

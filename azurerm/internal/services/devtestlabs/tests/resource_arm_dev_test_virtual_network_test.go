@@ -114,6 +114,9 @@ func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 
 func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -123,9 +126,6 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 		virtualNetworkName := rs.Primary.Attributes["name"]
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
 		if err != nil {
@@ -171,6 +171,10 @@ func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevTestVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -178,14 +182,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "acctestdtvn%d"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -196,15 +200,19 @@ func testAccAzureRMDevTestVirtualNetwork_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_dev_test_virtual_network" "import" {
-  name                = "${azurerm_dev_test_virtual_network.test.name}"
-  lab_name            = "${azurerm_dev_test_virtual_network.test.lab_name}"
-  resource_group_name = "${azurerm_dev_test_virtual_network.test.resource_group_name}"
+  name                = azurerm_dev_test_virtual_network.test.name
+  lab_name            = azurerm_dev_test_virtual_network.test.lab_name
+  resource_group_name = azurerm_dev_test_virtual_network.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMDevTestVirtualNetwork_subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -212,14 +220,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "acctestdtvn%d"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     use_public_ip_address           = "Deny"

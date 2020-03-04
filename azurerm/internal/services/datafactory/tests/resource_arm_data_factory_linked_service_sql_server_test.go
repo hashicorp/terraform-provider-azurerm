@@ -49,6 +49,9 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 
 func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -61,9 +64,6 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resour
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -107,6 +107,10 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State
 
 func testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -114,14 +118,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
   name                = "acctestlssql%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
@@ -141,6 +145,10 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
 
 func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -148,14 +156,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "test" {
   name                = "acctestlssql%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2"]
   description         = "test description 2"

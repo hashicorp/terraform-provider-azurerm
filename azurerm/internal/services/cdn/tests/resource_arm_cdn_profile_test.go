@@ -10,11 +10,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 )
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	config := testAccAzureRMCdnProfile_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +22,7 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnProfile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 				),
@@ -61,8 +61,6 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	preConfig := testAccAzureRMCdnProfile_withTags(data)
-	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -70,7 +68,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMCdnProfile_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -80,7 +78,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMCdnProfile_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -117,8 +115,6 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	preConfig := testAccAzureRMCdnProfile_basic(data)
-	postConfig := testAccAzureRMCdnProfile_standardAkamai(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -126,14 +122,14 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMCdnProfile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Verizon"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMCdnProfile_standardAkamai(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
@@ -145,7 +141,6 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	config := testAccAzureRMCdnProfile_standardAkamai(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -153,7 +148,7 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnProfile_standardAkamai(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
@@ -166,7 +161,6 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	config := testAccAzureRMCdnProfile_standardMicrosoft(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -174,7 +168,7 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnProfile_standardMicrosoft(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Microsoft"),
@@ -187,28 +181,27 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 
 func testCheckAzureRMCdnProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.ProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn profile: %s", name)
+		id, err := parse.CdnProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.ProfilesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnProfilesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: CDN Profile %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: CDN Profile %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -224,10 +217,11 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		id, err := parse.CdnProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			return nil
@@ -243,6 +237,10 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 
 func testAccAzureRMCdnProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -250,8 +248,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -263,16 +261,20 @@ func testAccAzureRMCdnProfile_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cdn_profile" "import" {
-  name                = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_cdn_profile.test.location}"
-  resource_group_name = "${azurerm_cdn_profile.test.resource_group_name}"
-  sku                 = "${azurerm_cdn_profile.test.sku}"
+  name                = azurerm_cdn_profile.test.name
+  location            = azurerm_cdn_profile.test.location
+  resource_group_name = azurerm_cdn_profile.test.resource_group_name
+  sku                 = azurerm_cdn_profile.test.sku
 }
 `, template)
 }
 
 func testAccAzureRMCdnProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -280,8 +282,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -294,6 +296,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -301,8 +307,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -314,6 +320,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfileNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -321,8 +331,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "standard_verizon"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -330,6 +340,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_standardAkamai(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -337,8 +351,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Akamai"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -346,6 +360,10 @@ resource "azurerm_cdn_profile" "test" {
 
 func testAccAzureRMCdnProfile_standardMicrosoft(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -353,8 +371,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Microsoft"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

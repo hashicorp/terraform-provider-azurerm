@@ -8,7 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -116,6 +118,19 @@ func resourceArmApiManagementApiOperationCreateUpdate(d *schema.ResourceData, me
 	serviceName := d.Get("api_management_name").(string)
 	apiId := d.Get("api_name").(string)
 	operationId := d.Get("operation_id").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Operation %q (API %q / API Management Service %q / Resource Group %q): %s", operationId, apiId, serviceName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_api_management_api_operation", *existing.ID)
+		}
+	}
 
 	description := d.Get("description").(string)
 	displayName := d.Get("display_name").(string)
@@ -245,20 +260,32 @@ func resourceArmApiManagementApiOperationDelete(d *schema.ResourceData, meta int
 }
 
 func expandApiManagementOperationRequestContract(input []interface{}) (*apimanagement.RequestContract, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
 	vs := input[0].(map[string]interface{})
+	if vs == nil {
+		return nil, nil
+	}
 	description := vs["description"].(string)
 
 	headersRaw := vs["header"].([]interface{})
+	if headersRaw == nil {
+		headersRaw = []interface{}{}
+	}
 	headers := azure.ExpandApiManagementOperationParameterContract(headersRaw)
 
 	queryParametersRaw := vs["query_parameter"].([]interface{})
+	if queryParametersRaw == nil {
+		queryParametersRaw = []interface{}{}
+	}
 	queryParameters := azure.ExpandApiManagementOperationParameterContract(queryParametersRaw)
 
 	representationsRaw := vs["representation"].([]interface{})
+	if representationsRaw == nil {
+		representationsRaw = []interface{}{}
+	}
 	representations, err := azure.ExpandApiManagementOperationRepresentation(representationsRaw)
 	if err != nil {
 		return nil, err

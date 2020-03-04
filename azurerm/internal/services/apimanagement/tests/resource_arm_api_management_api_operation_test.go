@@ -26,11 +26,7 @@ func TestAccAzureRMApiManagementApiOperation_basic(t *testing.T) {
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -73,11 +69,7 @@ func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "method", "HAMMERTIME"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -96,11 +88,7 @@ func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -119,22 +107,14 @@ func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementApiOperation_requestRepresentationUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -154,22 +134,14 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementApiOperation_representationUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -205,6 +177,9 @@ func testCheckAzureRMApiManagementApiOperationDestroy(s *terraform.State) error 
 
 func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -215,9 +190,6 @@ func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestC
 		apiName := rs.Primary.Attributes["api_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationId)
 		if err != nil {
@@ -239,9 +211,9 @@ func testAccAzureRMApiManagementApiOperation_basic(data acceptance.TestData) str
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   display_name        = "DELETE Resource"
   method              = "DELETE"
   url_template        = "/resource"
@@ -256,9 +228,9 @@ func testAccAzureRMApiManagementApiOperation_customMethod(data acceptance.TestDa
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   display_name        = "HAMMERTIME Resource"
   method              = "HAMMERTIME"
   url_template        = "/resource"
@@ -267,18 +239,18 @@ resource "azurerm_api_management_api_operation" "test" {
 }
 
 func testAccAzureRMApiManagementApiOperation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApiOperation_template(data)
+	template := testAccAzureRMApiManagementApiOperation_basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_api_operation" "import" {
-  operation_id        = "${azurerm_api_management_api_operation.test.operation_id}"
-  api_name            = "${azurerm_api_management_api_operation.test.api_name}"
-  api_management_name = "${azurerm_api_management_api_operation.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_api_operation.test.resource_group_name}"
-  display_name        = "${azurerm_api_management_api_operation.test.display_name}"
-  method              = "${azurerm_api_management_api_operation.test.method}"
-  url_template        = "${azurerm_api_management_api_operation.test.url_template}"
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
+  api_name            = azurerm_api_management_api_operation.test.api_name
+  api_management_name = azurerm_api_management_api_operation.test.api_management_name
+  resource_group_name = azurerm_api_management_api_operation.test.resource_group_name
+  display_name        = azurerm_api_management_api_operation.test.display_name
+  method              = azurerm_api_management_api_operation.test.method
+  url_template        = azurerm_api_management_api_operation.test.url_template
 }
 `, template)
 }
@@ -290,9 +262,9 @@ func testAccAzureRMApiManagementApiOperation_requestRepresentation(data acceptan
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   display_name        = "Acceptance Test Operation"
   method              = "DELETE"
   url_template        = "/user1"
@@ -317,9 +289,9 @@ func testAccAzureRMApiManagementApiOperation_requestRepresentationUpdated(data a
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   display_name        = "Acceptance Test Operation"
   method              = "DELETE"
   url_template        = "/user1"
@@ -344,9 +316,9 @@ func testAccAzureRMApiManagementApiOperation_headers(data acceptance.TestData) s
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   display_name        = "Acceptance Test Operation"
   method              = "DELETE"
   url_template        = "/user1"
@@ -390,6 +362,7 @@ resource "azurerm_api_management_api_operation" "test" {
   </user> 
 </response>
 SAMPLE
+
     }
   }
 }
@@ -403,9 +376,9 @@ func testAccAzureRMApiManagementApiOperation_representation(data acceptance.Test
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   display_name        = "Acceptance Test Operation"
   method              = "DELETE"
   url_template        = "/user1"
@@ -437,6 +410,7 @@ resource "azurerm_api_management_api_operation" "test" {
   </user> 
 </response>
 SAMPLE
+
     }
   }
 }
@@ -450,9 +424,9 @@ func testAccAzureRMApiManagementApiOperation_representationUpdated(data acceptan
 
 resource "azurerm_api_management_api_operation" "test" {
   operation_id        = "acctest-operation"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   display_name        = "Acceptance Test Operation"
   method              = "DELETE"
   url_template        = "/user1"
@@ -484,6 +458,7 @@ resource "azurerm_api_management_api_operation" "test" {
   </user> 
 </response>
 SAMPLE
+
     }
 
     representation {
@@ -505,6 +480,7 @@ SAMPLE
   }
 }
 SAMPLE
+
     }
   }
 }
@@ -513,6 +489,10 @@ SAMPLE
 
 func testAccAzureRMApiManagementApiOperation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -520,21 +500,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "Butter Parser"
   path                = "butter-parser"
   protocols           = ["https", "http"]

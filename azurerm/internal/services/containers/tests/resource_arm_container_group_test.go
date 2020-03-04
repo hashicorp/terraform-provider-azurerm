@@ -16,14 +16,14 @@ import (
 
 func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_SystemAssignedIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_SystemAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
@@ -38,14 +38,14 @@ func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_UserAssignedIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_UserAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
@@ -60,14 +60,14 @@ func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_MultipleAssignedIdentities(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_MultipleAssignedIdentities(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
@@ -83,15 +83,13 @@ func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_imageRegistryCredentials(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "2"),
@@ -114,16 +112,13 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(data)
-	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_imageRegistryCredentials(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "2"),
@@ -133,12 +128,12 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.password", "acrpassword"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.port", "5443"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.protocol", "UDP"),
 				),
 			},
 			{
-				Config: updated,
+				Config: testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "1"),
@@ -154,14 +149,14 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_logTypeUnset(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_logTypeUnset(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.#", "1"),
@@ -179,20 +174,18 @@ func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_linuxBasic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_linuxBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.port", "80"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 				),
 			},
 			data.ImportStep(
@@ -233,23 +226,20 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_linuxBasic(data)
-	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_linuxBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMContainerGroup_linuxBasicUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "2"),
@@ -263,20 +253,17 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_linuxComplete(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_linuxComplete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.command", "/bin/bash -c ls"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.0", "/bin/bash"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.1", "-c"),
@@ -336,7 +323,6 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_virtualNetwork(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -344,14 +330,14 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_virtualNetwork(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
 					resource.TestCheckNoResourceAttr(data.ResourceName, "identity"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.port", "80"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_address_type", "Private"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network_profile_id"),
 				),
@@ -363,15 +349,13 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_windowsBasic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_windowsBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
@@ -387,20 +371,17 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_windowsComplete(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_windowsComplete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.command", "cmd.exe echo hi"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.0", "cmd.exe"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.commands.1", "echo"),
@@ -452,6 +433,10 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 
 func testAccAzureRMContainerGroup_SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -485,6 +470,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_UserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -526,6 +515,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_MultipleAssignedIdentities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -567,6 +560,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -623,6 +620,10 @@ resource "azurerm_container_group" "import" {
 
 func testAccAzureRMContainerGroup_imageRegistryCredentials(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -630,18 +631,20 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
   container {
-    name     = "hw"
-    image    = "microsoft/aci-helloworld:latest"
-    cpu      = "0.5"
-    memory   = "0.5"
-    port     = 5443
-    protocol = "UDP"
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 5443
+      protocol = "UDP"
+    }
   }
 
   image_registry_credential {
@@ -672,6 +675,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -679,8 +686,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
@@ -717,6 +724,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_logTypeUnset(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -724,15 +735,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
@@ -741,13 +752,15 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port = 80
+    }
   }
 
   diagnostics {
     log_analytics {
-      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
-      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
+      workspace_key = azurerm_log_analytics_workspace.test.primary_shared_key
     }
   }
 
@@ -760,6 +773,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxBasicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -767,8 +784,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "Linux"
 
@@ -804,6 +821,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -811,15 +832,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "testvnet"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 
   delegation {
@@ -834,25 +855,25 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_profile" "test" {
   name                = "testnetprofile"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   container_network_interface {
     name = "testcnic"
 
     ip_configuration {
       name      = "testipconfig"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 }
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
-  network_profile_id  = "${azurerm_network_profile.test.id}"
+  network_profile_id  = azurerm_network_profile.test.id
   os_type             = "Linux"
 
   container {
@@ -860,7 +881,9 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port = 80
+    }
   }
 
   tags = {
@@ -872,6 +895,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_windowsBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -879,8 +906,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   os_type             = "windows"
 
@@ -910,6 +937,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_windowsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -917,17 +948,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
@@ -937,8 +968,8 @@ resource "azurerm_log_analytics_solution" "test" {
 
 resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "public"
   dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "windows"
@@ -993,8 +1024,8 @@ resource "azurerm_container_group" "test" {
 
   diagnostics {
     log_analytics {
-      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
-      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+      workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
+      workspace_key = azurerm_log_analytics_workspace.test.primary_shared_key
       log_type      = "ContainerInsights"
 
       metadata = {
@@ -1012,6 +1043,10 @@ resource "azurerm_container_group" "test" {
 
 func testAccAzureRMContainerGroup_linuxComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1146,6 +1181,9 @@ resource "azurerm_container_group" "test" {
 
 func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -1157,9 +1195,6 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

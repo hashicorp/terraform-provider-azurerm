@@ -25,7 +25,6 @@ func dataSourceArmFirewall() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: ValidateAzureFirewallName,
 			},
 

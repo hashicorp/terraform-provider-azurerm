@@ -49,6 +49,10 @@ func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 
 func testAccDataSourceAzureRMCdnProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -56,20 +60,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 data "azurerm_cdn_profile" "test" {
-  name                = "${azurerm_cdn_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_cdn_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMCdnProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -77,8 +85,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -88,8 +96,8 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 data "azurerm_cdn_profile" "test" {
-  name                = "${azurerm_cdn_profile.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_cdn_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -192,19 +192,16 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return waitForNetAppPoolToBeDeleted(ctx, client, resourceGroup, accountName, name)
-}
-
-func waitForNetAppPoolToBeDeleted(ctx context.Context, client *netapp.PoolsClient, resourceGroup, accountName, name string) error {
-	log.Printf("[DEBUG] Waiting for NetApp Pool Provisioning Service %q (Resource Group %q) to be deleted", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for NetApp Pool %q (Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
 		Refresh: netappPoolDeleteStateRefreshFunc(ctx, client, resourceGroup, accountName, name),
-		Timeout: 20 * time.Minute,
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Pool Provisioning Service %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for NetApp Pool %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil

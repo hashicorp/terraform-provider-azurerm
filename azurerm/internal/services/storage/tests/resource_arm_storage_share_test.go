@@ -155,6 +155,9 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 
 func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -162,9 +165,6 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -189,6 +189,9 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 
 func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -196,9 +199,6 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -222,6 +222,9 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_share" {
 			continue
@@ -229,9 +232,6 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -266,8 +266,7 @@ func testAccAzureRMStorageShare_basic(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, template, data.RandomString)
 }
@@ -279,8 +278,7 @@ func testAccAzureRMStorageShare_metaData(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello = "world"
@@ -296,8 +294,7 @@ func testAccAzureRMStorageShare_metaDataUpdated(data acceptance.TestData) string
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello = "world"
@@ -314,8 +311,7 @@ func testAccAzureRMStorageShare_acl(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -337,8 +333,7 @@ func testAccAzureRMStorageShare_aclUpdated(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   acl {
     id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -367,9 +362,8 @@ func testAccAzureRMStorageShare_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_storage_share" "import" {
-  name                 = "${azurerm_storage_share.test.name}"
-  resource_group_name  = "${azurerm_storage_share.test.resource_group_name}"
-  storage_account_name = "${azurerm_storage_share.test.storage_account_name}"
+  name                 = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_share.test.storage_account_name
 }
 `, template)
 }
@@ -381,8 +375,7 @@ func testAccAzureRMStorageShare_updateQuota(data acceptance.TestData) string {
 
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
   quota                = 5
 }
 `, template, data.RandomString)
@@ -390,6 +383,10 @@ resource "azurerm_storage_share" "test" {
 
 func testAccAzureRMStorageShare_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -397,8 +394,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 

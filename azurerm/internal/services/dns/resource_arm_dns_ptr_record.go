@@ -11,7 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +24,6 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 		Read:   resourceArmDnsPtrRecordRead,
 		Update: resourceArmDnsPtrRecordCreateUpdate,
 		Delete: resourceArmDnsPtrRecordDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,6 +32,10 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DnsPtrRecordID(id)
+			return err
+		}),
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -128,28 +131,24 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DnsPtrRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["PTR"]
-	zoneName := id.Path["dnszones"]
-
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, name, dns.PTR)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading DNS PTR record %s: %+v", name, err)
+		return fmt.Errorf("Error reading DNS PTR record %s: %+v", id.Name, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("zone_name", id.ZoneName)
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
@@ -165,22 +164,18 @@ func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DnsPtrRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["PTR"]
-	zoneName := id.Path["dnszones"]
-
-	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.PTR, "")
+	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR, "")
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting DNS PTR Record %s: %+v", name, err)
+		return fmt.Errorf("Error deleting DNS PTR Record %s: %+v", id.Name, err)
 	}
 
 	return nil

@@ -32,6 +32,25 @@ func TestAccAzureRMMySqlVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySqlVirtualNetworkRule_badsubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySqlVirtualNetworkRule_badsubnet(data),
+				/*
+					Check: resource.ComposeTestCheckFunc(
+						testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
+					),*/
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMySqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -62,9 +81,6 @@ func TestAccAzureRMMySqlVirtualNetworkRule_requiresImport(t *testing.T) {
 func TestAccAzureRMMySqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
-	preConfig := testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPre(data)
-	postConfig := testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPost(data)
-
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) //subnet 2 but not 1
@@ -75,14 +91,14 @@ func TestAccAzureRMMySqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPre(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPost(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
@@ -94,7 +110,6 @@ func TestAccAzureRMMySqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 
 func TestAccAzureRMMySqlVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
-	config := testAccAzureRMMySqlVirtualNetworkRule_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -102,7 +117,7 @@ func TestAccAzureRMMySqlVirtualNetworkRule_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySqlVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
 					testCheckAzureRMMySqlVirtualNetworkRuleDisappears(data.ResourceName),
@@ -114,11 +129,10 @@ func TestAccAzureRMMySqlVirtualNetworkRule_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "rule1")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "rule1")
 
 	resourceName2 := "azurerm_mysql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_mysql_virtual_network_rule.rule3"
-	config := testAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -126,7 +140,7 @@ func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
 					testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName2),
@@ -139,6 +153,9 @@ func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 
 func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -147,9 +164,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -165,6 +179,9 @@ func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource
 }
 
 func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_virtual_network_rule" {
 			continue
@@ -173,9 +190,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -194,6 +208,9 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -203,9 +220,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -233,6 +247,10 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 
 func testAccAzureRMMySqlVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -241,33 +259,28 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mysql_server" "test" {
   name                         = "acctestmysqlsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -278,9 +291,62 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_virtual_network_rule" "test" {
   name                = "acctestmysqlvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  subnet_id           = azurerm_subnet.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMMySqlVirtualNetworkRule_badsubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%d"
+  address_space       = ["10.7.29.0/29"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.7.29.0/29"
+  service_endpoints    = ["Microsoft.Sql"]
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                         = "acctestmysqlsvr-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.6"
+  ssl_enforcement              = "Enabled"
+
+  sku_name = "GP_Gen5_2"
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+}
+
+resource "azurerm_mysql_virtual_network_rule" "test" {
+  name                = "acctestmysqlvnetrule%d"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  subnet_id           = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -290,16 +356,20 @@ func testAccAzureRMMySqlVirtualNetworkRule_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_mysql_virtual_network_rule" "import" {
-  name                = "${azurerm_mysql_virtual_network_rule.test.name}"
-  resource_group_name = "${azurerm_mysql_virtual_network_rule.test.resource_group_name}"
-  server_name         = "${azurerm_mysql_virtual_network_rule.test.server_name}"
-  subnet_id           = "${azurerm_mysql_virtual_network_rule.test.subnet_id}"
+  name                = azurerm_mysql_virtual_network_rule.test.name
+  resource_group_name = azurerm_mysql_virtual_network_rule.test.resource_group_name
+  server_name         = azurerm_mysql_virtual_network_rule.test.server_name
+  subnet_id           = azurerm_mysql_virtual_network_rule.test.subnet_id
 }
 `, testAccAzureRMMySqlVirtualNetworkRule_basic(data))
 }
 
 func testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -308,41 +378,36 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.128/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mysql_server" "test" {
   name                         = "acctestmysqlsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -353,15 +418,19 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_virtual_network_rule" "test" {
   name                = "acctestmysqlvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test1.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  subnet_id           = azurerm_subnet.test1.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -370,41 +439,36 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.128/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mysql_server" "test" {
   name                         = "acctestmysqlsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -415,15 +479,19 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_virtual_network_rule" "test" {
   name                = "acctestmysqlvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test2.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  subnet_id           = azurerm_subnet.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -432,56 +500,51 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "vnet1" {
   name                = "acctestvnet1%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "vnet2" {
   name                = "acctestvnet2%d"
   address_space       = ["10.1.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "vnet1_subnet1" {
   name                 = "acctestsubnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "vnet1_subnet2" {
   name                 = "acctestsubnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefix       = "10.7.29.128/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "vnet2_subnet1" {
   name                 = "acctestsubnet3%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet2.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet2.name
   address_prefix       = "10.1.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mysql_server" "test" {
   name                         = "acctestmysqlsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -492,23 +555,23 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_virtual_network_rule" "rule1" {
   name                = "acctestmysqlvnetrule1%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet1_subnet1.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  subnet_id           = azurerm_subnet.vnet1_subnet1.id
 }
 
 resource "azurerm_mysql_virtual_network_rule" "rule2" {
   name                = "acctestmysqlvnetrule2%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet1_subnet2.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  subnet_id           = azurerm_subnet.vnet1_subnet2.id
 }
 
 resource "azurerm_mysql_virtual_network_rule" "rule3" {
   name                = "acctestmysqlvnetrule3%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet2_subnet1.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
+  subnet_id           = azurerm_subnet.vnet2_subnet1.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

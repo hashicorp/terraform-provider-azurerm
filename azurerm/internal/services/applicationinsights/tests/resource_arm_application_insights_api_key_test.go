@@ -16,7 +16,6 @@ import (
 
 func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, "[]", "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,7 +23,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMApplicationInsightsAPIKey_basic(data, "[]", "[]"),
 				ExpectError: regexp.MustCompile("The API Key needs to have a Role"),
 			},
 		},
@@ -61,7 +60,6 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +67,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testi
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsAPIKey_basic(data, `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "5"),
@@ -83,7 +81,6 @@ func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testi
 
 func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, "[]", `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,7 +88,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *tes
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsAPIKey_basic(data, "[]", `["annotations"]`),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "0"),
@@ -105,7 +102,6 @@ func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *tes
 
 func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, `["agentconfig"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,7 +109,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsAPIKey_basic(data, `["agentconfig"]`, "[]"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "1"),
@@ -127,7 +123,6 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 
 func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -135,7 +130,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsAPIKey_basic(data, `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "6"),
@@ -180,6 +175,9 @@ func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error 
 
 func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -193,9 +191,6 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 		keyID := id.Path["APIKeys"]
 		resGroup := id.ResourceGroup
 		appInsightsName := id.Path["components"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)
 		if err != nil {
@@ -212,6 +207,10 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 
 func testAccAzureRMApplicationInsightsAPIKey_basic(data acceptance.TestData, readPerms, writePerms string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -219,14 +218,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_api_key" "test" {
   name                    = "acctestappinsightsapikey-%d"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   read_permissions        = %s
   write_permissions       = %s
 }
@@ -239,10 +238,10 @@ func testAccAzureRMApplicationInsightsAPIKey_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_application_insights_api_key" "import" {
-  name                    = "${azurerm_application_insights_api_key.test.name}"
-  application_insights_id = "${azurerm_application_insights_api_key.test.application_insights_id}"
-  read_permissions        = "${azurerm_application_insights_api_key.test.read_permissions}"
-  write_permissions       = "${azurerm_application_insights_api_key.test.write_permissions}"
+  name                    = azurerm_application_insights_api_key.test.name
+  application_insights_id = azurerm_application_insights_api_key.test.application_insights_id
+  read_permissions        = azurerm_application_insights_api_key.test.read_permissions
+  write_permissions       = azurerm_application_insights_api_key.test.write_permissions
 }
 `, template)
 }

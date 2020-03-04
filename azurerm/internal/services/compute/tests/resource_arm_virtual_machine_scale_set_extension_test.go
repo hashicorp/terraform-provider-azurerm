@@ -207,14 +207,14 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 
 func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
@@ -277,7 +277,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   publisher                    = "Microsoft.Azure.Extensions"
   type                         = "CustomScript"
   type_handler_version         = "2.0"
-  settings                     = jsonencode({
+  settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
@@ -295,7 +295,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   publisher                    = "Microsoft.Azure.Extensions"
   type                         = "CustomScript"
   type_handler_version         = "2.0"
-  settings                     = jsonencode({
+  settings = jsonencode({
     "commandToExecute" = "Write-Host \"Hello\""
   })
 }
@@ -314,7 +314,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   type                         = "CustomScript"
   type_handler_version         = "2.0"
   auto_upgrade_minor_version   = false
-  settings                     = jsonencode({
+  settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
@@ -340,10 +340,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "second" {
   publisher                    = "Microsoft.Azure.Extensions"
   type                         = "CustomScript"
   type_handler_version         = "2.0"
-  settings                     = jsonencode({
+  settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME"
   })
-  provision_after_extensions = [ azurerm_virtual_machine_scale_set_extension.first.name ]
+  provision_after_extensions = [azurerm_virtual_machine_scale_set_extension.first.name]
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -360,7 +360,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   type                         = "CustomScript"
   type_handler_version         = "2.0"
   force_update_tag             = %q
-  settings                     = jsonencode({
+  settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
@@ -378,7 +378,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   publisher                    = "Microsoft.OSTCExtensions"
   type                         = "CustomScriptForLinux"
   type_handler_version         = %q
-  settings                     = jsonencode({
+  settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME"
   })
 }
@@ -396,10 +396,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   publisher                    = "Microsoft.Azure.Extensions"
   type                         = "CustomScript"
   type_handler_version         = "2.0"
-  settings                     = jsonencode({
+  settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME"
   })
-  protected_settings           = jsonencode({
+  protected_settings = jsonencode({
     "secretValue" = "P@55W0rd1234!"
   })
 }
@@ -417,7 +417,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "test" {
   publisher                    = "Microsoft.Azure.Extensions"
   type                         = "CustomScript"
   type_handler_version         = "2.0"
-  protected_settings           = jsonencode({
+  protected_settings = jsonencode({
     "commandToExecute" = "echo $HOSTNAME",
     "secretValue"      = "P@55W0rd1234!"
   })
@@ -443,8 +443,12 @@ resource "azurerm_virtual_machine_scale_set_extension" "import" {
 
 func testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -504,8 +508,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
 func testAccAzureRMVirtualMachineScaleSetExtension_templateWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

@@ -32,8 +32,8 @@ func testAccAzureRMDataFactoryDataSource_basic(data acceptance.TestData) string 
 %s
 
 data "azurerm_data_factory" "test" {
-  name                = "${azurerm_data_factory.test.name}"
-  resource_group_name = "${azurerm_data_factory.test.resource_group_name}"
+  name                = azurerm_data_factory.test.name
+  resource_group_name = azurerm_data_factory.test.resource_group_name
 }
 `, config)
 }

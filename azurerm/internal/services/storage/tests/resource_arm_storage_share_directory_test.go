@@ -138,6 +138,9 @@ func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 
 func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -147,9 +150,6 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 		name := rs.Primary.Attributes["name"]
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -178,6 +178,9 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_share_directory" {
 			continue
@@ -186,9 +189,6 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -227,8 +227,8 @@ func testAccAzureRMStorageShareDirectory_basic(data acceptance.TestData) string 
 
 resource "azurerm_storage_share_directory" "test" {
   name                 = "dir"
-  share_name           = "${azurerm_storage_share.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, template)
 }
@@ -240,8 +240,8 @@ func testAccAzureRMStorageShareDirectory_uppercase(data acceptance.TestData) str
 
 resource "azurerm_storage_share_directory" "test" {
   name                 = "UpperCaseCharacterS"
-  share_name           = "${azurerm_storage_share.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, template)
 }
@@ -252,9 +252,9 @@ func testAccAzureRMStorageShareDirectory_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_storage_share_directory" "import" {
-  name                 = "${azurerm_storage_share_directory.test.name}"
-  share_name           = "${azurerm_storage_share_directory.test.share_name}"
-  storage_account_name = "${azurerm_storage_share_directory.test.storage_account_name}"
+  name                 = azurerm_storage_share_directory.test.name
+  share_name           = azurerm_storage_share_directory.test.share_name
+  storage_account_name = azurerm_storage_share_directory.test.storage_account_name
 }
 `, template)
 }
@@ -266,8 +266,8 @@ func testAccAzureRMStorageShareDirectory_complete(data acceptance.TestData) stri
 
 resource "azurerm_storage_share_directory" "test" {
   name                 = "dir"
-  share_name           = "${azurerm_storage_share.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello = "world"
@@ -283,8 +283,8 @@ func testAccAzureRMStorageShareDirectory_updated(data acceptance.TestData) strin
 
 resource "azurerm_storage_share_directory" "test" {
   name                 = "dir"
-  share_name           = "${azurerm_storage_share.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello    = "world"
@@ -301,36 +301,40 @@ func testAccAzureRMStorageShareDirectory_nested(data acceptance.TestData) string
 
 resource "azurerm_storage_share_directory" "parent" {
   name                 = "parent"
-  share_name           = "${azurerm_storage_share.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_storage_share_directory" "child" {
   name                 = "${azurerm_storage_share_directory.parent.name}/child"
-  share_name           = "${azurerm_storage_share.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, template)
 }
 
 func testAccAzureRMStorageShareDirectory_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "test" {
   name                 = "fileshare"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
   quota                = 50
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

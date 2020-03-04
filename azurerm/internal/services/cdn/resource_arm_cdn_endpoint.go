@@ -14,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +27,6 @@ func resourceArmCdnEndpoint() *schema.Resource {
 		Read:   resourceArmCdnEndpointRead,
 		Update: resourceArmCdnEndpointUpdate,
 		Delete: resourceArmCdnEndpointDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,6 +34,11 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.CdnEndpointID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -295,9 +299,11 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	profileName := d.Get("profile_name").(string)
+	id, err := parse.CdnEndpointID(d.Id())
+	if err != nil {
+		return err
+	}
+
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	compressionEnabled := d.Get("is_compression_enabled").(bool)
@@ -337,13 +343,13 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		endpoint.EndpointPropertiesUpdateParameters.ProbePath = utils.String(probePath)
 	}
 
-	future, err := endpointsClient.Update(ctx, resourceGroup, profileName, name, endpoint)
+	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
 	if err != nil {
-		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
+		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
-		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	return resourceArmCdnEndpointRead(d, meta)
@@ -354,30 +360,26 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CdnEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["endpoints"]
-	profileName := id.Path["profiles"]
-	if profileName == "" {
-		profileName = id.Path["Profiles"]
-	}
-	log.Printf("[INFO] Retrieving CDN Endpoint %q (Profile %q / Resource Group %q)", name, profileName, resourceGroup)
-	resp, err := client.Get(ctx, resourceGroup, profileName, name)
+
+	log.Printf("[INFO] Retrieving CDN Endpoint %q (Profile %q / Resource Group %q)", id.Name, id.ProfileName, id.ResourceGroup)
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Azure CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("profile_name", profileName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("profile_name", id.ProfileName)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -418,30 +420,24 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CdnEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	profileName := id.Path["profiles"]
-	if profileName == "" {
-		profileName = id.Path["Profiles"]
-	}
-	name := id.Path["endpoints"]
 
-	future, err := client.Delete(ctx, resourceGroup, profileName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("Error deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to be deleted: %+v", name, profileName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to be deleted: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
 	return nil

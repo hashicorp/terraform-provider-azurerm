@@ -111,6 +111,9 @@ func TestAccAzureRMNetworkProfile_disappears(t *testing.T) {
 
 func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -123,8 +126,6 @@ func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -140,6 +141,9 @@ func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -152,8 +156,6 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)
 		}
@@ -191,6 +193,10 @@ func testCheckAzureRMNetworkProfileDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -198,15 +204,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 
   delegation {
@@ -221,15 +227,15 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_profile" "test" {
   name                = "acctestnetprofile-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   container_network_interface {
     name = "acctesteth-%d"
 
     ip_configuration {
       name      = "acctestipconfig-%d"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 }
@@ -242,16 +248,16 @@ func testAccAzureRMNetworkProfile_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_network_profile" "import" {
-  name                = "${azurerm_network_profile.test.name}"
-  location            = "${azurerm_network_profile.test.location}"
-  resource_group_name = "${azurerm_network_profile.test.resource_group_name}"
+  name                = azurerm_network_profile.test.name
+  location            = azurerm_network_profile.test.location
+  resource_group_name = azurerm_network_profile.test.resource_group_name
 
   container_network_interface {
-    name = "${azurerm_network_profile.test.container_network_interface.0.name}"
+    name = azurerm_network_profile.test.container_network_interface[0].name
 
     ip_configuration {
-      name      = "${azurerm_network_profile.test.container_network_interface.0.ip_configuration.0.name}"
-      subnet_id = "${azurerm_subnet.test.id}"
+      name      = azurerm_network_profile.test.container_network_interface[0].ip_configuration[0].name
+      subnet_id = azurerm_subnet.test.id
     }
   }
 }
@@ -260,6 +266,10 @@ resource "azurerm_network_profile" "import" {
 
 func testAccAzureRMNetworkProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -267,15 +277,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 
   delegation {
@@ -290,15 +300,15 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_profile" "test" {
   name                = "acctestnetprofile-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   container_network_interface {
     name = "acctesteth-%d"
 
     ip_configuration {
       name      = "acctestipconfig-%d"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 
@@ -312,6 +322,10 @@ resource "azurerm_network_profile" "test" {
 
 func testAccAzureRMNetworkProfile_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -319,15 +333,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 
   delegation {
@@ -342,15 +356,15 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_profile" "test" {
   name                = "acctestnetprofile-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   container_network_interface {
     name = "acctesteth-%d"
 
     ip_configuration {
       name      = "acctestipconfig-%d"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
     }
   }
 

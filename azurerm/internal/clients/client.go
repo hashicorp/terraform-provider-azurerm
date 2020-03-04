@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	analysisServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/client"
@@ -26,7 +27,6 @@ import (
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
-	graph "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
@@ -54,7 +54,6 @@ import (
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
 	relay "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/client"
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
-	scheduler "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler/client"
 	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
 	securityCenter "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/client"
 	serviceBus "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/client"
@@ -72,7 +71,8 @@ type Client struct {
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
 
-	Account *ResourceManagerAccount
+	Account  *ResourceManagerAccount
+	Features features.UserFeatures
 
 	AnalysisServices *analysisServices.Client
 	ApiManagement    *apiManagement.Client
@@ -96,7 +96,6 @@ type Client struct {
 	EventGrid        *eventgrid.Client
 	Eventhub         *eventhub.Client
 	Frontdoor        *frontdoor.Client
-	Graph            *graph.Client
 	HDInsight        *hdinsight.Client
 	HealthCare       *healthcare.Client
 	IoTHub           *iothub.Client
@@ -124,7 +123,6 @@ type Client struct {
 	Redis            *redis.Client
 	Relay            *relay.Client
 	Resource         *resource.Client
-	Scheduler        *scheduler.Client
 	Search           *search.Client
 	SecurityCenter   *securityCenter.Client
 	ServiceBus       *serviceBus.Client
@@ -141,6 +139,7 @@ type Client struct {
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
 
 func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
+	client.Features = o.Features
 	client.StopContext = ctx
 
 	client.AnalysisServices = analysisServices.NewClient(o)
@@ -165,7 +164,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
-	client.Graph = graph.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
@@ -193,7 +191,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Redis = redis.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
-	client.Scheduler = scheduler.NewClient(o)
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)

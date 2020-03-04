@@ -109,6 +109,9 @@ func testCheckAzureRMEventGridDomainDestroy(s *terraform.State) error {
 
 func testCheckAzureRMEventGridDomainExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -121,8 +124,6 @@ func testCheckAzureRMEventGridDomainExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for EventGrid Domain: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -138,6 +139,10 @@ func testCheckAzureRMEventGridDomainExists(resourceName string) resource.TestChe
 
 func testAccAzureRMEventGridDomain_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -145,14 +150,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMEventGridDomain_mapping(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -160,8 +169,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   input_schema = "CustomEventSchema"
 
@@ -180,6 +189,10 @@ resource "azurerm_eventgrid_domain" "test" {
 
 func testAccAzureRMEventGridDomain_basicWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -187,8 +200,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "foo" = "bar"

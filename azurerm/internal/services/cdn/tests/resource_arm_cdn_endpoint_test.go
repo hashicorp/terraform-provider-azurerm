@@ -10,11 +10,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 )
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +22,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 				),
@@ -61,7 +61,6 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +68,7 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					testCheckAzureRMCdnEndpointDisappears(data.ResourceName),
@@ -82,8 +81,6 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_hostHeader(data, "www.example.com")
-	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(data, "www.example2.com")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,14 +88,14 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.example.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example.com"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.example2.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example2.com"),
@@ -110,8 +107,6 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	preConfig := testAccAzureRMCdnEndpoint_withTags(data)
-	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -119,7 +114,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMCdnEndpoint_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -129,7 +124,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMCdnEndpoint_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -142,7 +137,6 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_optimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -150,7 +144,7 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_optimized(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimization_type", "GeneralWebDelivery"),
@@ -162,7 +156,6 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_geoFilters(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -170,7 +163,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_geoFilters(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_filter.#", "2"),
@@ -181,7 +174,6 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 }
 func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_fullFields(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -189,7 +181,7 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_fullFields(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "true"),
@@ -212,8 +204,6 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "true", "false")
-	updatedConfig := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "false", "true")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -221,7 +211,7 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "true", "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "true"),
@@ -229,7 +219,7 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "false", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "false"),
@@ -242,29 +232,27 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 
 func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		profileName := rs.Primary.Attributes["profile_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
+		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnEndpointsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: CDN Endpoint %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: CDN Endpoint %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -273,6 +261,9 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 
 func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -285,9 +276,6 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := conn.Delete(ctx, resourceGroup, profileName, name)
 		if err != nil {
@@ -311,11 +299,12 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		profileName := rs.Primary.Attributes["profile_name"]
+		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 		if err != nil {
 			return nil
 		}
@@ -330,6 +319,10 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 
 func testAccAzureRMCdnEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -337,16 +330,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -364,10 +357,10 @@ func testAccAzureRMCdnEndpoint_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cdn_endpoint" "import" {
-  name                = "${azurerm_cdn_endpoint.test.name}"
-  profile_name        = "${azurerm_cdn_endpoint.test.profile_name}"
-  location            = "${azurerm_cdn_endpoint.test.location}"
-  resource_group_name = "${azurerm_cdn_endpoint.test.resource_group_name}"
+  name                = azurerm_cdn_endpoint.test.name
+  profile_name        = azurerm_cdn_endpoint.test.profile_name
+  location            = azurerm_cdn_endpoint.test.location
+  resource_group_name = azurerm_cdn_endpoint.test.resource_group_name
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -381,6 +374,10 @@ resource "azurerm_cdn_endpoint" "import" {
 
 func testAccAzureRMCdnEndpoint_hostHeader(data acceptance.TestData, domain string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -388,16 +385,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   origin_host_header  = "%s"
 
   origin {
@@ -417,6 +414,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -424,16 +425,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
@@ -452,6 +453,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -459,16 +464,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
@@ -486,6 +491,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_geoFilters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -493,16 +502,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = false
   is_https_allowed    = true
   origin_path         = "/origin-path"
@@ -532,6 +541,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_optimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -539,16 +552,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = false
   is_https_allowed    = true
   optimization_type   = "GeneralWebDelivery"
@@ -565,6 +578,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_fullFields(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -572,16 +589,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                          = "acctestcdnend%d"
-  profile_name                  = "${azurerm_cdn_profile.test.name}"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  profile_name                  = azurerm_cdn_profile.test.name
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
   is_http_allowed               = true
   is_https_allowed              = true
   content_types_to_compress     = ["text/html"]
@@ -614,6 +631,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data acceptance.TestData, isHttpAllowed string, isHttpsAllowed string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -621,16 +642,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = %s
   is_https_allowed    = %s
 

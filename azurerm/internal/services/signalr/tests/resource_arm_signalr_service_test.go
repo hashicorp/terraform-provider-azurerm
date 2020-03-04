@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
 )
 
 func TestAccAzureRMSignalRService_basic(t *testing.T) {
@@ -134,8 +135,6 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 
 func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-	freeConfig := testAccAzureRMSignalRService_basic(data)
-	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(data, 1)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -143,7 +142,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
@@ -159,7 +158,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -175,7 +174,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
@@ -196,8 +195,6 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 
 func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(data, 1)
-	standardCap5Config := testAccAzureRMSignalRService_standardWithCapacity(data, 5)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -205,7 +202,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -221,7 +218,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardCap5Config,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 5),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -237,7 +234,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -258,8 +255,6 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 
 func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-	freeConfig := testAccAzureRMSignalRService_basic(data)
-	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(data, 2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -267,7 +262,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
@@ -283,7 +278,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -299,7 +294,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
@@ -379,6 +374,10 @@ func TestAccAzureRMSignalRService_cors(t *testing.T) {
 
 func testAccAzureRMSignalRService_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -386,8 +385,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -402,9 +401,9 @@ func testAccAzureRMSignalRService_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_signalr_service" "import" {
-  name                = "${azurerm_signalr_service.test.name}"
-  location            = "${azurerm_signalr_service.test.location}"
-  resource_group_name = "${azurerm_signalr_service.test.resource_group_name}"
+  name                = azurerm_signalr_service.test.name
+  location            = azurerm_signalr_service.test.location
+  resource_group_name = azurerm_signalr_service.test.resource_group_name
 
   sku {
     name     = "Free_F1"
@@ -416,6 +415,10 @@ resource "azurerm_signalr_service" "import" {
 
 func testAccAzureRMSignalRService_standardWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -423,8 +426,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Standard_S1"
@@ -436,6 +439,10 @@ resource "azurerm_signalr_service" "test" {
 
 func testAccAzureRMSignalRService_withCors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -443,8 +450,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -452,10 +459,10 @@ resource "azurerm_signalr_service" "test" {
   }
 
   cors {
-	allowed_origins = [
-	  "https://example.com",
-	  "https://contoso.com",
-	]
+    allowed_origins = [
+      "https://example.com",
+      "https://contoso.com",
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -463,6 +470,10 @@ resource "azurerm_signalr_service" "test" {
 
 func testAccAzureRMSignalRService_withServiceMode(data acceptance.TestData, serviceMode string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -470,8 +481,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -494,10 +505,12 @@ func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.SignalRServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return nil
 		}
@@ -510,27 +523,26 @@ func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).SignalR.Client
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", name)
+		id, err := parse.SignalRServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).SignalR.Client
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on signalRClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil

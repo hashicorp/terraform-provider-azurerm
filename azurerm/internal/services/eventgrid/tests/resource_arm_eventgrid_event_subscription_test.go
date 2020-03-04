@@ -25,13 +25,6 @@ func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_queue_endpoint.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_blob_dead_letter_destination.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "All"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.max_delivery_attempts", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.event_time_to_live", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.0", "test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.2", "test2"),
 				),
 			},
 			data.ImportStep(),
@@ -154,6 +147,9 @@ func testCheckAzureRMEventGridEventSubscriptionDestroy(s *terraform.State) error
 
 func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -166,8 +162,6 @@ func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resou
 			return fmt.Errorf("Bad: no scope found in state for EventGrid Event Subscription: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -183,6 +177,10 @@ func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resou
 
 func testAccAzureRMEventGridEventSubscription_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -208,7 +206,6 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
@@ -250,6 +247,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func testAccAzureRMEventGridEventSubscription_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -257,8 +258,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -269,23 +270,20 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
   name = "herpderp1.vhd"
 
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
 
   type = "page"
   size = 5120
@@ -293,16 +291,16 @@ resource "azurerm_storage_blob" "test" {
 
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%d"
-  scope = "${azurerm_resource_group.test.id}"
+  scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
-    storage_account_id = "${azurerm_storage_account.test.id}"
-    queue_name         = "${azurerm_storage_queue.test.name}"
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
-    storage_account_id          = "${azurerm_storage_account.test.id}"
-    storage_blob_container_name = "${azurerm_storage_container.test.name}"
+    storage_account_id          = azurerm_storage_account.test.id
+    storage_blob_container_name = azurerm_storage_container.test.name
   }
 
   retry_policy {
@@ -323,6 +321,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func testAccAzureRMEventGridEventSubscription_eventhub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -330,26 +332,26 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
 }
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 1
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                  = "acctesteg-%d"
-  scope                 = "${azurerm_resource_group.test.id}"
+  scope                 = azurerm_resource_group.test.id
   event_delivery_schema = "CloudEventV01Schema"
 
   eventhub_endpoint {
-    eventhub_id = "${azurerm_eventhub.test.id}"
+    eventhub_id = azurerm_eventhub.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -357,6 +359,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func testAccAzureRMEventGridEventSubscription_filter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

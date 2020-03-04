@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = "${var.location}"
@@ -53,6 +57,10 @@ resource "azurerm_batch_pool" "fixed" {
         scope           = "Task"
       }
     }
+  }
+
+  metadata ={
+    "tagName"= "Example tag"
   }
 }
 

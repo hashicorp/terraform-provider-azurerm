@@ -206,8 +206,6 @@ func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *tes
 
 func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	config := testAccAzureRMServiceBusQueue_lockDuration(data)
-	updatedConfig := testAccAzureRMServiceBusQueue_lockDurationUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -215,14 +213,14 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusQueue_lockDuration(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "lock_duration", "PT40S"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusQueue_lockDurationUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "lock_duration", "PT2M"),
@@ -311,6 +309,9 @@ func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 
 func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -323,9 +324,6 @@ func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for queue: %s", queueName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, queueName)
 		if err != nil {
@@ -342,6 +340,10 @@ func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestChe
 
 func testAccAzureRMServiceBusQueue_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -349,15 +351,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -368,15 +370,19 @@ func testAccAzureRMServiceBusQueue_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_servicebus_queue" "import" {
-  name                = "${azurerm_servicebus_queue.test.name}"
-  resource_group_name = "${azurerm_servicebus_queue.test.resource_group_name}"
-  namespace_name      = "${azurerm_servicebus_queue.test.namespace_name}"
+  name                = azurerm_servicebus_queue.test.name
+  resource_group_name = azurerm_servicebus_queue.test.resource_group_name
+  namespace_name      = azurerm_servicebus_queue.test.namespace_name
 }
 `, template)
 }
 
 func testAccAzureRMServiceBusQueue_Premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -384,16 +390,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "premium"
   capacity            = 1
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   enable_partitioning = false
   enable_express      = false
 }
@@ -402,6 +408,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -409,15 +419,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                  = "acctestservicebusqueue-%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  namespace_name        = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name   = azurerm_resource_group.test.name
+  namespace_name        = azurerm_servicebus_namespace.test.name
   enable_express        = true
   max_size_in_megabytes = 2048
 }
@@ -426,6 +436,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enablePartitioningStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -433,15 +447,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                  = "acctestservicebusqueue-%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  namespace_name        = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name   = azurerm_resource_group.test.name
+  namespace_name        = azurerm_servicebus_namespace.test.name
   enable_partitioning   = true
   max_size_in_megabytes = 5120
 }
@@ -450,6 +464,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enableDuplicateDetection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -457,15 +475,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                         = "acctestservicebusqueue-%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  namespace_name               = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name          = azurerm_resource_group.test.name
+  namespace_name               = azurerm_servicebus_namespace.test.name
   requires_duplicate_detection = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -473,6 +491,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enableRequiresSession(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -480,16 +502,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   requires_session    = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -497,6 +519,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -504,16 +530,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                                 = "acctestservicebusqueue-%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  namespace_name                       = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  namespace_name                       = azurerm_servicebus_namespace.test.name
   dead_lettering_on_message_expiration = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -521,6 +547,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_lockDuration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -528,15 +558,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   lock_duration       = "PT40S"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -544,6 +574,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_lockDurationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -551,15 +585,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   lock_duration       = "PT2M"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -567,6 +601,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -574,15 +612,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                                    = "acctestservicebusqueue-%d"
-  resource_group_name                     = "${azurerm_resource_group.test.name}"
-  namespace_name                          = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name                     = azurerm_resource_group.test.name
+  namespace_name                          = azurerm_servicebus_namespace.test.name
   auto_delete_on_idle                     = "PT10M"
   default_message_ttl                     = "PT30M"
   requires_duplicate_detection            = true
@@ -593,6 +631,10 @@ resource "azurerm_servicebus_queue" "test" {
 
 func testAccAzureRMServiceBusQueue_maxDeliveryCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -600,15 +642,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
   max_delivery_count  = 20
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

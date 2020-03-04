@@ -108,8 +108,6 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *tes
 
 func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data)
-	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -117,14 +115,14 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sql_filter", "2=2"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sql_filter", "3=3"),
@@ -136,8 +134,6 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilter(data)
-	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -145,7 +141,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscriptionRule_correlationFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "correlation_filter.0.message_id", "test_message_id"),
@@ -153,7 +149,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "correlation_filter.0.message_id", "test_message_id_updated"),
@@ -166,8 +162,6 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 
 func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data)
-	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -175,13 +169,13 @@ func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 				),
@@ -192,6 +186,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter
 
 func testCheckAzureRMServiceBusSubscriptionRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -205,9 +202,6 @@ func testCheckAzureRMServiceBusSubscriptionRuleExists(resourceName string) resou
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Subscription Rule: %q", ruleName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, ruleName)
 		if err != nil {
@@ -229,10 +223,10 @@ func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data acceptance.Tes
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "SqlFilter"
   sql_filter          = "2=2"
 }
@@ -244,13 +238,13 @@ func testAccAzureRMServiceBusSubscriptionRule_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_servicebus_subscription_rule" "import" {
-  name                = "${azurerm_servicebus_subscription_rule.test.name}"
-  namespace_name      = "${azurerm_servicebus_subscription_rule.test.namespace_name}"
-  topic_name          = "${azurerm_servicebus_subscription_rule.test.topic_name}"
-  subscription_name   = "${azurerm_servicebus_subscription_rule.test.subscription_name}"
-  resource_group_name = "${azurerm_servicebus_subscription_rule.test.resource_group_name}"
-  filter_type         = "${azurerm_servicebus_subscription_rule.test.filter_type}"
-  sql_filter          = "${azurerm_servicebus_subscription_rule.test.sql_filter}"
+  name                = azurerm_servicebus_subscription_rule.test.name
+  namespace_name      = azurerm_servicebus_subscription_rule.test.namespace_name
+  topic_name          = azurerm_servicebus_subscription_rule.test.topic_name
+  subscription_name   = azurerm_servicebus_subscription_rule.test.subscription_name
+  resource_group_name = azurerm_servicebus_subscription_rule.test.resource_group_name
+  filter_type         = azurerm_servicebus_subscription_rule.test.filter_type
+  sql_filter          = azurerm_servicebus_subscription_rule.test.sql_filter
 }
 `, testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data))
 }
@@ -262,10 +256,10 @@ func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(data accepta
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "SqlFilter"
   sql_filter          = "3=3"
 }
@@ -279,10 +273,10 @@ func testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(data acceptanc
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "SqlFilter"
   sql_filter          = "2=2"
   action              = "SET Test='true'"
@@ -297,10 +291,10 @@ func testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(data accept
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "CorrelationFilter"
 
   correlation_filter {
@@ -324,10 +318,10 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilter(data acceptance.
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "CorrelationFilter"
 
   correlation_filter {
@@ -345,10 +339,10 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(data acce
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "CorrelationFilter"
 
   correlation_filter {
@@ -367,10 +361,10 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(data a
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   action              = "SET Test='true'"
   filter_type         = "CorrelationFilter"
 
@@ -384,6 +378,10 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 
 func testAccAzureRMServiceBusSubscriptionRule_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -391,22 +389,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_servicebus_subscription" "test" {
   name                = "acctestservicebussubscription-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
   max_delivery_count  = 10
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -24,6 +24,7 @@ func TestAccAzureRMPrivateDnsSrvRecord_basic(t *testing.T) {
 				Config: testAccAzureRMPrivateDnsSrvRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsSrvRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
 			data.ImportStep(),
@@ -107,6 +108,9 @@ func TestAccAzureRMPrivateDnsSrvRecord_withTags(t *testing.T) {
 
 func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -120,8 +124,6 @@ func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS SRV record: %s", srvName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.SRV, srvName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)
@@ -166,6 +168,10 @@ func testCheckAzureRMPrivateDnsSrvRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateDnsSrvRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-prvdns-%d"
   location = "%s"
@@ -173,13 +179,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "testzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
   name                = "testaccsrv%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     priority = 1
@@ -204,9 +210,9 @@ func testAccAzureRMPrivateDnsSrvRecord_requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_private_dns_srv_record" "import" {
-  name                = "${azurerm_private_dns_srv_record.test.name}"
-  resource_group_name = "${azurerm_private_dns_srv_record.test.resource_group_name}"
-  zone_name           = "${azurerm_private_dns_srv_record.test.zone_name}"
+  name                = azurerm_private_dns_srv_record.test.name
+  resource_group_name = azurerm_private_dns_srv_record.test.resource_group_name
+  zone_name           = azurerm_private_dns_srv_record.test.zone_name
   ttl                 = 300
   record {
     priority = 1
@@ -226,20 +232,24 @@ resource "azurerm_private_dns_srv_record" "import" {
 
 func testAccAzureRMPrivateDnsSrvRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+provider "azurerm" {
+  features {}
 }
-	
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
   name                = "test%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     priority = 1
@@ -265,20 +275,24 @@ resource "azurerm_private_dns_srv_record" "test" {
 
 func testAccAzureRMPrivateDnsSrvRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+provider "azurerm" {
+  features {}
 }
-  
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
   name                = "test%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     priority = 1
@@ -303,20 +317,24 @@ resource "azurerm_private_dns_srv_record" "test" {
 
 func testAccAzureRMPrivateDnsSrvRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
   name                = "test%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
   record {
     priority = 1

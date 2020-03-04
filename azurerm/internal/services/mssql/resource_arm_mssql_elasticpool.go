@@ -6,13 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -118,53 +117,13 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						"min_capacity": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: validate.FloatAtLeast(0.0),
+							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 
 						"max_capacity": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: validate.FloatAtLeast(0.0),
-						},
-					},
-				},
-			},
-
-			"elastic_pool_properties": {
-				Type:       schema.TypeList,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "These properties herein have been moved to the top level or removed",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"state": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This property has been removed",
-						},
-
-						"creation_date": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This property has been removed",
-						},
-
-						"max_size_bytes": {
-							Type:       schema.TypeInt,
-							Computed:   true,
-							Deprecated: "This property has been moved to the top level",
-						},
-
-						"zone_redundant": {
-							Type:       schema.TypeBool,
-							Computed:   true,
-							Deprecated: "This property has been moved to the top level",
-						},
-
-						"license_type": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This property has been removed",
+							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 					},
 				},
@@ -183,7 +142,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"max_size_bytes"},
-				ValidateFunc:  validate.FloatAtLeast(0),
+				ValidateFunc:  validation.FloatAtLeast(0),
 			},
 
 			"zone_redundant": {
@@ -322,11 +281,6 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
 
-		//todo remove in 2.0
-		if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
-			return fmt.Errorf("Error setting `elastic_pool_properties`: %+v", err)
-		}
-
 		if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
 		}
@@ -412,23 +366,6 @@ func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
 	}
 
 	return []interface{}{values}
-}
-
-func flattenAzureRmMsSqlElasticPoolProperties(resp *sql.ElasticPoolProperties) []interface{} {
-	elasticPoolProperty := map[string]interface{}{}
-	elasticPoolProperty["state"] = string(resp.State)
-
-	if date := resp.CreationDate; date != nil {
-		elasticPoolProperty["creation_date"] = date.String()
-	}
-
-	if zoneRedundant := resp.ZoneRedundant; zoneRedundant != nil {
-		elasticPoolProperty["zone_redundant"] = *zoneRedundant
-	}
-
-	elasticPoolProperty["license_type"] = string(resp.LicenseType)
-
-	return []interface{}{elasticPoolProperty}
 }
 
 func flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {

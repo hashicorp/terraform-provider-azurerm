@@ -24,7 +24,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
@@ -65,6 +64,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
+//go:generate go run ../tools/website-categories/main.go -path=../../../website/allowed-subcategories
+
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
 		analysisservices.Registration{},
@@ -89,7 +90,6 @@ func SupportedServices() []common.ServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		frontdoor.Registration{},
-		graph.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},

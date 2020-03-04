@@ -82,6 +82,10 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing
 
 func testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template(name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_traffic_manager_geographical_location" "test" {
   name = "%s"
 }

@@ -16,15 +16,13 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	config := testAccAzureRMVirtualNetworkPeering_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
@@ -67,15 +65,13 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	config := testAccAzureRMVirtualNetworkPeering_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
@@ -93,16 +89,13 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	preConfig := testAccAzureRMVirtualNetworkPeering_basic(data)
-	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
@@ -114,7 +107,7 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualNetworkPeering_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
@@ -130,6 +123,9 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 
 func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -144,9 +140,6 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetPeeringsClient: %s", err)
@@ -162,6 +155,9 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 
 func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -176,9 +172,6 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			return fmt.Errorf("Error deleting Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)
@@ -220,6 +213,10 @@ func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
 
 func testAccAzureRMVirtualNetworkPeering_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -227,31 +224,31 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test1" {
   name                = "acctestvirtnet-1-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.1.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvirtnet-2-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.2.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
   name                         = "acctestpeer-1-%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  virtual_network_name         = "${azurerm_virtual_network.test1.name}"
-  remote_virtual_network_id    = "${azurerm_virtual_network.test2.id}"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test1.name
+  remote_virtual_network_id    = azurerm_virtual_network.test2.id
   allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
   name                         = "acctestpeer-2-%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  virtual_network_name         = "${azurerm_virtual_network.test2.name}"
-  remote_virtual_network_id    = "${azurerm_virtual_network.test1.id}"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test2.name
+  remote_virtual_network_id    = azurerm_virtual_network.test1.id
   allow_virtual_network_access = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -263,17 +260,21 @@ func testAccAzureRMVirtualNetworkPeering_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_virtual_network_peering" "import" {
-  name                         = "${azurerm_virtual_network_peering.test1.name}"
-  resource_group_name          = "${azurerm_virtual_network_peering.test1.resource_group_name}"
-  virtual_network_name         = "${azurerm_virtual_network_peering.test1.virtual_network_name}"
-  remote_virtual_network_id    = "${azurerm_virtual_network_peering.test1.remote_virtual_network_id}"
-  allow_virtual_network_access = "${azurerm_virtual_network_peering.test1.allow_virtual_network_access}"
+  name                         = azurerm_virtual_network_peering.test1.name
+  resource_group_name          = azurerm_virtual_network_peering.test1.resource_group_name
+  virtual_network_name         = azurerm_virtual_network_peering.test1.virtual_network_name
+  remote_virtual_network_id    = azurerm_virtual_network_peering.test1.remote_virtual_network_id
+  allow_virtual_network_access = azurerm_virtual_network_peering.test1.allow_virtual_network_access
 }
 `, template)
 }
 
 func testAccAzureRMVirtualNetworkPeering_basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -281,32 +282,32 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test1" {
   name                = "acctestvirtnet-1-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.1.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvirtnet-2-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.2.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
   name                         = "acctestpeer-1-%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  virtual_network_name         = "${azurerm_virtual_network.test1.name}"
-  remote_virtual_network_id    = "${azurerm_virtual_network.test2.id}"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test1.name
+  remote_virtual_network_id    = azurerm_virtual_network.test2.id
   allow_forwarded_traffic      = true
   allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
   name                         = "acctestpeer-2-%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  virtual_network_name         = "${azurerm_virtual_network.test2.name}"
-  remote_virtual_network_id    = "${azurerm_virtual_network.test1.id}"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test2.name
+  remote_virtual_network_id    = azurerm_virtual_network.test1.id
   allow_forwarded_traffic      = true
   allow_virtual_network_access = true
 }

@@ -26,11 +26,7 @@ func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -72,11 +68,7 @@ func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
 					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -95,11 +87,7 @@ func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
 					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -128,17 +116,15 @@ func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestApiVersionSet2%d", data.RandomInteger)),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiVersionSetClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_version_set" {
 			continue
@@ -148,7 +134,6 @@ func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -164,6 +149,9 @@ func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error
 
 func testCheckAzureRMApiManagementApiVersionSetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiVersionSetClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -173,8 +161,6 @@ func testCheckAzureRMApiManagementApiVersionSetExists(resourceName string) resou
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiVersionSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -194,8 +180,8 @@ func testAccAzureRMApiManagementApiVersionSet_basic(data acceptance.TestData) st
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription1"
   display_name        = "TestApiVersionSet1%d"
   versioning_scheme   = "Segment"
@@ -209,12 +195,12 @@ func testAccAzureRMApiManagementApiVersionSet_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_api_management_api_version_set" "import" {
-  name                = "${azurerm_api_management_api_version_set.test.name}"
-  resource_group_name = "${azurerm_api_management_api_version_set.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_api_version_set.test.api_management_name}"
-  description         = "${azurerm_api_management_api_version_set.test.description}"
-  display_name        = "${azurerm_api_management_api_version_set.test.display_name}"
-  versioning_scheme   = "${azurerm_api_management_api_version_set.test.versioning_scheme}"
+  name                = azurerm_api_management_api_version_set.test.name
+  resource_group_name = azurerm_api_management_api_version_set.test.resource_group_name
+  api_management_name = azurerm_api_management_api_version_set.test.api_management_name
+  description         = azurerm_api_management_api_version_set.test.description
+  display_name        = azurerm_api_management_api_version_set.test.display_name
+  versioning_scheme   = azurerm_api_management_api_version_set.test.versioning_scheme
 }
 `, template)
 }
@@ -226,8 +212,8 @@ func testAccAzureRMApiManagementApiVersionSet_header(data acceptance.TestData) s
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription1"
   display_name        = "TestApiVersionSet1%d"
   versioning_scheme   = "Header"
@@ -243,8 +229,8 @@ func testAccAzureRMApiManagementApiVersionSet_query(data acceptance.TestData) st
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription1"
   display_name        = "TestApiVersionSet1%d"
   versioning_scheme   = "Query"
@@ -260,8 +246,8 @@ func testAccAzureRMApiManagementApiVersionSet_update(data acceptance.TestData) s
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription2"
   display_name        = "TestApiVersionSet2%d"
   versioning_scheme   = "Segment"
@@ -271,6 +257,10 @@ resource "azurerm_api_management_api_version_set" "test" {
 
 func testAccAzureRMApiManagementApiVersionSet_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -278,15 +268,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name            = "Developer_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

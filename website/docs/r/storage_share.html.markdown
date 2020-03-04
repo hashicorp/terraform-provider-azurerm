@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_share"
-sidebar_current: "docs-azurerm-resource-storage-share-x"
 description: |-
   Manages a File Share within Azure Storage.
 ---
@@ -21,15 +20,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "azureteststorage"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "example" {
   name                 = "sharename"
-  storage_account_name = "${azurerm_storage_account.example.name}"
+  storage_account_name = azurerm_storage_account.example.name
   quota                = 50
 }
 ```
@@ -49,9 +48,6 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A mapping of MetaData for this File Share.
 
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to
-    create the share. Changing this forces a new resource to be created.
-    
 ---
 
 A `acl` block supports the following:
@@ -62,7 +58,7 @@ A `acl` block supports the following:
 
 ---
 
-A `access_policy` block supports the following: 
+A `access_policy` block supports the following:
 
 * `expiry` - (Required) The ISO8061 UTC time at which this Access Policy should be valid until.
 
@@ -76,6 +72,15 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the File Share.
 * `url` - The URL of the File Share
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Share.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Share.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Share.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Share.
 
 ## Import
 

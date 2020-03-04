@@ -28,11 +28,7 @@ func TestAccAzureRMApiManagementBackend_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://acctest"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -71,11 +67,7 @@ func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tls.0.validate_certificate_name", "true"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -94,11 +86,7 @@ func TestAccAzureRMApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -173,11 +161,7 @@ func TestAccAzureRMApiManagementBackend_serviceFabric(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "service_fabric_cluster.0.server_certificate_thumbprints.#", "2"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -227,6 +211,7 @@ func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
 
 func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_backend" {
@@ -236,7 +221,6 @@ func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
@@ -255,6 +239,9 @@ func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -264,9 +251,6 @@ func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
@@ -283,6 +267,9 @@ func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckF
 
 func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -295,9 +282,6 @@ func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resourc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for backend: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Delete(ctx, resourceGroup, serviceName, name, "")
 		if err != nil {
@@ -318,8 +302,8 @@ func testAccAzureRMApiManagementBackend_basic(data acceptance.TestData, testName
 
 resource "azurerm_api_management_backend" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   protocol            = "http"
   url                 = "https://acctest"
 }
@@ -333,8 +317,8 @@ func testAccAzureRMApiManagementBackend_update(data acceptance.TestData) string 
 
 resource "azurerm_api_management_backend" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   protocol            = "soap"
   url                 = "https://updatedacctest"
   description         = "description"
@@ -359,16 +343,16 @@ func testAccAzureRMApiManagementBackend_allProperties(data acceptance.TestData) 
 
 resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data                = "${filebase64("testdata/keyvaultcert.pfx")}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  data                = filebase64("testdata/keyvaultcert.pfx")
   password            = ""
 }
 
 resource "azurerm_api_management_backend" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   protocol            = "http"
   url                 = "https://acctest"
   description         = "description"
@@ -380,7 +364,7 @@ resource "azurerm_api_management_backend" "test" {
       scheme    = "scheme"
     }
     certificate = [
-      "${azurerm_api_management_certificate.test.thumbprint}",
+      azurerm_api_management_certificate.test.thumbprint,
     ]
     header = {
       header1 = "header1value1,header1value2"
@@ -411,20 +395,20 @@ func testAccAzureRMApiManagementBackend_serviceFabric(data acceptance.TestData) 
 
 resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data                = "${filebase64("testdata/keyvaultcert.pfx")}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  data                = filebase64("testdata/keyvaultcert.pfx")
   password            = ""
 }
 
 resource "azurerm_api_management_backend" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   protocol            = "http"
   url                 = "https://acctest"
   service_fabric_cluster {
-    client_certificate_thumbprint = "${azurerm_api_management_certificate.test.thumbprint}"
+    client_certificate_thumbprint = azurerm_api_management_certificate.test.thumbprint
     management_endpoints = [
       "https://acctestsf.com",
     ]
@@ -444,17 +428,21 @@ func testAccAzureRMApiManagementBackend_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_api_management_backend" "import" {
-  name                = "${azurerm_api_management_backend.test.name}"
-  resource_group_name = "${azurerm_api_management_backend.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_backend.test.api_management_name}"
-  protocol            = "${azurerm_api_management_backend.test.protocol}"
-  url                 = "${azurerm_api_management_backend.test.url}"
+  name                = azurerm_api_management_backend.test.name
+  resource_group_name = azurerm_api_management_backend.test.resource_group_name
+  api_management_name = azurerm_api_management_backend.test.api_management_name
+  protocol            = azurerm_api_management_backend.test.protocol
+  url                 = azurerm_api_management_backend.test.url
 }
 `, template)
 }
 
 func testAccAzureRMApiManagementBackend_template(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d-%s"
   location = "%s"
@@ -462,15 +450,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name            = "Developer_1"
 }
 `, data.RandomInteger, testName, data.Locations.Primary, data.RandomInteger, testName)
 }
@@ -482,8 +466,8 @@ func testAccAzureRMApiManagementBackend_credentialsNoCertificate(data acceptance
 
 resource "azurerm_api_management_backend" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   protocol            = "http"
   url                 = "https://acctest"
   description         = "description"

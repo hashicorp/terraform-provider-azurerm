@@ -61,7 +61,6 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 
 func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
-	config := testAccAzureRMSqlServer_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +68,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
 					testCheckAzureRMSqlServerDisappears(data.ResourceName),
@@ -82,8 +81,6 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
-	preConfig := testAccAzureRMSqlServer_withTags(data)
-	postConfig := testAccAzureRMSqlServer_withTagsUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,14 +88,14 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlServer_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlServer_withTagsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -176,6 +173,9 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 
 func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -188,8 +188,6 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -232,6 +230,9 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -240,9 +241,6 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {
@@ -255,6 +253,10 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 
 func testAccAzureRMSqlServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -262,8 +264,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -276,18 +278,22 @@ func testAccAzureRMSqlServer_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_sql_server" "import" {
-  name                         = "${azurerm_sql_server.test.name}"
-  resource_group_name          = "${azurerm_sql_server.test.resource_group_name}"
-  location                     = "${azurerm_sql_server.test.location}"
-  version                      = "${azurerm_sql_server.test.version}"
-  administrator_login          = "${azurerm_sql_server.test.administrator_login}"
-  administrator_login_password = "${azurerm_sql_server.test.administrator_login_password}"
+  name                         = azurerm_sql_server.test.name
+  resource_group_name          = azurerm_sql_server.test.resource_group_name
+  location                     = azurerm_sql_server.test.location
+  version                      = azurerm_sql_server.test.version
+  administrator_login          = azurerm_sql_server.test.administrator_login
+  administrator_login_password = azurerm_sql_server.test.administrator_login_password
 }
 `, testAccAzureRMSqlServer_basic(data))
 }
 
 func testAccAzureRMSqlServer_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -295,8 +301,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -311,6 +317,10 @@ resource "azurerm_sql_server" "test" {
 
 func testAccAzureRMSqlServer_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -318,8 +328,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -333,22 +343,26 @@ resource "azurerm_sql_server" "test" {
 
 func testAccAzureRMSqlServer_withIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-	name                         = "acctestsqlserver%d"
-	resource_group_name          = "${azurerm_resource_group.test.name}"
-	location                     = "${azurerm_resource_group.test.location}"
-	version                      = "12.0"
-	administrator_login          = "mradministrator"
-	administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 
-	identity {
-		type = "SystemAssigned"
-	}
-}	
+  identity {
+    type = "SystemAssigned"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

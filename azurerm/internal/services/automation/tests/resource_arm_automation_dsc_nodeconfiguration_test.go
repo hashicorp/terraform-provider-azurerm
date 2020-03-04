@@ -90,6 +90,9 @@ func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) e
 
 func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscNodeConfigurationClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -103,9 +106,6 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) r
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Node Configuration: '%s'", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscNodeConfigurationClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
@@ -123,6 +123,10 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) r
 
 func testAccAzureRMAutomationDscNodeConfiguration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -130,27 +134,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name = "Basic"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
 }
 
 resource "azurerm_automation_dsc_configuration" "test" {
   name                    = "acctest"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
-  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  location                = azurerm_resource_group.test.location
   content_embedded        = "configuration acctest {}"
 }
 
 resource "azurerm_automation_dsc_nodeconfiguration" "test" {
   name                    = "acctest.localhost"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
-  depends_on              = ["azurerm_automation_dsc_configuration.test"]
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  depends_on              = [azurerm_automation_dsc_configuration.test]
 
   content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
@@ -175,6 +176,7 @@ instance of OMI_ConfigurationDocument
   Name="acctest";
 };
 mofcontent
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -185,10 +187,10 @@ func testAccAzureRMAutomationDscNodeConfiguration_requiresImport(data acceptance
 %s
 
 resource "azurerm_automation_dsc_nodeconfiguration" "import" {
-  name                    = "${azurerm_automation_dsc_nodeconfiguration.test.name}"
-  resource_group_name     = "${azurerm_automation_dsc_nodeconfiguration.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_dsc_nodeconfiguration.test.automation_account_name}"
-  content_embedded        = "${azurerm_automation_dsc_nodeconfiguration.test.content_embedded}"
+  name                    = azurerm_automation_dsc_nodeconfiguration.test.name
+  resource_group_name     = azurerm_automation_dsc_nodeconfiguration.test.resource_group_name
+  automation_account_name = azurerm_automation_dsc_nodeconfiguration.test.automation_account_name
+  content_embedded        = azurerm_automation_dsc_nodeconfiguration.test.content_embedded
 }
 `, template)
 }

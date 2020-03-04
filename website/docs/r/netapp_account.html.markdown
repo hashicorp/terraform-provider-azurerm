@@ -2,7 +2,6 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_account"
-sidebar_current: "docs-azurerm-resource-netapp-account"
 description: |-
   Manages a NetApp Account.
 ---
@@ -30,7 +29,7 @@ resource "azurerm_netapp_account" "example" {
     username            = "aduser"
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
-    dns                 = ["1.2.3.4"]
+    dns_servers         = ["1.2.3.4"]
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
   }
@@ -73,7 +72,14 @@ The following attributes are exported:
 
 * `id` - The ID of the NetApp Account.
 
----
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the NetApp Account.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Account.
+* `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Account.
 
 ## Import
 

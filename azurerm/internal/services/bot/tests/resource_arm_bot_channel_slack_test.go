@@ -19,7 +19,6 @@ func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
-	config := testAccAzureRMBotChannelSlack_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,7 +26,7 @@ func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelSlack_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
 				),
@@ -42,8 +41,6 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
-	config := testAccAzureRMBotChannelSlack_basicConfig(data)
-	config2 := testAccAzureRMBotChannelSlack_basicUpdate(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,14 +48,14 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelSlack_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "verification_token", "landing_page_url"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotChannelSlack_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
 				),
@@ -70,6 +67,9 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 
 func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -81,9 +81,6 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Slack")
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
 		if err != nil {
@@ -130,9 +127,9 @@ func testAccAzureRMBotChannelSlack_basicConfig(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_slack" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   client_id           = "%s"
   client_secret       = "%s"
   verification_token  = "%s"
@@ -146,9 +143,9 @@ func testAccAzureRMBotChannelSlack_basicUpdate(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_slack" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   client_id           = "%s"
   client_secret       = "%s"
   verification_token  = "%s"

@@ -75,8 +75,6 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
-	preConfig := testAccAzureRMSqlElasticPool_basic(data)
-	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,7 +82,7 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlElasticPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "dtu", "50"),
@@ -92,7 +90,7 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlElasticPool_resizedDtu(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "dtu", "100"),
@@ -105,6 +103,9 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 
 func testCheckAzureRMSqlElasticPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ElasticPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -113,9 +114,6 @@ func testCheckAzureRMSqlElasticPoolExists(resourceName string) resource.TestChec
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ElasticPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
 		if err != nil {
@@ -159,6 +157,9 @@ func testCheckAzureRMSqlElasticPoolDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ElasticPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -168,9 +169,6 @@ func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ElasticPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlElasticPoolsClient: %+v", err)
@@ -182,6 +180,10 @@ func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.Test
 
 func testAccAzureRMSqlElasticPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%[1]d"
   location = "%s"
@@ -189,8 +191,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctest%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -198,9 +200,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_elasticpool" "test" {
   name                = "acctest-pool-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
   edition             = "Basic"
   dtu                 = 50
   pool_size           = 5000
@@ -213,19 +215,23 @@ func testAccAzureRMSqlElasticPool_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_sql_elasticpool" "import" {
-  name                = "${azurerm_sql_elasticpool.test.name}"
-  resource_group_name = "${azurerm_sql_elasticpool.test.resource_group_name}"
-  location            = "${azurerm_sql_elasticpool.test.location}"
-  server_name         = "${azurerm_sql_elasticpool.test.server_name}"
-  edition             = "${azurerm_sql_elasticpool.test.edition}"
-  dtu                 = "${azurerm_sql_elasticpool.test.dtu}"
-  pool_size           = "${azurerm_sql_elasticpool.test.pool_size}"
+  name                = azurerm_sql_elasticpool.test.name
+  resource_group_name = azurerm_sql_elasticpool.test.resource_group_name
+  location            = azurerm_sql_elasticpool.test.location
+  server_name         = azurerm_sql_elasticpool.test.server_name
+  edition             = azurerm_sql_elasticpool.test.edition
+  dtu                 = azurerm_sql_elasticpool.test.dtu
+  pool_size           = azurerm_sql_elasticpool.test.pool_size
 }
 `, testAccAzureRMSqlElasticPool_basic(data))
 }
 
 func testAccAzureRMSqlElasticPool_resizedDtu(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%[1]d"
   location = "%s"
@@ -233,8 +239,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctest%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -242,9 +248,9 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_elasticpool" "test" {
   name                = "acctest-pool-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
   edition             = "Basic"
   dtu                 = 100
   pool_size           = 10000

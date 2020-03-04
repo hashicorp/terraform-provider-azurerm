@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_dps_shared_access_policy"
-sidebar_current: "docs-azurerm-resource-iothub-dps-shared-access-policy-x"
 description: |-
   Manages an IotHub Device Provisioning Service Shared Access Policy
 ---
@@ -26,7 +25,6 @@ resource "azurerm_iothub_dps" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -36,8 +34,8 @@ resource "azurerm_iothub_dps_shared_access_policy" "example" {
   resource_group_name = azurerm_resource_group.example.name
   iothub_dps_name     = azurerm_iothub_dps.example.name
 
-  enrollment_write  = true
-  enrollment_read   = true
+  enrollment_write = true
+  enrollment_read  = true
 }
 ```
 
@@ -73,15 +71,30 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the IoT Hub Device Provisioning Service Shared Access Policy.
+* `id` - The ID of the IoTHub Device Provisioning Service Shared Access Policy.
 
 * `primary_key` - The primary key used to create the authentication token.
 
+* `primary_connection_string` - The primary connection string of the Shared Access Policy.
+
 * `secondary_key` - The secondary key used to create the authentication token.
+
+* `secondary_connection_string` - The secondary connection string of the Shared Access Policy.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub Device Provisioning Service Shared Access Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service Shared Access Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Device Provisioning Service Shared Access Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Device Provisioning Service Shared Access Policy.
 
 ## Import
 
-IoT Hub Device Provisioning Service Shared Access Policies can be imported using the `resource id`, e.g.
+IoTHub Device Provisioning Service Shared Access Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_iothub_dps_shared_access_policy.shared_access_policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/dps1/keys/shared_access_policy1

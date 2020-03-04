@@ -19,7 +19,6 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
-	config := testAccAzureRMBotChannelEmail_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,7 +26,7 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelEmail_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
 				),
@@ -45,8 +44,6 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
-	config := testAccAzureRMBotChannelEmail_basicConfig(data)
-	config2 := testAccAzureRMBotChannelEmail_basicUpdate(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,14 +51,14 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelEmail_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("email_password"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotChannelEmail_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
 				),
@@ -73,6 +70,9 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 
 func testCheckAzureRMBotChannelEmailExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -84,9 +84,6 @@ func testCheckAzureRMBotChannelEmailExists(name string) resource.TestCheckFunc {
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Email")
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameEmailChannel))
 		if err != nil {
@@ -133,9 +130,9 @@ func testAccAzureRMBotChannelEmail_basicConfig(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_email" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   email_address       = "%s"
   email_password      = "%s"
 }
@@ -148,9 +145,9 @@ func testAccAzureRMBotChannelEmail_basicUpdate(data acceptance.TestData) string 
 %s
 
 resource "azurerm_bot_channel_email" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   email_address       = "%s"
   email_password      = "%s"
 }

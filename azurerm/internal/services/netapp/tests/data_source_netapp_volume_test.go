@@ -34,10 +34,10 @@ func testAccDataSourceNetAppVolume_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_netapp_volume" "test" {
-  resource_group_name = "${azurerm_netapp_volume.test.resource_group_name}"
-  account_name        = "${azurerm_netapp_volume.test.account_name}"
-  pool_name           = "${azurerm_netapp_volume.test.pool_name}"
-  name                = "${azurerm_netapp_volume.test.name}"
+  resource_group_name = azurerm_netapp_volume.test.resource_group_name
+  account_name        = azurerm_netapp_volume.test.account_name
+  pool_name           = azurerm_netapp_volume.test.pool_name
+  name                = azurerm_netapp_volume.test.name
 }
 `, config)
 }

@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_hub"
-sidebar_current: "docs-azurerm-resource-virtual-hub"
 description: |-
   Manages a Virtual Hub within a Virtual WAN.
 ---
@@ -69,6 +68,15 @@ The `route` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Hub.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Hub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub.
 
 ## Import
 

@@ -26,7 +26,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// Removed
@@ -37,7 +36,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// Enabled
@@ -48,7 +46,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -70,7 +67,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefix(t *testin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -93,7 +89,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 			data.ImportStep(
 				"admin_password",
 				"custom_data",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherCustomData(data, "/bin/zsh"),
@@ -104,7 +99,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 			data.ImportStep(
 				"admin_password",
 				"custom_data",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// removed
@@ -116,7 +110,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 			data.ImportStep(
 				"admin_password",
 				"custom_data",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -138,13 +131,12 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProv
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDeallocate(t *testing.T) {
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -153,20 +145,19 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDeallocate(t *tes
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLow(data, "Deallocate"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpot(data, "Deallocate"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDelete(t *testing.T) {
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -175,20 +166,19 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDelete(t *testing
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLow(data, "Delete"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpot(data, "Delete"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *testing.T) {
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -198,24 +188,22 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *te
 		Steps: []resource.TestStep{
 			{
 				// expensive, but guarantees this test will pass
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data, "0.5000"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data, "0.5000"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data, "-1"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data, "-1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -237,7 +225,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityRegular(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -285,7 +272,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// update
@@ -296,7 +282,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 
 			{
@@ -308,7 +293,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherSecret(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -330,7 +314,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// add one
@@ -341,7 +324,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// remove all
@@ -352,7 +334,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherTags(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -374,7 +355,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -396,8 +376,31 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_updateHealthProbe(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_updateLoadBalancerHealthProbeSKUBasic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_updateLoadBalancerHealthProbeSKUStandard(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
 		},
 	})
 }
@@ -555,14 +558,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_otherCustomData(data acceptance.T
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                 = "acctestvmss-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  custom_data          = base64encode(%q)
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  custom_data         = base64encode(%q)
 
   disable_password_authentication = false
 
@@ -636,7 +639,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLow(data acceptance.TestData, evictionPolicy string) string {
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
 	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -650,7 +653,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = %q
-  priority            = "Low"
+  priority            = "Spot"
 
   disable_password_authentication = false
 
@@ -680,7 +683,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, template, data.RandomInteger, evictionPolicy)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data acceptance.TestData, maxBid string) string {
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data acceptance.TestData, maxBid string) string {
 	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -694,7 +697,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = "Delete"
-  priority            = "Low"
+  priority            = "Spot"
   max_bid_price       = %q
 
   disable_password_authentication = false
@@ -975,7 +978,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.service_principal_object_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "create",
@@ -1226,4 +1229,229 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, template, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_updateLoadBalancerHealthProbeSKUBasic(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpip-%[2]d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 4
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[2]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "test"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 80
+  frontend_port_end              = 81
+  backend_port                   = 8080
+}
+
+resource "azurerm_lb_probe" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "acctest-lb-probe"
+  port                = 22
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  name                           = "AccTestLBRule"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  health_probe_id     = azurerm_lb_probe.test.id
+
+  depends_on = ["azurerm_lb_rule.test"]
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+    disk_size_gb         = 10
+    lun                  = 10
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_updateLoadBalancerHealthProbeSKUStandard(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpip-%[2]d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 4
+  sku                     = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[2]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "test"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 80
+  frontend_port_end              = 81
+  backend_port                   = 8080
+}
+
+resource "azurerm_lb_probe" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "acctest-lb-probe"
+  port                = 22
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  name                           = "AccTestLBRule"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  health_probe_id     = azurerm_lb_probe.test.id
+
+  depends_on = ["azurerm_lb_rule.test"]
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+    disk_size_gb         = 10
+    lun                  = 10
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+    }
+  }
+}
+`, template, data.RandomInteger)
 }

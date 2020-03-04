@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -255,14 +255,10 @@ func resourceArmBackupProtectedFileShareWaitForOperation(ctx context.Context, cl
 		Refresh:    resourceArmBackupProtectedFileShareCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			state.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			state.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		state.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		state.Timeout = 30 * time.Minute
+		state.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	log.Printf("[DEBUG] Waiting for backup operation %s (Vault %s) to complete", operationID, vaultName)

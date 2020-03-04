@@ -26,11 +26,7 @@ func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 					testCheckAzureRMAPIManagementGroupUserExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -60,6 +56,8 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 
 func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group_user" {
 			continue
@@ -70,7 +68,6 @@ func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -85,6 +82,9 @@ func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -95,8 +95,6 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
@@ -111,6 +109,10 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 
 func testAccAzureRMAPIManagementGroupUser_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -118,8 +120,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -128,25 +130,25 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_group" "test" {
   name                = "acctestAMGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "Test Group"
 }
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"
 }
 
 resource "azurerm_api_management_group_user" "test" {
-  user_id             = "${azurerm_api_management_user.test.user_id}"
-  group_name          = "${azurerm_api_management_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  user_id             = azurerm_api_management_user.test.user_id
+  group_name          = azurerm_api_management_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -157,10 +159,10 @@ func testAccAzureRMAPIManagementGroupUser_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_api_management_group_user" "import" {
-  user_id             = "${azurerm_api_management_group_user.test.user_id}"
-  group_name          = "${azurerm_api_management_group_user.test.group_name}"
-  api_management_name = "${azurerm_api_management_group_user.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_group_user.test.resource_group_name}"
+  user_id             = azurerm_api_management_group_user.test.user_id
+  group_name          = azurerm_api_management_group_user.test.group_name
+  api_management_name = azurerm_api_management_group_user.test.api_management_name
+  resource_group_name = azurerm_api_management_group_user.test.resource_group_name
 }
 `, template)
 }

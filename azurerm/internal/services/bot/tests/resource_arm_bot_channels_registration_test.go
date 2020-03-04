@@ -26,10 +26,13 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 			"complete": testAccAzureRMBotConnection_complete,
 		},
 		"channel": {
-			"slackBasic":    testAccAzureRMBotChannelSlack_basic,
-			"slackUpdate":   testAccAzureRMBotChannelSlack_update,
-			"msteamsBasic":  testAccAzureRMBotChannelMsTeams_basic,
-			"msteamsUpdate": testAccAzureRMBotChannelMsTeams_update,
+			"slackBasic":         testAccAzureRMBotChannelSlack_basic,
+			"slackUpdate":        testAccAzureRMBotChannelSlack_update,
+			"msteamsBasic":       testAccAzureRMBotChannelMsTeams_basic,
+			"msteamsUpdate":      testAccAzureRMBotChannelMsTeams_update,
+			"directlineBasic":    testAccAzureRMBotChannelDirectline_basic,
+			"directlineComplete": testAccAzureRMBotChannelDirectline_complete,
+			"directlineUpdate":   testAccAzureRMBotChannelDirectline_update,
 		},
 		"web_app": {
 			"basic":    testAccAzureRMBotWebApp_basic,
@@ -53,7 +56,6 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -61,7 +63,7 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
@@ -73,8 +75,6 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(data)
-	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,14 +82,14 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotChannelsRegistration_updateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
@@ -101,7 +101,6 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
-	config := testAccAzureRMBotChannelsRegistration_completeConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -109,7 +108,7 @@ func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelsRegistration_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
@@ -121,6 +120,9 @@ func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 
 func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -132,9 +134,6 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -177,7 +176,12 @@ func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
 
 func testAccAzureRMBotChannelsRegistration_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -187,9 +191,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "F0"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
 
   tags = {
     environment = "production"
@@ -200,7 +204,12 @@ resource "azurerm_bot_channels_registration" "test" {
 
 func testAccAzureRMBotChannelsRegistration_updateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -210,9 +219,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "F0"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
 
   tags = {
     environment = "production"
@@ -223,7 +232,12 @@ resource "azurerm_bot_channels_registration" "test" {
 
 func testAccAzureRMBotChannelsRegistration_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -232,27 +246,27 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_api_key" "test" {
   name                    = "acctestappinsightsapikey-%d"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  resource_group_name = azurerm_resource_group.test.name
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example.com"
-  developer_app_insights_api_key        = "${azurerm_application_insights_api_key.test.api_key}"
-  developer_app_insights_application_id = "${azurerm_application_insights.test.app_id}"
+  developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
+  developer_app_insights_application_id = azurerm_application_insights.test.app_id
 
   tags = {
     environment = "production"

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -216,14 +216,10 @@ func resourceArmRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx co
 		Refresh:    resourceArmRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, true),
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			state.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			state.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		state.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		state.Timeout = 30 * time.Minute
+		state.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	resp, err := state.WaitForState()
@@ -242,12 +238,7 @@ func resourceArmRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Con
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
 		Refresh:    resourceArmRecoveryServicesBackupProtectedVMRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, false),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		state.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		state.Timeout = 30 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
 	resp, err := state.WaitForState()

@@ -105,6 +105,9 @@ func TestAccAzureRMPointToSiteVPNGateway_tags(t *testing.T) {
 
 func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("VPN Gateway Server Configuration not found: %s", resourceName)
@@ -112,9 +115,6 @@ func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.T
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -129,13 +129,14 @@ func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMPointToSiteVPNGatewayDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_vpn_server_configuration" {
 			continue
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
@@ -167,7 +168,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14"]
     }
   }
 }
@@ -190,7 +191,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14", "10.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14", "10.100.0.0/14"]
     }
   }
 }
@@ -213,7 +214,7 @@ resource "azurerm_point_to_site_vpn_gateway" "import" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14"]
     }
   }
 }
@@ -236,7 +237,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14"]
     }
   }
 
@@ -249,8 +250,12 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
 
 func testAccAzureRMAzureRMPointToSiteVPNGateway_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -277,7 +282,7 @@ resource "azurerm_vpn_server_configuration" "test" {
   client_root_certificate {
     name = "DigiCert-Federated-ID-Root-CA"
 
-      public_cert_data = <<EOF
+    public_cert_data = <<EOF
 MIIDuzCCAqOgAwIBAgIQCHTZWCM+IlfFIRXIvyKSrjANBgkqhkiG9w0BAQsFADBn
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 d3cuZGlnaWNlcnQuY29tMSYwJAYDVQQDEx1EaWdpQ2VydCBGZWRlcmF0ZWQgSUQg

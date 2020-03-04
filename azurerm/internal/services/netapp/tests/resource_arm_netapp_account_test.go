@@ -134,6 +134,9 @@ func testAccAzureRMNetAppAccount_update(t *testing.T) {
 
 func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.AccountClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("NetApp Account not found: %s", resourceName)
@@ -141,9 +144,6 @@ func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheck
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.AccountClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -182,6 +182,10 @@ func testCheckAzureRMNetAppAccountDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetAppAccount_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
@@ -189,8 +193,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -199,15 +203,19 @@ func testAccAzureRMNetAppAccount_requiresImportConfig(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %s
 resource "azurerm_netapp_account" "import" {
-  name                = "${azurerm_netapp_account.test.name}"
-  location            = "${azurerm_netapp_account.test.location}"
-  resource_group_name = "${azurerm_netapp_account.test.name}"
+  name                = azurerm_netapp_account.test.name
+  location            = azurerm_netapp_account.test.location
+  resource_group_name = azurerm_netapp_account.test.resource_group_name
 }
 `, testAccAzureRMNetAppAccount_basicConfig(data))
 }
 
 func testAccAzureRMNetAppAccount_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
@@ -215,16 +223,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   active_directory {
     username            = "aduser"
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
     dns_servers         = ["1.2.3.4"]
-	domain              = "westcentralus.com"
-	organizational_unit = "OU=FirstLevel"
+    domain              = "westcentralus.com"
+    organizational_unit = "OU=FirstLevel"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

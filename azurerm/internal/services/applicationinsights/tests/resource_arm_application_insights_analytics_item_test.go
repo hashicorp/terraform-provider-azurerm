@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
-	config := testAccAzureRMApplicationInsightsAnalyticsItem_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsAnalyticsItem_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAnalyticsItemExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testquery"),
@@ -73,10 +72,9 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
-	resourceName2 := "azurerm_application_insights_analytics_item.test2"
-	resourceName3 := "azurerm_application_insights_analytics_item.test3"
-	config := testAccAzureRMApplicationInsightsAnalyticsItem_multiple(data)
+	r1 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test1")
+	r2 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test2")
+	r3 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test3")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,37 +82,29 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsAnalyticsItem_multiple(r1),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(data.ResourceName),
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName2),
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName3),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "testquery1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "shared"),
-					resource.TestCheckResourceAttr(data.ResourceName, "type", "query"),
-					resource.TestCheckResourceAttr(data.ResourceName, "content", "requests #test1"),
-					resource.TestCheckResourceAttr(resourceName2, "name", "testquery2"),
-					resource.TestCheckResourceAttr(resourceName2, "scope", "user"),
-					resource.TestCheckResourceAttr(resourceName2, "type", "query"),
-					resource.TestCheckResourceAttr(resourceName2, "content", "requests #test2"),
-					resource.TestCheckResourceAttr(resourceName3, "name", "testfunction1"),
-					resource.TestCheckResourceAttr(resourceName3, "scope", "shared"),
-					resource.TestCheckResourceAttr(resourceName3, "type", "function"),
-					resource.TestCheckResourceAttr(resourceName3, "content", "requests #test3"),
-					resource.TestCheckResourceAttr(resourceName3, "function_alias", "myfunction"),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(r1.ResourceName),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(r1.ResourceName),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(r1.ResourceName),
+					resource.TestCheckResourceAttr(r1.ResourceName, "name", "testquery1"),
+					resource.TestCheckResourceAttr(r1.ResourceName, "scope", "shared"),
+					resource.TestCheckResourceAttr(r1.ResourceName, "type", "query"),
+					resource.TestCheckResourceAttr(r1.ResourceName, "content", "requests #test1"),
+					resource.TestCheckResourceAttr(r2.ResourceName, "name", "testquery2"),
+					resource.TestCheckResourceAttr(r2.ResourceName, "scope", "user"),
+					resource.TestCheckResourceAttr(r2.ResourceName, "type", "query"),
+					resource.TestCheckResourceAttr(r2.ResourceName, "content", "requests #test2"),
+					resource.TestCheckResourceAttr(r3.ResourceName, "name", "testfunction1"),
+					resource.TestCheckResourceAttr(r3.ResourceName, "scope", "shared"),
+					resource.TestCheckResourceAttr(r3.ResourceName, "type", "function"),
+					resource.TestCheckResourceAttr(r3.ResourceName, "content", "requests #test3"),
+					resource.TestCheckResourceAttr(r3.ResourceName, "function_alias", "myfunction"),
 				),
 			},
-			data.ImportStep(),
-			{
-				ResourceName:      resourceName2,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				ResourceName:      resourceName3,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			r1.ImportStep(),
+			r2.ImportStep(),
+			r3.ImportStep(),
 		},
 	})
 }
@@ -161,15 +151,14 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string)
 }
 
 func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState) (bool, error) {
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 	id := rs.Primary.Attributes["id"]
 
 	resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 	if err != nil {
 		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
 	}
-
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
@@ -185,6 +174,10 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -192,14 +185,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_analytics_item" "test" {
   name                    = "testquery"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   content                 = "requests #test"
   scope                   = "shared"
   type                    = "query"
@@ -209,6 +202,10 @@ resource "azurerm_application_insights_analytics_item" "test" {
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_basic2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -216,14 +213,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_analytics_item" "test" {
   name                    = "testquery"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   content                 = "requests #updated"
   scope                   = "shared"
   type                    = "query"
@@ -233,6 +230,10 @@ resource "azurerm_application_insights_analytics_item" "test" {
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -240,14 +241,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_analytics_item" "test1" {
   name                    = "testquery1"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   content                 = "requests #test1"
   scope                   = "shared"
   type                    = "query"
@@ -255,7 +256,7 @@ resource "azurerm_application_insights_analytics_item" "test1" {
 
 resource "azurerm_application_insights_analytics_item" "test2" {
   name                    = "testquery2"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   content                 = "requests #test2"
   scope                   = "user"
   type                    = "query"
@@ -263,7 +264,7 @@ resource "azurerm_application_insights_analytics_item" "test2" {
 
 resource "azurerm_application_insights_analytics_item" "test3" {
   name                    = "testfunction1"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   content                 = "requests #test3"
   scope                   = "shared"
   type                    = "function"

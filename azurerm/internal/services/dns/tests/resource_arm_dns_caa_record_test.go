@@ -11,11 +11,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
 func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
-	config := testAccAzureRMDnsCaaRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +23,7 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsCaaRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -63,8 +63,6 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
-	preConfig := testAccAzureRMDnsCaaRecord_basic(data)
-	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,14 +70,14 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsCaaRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "4"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsCaaRecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "5"),
@@ -91,8 +89,6 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
-	preConfig := testAccAzureRMDnsCaaRecord_withTags(data)
-	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -100,14 +96,14 @@ func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsCaaRecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsCaaRecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -120,28 +116,27 @@ func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 
 func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		caaName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS CAA record: %s", caaName)
+		id, err := parse.DnsCaaRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, caaName, dns.CAA)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CAA RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS CAA record %s (resource group: %s) does not exist", caaName, resourceGroup)
+			return fmt.Errorf("Bad: DNS CAA record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -157,11 +152,11 @@ func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		caaName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, caaName, dns.CAA)
+		id, err := parse.DnsCaaRecordID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -179,6 +174,10 @@ func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsCaaRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -186,13 +185,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -228,9 +227,9 @@ func testAccAzureRMDnsCaaRecord_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_dns_caa_record" "import" {
-  name                = "${azurerm_dns_caa_record.test.name}"
-  resource_group_name = "${azurerm_dns_caa_record.test.resource_group_name}"
-  zone_name           = "${azurerm_dns_caa_record.test.zone_name}"
+  name                = azurerm_dns_caa_record.test.name
+  resource_group_name = azurerm_dns_caa_record.test.resource_group_name
+  zone_name           = azurerm_dns_caa_record.test.zone_name
   ttl                 = 300
 
   record {
@@ -262,6 +261,10 @@ resource "azurerm_dns_caa_record" "import" {
 
 func testAccAzureRMDnsCaaRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -269,13 +272,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -313,6 +316,10 @@ resource "azurerm_dns_caa_record" "test" {
 
 func testAccAzureRMDnsCaaRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -320,13 +327,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {
@@ -351,6 +358,10 @@ resource "azurerm_dns_caa_record" "test" {
 
 func testAccAzureRMDnsCaaRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -358,13 +369,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
 
   record {

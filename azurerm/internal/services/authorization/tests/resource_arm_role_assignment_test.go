@@ -265,6 +265,9 @@ func testAccAzureRMActiveDirectoryServicePrincipal_group(t *testing.T) {
 
 func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -273,8 +276,6 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
@@ -289,6 +290,9 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_role_assignment" {
 			continue
@@ -297,8 +301,6 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
@@ -315,6 +317,7 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 	return nil
 }
 
+// TODO - "real" management group with appropriate required for testing
 func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
 	groupId := uuid.New().String()
 
@@ -339,29 +342,35 @@ data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
 
-data "azurerm_builtin_role_definition" "test" {
+data "azurerm_role_definition" "test" {
   name = "Monitoring Reader"
 }
 
 resource "azurerm_role_assignment" "test" {
   scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.object_id}"
 }
 `
 }
 
 func testAccAzureRMRoleAssignment_roleNameConfig(id string) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
 
-data "azurerm_client_config" "test" {}
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
 
 resource "azurerm_role_assignment" "test" {
   name                 = "%s"
-  scope                = "${data.azurerm_subscription.primary.id}"
+  scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Log Analytics Reader"
-  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+  principal_id         = data.azurerm_client_config.test.object_id
 }
 `, id)
 }
@@ -371,58 +380,76 @@ func testAccAzureRMRoleAssignment_requiresImportConfig(id string) string {
 %s
 
 resource "azurerm_role_assignment" "import" {
-  name                 = "${azurerm_role_assignment.primary.name}"
-  scope                = "${azurerm_role_assignment.primary.id}"
-  role_definition_name = "${azurerm_role_assignment.primary.role_definition_name}"
-  principal_id         = "${azurerm_role_assignment.primary.principal_id}"
+  name                 = azurerm_role_assignment.test.name
+  scope                = azurerm_role_assignment.test.id
+  role_definition_name = azurerm_role_assignment.test.role_definition_name
+  principal_id         = azurerm_role_assignment.test.principal_id
 }
 `, testAccAzureRMRoleAssignment_roleNameConfig(id))
 }
 
 func testAccAzureRMRoleAssignment_dataActionsConfig(id string) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
 
-data "azurerm_client_config" "test" {}
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
 
 resource "azurerm_role_assignment" "test" {
   name                 = "%s"
-  scope                = "${data.azurerm_subscription.primary.id}"
+  scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Virtual Machine User Login"
-  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+  principal_id         = data.azurerm_client_config.test.object_id
 }
 `, id)
 }
 
 func testAccAzureRMRoleAssignment_builtinConfig(id string) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
 
-data "azurerm_client_config" "test" {}
+data "azurerm_subscription" "primary" {
+}
 
-data "azurerm_builtin_role_definition" "test" {
+data "azurerm_client_config" "test" {
+}
+
+data "azurerm_role_definition" "test" {
   name = "Site Recovery Reader"
 }
 
 resource "azurerm_role_assignment" "test" {
   name               = "%s"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = data.azurerm_client_config.test.object_id
 }
 `, id)
 }
 
 func testAccAzureRMRoleAssignment_customConfig(roleDefinitionId string, roleAssignmentId string, rInt int) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
 
-data "azurerm_client_config" "test" {}
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
 
 resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
   description        = "Created by the Role Assignment Acceptance Test"
 
   permissions {
@@ -431,57 +458,67 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 
 resource "azurerm_role_assignment" "test" {
   name               = "%s"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${azurerm_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = azurerm_role_definition.test.id
+  principal_id       = data.azurerm_client_config.test.object_id
 }
 `, roleDefinitionId, rInt, roleAssignmentId)
 }
 
 func testAccAzureRMRoleAssignment_servicePrincipal(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {
+}
 
 resource "azuread_application" "test" {
   name = "acctestspa-%d"
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = "${azuread_application.test.application_id}"
+  application_id = azuread_application.test.application_id
 }
 
 resource "azurerm_role_assignment" "test" {
   name                 = "%s"
-  scope                = "${data.azurerm_subscription.current.id}"
+  scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = "${azuread_service_principal.test.id}"
+  principal_id         = azuread_service_principal.test.id
 }
 `, rInt, roleAssignmentID)
 }
 
 func testAccAzureRMRoleAssignment_servicePrincipalWithType(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {
+}
 
 resource "azuread_application" "test" {
   name = "acctestspa-%d"
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = "${azuread_application.test.application_id}"
+  application_id = azuread_application.test.application_id
 }
 
 resource "azurerm_role_assignment" "test" {
   name                             = "%s"
-  scope                            = "${data.azurerm_subscription.current.id}"
+  scope                            = data.azurerm_subscription.current.id
   role_definition_name             = "Reader"
-  principal_id                     = "${azuread_service_principal.test.id}"
+  principal_id                     = azuread_service_principal.test.id
   skip_service_principal_aad_check = true
 }
 `, rInt, roleAssignmentID)
@@ -489,7 +526,12 @@ resource "azurerm_role_assignment" "test" {
 
 func testAccAzureRMRoleAssignment_group(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {
+}
 
 resource "azuread_group" "test" {
   name = "acctestspa-%d"
@@ -497,18 +539,24 @@ resource "azuread_group" "test" {
 
 resource "azurerm_role_assignment" "test" {
   name                 = "%s"
-  scope                = "${data.azurerm_subscription.current.id}"
+  scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = "${azuread_group.test.id}"
+  principal_id         = azuread_group.test.id
 }
 `, rInt, roleAssignmentID)
 }
 
 func testAccAzureRMRoleAssignment_managementGroupConfig(groupId string) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
 
-data "azurerm_client_config" "test" {}
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
 
 data "azurerm_role_definition" "test" {
   name = "Monitoring Reader"
@@ -519,9 +567,9 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-  scope              = "${azurerm_management_group.test.id}"
-  role_definition_id = "${data.azurerm_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  scope              = azurerm_management_group.test.id
+  role_definition_id = data.azurerm_role_definition.test.id
+  principal_id       = data.azurerm_client_config.test.object_id
 }
 `, groupId)
 }

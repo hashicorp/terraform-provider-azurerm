@@ -82,6 +82,9 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 
 func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.FunctionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -92,8 +95,6 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.FunctionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsFunctionsClient: %+v", err)
@@ -109,6 +110,7 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 
 func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_function_javascript_udf" {
@@ -118,7 +120,6 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy(s *terraform.St
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil
@@ -139,14 +140,15 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data acceptance.Te
 
 resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function getRandomNumber(in) {
   return in;
 }
 SCRIPT
+
 
   input {
     type = "bigint"
@@ -182,14 +184,15 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(data acceptance.T
 
 resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function getRandomNumber(first, second) {
   return first * second;
 }
 SCRIPT
+
 
   input {
     type = "bigint"
@@ -208,6 +211,10 @@ SCRIPT
 
 func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -215,8 +222,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -230,6 +237,7 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

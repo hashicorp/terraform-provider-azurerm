@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub"
-sidebar_current: "docs-azurerm-resource-messaging-notification-hub-x"
 description: |-
   Manages a Notification Hub within a Notification Hub Namespace.
 
@@ -22,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_notification_hub_namespace" "example" {
   name                = "myappnamespace"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   namespace_type      = "NotificationHub"
 
   sku_name = "Free"
@@ -31,9 +30,9 @@ resource "azurerm_notification_hub_namespace" "example" {
 
 resource "azurerm_notification_hub" "example" {
   name                = "mynotificationhub"
-  namespace_name      = "${azurerm_notification_hub_namespace.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  namespace_name      = azurerm_notification_hub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 
@@ -82,6 +81,15 @@ A `gcm_credential` block contains:
 The following attributes are exported:
 
 * `id` - The ID of the Notification Hub.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Notification Hub.
+* `update` - (Defaults to 30 minutes) Used when updating the Notification Hub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Notification Hub.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Notification Hub.
 
 ## Import
 

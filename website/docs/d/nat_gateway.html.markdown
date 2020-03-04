@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nat_gateway"
-sidebar_current: "docs-azurerm-datasource-nat-gateway"
 description: |-
   Gets information about an existing NAT Gateway
 ---
@@ -17,9 +16,9 @@ Use this data source to access information about an existing NAT Gateway.
 
 The following arguments are supported:
 
-* `name` - (Required) The Name of the Resource Group where the NAT Gateway exists.
+* `name` - Specifies the Name of the NAT Gateway.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the NAT Gateway exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the NAT Gateway exists.
 
 ## Attributes Reference
 
@@ -40,3 +39,9 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the resource.
 
 * `zones` - A list of Availability Zones which the NAT Gateway exists in.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the NAT Gateway.

@@ -2,7 +2,6 @@
 subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_profile"
-sidebar_current: "docs-azurerm-resource-cdn-profile"
 description: |-
   Manages a CDN Profile to create a collection of CDN Endpoints.
 ---
@@ -22,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_cdn_profile" "example" {
   name                = "exampleCdnProfile"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard_Verizon"
 
   tags = {
@@ -52,7 +51,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The CDN Profile ID.
+* `id` - The ID of the CDN Profile.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CDN Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Profile.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Profile.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Profile.
 
 ## Import
 

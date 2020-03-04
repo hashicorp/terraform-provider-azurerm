@@ -33,29 +33,28 @@ func TestAccDataSourceAzureRMApiManagementProduct_basic(t *testing.T) {
 
 func testAccDataSourceApiManagementProduct_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "amtestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_api_management" "test" {
-  name            = "acctestAM-%d"
-  publisher_name  = "pub1"
-  publisher_email = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestAM-%d"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_api_management_product" "test" {
   product_id            = "test-product"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  api_management_name   = azurerm_api_management.test.name
+  resource_group_name   = azurerm_resource_group.test.name
   display_name          = "Test Product"
   subscription_required = true
   approval_required     = true
@@ -66,9 +65,9 @@ resource "azurerm_api_management_product" "test" {
 }
 
 data "azurerm_api_management_product" "test" {
-  product_id          = "${azurerm_api_management_product.test.product_id}"
-  api_management_name = "${azurerm_api_management_product.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_product.test.resource_group_name}"
+  product_id          = azurerm_api_management_product.test.product_id
+  api_management_name = azurerm_api_management_product.test.api_management_name
+  resource_group_name = azurerm_api_management_product.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
