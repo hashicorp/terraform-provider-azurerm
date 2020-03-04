@@ -10,7 +10,7 @@ description: |-
 
 Manages a Azure Database Migration Service.
 
-~> **NOTE on destroy behavior of Database Migration Service:** Destroy a Database Migration Service will leave any outstanding tasks untouched. This is to avoid unexpectedly delete any tasks managed out of terraform.
+~> **NOTE:** Destroying a Database Migration Service will leave any outstanding tasks untouched. This is to avoid unexpectedly deleting any tasks managed outside of terraform.
 
 ## Example Usage
 
