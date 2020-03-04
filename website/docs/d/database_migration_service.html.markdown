@@ -14,6 +14,10 @@ Use this data source to access information about an existing Database Migration 
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_database_migration_service" "example" {
   name                = "example-dms"
   resource_group_name = "example-rg"
