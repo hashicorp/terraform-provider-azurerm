@@ -4,6 +4,8 @@ FEATURES:
 
 * **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
 * **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
+* **New Resource:** `azurerm_monitor_scheduled_query_rules_alert` [GH-5053]
+* **New Resource:** `azurerm_monitor_scheduled_query_rules_log` [GH-5053]
 
 IMPROVEMENTS:
 
