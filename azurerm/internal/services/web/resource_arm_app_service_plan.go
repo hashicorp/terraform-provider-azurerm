@@ -179,8 +179,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, exists := d.GetOkExists("app_service_environment_id"); exists {
-		appServicePlan.AppServicePlanProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-			ID: utils.String(v.(string)),
+		if v != "" {
+			appServicePlan.AppServicePlanProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+				ID: utils.String(v.(string)),
+			}
 		}
 	}
 
