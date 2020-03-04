@@ -401,13 +401,13 @@ func testAccAzureRMKubernetesClusterNodePool_nodeLabelds(t *testing.T) {
 			{
 				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, clientId, clientSecret, labels2),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels1),
+					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels2),
 				),
 			},
 			{
 				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, clientId, clientSecret, labels3),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels1),
+					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels3),
 				),
 			},
 		},
