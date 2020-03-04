@@ -39,8 +39,8 @@ func testAccDataSourceAzureRMRedisCache_standardWithDataSource(data acceptance.T
 %s
 
 data "azurerm_redis_cache" "test" {
-  name                = "${azurerm_redis_cache.test.name}"
-  resource_group_name = "${azurerm_redis_cache.test.resource_group_name}"
+  name                = azurerm_redis_cache.test.name
+  resource_group_name = azurerm_redis_cache.test.resource_group_name
 }
 `, config)
 }

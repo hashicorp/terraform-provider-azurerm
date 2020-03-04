@@ -46,7 +46,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				ValidateFunc: azure.ValidateAutomationRunbookName(),
 			},
 
-			"account_name": {
+			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -143,7 +143,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 
 	name := d.Get("name").(string)
-	accName := d.Get("account_name").(string)
+	accName := d.Get("automation_account_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -243,7 +243,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("account_name", accName)
+	d.Set("automation_account_name", accName)
 	if props := resp.RunbookProperties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)
 		d.Set("log_progress", props.LogProgress)

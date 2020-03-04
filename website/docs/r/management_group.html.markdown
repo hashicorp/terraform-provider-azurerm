@@ -13,24 +13,24 @@ Manages a Management Group.
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "current" {}
+data "azurerm_subscription" "current" {
+}
 
 resource "azurerm_management_group" "example_parent" {
   display_name = "ParentGroup"
 
   subscription_ids = [
-    "${data.azurerm_subscription.current.subscription_id}",
+    data.azurerm_subscription.current.subscription_id,
   ]
 }
 
 resource "azurerm_management_group" "example_child" {
   display_name               = "ChildGroup"
-  parent_management_group_id = "${azurerm_management_group.example_parent.id}"
+  parent_management_group_id = azurerm_management_group.example_parent.id
 
   subscription_ids = [
-    "${data.azurerm_subscription.current.subscription_id}",
+    data.azurerm_subscription.current.subscription_id,
   ]
-
   # other subscription IDs can go here
 }
 ```
@@ -52,6 +52,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Management Group.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Management Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Management Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Management Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Management Group.
 
 ## Import
 

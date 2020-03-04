@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -49,8 +48,6 @@ func resourceArmStorageQueue() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: ValidateArmStorageAccountName,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"metadata": MetaDataSchema(),
 		},
@@ -204,7 +201,6 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", id.QueueName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", account.ResourceGroup)
 
 	if err := d.Set("metadata", FlattenMetaData(metaData.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %s", err)

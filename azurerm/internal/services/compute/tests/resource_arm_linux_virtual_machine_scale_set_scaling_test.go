@@ -24,7 +24,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingAutoScale(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -46,7 +45,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCount(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCount(data, 3),
@@ -56,7 +54,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCount(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCount(data, 5),
@@ -66,7 +63,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCount(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// update the count but the `sku` should be ignored
@@ -77,7 +73,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCount(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// confirm that the `sku` hasn't been changed
@@ -104,7 +99,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingOverProvisionDisabled(t *t
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -126,7 +120,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingProximityPlacementGroup(t 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -148,7 +141,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingSinglePlacementGroupDisabl
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -170,7 +162,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingSinglePlacementGroupDisabl
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_scalingSinglePlacementGroupDisabled(data),
@@ -180,7 +171,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingSinglePlacementGroupDisabl
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -202,7 +192,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_scalingUpdateSku(data, "Standard_F4"),
@@ -212,7 +201,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_scalingUpdateSku(data, "Standard_F2"),
@@ -222,7 +210,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingUpdateSku(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// confirms that the `instances` count comes from the API
@@ -255,7 +242,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingZonesSingle(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -277,7 +263,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -299,7 +284,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_scalingZonesBalance(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})

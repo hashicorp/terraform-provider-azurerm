@@ -62,7 +62,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Cassandra KeySpace ID.
+* `id` - the ID of the CosmosDB Cassandra KeySpace.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Cassandra KeySpace.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Cassandra KeySpace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Cassandra KeySpace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Cassandra KeySpace.
 
 ## Import
 

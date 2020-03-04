@@ -80,7 +80,7 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is a complete metric alert resource."),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT30M"),
@@ -128,7 +128,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT1M"),
@@ -149,7 +149,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is a complete metric alert resource."),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT30M"),
@@ -184,7 +184,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "severity", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
 					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT1M"),
@@ -206,6 +206,10 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 
 func testAccAzureRMMonitorMetricAlert_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -213,16 +217,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_monitor_metric_alert" "test" {
   name                = "acctestMetricAlert-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  scopes              = ["${azurerm_storage_account.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
 
   criteria {
     metric_namespace = "Microsoft.Storage/storageAccounts"
@@ -241,9 +245,9 @@ func testAccAzureRMMonitorMetricAlert_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_monitor_metric_alert" "import" {
-  name                = "${azurerm_monitor_metric_alert.test.name}"
-  resource_group_name = "${azurerm_monitor_metric_alert.test.resource_group_name}"
-  scopes              = "${azurerm_monitor_metric_alert.test.scopes}"
+  name                = azurerm_monitor_metric_alert.test.name
+  resource_group_name = azurerm_monitor_metric_alert.test.resource_group_name
+  scopes              = azurerm_monitor_metric_alert.test.scopes
 
   criteria {
     metric_namespace = "Microsoft.Storage/storageAccounts"
@@ -258,6 +262,10 @@ resource "azurerm_monitor_metric_alert" "import" {
 
 func testAccAzureRMMonitorMetricAlert_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -265,30 +273,30 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa1%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_monitor_action_group" "test1" {
   name                = "acctestActionGroup1-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag1"
 }
 
 resource "azurerm_monitor_action_group" "test2" {
   name                = "acctestActionGroup2-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag2"
 }
 
 resource "azurerm_monitor_metric_alert" "test" {
   name                = "acctestMetricAlert-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  scopes              = ["${azurerm_storage_account.test.id}"]
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
   enabled             = true
-  auto_mitigate       = true
+  auto_mitigate       = false
   severity            = 4
   description         = "This is a complete metric alert resource."
   frequency           = "PT30M"
@@ -323,11 +331,11 @@ resource "azurerm_monitor_metric_alert" "test" {
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.test1.id}"
+    action_group_id = azurerm_monitor_action_group.test1.id
   }
 
   action {
-    action_group_id = "${azurerm_monitor_action_group.test2.id}"
+    action_group_id = azurerm_monitor_action_group.test2.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

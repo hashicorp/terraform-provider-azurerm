@@ -20,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dns_a_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
   records             = ["10.0.180.17"]
 }
@@ -42,23 +42,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_public_ip" "example" {
   name                = "mypublicip"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv4"
 }
 
 resource "azurerm_dns_a_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
-  target_resource_id  = "${azurerm_public_ip.example.id}"
+  target_resource_id  = azurerm_public_ip.example.id
 }
 ```
 
@@ -88,6 +88,17 @@ The following attributes are exported:
 
 * `id` - The DNS A Record ID.
 * `fqdn` - The FQDN of the DNS A Record.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS A Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS A Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS A Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS A Record.
 
 ## Import
 

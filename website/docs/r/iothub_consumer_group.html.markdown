@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iothub" "example" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -35,9 +35,9 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_iothub_consumer_group" "example" {
   name                   = "terraform"
-  iothub_name            = "${azurerm_iothub.example.name}"
+  iothub_name            = azurerm_iothub.example.name
   eventhub_endpoint_name = "events"
-  resource_group_name    = "${azurerm_resource_group.foo.name}"
+  resource_group_name    = azurerm_resource_group.foo.name
 }
 ```
 
@@ -58,6 +58,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the IoTHub Consumer Group.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub Consumer Group.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Consumer Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Consumer Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Consumer Group.
 
 ## Import
 

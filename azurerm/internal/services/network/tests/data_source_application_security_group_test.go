@@ -49,6 +49,10 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 
 func testAccDataSourceApplicationSecurityGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -56,19 +60,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 data "azurerm_application_security_group" "test" {
-  name                = "${azurerm_application_security_group.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_application_security_group.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceApplicationSecurityGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -76,8 +84,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     Hello = "World"
@@ -85,8 +93,8 @@ resource "azurerm_application_security_group" "test" {
 }
 
 data "azurerm_application_security_group" "test" {
-  name                = "${azurerm_application_security_group.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_application_security_group.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

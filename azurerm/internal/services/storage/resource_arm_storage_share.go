@@ -7,9 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -56,8 +54,6 @@ func resourceArmStorageShare() *schema.Resource {
 				ValidateFunc: ValidateArmStorageShareName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
-
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -91,17 +87,17 @@ func resourceArmStorageShare() *schema.Resource {
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -230,9 +226,6 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("acl", flattenStorageShareACLs(acls)); err != nil {
 		return fmt.Errorf("Error flattening `acl`: %+v", err)
 	}
-
-	// Deprecated: remove in 2.0
-	d.Set("resource_group_name", account.ResourceGroup)
 
 	return nil
 }

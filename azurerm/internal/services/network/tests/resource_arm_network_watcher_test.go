@@ -28,18 +28,6 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 		"DataSource": {
 			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
 		},
-		"ConnectionMonitorOld": {
-			"addressBasic":              testAccAzureRMConnectionMonitor_addressBasic,
-			"addressComplete":           testAccAzureRMConnectionMonitor_addressComplete,
-			"addressUpdate":             testAccAzureRMConnectionMonitor_addressUpdate,
-			"vmBasic":                   testAccAzureRMConnectionMonitor_vmBasic,
-			"vmComplete":                testAccAzureRMConnectionMonitor_vmComplete,
-			"vmUpdate":                  testAccAzureRMConnectionMonitor_vmUpdate,
-			"destinationUpdate":         testAccAzureRMConnectionMonitor_destinationUpdate,
-			"missingDestinationInvalid": testAccAzureRMConnectionMonitor_missingDestination,
-			"bothDestinationsInvalid":   testAccAzureRMConnectionMonitor_conflictingDestinations,
-			"requiresImport":            testAccAzureRMConnectionMonitor_requiresImport,
-		},
 		"PacketCaptureOld": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
@@ -73,6 +61,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
 			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
 			"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
+			"version":              testAccAzureRMNetworkWatcherFlowLog_version,
 		},
 	}
 
@@ -91,6 +80,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 
 func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -280,6 +270,10 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 
 func testAccAzureRMNetworkWatcher_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-watcher-%d"
   location = "%s"
@@ -287,8 +281,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_watcher" "test" {
   name                = "acctestNW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -299,15 +293,19 @@ func testAccAzureRMNetworkWatcher_requiresImportConfig(data acceptance.TestData)
 %s
 
 resource "azurerm_network_watcher" "import" {
-  name                = "${azurerm_network_watcher.test.name}"
-  location            = "${azurerm_network_watcher.test.location}"
-  resource_group_name = "${azurerm_network_watcher.test.resource_group_name}"
+  name                = azurerm_network_watcher.test.name
+  location            = azurerm_network_watcher.test.location
+  resource_group_name = azurerm_network_watcher.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMNetworkWatcher_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-watcher-%d"
   location = "%s"
@@ -315,8 +313,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_watcher" "test" {
   name                = "acctestNW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "Source" = "AccTests"

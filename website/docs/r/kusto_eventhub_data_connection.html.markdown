@@ -17,52 +17,58 @@ resource "azurerm_resource_group" "rg" {
   name     = "my-kusto-rg"
   location = "East US"
 }
+
 resource "azurerm_kusto_cluster" "cluster" {
   name                = "kustocluster"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
   sku {
     name     = "Standard_D13_v2"
     capacity = 2
   }
 }
+
 resource "azurerm_kusto_database" "database" {
   name                = "my-kusto-database"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${azurerm_resource_group.rg.location}"
-  cluster_name        = "${azurerm_kusto_cluster.cluster.name}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  cluster_name        = azurerm_kusto_cluster.cluster.name
   hot_cache_period    = "P7D"
   soft_delete_period  = "P31D"
 }
+
 resource "azurerm_eventhub_namespace" "eventhub_ns" {
   name                = "my-eventhub-ns"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
 }
+
 resource "azurerm_eventhub" "eventhub" {
   name                = "my-eventhub"
-  namespace_name      = "${azurerm_eventhub_namespace.eventhub_ns.name}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  namespace_name      = azurerm_eventhub_namespace.eventhub_ns.name
+  resource_group_name = azurerm_resource_group.rg.name
   partition_count     = 1
   message_retention   = 1
 }
+
 resource "azurerm_eventhub_consumer_group" "consumer_group" {
   name                = "my-eventhub-consumergroup"
-  namespace_name      = "${azurerm_eventhub_namespace.eventhub_ns.name}"
-  eventhub_name       = "${azurerm_eventhub.eventhub.name}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  namespace_name      = azurerm_eventhub_namespace.eventhub_ns.name
+  eventhub_name       = azurerm_eventhub.eventhub.name
+  resource_group_name = azurerm_resource_group.rg.name
 }
+
 resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
   name                = "my-kusto-eventhub-data-connection"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${azurerm_resource_group.rg.location}"
-  cluster_name        = "${azurerm_kusto_cluster.cluster.name}"
-  database_name       = "${azurerm_kusto_database.database.name}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  cluster_name        = azurerm_kusto_cluster.cluster.name
+  database_name       = azurerm_kusto_database.database.name
 
-  eventhub_id    = "${azurerm_eventhub.evenhub.id}"
-  consumer_group = "${azurerm_eventhub_consumer_group.consumer_group.name}"
+  eventhub_id    = azurerm_eventhub.evenhub.id
+  consumer_group = azurerm_eventhub_consumer_group.consumer_group.name
 
   table_name        = "my-table"         #(Optional)
   mapping_rule_name = "my-table-mapping" #(Optional)
@@ -98,9 +104,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The EventHub Data Connection ID.
+* `id` - The ID of the Kusto EventHub Data Connection.
 
----
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Kusto EventHub Data Connection.
+* `update` - (Defaults to 60 minutes) Used when updating the Kusto EventHub Data Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kusto EventHub Data Connection.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto EventHub Data Connection.
 
 ## Import
 

@@ -22,24 +22,24 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "exampleNamespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "example" {
   name                = "exampleQueue"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "example" {
   name                = "exampleRule"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  queue_name          = "${azurerm_servicebus_queue.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  queue_name          = azurerm_servicebus_queue.example.name
+  resource_group_name = azurerm_resource_group.example.name
 
   listen = false
   send   = true
@@ -48,8 +48,8 @@ resource "azurerm_servicebus_queue_authorization_rule" "example" {
 
 resource "azurerm_iothub" "example" {
   name                = "exampleIothub"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "B1"
@@ -63,13 +63,12 @@ resource "azurerm_iothub" "example" {
 }
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iothub_name         = "${azurerm_iothub.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iothub_name         = azurerm_iothub.example.name
   name                = "example"
 
-  connection_string = "${azurerm_servicebus_queue_authorization_rule.example.primary_connection_string}"
+  connection_string = azurerm_servicebus_queue_authorization_rule.example.primary_connection_string
 }
-
 ```
 
 ## Argument Reference
@@ -85,6 +84,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the IoTHub ServiceBus Queue Endpoint.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub ServiceBus Queue Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub ServiceBus Queue Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub ServiceBus Queue Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub ServiceBus Queue Endpoint.
 
 ## Import
 

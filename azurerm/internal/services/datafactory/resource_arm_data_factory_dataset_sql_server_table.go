@@ -57,13 +57,13 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 			"linked_service_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"table_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameters": {
@@ -77,7 +77,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"annotations": {
@@ -91,7 +91,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 			"folder": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"additional_properties": {
@@ -110,7 +110,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -136,7 +136,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 						"description": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},

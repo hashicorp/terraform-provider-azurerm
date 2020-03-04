@@ -19,15 +19,15 @@ data "azurerm_network_interface" "example" {
 }
 
 output "network_interface_id" {
-  value = "${data.azurerm_network_interface.example.id}"
+  value = data.azurerm_network_interface.example.id
 }
 ```
 
 ## Argument Reference
 
 
-* `name` - (Required) Specifies the name of the Network Interface.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Network Interface is located in.
+* `name` - Specifies the name of the Network Interface.
+* `resource_group_name` - Specifies the name of the resource group the Network Interface is located in.
 
 ## Attributes Reference
 
@@ -59,3 +59,9 @@ A `ip_configuration` block contains:
 * `load_balancer_backend_address_pools_ids` - A list of Backend Address Pool ID's within a Load Balancer that this Network Interface is connected to.
 * `load_balancer_inbound_nat_rules_ids` - A list of Inbound NAT Rule ID's within a Load Balancer that this Network Interface is connected to.
 * `primary` - is this the Primary IP Configuration for this Network Interface?
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Interface.

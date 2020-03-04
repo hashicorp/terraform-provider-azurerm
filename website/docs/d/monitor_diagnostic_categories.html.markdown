@@ -15,18 +15,18 @@ Use this data source to access information about the Monitor Diagnostics Categor
 
 ```hcl
 data "azurerm_key_vault" "example" {
-  name                = "${azurerm_key_vault.example.name}"
-  resource_group_name = "${azurerm_key_vault.example.resource_group_name}"
+  name                = azurerm_key_vault.example.name
+  resource_group_name = azurerm_key_vault.example.resource_group_name
 }
 
 data "azurerm_monitor_diagnostic_categories" "example" {
-  resource_id = "${data.azurerm_key_vault.example.id}"
+  resource_id = data.azurerm_key_vault.example.id
 }
 ```
 
 ## Argument Reference
 
-* `resource_id` - (Required) The ID of an existing Resource which Monitor Diagnostics Categories should be retrieved for.
+* `resource_id` - The ID of an existing Resource which Monitor Diagnostics Categories should be retrieved for.
 
 ## Attributes Reference
 
@@ -35,3 +35,9 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 * `logs` - A list of the Log Categories supported for this Resource.
 
 * `metrics` - A list of the Metric Categories supported for this Resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Diagnostics Categories.

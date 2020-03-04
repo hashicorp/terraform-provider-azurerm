@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +26,6 @@ func resourceArmBatchCertificate() *schema.Resource {
 		Read:   resourceArmBatchCertificateRead,
 		Update: resourceArmBatchCertificateUpdate,
 		Delete: resourceArmBatchCertificateDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,6 +33,11 @@ func resourceArmBatchCertificate() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.BatchCertificateID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -165,27 +169,24 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BatchCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
-	accountName := id.Path["batchAccounts"]
-	name := id.Path["certificates"]
-	resourceGroupName := id.ResourceGroup
 
-	resp, err := client.Get(ctx, resourceGroupName, accountName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Batch certificate %q was not found in Account %q / Resource Group %q - removing from state!", name, accountName, resourceGroupName)
+			log.Printf("[DEBUG] Batch certificate %q was not found in Account %q / Resource Group %q - removing from state!", id.Name, id.AccountName, id.ResourceGroup)
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
+		return fmt.Errorf("Error retrieving Batch Certificate %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("account_name", accountName)
-	d.Set("resource_group_name", resourceGroupName)
+	d.Set("name", id.Name)
+	d.Set("account_name", id.AccountName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.CertificateProperties; props != nil {
 		d.Set("format", props.Format)
@@ -204,13 +205,10 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BatchCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
-	accountName := id.Path["batchAccounts"]
-	name := id.Path["certificates"]
-	resourceGroupName := id.ResourceGroup
 
 	certificate := d.Get("certificate").(string)
 	format := d.Get("format").(string)
@@ -223,7 +221,7 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	parameters := batch.CertificateCreateOrUpdateParameters{
-		Name: &name,
+		Name: &id.Name,
 		CertificateCreateOrUpdateProperties: &batch.CertificateCreateOrUpdateProperties{
 			Data:                &certificate,
 			Format:              batch.CertificateFormat(format),
@@ -233,17 +231,17 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err = client.Update(ctx, resourceGroupName, accountName, name, parameters, ""); err != nil {
-		return fmt.Errorf("Error updating Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
+	if _, err = client.Update(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters, ""); err != nil {
+		return fmt.Errorf("Error updating Batch certificate %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroupName, accountName, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
+		return fmt.Errorf("Error retrieving Batch Certificate %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Batch certificate %q (Account: %q, Resource Group %q) ID", name, accountName, resourceGroupName)
+		return fmt.Errorf("Cannot read ID for Batch certificate %q (Account: %q, Resource Group %q) ID", id.Name, id.AccountName, id.ResourceGroup)
 	}
 
 	return resourceArmBatchCertificateRead(d, meta)
@@ -254,22 +252,19 @@ func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BatchCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
-	accountName := id.Path["batchAccounts"]
-	name := id.Path["certificates"]
-	resourceGroupName := id.ResourceGroup
 
-	future, err := client.Delete(ctx, resourceGroupName, accountName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
+		return fmt.Errorf("Error deleting Batch Certificate %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Batch Certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
+			return fmt.Errorf("Error waiting for deletion of Batch Certificate %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 		}
 	}
 

@@ -40,9 +40,10 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: ValidatePSQLServerName,
 			},
 
 			"value": {
@@ -71,6 +72,9 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 			Value: utils.String(value),
 		},
 	}
+
+	// NOTE: this resource intentionally doesn't support Requires Import
+	//       since a fallback route is created by default
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
 	if err != nil {

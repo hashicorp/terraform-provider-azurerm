@@ -19,15 +19,15 @@ data "azurerm_cdn_profile" "example" {
 }
 
 output "cdn_profile_id" {
-  value = "${data.azurerm_cdn_profile.example.id}"
+  value = data.azurerm_cdn_profile.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the CDN Profile.
+* `name` - The name of the CDN Profile.
 
-* `resource_group_name` - (Required) The name of the resource group in which the CDN Profile exists.
+* `resource_group_name` - The name of the resource group in which the CDN Profile exists.
 
 ## Attributes Reference
 
@@ -36,3 +36,9 @@ output "cdn_profile_id" {
 * `sku` - The pricing related information of current CDN profile.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Profile.

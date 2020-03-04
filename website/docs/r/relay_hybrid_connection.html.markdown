@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_relay_namespace" "example" {
   name                = "example-relay"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "Standard"
 
@@ -33,8 +33,8 @@ resource "azurerm_relay_namespace" "example" {
 
 resource "azurerm_relay_hybrid_connection" "example" {
   name                          = "acctestrnhc-%d"
-  resource_group_name           = "${azurerm_resource_group.example.name}"
-  relay_namespace_name          = "${azurerm_relay_namespace.example.name}"
+  resource_group_name           = azurerm_resource_group.example.name
+  relay_namespace_name          = azurerm_relay_namespace.example.name
   requires_client_authorization = false
   user_metadata                 = "testmetadata"
 }
@@ -58,11 +58,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Azure Relay Hybrid Connection ID.
+* `id` - The ID of the Relay Hybrid Connection.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Relay Hybrid Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Relay Hybrid Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Relay Hybrid Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Relay Hybrid Connection.
 
 ## Import
 
-Azure Relay Hybrid Connection's can be imported using the `resource id`, e.g.
+Relay Hybrid Connection's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_relay_hybrid_connection.relay1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1

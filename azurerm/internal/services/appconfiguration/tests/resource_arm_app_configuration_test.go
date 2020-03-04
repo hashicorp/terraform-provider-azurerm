@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -184,10 +185,12 @@ func testCheckAzureAppConfigurationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.AppConfigurationID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -211,19 +214,18 @@ func testCheckAzureAppConfigurationExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Configuration: %s", name)
+		id, err := parse.AppConfigurationID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on appConfigurationsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: App Configuration %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: App Configuration %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -232,6 +234,10 @@ func testCheckAzureAppConfigurationExists(resourceName string) resource.TestChec
 
 func testAccAzureAppConfiguration_free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -239,8 +245,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_configuration" "test" {
   name                = "testacc-appconf%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "free"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -248,6 +254,10 @@ resource "azurerm_app_configuration" "test" {
 
 func testAccAzureAppConfiguration_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -255,8 +265,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_configuration" "test" {
   name                = "testaccappconf%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -268,17 +278,20 @@ func testAccAzureAppConfiguration_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_app_configuration" "import" {
-  name                = "${azurerm_app_configuration.test.name}"
-  resource_group_name = "${azurerm_app_configuration.test.resource_group_name}"
-  location            = "${azurerm_app_configuration.test.location}"
-  sku                 = "${azurerm_app_configuration.test.sku}"
-
+  name                = azurerm_app_configuration.test.name
+  resource_group_name = azurerm_app_configuration.test.resource_group_name
+  location            = azurerm_app_configuration.test.location
+  sku                 = azurerm_app_configuration.test.sku
 }
 `, template)
 }
 
 func testAccAzureAppConfiguration_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -286,8 +299,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_configuration" "test" {
   name                = "testaccappconf%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "free"
 
   tags = {
@@ -299,6 +312,10 @@ resource "azurerm_app_configuration" "test" {
 
 func testAccAzureAppConfiguration_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -306,8 +323,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_configuration" "test" {
   name                = "testaccappconf%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "free"
 
   tags = {

@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,27 +27,12 @@ func dataSourceArmKeyVault() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: ValidateKeyVaultName,
+				ValidateFunc: validate.KeyVaultName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
-
-			// Remove in 2.0
-			"sku": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 
 			"sku_name": {
 				Type:     schema.TypeString,
@@ -156,6 +142,16 @@ func dataSourceArmKeyVault() *schema.Resource {
 				},
 			},
 
+			"purge_protection_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"soft_delete_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -190,14 +186,11 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("soft_delete_enabled", props.EnableSoftDelete)
+		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
 		if sku := props.Sku; sku != nil {
-			// Remove in 2.0
-			if err := d.Set("sku", flattenKeyVaultDataSourceSku(sku)); err != nil {
-				return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
-			}
-
 			if err := d.Set("sku_name", string(sku.Name)); err != nil {
 				return fmt.Errorf("Error setting `sku_name` for KeyVault %q: %+v", *resp.Name, err)
 			}
@@ -216,15 +209,6 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-// Remove in 2.0
-func flattenKeyVaultDataSourceSku(sku *keyvault.Sku) []interface{} {
-	result := map[string]interface{}{
-		"name": string(sku.Name),
-	}
-
-	return []interface{}{result}
 }
 
 func flattenKeyVaultDataSourceNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {

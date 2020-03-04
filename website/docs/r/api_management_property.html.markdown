@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -31,8 +31,8 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_property" "example" {
   name                = "example-apimg"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  api_management_name = "${azurerm_api_management.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
   display_name        = "ExampleProperty"
   value               = "Example Value"
 }
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `secret` - (Optional) Specifies whether the API Management Property is secret. Valid values are `true` or `false`. The default value is `false`.
 
-~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure. 
+~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
 
 * `tags` - (Optional) A list of tags to be applied to the API Management Property.
 
@@ -64,6 +64,15 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Property.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Property.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Property.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Property.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Property.
 
 ## Import
 

@@ -35,8 +35,8 @@ func testAccDataSourceAzureRMContainerRegistry_basic(data acceptance.TestData) s
 %s
 
 data "azurerm_container_registry" "test" {
-  name                = "${azurerm_container_registry.test.name}"
-  resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
+  name                = azurerm_container_registry.test.name
+  resource_group_name = azurerm_container_registry.test.resource_group_name
 }
 `, testAccAzureRMContainerRegistry_basicManaged(data, "Basic"))
 }

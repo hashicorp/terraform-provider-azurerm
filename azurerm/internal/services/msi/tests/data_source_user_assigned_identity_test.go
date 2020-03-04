@@ -62,6 +62,10 @@ func testEqualResourceAttr(dataSourceName string, resourceName string, attrName 
 
 func testAccDataSourceAzureRMUserAssignedIdentity_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
   location = "%s"
@@ -69,8 +73,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%s-uai"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   tags = {
     "foo" = "bar"
@@ -78,8 +82,8 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 data "azurerm_user_assigned_identity" "test" {
-  name                = "${azurerm_user_assigned_identity.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_user_assigned_identity.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

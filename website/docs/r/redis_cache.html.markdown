@@ -24,15 +24,16 @@ resource "azurerm_resource_group" "example" {
 # NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "example" {
   name                = "example-cache"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   capacity            = 2
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 ```
 
@@ -163,6 +164,15 @@ A `redis_configuration` block exports the following:
 ## Relevant Links
  - [Azure Redis Cache: SKU specific configuration limitations](https://azure.microsoft.com/en-us/documentation/articles/cache-configure/#advanced-settings)
  - [Redis: Available Configuration Settings](http://redis.io/topics/config)
+
+## Timeouts
+
+ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+ * `create` - (Defaults to 90 minutes) Used when creating the Redis Cache.
+ * `update` - (Defaults to 90 minutes) Used when updating the Redis Cache.
+ * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
+ * `delete` - (Defaults to 90 minutes) Used when deleting the Redis Cache.
 
 ## Import
 
