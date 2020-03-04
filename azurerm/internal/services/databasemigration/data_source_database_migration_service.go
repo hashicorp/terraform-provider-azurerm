@@ -25,7 +25,7 @@ func dataSourceArmDatabaseMigrationService() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateName,
+				ValidateFunc: validateDatabasesMigrationServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -63,6 +63,9 @@ func dataSourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error reading Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("unexpected empty ID retrieved for Data Migration Service (Service Name %q / Group Name %q)", name, resourceGroup)
+	}
 	d.SetId(*resp.ID)
 
 	if location := resp.Location; location != nil {

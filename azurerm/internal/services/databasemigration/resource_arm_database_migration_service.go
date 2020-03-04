@@ -45,7 +45,7 @@ func resourceArmDatabaseMigrationService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateName,
+				ValidateFunc: validateDatabasesMigrationServiceName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -100,7 +100,7 @@ func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta inte
 
 	skuName := d.Get("sku_name").(string)
 	subnetID := d.Get("subnet_id").(string)
-	location := d.Get("location").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	parameters := datamigration.Service{
 		Location: utils.String(location),
@@ -156,7 +156,11 @@ func resourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error reading Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("unexpected empty ID retrieved for Data Migration Service (Service Name %q / Group Name %q)", id.Name, id.ResourceGroup)
+	}
 	d.SetId(*resp.ID)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

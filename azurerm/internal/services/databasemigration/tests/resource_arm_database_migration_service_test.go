@@ -103,6 +103,13 @@ func TestAccAzureRMDatabaseMigrationService_update(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				Config: testAccAzureRMDatabaseMigrationService_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDatabaseMigrationServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -161,20 +168,24 @@ func testCheckAzureRMDatabaseMigrationServiceDestroy(s *terraform.State) error {
 
 func testAccAzureRMDatabaseMigrationService_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-dms-%d"
+  name     = "acctestRG-dbms-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestVnet-dms-%d"
+  name                = "acctestVnet-dbms-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestSubnet-dms-%d"
+  name                 = "acctestSubnet-dbms-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
@@ -189,7 +200,7 @@ func testAccAzureRMDatabaseMigrationService_basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_database_migration_service" "test" {
-  name                = "acctestDms-%d"
+  name                = "acctestDbms-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.test.id
@@ -205,7 +216,7 @@ func testAccAzureRMDatabaseMigrationService_complete(data acceptance.TestData) s
 %s
 
 resource "azurerm_database_migration_service" "test" {
-  name                = "acctestDms-%d"
+  name                = "acctestDbms-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.test.id

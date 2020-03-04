@@ -65,6 +65,15 @@ The following attributes are exported:
 
 * `id` - The ID of Database Migration Service.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management API.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management API.
+
 ## Import
 
 Database Migration Services can be imported using the `resource id`, e.g.

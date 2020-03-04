@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func validateName(i interface{}, k string) ([]string, []error) {
+func validateDatabasesMigrationServiceName(i interface{}, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
