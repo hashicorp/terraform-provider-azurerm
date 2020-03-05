@@ -257,22 +257,19 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Certificate Order %q (resource group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] App Service Certificate Order %q (resource group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM App Service Certificate Order %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Certificate Order %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -326,15 +323,12 @@ func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta in
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
+	log.Printf("[DEBUG] Deleting App Service Certificate Order %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Deleting App Service Certificate Order %q (Resource Group %q)", name, resourceGroup)
-
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate Order %q (Resource Group %q): %s)", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting App Service Certificate Order %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
 		}
 	}
 
