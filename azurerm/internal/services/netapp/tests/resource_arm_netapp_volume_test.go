@@ -314,6 +314,12 @@ resource "azurerm_netapp_volume" "import" {
   name                = azurerm_netapp_volume.test.name
   location            = azurerm_netapp_volume.test.location
   resource_group_name = azurerm_netapp_volume.test.resource_group_name
+  account_name        = azurerm_netapp_volume.test.account_name
+  pool_name           = azurerm_netapp_volume.test.pool_name
+  volume_path         = azurerm_netapp_volume.test.volume_path
+  service_level       = azurerm_netapp_volume.test.service_level
+  subnet_id           = azurerm_netapp_volume.test.subnet_id
+  storage_quota_in_gb = azurerm_netapp_volume.test.storage_quota_in_gb
 }
 `, testAccAzureRMNetAppVolume_basic(data))
 }

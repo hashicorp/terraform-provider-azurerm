@@ -194,6 +194,9 @@ resource "azurerm_netapp_pool" "import" {
   name                = azurerm_netapp_pool.test.name
   location            = azurerm_netapp_pool.test.location
   resource_group_name = azurerm_netapp_pool.test.resource_group_name
+  account_name        = azurerm_netapp_pool.test.account_name
+  service_level       = azurerm_netapp_pool.test.service_level
+  size_in_tb          = azurerm_netapp_pool.test.size_in_tb
 }
 `, testAccAzureRMNetAppPool_basic(data))
 }
