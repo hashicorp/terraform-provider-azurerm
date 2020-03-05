@@ -19,14 +19,12 @@ func dataSourceArmDatabaseMigrationProject() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validateDatabaseMigrationProjectName,
 			},
 
 			"service_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validateDatabaseMigrationServiceName,
 			},
 

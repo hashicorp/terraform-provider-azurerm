@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -47,7 +48,7 @@ func TestAccAzureRMDatabaseMigrationProject_complete(t *testing.T) {
 					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "source_platform", "SQL"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_platform", "SQLDB"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "Test"),
 				),
 			},
 			data.ImportStep(),
@@ -94,7 +95,14 @@ func TestAccAzureRMDatabaseMigrationProject_update(t *testing.T) {
 				Config: testAccAzureRMDatabaseMigrationProject_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "Test"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDatabaseMigrationProject_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -109,9 +117,13 @@ func testCheckAzureRMDatabaseMigrationProjectExists(resourceName string) resourc
 			return fmt.Errorf("Database Migration Project not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["service_name"]
+		id, err := parse.DatabaseMigrationProjectID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		name := id.Name
+		resourceGroup := id.ResourceGroup
+		serviceName := id.Service
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DatabaseMigration.ProjectsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -136,9 +148,13 @@ func testCheckAzureRMDatabaseMigrationProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["service_name"]
+		id, err := parse.DatabaseMigrationProjectID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		name := id.Name
+		resourceGroup := id.ResourceGroup
+		serviceName := id.Service
 
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -183,7 +199,7 @@ resource "azurerm_database_migration_project" "test" {
 	source_platform     = "SQL"
 	target_platform     = "SQLDB"
     tags = {
- 		name = "test"
+ 		name = "Test"
     }
 }
 `, template, data.RandomInteger)

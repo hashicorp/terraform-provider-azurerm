@@ -64,9 +64,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `source_platform` - (Required) Platform type of migration source. Currently only support: `SQL`(on-premises SQL Server). Changing this forces a new resource to be created.
+* `source_platform` - (Required) The platform type of the migration source. Currently only support: `SQL`(on-premises SQL Server). Changing this forces a new resource to be created.
 
-* `target_platform` - (Required) Platform type of migration target. Currently only support: `SQLDB`(Azure SQL Database). Changing this forces a new resource to be created.
+* `target_platform` - (Required) The platform type of the migration target. Currently only support: `SQLDB`(Azure SQL Database). Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assigned to the resource.
 

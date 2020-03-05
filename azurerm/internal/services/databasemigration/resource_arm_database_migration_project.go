@@ -3,6 +3,7 @@ package databasemigration
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,8 +26,16 @@ func resourceArmDatabaseMigrationProject() *schema.Resource {
 		Update: resourceArmDatabaseMigrationProjectCreateUpdate,
 		Delete: resourceArmDatabaseMigrationProjectDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DatabaseMigrationProjectID(id)
+			return err
+		}),
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -127,13 +138,14 @@ func resourceArmDatabaseMigrationProjectRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseMigrationProjectID(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["projects"]
+
+	name := id.Name
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["services"]
+	serviceName := id.Service
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -144,11 +156,6 @@ func resourceArmDatabaseMigrationProjectRead(d *schema.ResourceData, meta interf
 		}
 		return fmt.Errorf("Error reading Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", name, serviceName, resourceGroup, err)
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read Database Migration Project (Project Name %q / Service Name %q / Group Name %q) ID", name, serviceName, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)
 	d.Set("service_name", serviceName)
@@ -173,15 +180,16 @@ func resourceArmDatabaseMigrationProjectDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseMigrationProjectID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["services"]
-	name := id.Path["projects"]
 
-	deleteRunningTasks := true
+	name := id.Name
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Service
+
+	deleteRunningTasks := false
 	if _, err := client.Delete(ctx, resourceGroup, serviceName, name, &deleteRunningTasks); err != nil {
 		return fmt.Errorf("Error deleting Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", name, serviceName, resourceGroup, err)
 	}

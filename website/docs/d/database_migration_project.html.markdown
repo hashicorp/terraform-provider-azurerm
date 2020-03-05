@@ -1,4 +1,4 @@
-``---
+---
 subcategory: "Database Migration"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_database_migration_project"
@@ -9,7 +9,6 @@ description: |-
 # Data Source: azurerm_database_migration_project
 
 Use this data source to access information about an existing Database Migration Project.
-
 
 ## Example Usage
 
@@ -48,9 +47,9 @@ The following attributes are exported:
 
 * `location` - Azure location where the resource exists.
 
-* `source_platform` - Platform type of migration source.
+* `source_platform` - The platform type of the migration source.
 
-* `target_platform` - Platform type of migration target.
+* `target_platform` - The platform type of the migration target.
 
 * `tags` - A mapping of tags to assigned to the resource.
 
