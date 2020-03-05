@@ -273,7 +273,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 							Set: schema.HashString,
 						},
 
-						"sretention_in_days": {
+						"retention_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
@@ -667,7 +667,7 @@ func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql
 		threatDetectionPolicy["storage_endpoint"] = *properties.StorageEndpoint
 	}
 	if properties.RetentionDays != nil {
-		threatDetectionPolicy["sretention_in_days"] = int(*properties.RetentionDays)
+		threatDetectionPolicy["retention_days"] = int(*properties.RetentionDays)
 	}
 
 	// If storage account access key is in state read it to the new state, as the API does not return it for security reasons
