@@ -13,7 +13,7 @@ Use this data source to access information about an existing App Service Environ
 ## Example Usage
 
 ```hcl
-data "azure_app_service_plan" "example" {
+data "azurerm_app_service_environment" "example" {
   name                = "example-ase"
   resource_group_name = "example-rg"
 }
