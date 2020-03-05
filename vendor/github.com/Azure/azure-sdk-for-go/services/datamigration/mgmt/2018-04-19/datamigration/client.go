@@ -1,7 +1,7 @@
-// Package batch implements the Azure ARM Batch service API version 2018-12-01.
+// Package datamigration implements the Azure ARM Datamigration service API version 2018-04-19.
 //
-//
-package batch
+// Data Migration Client
+package datamigration
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Batch
+	// DefaultBaseURI is the default URI used for the service Datamigration
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Batch.
+// BaseClient is the base client for Datamigration.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string

@@ -392,6 +392,20 @@ func TestAccAzureRMBatchPool_frontEndPortRanges(t *testing.T) {
 				Config: testaccAzureRMBatchPool_networkConfiguration(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.offer", "UbuntuServer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_scale.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.0.target_dedicated_nodes", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_configuration.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "network_configuration.0.subnet_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_configuration.0.public_ips.#", "1"),
 				),
 			},
 			data.ImportStep("stop_pending_resize_operation"),
@@ -1242,6 +1256,15 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  domain_name_label   = "acctest-publicip"
+}
+
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -1267,7 +1290,8 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id  = azurerm_subnet.test.id
+    public_ips = [azurerm_public_ip.test.id]
 
     endpoint_configuration {
       name                = "SSH"
@@ -1283,5 +1307,5 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }

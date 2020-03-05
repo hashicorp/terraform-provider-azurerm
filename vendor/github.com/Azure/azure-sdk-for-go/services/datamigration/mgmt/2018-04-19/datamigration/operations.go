@@ -1,4 +1,4 @@
-package batch
+package datamigration
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the client for the Operations methods of the Batch service.
+// OperationsClient is the data Migration Client
 type OperationsClient struct {
 	BaseClient
 }
@@ -40,14 +40,14 @@ func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string) Opera
 	return OperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List lists available operations for the Microsoft.Batch provider
-func (client OperationsClient) List(ctx context.Context) (result OperationListResultPage, err error) {
+// List lists all available actions exposed by the Database Migration Service resource provider.
+func (client OperationsClient) List(ctx context.Context) (result ServiceOperationListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
 		defer func() {
 			sc := -1
-			if result.olr.Response.Response != nil {
-				sc = result.olr.Response.Response.StatusCode
+			if result.sol.Response.Response != nil {
+				sc = result.sol.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -55,20 +55,20 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.OperationsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "datamigration.OperationsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.olr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "batch.OperationsClient", "List", resp, "Failure sending request")
+		result.sol.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "datamigration.OperationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.olr, err = client.ListResponder(resp)
+	result.sol, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.OperationsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "datamigration.OperationsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
@@ -76,7 +76,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-12-01"
+	const APIVersion = "2018-04-19"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -84,7 +84,7 @@ func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.Batch/operations"),
+		autorest.WithPath("/providers/Microsoft.DataMigration/operations"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -98,7 +98,7 @@ func (client OperationsClient) ListSender(req *http.Request) (*http.Response, er
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client OperationsClient) ListResponder(resp *http.Response) (result OperationListResult, err error) {
+func (client OperationsClient) ListResponder(resp *http.Response) (result ServiceOperationList, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -110,10 +110,10 @@ func (client OperationsClient) ListResponder(resp *http.Response) (result Operat
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client OperationsClient) listNextResults(ctx context.Context, lastResults OperationListResult) (result OperationListResult, err error) {
-	req, err := lastResults.operationListResultPreparer(ctx)
+func (client OperationsClient) listNextResults(ctx context.Context, lastResults ServiceOperationList) (result ServiceOperationList, err error) {
+	req, err := lastResults.serviceOperationListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "batch.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "datamigration.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -121,17 +121,17 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "batch.OperationsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "datamigration.OperationsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "batch.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "datamigration.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client OperationsClient) ListComplete(ctx context.Context) (result OperationListResultIterator, err error) {
+func (client OperationsClient) ListComplete(ctx context.Context) (result ServiceOperationListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
 		defer func() {
