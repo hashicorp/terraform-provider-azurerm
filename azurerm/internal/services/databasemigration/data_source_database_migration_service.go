@@ -58,13 +58,13 @@ func dataSourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta inte
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Data Migration Service (Service Name %q / Group Name %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: Database Migration Service (Service Name %q / Group Name %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("unexpected empty ID retrieved for Data Migration Service (Service Name %q / Group Name %q)", name, resourceGroup)
+		return fmt.Errorf("unexpected empty ID retrieved for Database Migration Service (Service Name %q / Group Name %q)", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
