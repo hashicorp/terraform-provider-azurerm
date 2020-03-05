@@ -31,4 +31,3 @@ func MssqlVmID(input string) (*MssqlVmId, error) {
 
 	return &sqlvm, nil
 }
-
