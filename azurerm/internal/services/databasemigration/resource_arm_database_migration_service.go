@@ -90,7 +90,7 @@ func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta inte
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for present of existing Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -118,18 +118,18 @@ func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error creating Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Database Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Migration Service (Service Name %q / Group Name %q) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read Database Migration Service (Service Name %q / Group Name %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -149,15 +149,15 @@ func resourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interf
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Data Migration Service %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Database Migration Service %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("unexpected empty ID retrieved for Data Migration Service (Service Name %q / Group Name %q)", id.Name, id.ResourceGroup)
+		return fmt.Errorf("unexpected empty ID retrieved for Database Migration Service (Service Name %q / Group Name %q)", id.Name, id.ResourceGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -192,10 +192,10 @@ func resourceArmDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta inte
 
 	future, err := client.Update(ctx, parameters, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error updating Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error updating Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceArmDatabaseMigrationServiceRead(d, meta)
@@ -218,12 +218,12 @@ func resourceArmDatabaseMigrationServiceDelete(d *schema.ResourceData, meta inte
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Data Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting Database Migration Service (Service Name %q / Group Name %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
