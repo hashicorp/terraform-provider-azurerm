@@ -121,16 +121,13 @@ func testCheckAzureRMDatabaseMigrationProjectExists(resourceName string) resourc
 		if err != nil {
 			return err
 		}
-		name := id.Name
-		resourceGroup := id.ResourceGroup
-		serviceName := id.Service
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DatabaseMigration.ProjectsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Service, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Database Migration Project (Project Name %q / Service Name %q / Group Name %q) does not exist", name, serviceName, resourceGroup)
+				return fmt.Errorf("Bad: Database Migration Project (Project Name %q / Service Name %q / Group Name %q) does not exist", id.Name, id.Service, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on ProjectsClient: %+v", err)
 		}
@@ -152,11 +149,8 @@ func testCheckAzureRMDatabaseMigrationProjectDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		name := id.Name
-		resourceGroup := id.ResourceGroup
-		serviceName := id.Service
 
-		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Service, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on ProjectsClient: %+v", err)
 			}

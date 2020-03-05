@@ -143,23 +143,19 @@ func resourceArmDatabaseMigrationProjectRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	name := id.Name
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Service
-
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Service, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Database Migration Project %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("Error reading Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", id.Name, id.Service, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("service_name", serviceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("service_name", id.Service)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	location := ""
 	if resp.Location != nil {
@@ -185,13 +181,9 @@ func resourceArmDatabaseMigrationProjectDelete(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	name := id.Name
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Service
-
 	deleteRunningTasks := false
-	if _, err := client.Delete(ctx, resourceGroup, serviceName, name, &deleteRunningTasks); err != nil {
-		return fmt.Errorf("Error deleting Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", name, serviceName, resourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Service, id.Name, &deleteRunningTasks); err != nil {
+		return fmt.Errorf("Error deleting Database Migration Project (Project Name %q / Service Name %q / Group Name %q): %+v", id.Name, id.Service, id.ResourceGroup, err)
 	}
 
 	return nil
