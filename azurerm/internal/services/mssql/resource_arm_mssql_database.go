@@ -61,6 +61,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew:true,
 			},
 
 			"elastic_pool_id": {
@@ -212,6 +213,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"hyper_scale": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew:true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -256,8 +258,6 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
-								"M-Series",
-								"FSv2 Series",
 							}, false),
 						},
 
