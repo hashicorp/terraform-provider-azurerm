@@ -25,7 +25,7 @@ func HPCCacheNamespacePath(i interface{}, k string) (warnings []string, errs []e
 	return absolutePath(i, k)
 }
 
-func HPCCacheNFSExportPath(i interface{}, k string) (warnings []string, errs []error) {
+func HPCCacheNFSExport(i interface{}, k string) (warnings []string, errs []error) {
 	return absolutePath(i, k)
 }
 

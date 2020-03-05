@@ -30,10 +30,10 @@ func namespaceJunctionResource() *schema.Resource {
 				Required:     true,
 				ValidateFunc: storageValidate.HPCCacheNamespacePath,
 			},
-			"nfs_export_path": {
+			"nfs_export": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.HPCCacheNFSExportPath,
+				ValidateFunc: storageValidate.HPCCacheNFSExport,
 			},
 			"target_path": {
 				Type:         schema.TypeString,
@@ -246,7 +246,7 @@ func expandNamespaceJunctions(input []interface{}) *[]storagecache.NamespaceJunc
 		b := v.(map[string]interface{})
 		result = append(result, storagecache.NamespaceJunction{
 			NamespacePath: utils.String(b["namespace_path"].(string)),
-			NfsExport:     utils.String(b["nfs_export_path"].(string)),
+			NfsExport:     utils.String(b["nfs_export"].(string)),
 			TargetPath:    utils.String(b["target_path"].(string)),
 		})
 	}
@@ -278,9 +278,9 @@ func flattenNamespaceJunctions(input *[]storagecache.NamespaceJunction) []interf
 		}
 
 		output = append(output, map[string]interface{}{
-			"namespace_path":  namespacePath,
-			"nfs_export_path": nfsExport,
-			"target_path":     targetPath,
+			"namespace_path": namespacePath,
+			"nfs_export":     nfsExport,
+			"target_path":    targetPath,
 		})
 	}
 
