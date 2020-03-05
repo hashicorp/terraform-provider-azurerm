@@ -70,6 +70,8 @@ func TestAccAzureRMNetAppSnapshot_complete(t *testing.T) {
 				Config: testAccAzureRMNetAppSnapshot_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
 				),
 			},
 			data.ImportStep(),
@@ -92,6 +94,18 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetAppSnapshot_updateTags(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "baz"),
 				),
 			},
 			data.ImportStep(),
@@ -100,6 +114,7 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", newVolumeName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -204,6 +219,30 @@ resource "azurerm_netapp_snapshot" "test" {
   volume_name         = azurerm_netapp_volume.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "foo" = "bar"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMNetAppSnapshot_updateTags(data acceptance.TestData) string {
+	template := testAccAzureRMNetAppSnapshot_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_snapshot" "test" {
+  name                = "acctest-NetAppSnapshot-%d"
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_name         = azurerm_netapp_volume.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "foo" = "baz"
+  }
 }
 `, template, data.RandomInteger)
 }

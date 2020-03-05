@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `4` and `500`.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 ## Attributes Reference

@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -71,6 +72,8 @@ func resourceArmNetAppPool() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.IntBetween(4, 500),
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -101,6 +104,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	sizeInTB := int64(d.Get("size_in_tb").(int))
 	sizeInMB := sizeInTB * 1024 * 1024
 	sizeInBytes := sizeInMB * 1024 * 1024
+	t := d.Get("tags").(map[string]interface{})
 
 	capacityPoolParameters := netapp.CapacityPool{
 		Location: utils.String(location),
@@ -108,6 +112,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 			ServiceLevel: netapp.ServiceLevel(serviceLevel),
 			Size:         utils.Int64(sizeInBytes),
 		},
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, capacityPoolParameters, resourceGroup, accountName, name)
@@ -171,7 +176,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("size_in_tb", int(sizeInTB))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {

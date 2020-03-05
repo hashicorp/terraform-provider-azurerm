@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -178,6 +179,8 @@ func resourceArmNetAppVolume() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -215,6 +218,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 	exportPolicyRule := d.Get("export_policy_rule").([]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
@@ -226,6 +230,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   expandArmNetAppVolumeExportPolicyRule(exportPolicyRule),
 		},
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, accountName, poolName, name)
@@ -292,7 +297,7 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error {

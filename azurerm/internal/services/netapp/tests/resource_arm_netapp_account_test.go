@@ -98,6 +98,8 @@ func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "active_directory.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
 				),
 			},
 			data.ImportStep("active_directory"),
@@ -118,6 +120,7 @@ func testAccAzureRMNetAppAccount_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "active_directory.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -125,6 +128,8 @@ func testAccAzureRMNetAppAccount_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "active_directory.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
 				),
 			},
 			data.ImportStep("active_directory"),
@@ -233,6 +238,10 @@ resource "azurerm_netapp_account" "test" {
     dns_servers         = ["1.2.3.4"]
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
+  }
+
+  tags = {
+    "foo" = "bar"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

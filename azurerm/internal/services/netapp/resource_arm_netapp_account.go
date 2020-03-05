@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -99,7 +100,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 				},
 			},
 
-			// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -126,12 +127,14 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	activeDirectories := d.Get("active_directory").([]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	accountParameters := netapp.Account{
 		Location: utils.String(location),
 		AccountProperties: &netapp.AccountProperties{
 			ActiveDirectories: expandArmNetAppActiveDirectories(activeDirectories),
 		},
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, accountParameters, resourceGroup, name)
@@ -182,7 +185,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
