@@ -21,9 +21,8 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 		return nil, fmt.Errorf("Unable to parse Management Group ID %q: expected id to have two segments after splitting", input)
 	}
 	groupID := segments[1]
-	_, errs := ValidateManagementGroupName(groupID, "")
-	if len(errs) != 0 {
-		return nil, fmt.Errorf("Unable to parse Management Group ID %q: %+v", input, errs)
+	if _, errs := ValidateManagementGroupName(groupID, ""); len(errs) != 0 {
+		return nil, fmt.Errorf("Unable to validate Management Group ID %q: %+v", input, errs)
 	}
 
 	id := ManagementGroupId{
