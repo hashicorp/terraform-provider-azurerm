@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -111,7 +112,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
-							//api return "sqlvmName:name1,sqlvmName:name2"
+							//api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
 							DiffSuppressFunc: mssqlVMCredentialNameDiffSuppressFunc,
 						},
 
@@ -199,7 +200,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	defer cancel()
 
 	vmId := d.Get("virtual_machine_id").(string)
-	id, err := parse.VmID(vmId)
+	id, err := compute.ParseVirtualMachineID(vmId)
 	if err != nil {
 		return err
 	}

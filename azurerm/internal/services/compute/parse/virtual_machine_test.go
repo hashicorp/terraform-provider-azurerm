@@ -1,14 +1,12 @@
 package parse
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestMsSqlVmID(t *testing.T) {
-	testData := []struct {
+func TestVirtualMachineID(t *testing.T) {
+	var testData = []struct {
 		Name     string
 		Input    string
-		Expected *MssqlVmId
+		Expected *VirtualMachineId
 	}{
 		{
 			Name:     "Empty",
@@ -32,28 +30,27 @@ func TestMsSqlVmID(t *testing.T) {
 		},
 		{
 			Name:     "Missing Stores Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/",
 			Expected: nil,
 		},
 		{
 			Name:  "App Configuration ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/mssqlvm1",
-			Expected: &MssqlVmId{
-				Name:          "mssqlvm1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1",
+			Expected: &VirtualMachineId{
+				Name:          "vm1",
 				ResourceGroup: "resGroup1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SqlVirtualMachine/SqlVirtualMachines/mssqlvm1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/VirtualMachines/vm1",
 			Expected: nil,
 		},
 	}
-
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MssqlVmID(v.Input)
+		actual, err := VirtualMachineID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

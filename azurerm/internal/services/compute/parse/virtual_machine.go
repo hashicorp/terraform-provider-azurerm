@@ -2,26 +2,25 @@ package parse
 
 import (
 	"fmt"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MssqlVmId struct {
+type VirtualMachineId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func MssqlVmID(input string) (*MssqlVmId, error) {
+func VirtualMachineID(input string) (*VirtualMachineId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql VM ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse VM ID %q: %+v", input, err)
 	}
 
-	sqlvm := MssqlVmId{
+	vm := VirtualMachineId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if sqlvm.Name, err = id.PopSegment("sqlVirtualMachines"); err != nil {
+	if vm.Name, err = id.PopSegment("virtualMachines"); err != nil {
 		return nil, err
 	}
 
@@ -29,6 +28,5 @@ func MssqlVmID(input string) (*MssqlVmId, error) {
 		return nil, err
 	}
 
-	return &sqlvm, nil
+	return &vm, nil
 }
-

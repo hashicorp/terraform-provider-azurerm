@@ -208,6 +208,10 @@ func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
 
 func testAccAzureRMVirtualMachine_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssqlvm-%[1]d"
   location = "%[2]s"
@@ -284,6 +288,11 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.vm.id
   }
+}
+
+resource "azurerm_network_interface_security_group_association" "test" {
+  network_interface_id      = azurerm_network_interface.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
 }
 
 resource "azurerm_virtual_machine" "test" {
