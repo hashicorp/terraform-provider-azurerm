@@ -88,27 +88,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Optional: true,
 			},
 
-			"storage_account": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Deprecated: "`storage_account` has been replaced by `storage_account_id`.",
-				MaxItems:   1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"access_key": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
 			"login_server": {
 				Type:     schema.TypeString,
 				Computed: true,

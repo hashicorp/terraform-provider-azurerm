@@ -20,15 +20,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-virtualnetwork"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 
   delegation {
@@ -43,28 +43,28 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_netapp_account" "example" {
   name                = "example-netappaccount"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_netapp_pool" "example" {
   name                = "example-netapppool"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_netapp_account.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
   service_level       = "Premium"
   size_in_tb          = 4
 }
 
 resource "azurerm_netapp_volume" "example" {
   name                = "example-netappvolume"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_netapp_account.example.name}"
-  pool_name           = "${azurerm_netapp_pool.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
+  pool_name           = azurerm_netapp_pool.example.name
   volume_path         = "my-unique-file-path"
   service_level       = "Premium"
-  subnet_id           = "${azurerm_subnet.example.id}"
+  subnet_id           = azurerm_subnet.example.id
   storage_quota_in_gb = 100
 }
 ```
@@ -119,9 +119,7 @@ The following attributes are exported:
 
 * `id` - The ID of the NetApp Volume.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -20,23 +20,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "hdinsightstor"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "example" {
   name                = "example-hdicluster"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_version     = "4.0"
   tier                = "Standard"
 
@@ -51,8 +51,8 @@ resource "azurerm_hdinsight_kafka_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.example.id}"
-    storage_account_key  = "${azurerm_storage_account.example.primary_access_key}"
+    storage_container_id = azurerm_storage_container.example.id
+    storage_account_key  = azurerm_storage_account.example.primary_access_key
     is_default           = true
   }
 
@@ -242,9 +242,9 @@ The following attributes are exported:
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Kafka Cluster.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

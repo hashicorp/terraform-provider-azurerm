@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 # we assume that this Custom Image already exists
 data "azurerm_image" "custom" {
   name                = "${var.custom_image_name}"

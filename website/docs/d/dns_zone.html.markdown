@@ -20,13 +20,13 @@ data "azurerm_dns_zone" "example" {
 }
 
 output "dns_zone_id" {
-  value = "${data.azurerm_dns_zone.example.id}"
+  value = data.azurerm_dns_zone.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the DNS Zone.
+* `name` - The name of the DNS Zone.
 * `resource_group_name` - (Optional) The Name of the Resource Group where the DNS Zone exists.
 If the Name of the Resource Group is not provided, the first DNS Zone from the list of DNS Zones
 in your subscription that matches `name` will be returned.
@@ -38,16 +38,9 @@ in your subscription that matches `name` will be returned.
 * `max_number_of_record_sets` - Maximum number of Records in the zone.
 * `number_of_record_sets` - The number of records already in the zone.
 * `name_servers` - A list of values that make up the NS record for the zone.
-* `registration_virtual_network_ids` - A list of Virtual Network ID's that register hostnames in this DNS zone.
-* `resolution_virtual_network_ids` - A list of Virtual Network ID's that resolve records in this DNS zone.
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
-* `zone_type` - (**Deprecated**) The type of this DNS zone, such as `Public` or `Private`.
 
-~> **Note:** This field is deprecated since Private DNS is now a separate resource and will be removed in 2.0 of the Azure Provider.
-
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

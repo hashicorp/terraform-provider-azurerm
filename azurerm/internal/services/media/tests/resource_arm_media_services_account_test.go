@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 )
 
 func TestAccAzureRMMediaServicesAccount_basic(t *testing.T) {
@@ -82,19 +83,17 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 			return fmt.Errorf("Media service not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Media Services Account: '%s'", name)
+		id, err := parse.MediaServicesAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on mediaServicesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Media Services Account %q (Resource Group %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Media Services Account %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -110,10 +109,11 @@ func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		id, err := parse.MediaServicesAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			return nil
@@ -134,11 +134,11 @@ func testAccAzureRMMediaServicesAccount_basic(data acceptance.TestData) string {
 
 resource "azurerm_media_services_account" "test" {
   name                = "acctestmsa%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id         = "${azurerm_storage_account.first.id}"
+    id         = azurerm_storage_account.first.id
     is_primary = true
   }
 }
@@ -152,24 +152,24 @@ func testAccAzureRMMediaServicesAccount_multipleAccounts(data acceptance.TestDat
 
 resource "azurerm_storage_account" "second" {
   name                     = "acctestsa2%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_media_services_account" "test" {
   name                = "acctestmsa%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id         = "${azurerm_storage_account.first.id}"
+    id         = azurerm_storage_account.first.id
     is_primary = true
   }
 
   storage_account {
-    id         = "${azurerm_storage_account.second.id}"
+    id         = azurerm_storage_account.second.id
     is_primary = false
   }
 }
@@ -183,24 +183,24 @@ func testAccAzureRMMediaServicesAccount_multipleAccountsUpdated(data acceptance.
 
 resource "azurerm_storage_account" "second" {
   name                     = "acctestsa2%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_media_services_account" "test" {
   name                = "acctestmsa%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id         = "${azurerm_storage_account.second.id}"
+    id         = azurerm_storage_account.second.id
     is_primary = false
   }
 
   storage_account {
-    id         = "${azurerm_storage_account.first.id}"
+    id         = azurerm_storage_account.first.id
     is_primary = true
   }
 }
@@ -214,24 +214,24 @@ func testAccAzureRMMediaServicesAccount_multiplePrimaries(data acceptance.TestDa
 
 resource "azurerm_storage_account" "second" {
   name                     = "acctestsa2%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_media_services_account" "test" {
   name                = "acctestmsa%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   storage_account {
-    id         = "${azurerm_storage_account.first.id}"
+    id         = azurerm_storage_account.first.id
     is_primary = true
   }
 
   storage_account {
-    id         = "${azurerm_storage_account.second.id}"
+    id         = azurerm_storage_account.second.id
     is_primary = true
   }
 }
@@ -240,6 +240,10 @@ resource "azurerm_media_services_account" "test" {
 
 func testAccAzureRMMediaServicesAccount_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-media-%d"
   location = "%s"
@@ -247,8 +251,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "first" {
   name                     = "acctestsa1%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }

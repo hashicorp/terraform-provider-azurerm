@@ -117,6 +117,10 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 
 func testAccAzureRMDataFactoryPipeline_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -124,20 +128,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfv2%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMDataFactoryPipeline_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -145,14 +153,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfv2%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
@@ -170,6 +178,10 @@ resource "azurerm_data_factory_pipeline" "test" {
 
 func testAccAzureRMDataFactoryPipeline_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -177,14 +189,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfv2%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
   annotations         = ["test1", "test2"]
   description         = "test description2"
 

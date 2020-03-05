@@ -19,15 +19,15 @@ data "azurerm_api_management" "example" {
 }
 
 output "api_management_id" {
-  value = "${data.azurerm_api_management.example.id}"
+  value = data.azurerm_api_management.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the API Management service.
+* `name` - The name of the API Management service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
 ## Attributes Reference
 
@@ -134,9 +134,7 @@ A `sku` block exports the following:
 
 * `capacity` - Specifies the number of units associated with this API Management service.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

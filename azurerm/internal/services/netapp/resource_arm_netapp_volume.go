@@ -276,11 +276,7 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
 		Refresh: netappVolumeDeleteStateRefreshFunc(ctx, client, resourceGroup, accountName, poolName, name),
-	}
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 20 * time.Minute
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -390,6 +386,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 }
 
 func flattenArmNetAppVolumeMountIPAddresses(input interface{}) []interface{} {
+	// Improve code for parsing MountTargets once the issue https://github.com/Azure/azure-rest-api-specs/issues/8604 is fixed.
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

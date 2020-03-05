@@ -21,49 +21,49 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_api_key" "read_telemetry" {
   name                    = "tf-test-appinsights-read-telemetry-api-key"
-  application_insights_id = "${azurerm_application_insights.example.id}"
+  application_insights_id = azurerm_application_insights.example.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_application_insights_api_key" "write_annotations" {
   name                    = "tf-test-appinsights-write-annotations-api-key"
-  application_insights_id = "${azurerm_application_insights.example.id}"
+  application_insights_id = azurerm_application_insights.example.id
   write_permissions       = ["annotations"]
 }
 
 resource "azurerm_application_insights_api_key" "authenticate_sdk_control_channel" {
   name                    = "tf-test-appinsights-authenticate-sdk-control-channel-api-key"
-  application_insights_id = "${azurerm_application_insights.example.id}"
+  application_insights_id = azurerm_application_insights.example.id
   read_permissions        = ["agentconfig"]
 }
 
 resource "azurerm_application_insights_api_key" "full_permissions" {
   name                    = "tf-test-appinsights-full-permissions-api-key"
-  application_insights_id = "${azurerm_application_insights.example.id}"
+  application_insights_id = azurerm_application_insights.example.id
   read_permissions        = ["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]
   write_permissions       = ["annotations"]
 }
 
 output "read_telemetry_api_key" {
-  value = "${azurerm_application_insights_api_key.read_telemetry.api_key}"
+  value = azurerm_application_insights_api_key.read_telemetry.api_key
 }
 
 output "write_annotations_api_key" {
-  value = "${azurerm_application_insights_api_key.write_annotations.api_key}"
+  value = azurerm_application_insights_api_key.write_annotations.api_key
 }
 
 output "authenticate_sdk_control_channel" {
-  value = "${azurerm_application_insights_api_key.authenticate_sdk_control_channel.api_key}"
+  value = azurerm_application_insights_api_key.authenticate_sdk_control_channel.api_key
 }
 
 output "full_permissions_api_key" {
-  value = "${azurerm_application_insights_api_key.full_permissions.api_key}"
+  value = azurerm_application_insights_api_key.full_permissions.api_key
 }
 ```
 
@@ -90,9 +90,7 @@ The following attributes are exported:
 
 * `api_key` - The API Key secret (Sensitive).
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -20,17 +20,17 @@ data "azurerm_api_management_user" "example" {
 }
 
 output "notes" {
-  value = "${data.azurerm_api_management_user.example.notes}"
+  value = data.azurerm_api_management_user.example.notes
 }
 ```
 
 ## Argument Reference
 
-* `api_management_name` - (Required) The Name of the API Management Service in which this User exists.
+* `api_management_name` - The Name of the API Management Service in which this User exists.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
-* `user_id` - (Required) The Identifier for the User.
+* `user_id` - The Identifier for the User.
 
 ## Attributes Reference
 
@@ -46,9 +46,7 @@ output "notes" {
 
 * `state` - The current state of this User, for example `active`, `blocked` or `pending`.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

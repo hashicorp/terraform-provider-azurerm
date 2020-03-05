@@ -57,8 +57,6 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocationDeprecated(),
 		}),
 
 		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,

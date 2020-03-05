@@ -27,9 +27,9 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Dedicated Host Group.
+* `name` - Specifies the name of the Dedicated Host Group.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Dedicated Host Group is located in.
+* `resource_group_name` - Specifies the name of the resource group the Dedicated Host Group is located in.
 
 
 ## Attributes Reference
@@ -46,9 +46,7 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the resource.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

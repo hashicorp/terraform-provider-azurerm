@@ -313,6 +313,10 @@ resource "azurerm_dedicated_host" "import" {
 
 func testAccAzureRMDedicatedHost_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-compute-%d"
   location = "%s"

@@ -21,22 +21,22 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "vnet" {
   name                = "example-vnet"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "subnet" {
   name                 = "example-subnet"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_sql_server" "sqlserver" {
   name                         = "unqiueazuresqlserver"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
-  location                     = "${azurerm_resource_group.example.location}"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -44,9 +44,9 @@ resource "azurerm_sql_server" "sqlserver" {
 
 resource "azurerm_sql_virtual_network_rule" "sqlvnetrule" {
   name                = "sql-vnet-rule"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_sql_server.sqlserver.name}"
-  subnet_id           = "${azurerm_subnet.subnet.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_sql_server.sqlserver.name
+  subnet_id           = azurerm_subnet.subnet.id
 }
 ```
 
@@ -77,9 +77,7 @@ The following attributes are exported:
 
 * `id` - The ID of the SQL virtual network rule.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

@@ -124,8 +124,8 @@ func testAccAzureRMCosmosDbSqlDatabase_basic(data acceptance.TestData) string {
 
 resource "azurerm_cosmosdb_sql_database" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.Strong), data.RandomInteger)
 }
@@ -136,8 +136,8 @@ func testAccAzureRMCosmosDbSqlDatabase_throughput(data acceptance.TestData, thro
 
 resource "azurerm_cosmosdb_sql_database" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
   throughput          = %[3]d
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.Strong), data.RandomInteger, throughput)

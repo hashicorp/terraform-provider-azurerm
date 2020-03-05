@@ -113,8 +113,8 @@ func testAccAzureRMCosmosDbMongoDatabase_basic(data acceptance.TestData) string 
 
 resource "azurerm_cosmosdb_mongo_database" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
 }
@@ -125,8 +125,8 @@ func testAccAzureRMCosmosDbMongoDatabase_complete(data acceptance.TestData) stri
 
 resource "azurerm_cosmosdb_mongo_database" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
   throughput          = 700
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)

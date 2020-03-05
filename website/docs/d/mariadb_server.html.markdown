@@ -15,10 +15,11 @@ Use this data source to access information about an existing MariaDB Server.
 ```hcl
 data "azurerm_mariadb_server" "db_server" {
   name                = "mariadb-server"
-  resource_group_name = "${azurerm_mariadb_server.example.resource_group_name}"
+  resource_group_name = azurerm_mariadb_server.example.resource_group_name
 }
+
 output "mariadb_server_id" {
-  value = "${data.azurerm_mariadb_server.example.id}"
+  value = data.azurerm_mariadb_server.example.id
 }
 ```
 
@@ -26,9 +27,9 @@ output "mariadb_server_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the MariaDB Server to retrieve information about.
+* `name` - The name of the MariaDB Server to retrieve information about.
 
-* `resource_group_name` - (Required) The name of the resource group where the MariaDB Server exists.
+* `resource_group_name` - The name of the resource group where the MariaDB Server exists.
 
 ## Attributes Reference
 
@@ -65,9 +66,7 @@ A `storage_profile` block exports the following:
 
 * `auto_grow` - Whether autogrow is enabled or disabled for the storage.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

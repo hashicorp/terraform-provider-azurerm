@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
   sku_name            = "Developer_1"
@@ -29,8 +29,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_diagnostic" "test" {
   identifier          = "applicationinsights"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   enabled             = true
 }
 ```
@@ -55,9 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Diagnostic.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

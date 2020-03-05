@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_managed_disk" "example" {
   name                 = "managed-disk"
-  location             = "${azurerm_resource_group.example.location}"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  location             = azurerm_resource_group.example.location
+  resource_group_name  = azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -30,10 +30,10 @@ resource "azurerm_managed_disk" "example" {
 
 resource "azurerm_snapshot" "example" {
   name                = "snapshot"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.example.id}"
+  source_uri          = azurerm_managed_disk.example.id
 }
 ```
 
@@ -69,9 +69,7 @@ The following attributes are exported:
 
 * `disk_size_gb` - The Size of the Snapshotted Disk in GB.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

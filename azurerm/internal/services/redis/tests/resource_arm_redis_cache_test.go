@@ -25,6 +25,8 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "minimum_tls_version"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
 				),
 			},
 			data.ImportStep(),
@@ -478,6 +480,10 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 
 func testAccAzureRMRedisCache_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -485,15 +491,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -504,21 +511,26 @@ func testAccAzureRMRedisCache_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_redis_cache" "import" {
-  name                = "${azurerm_redis_cache.test.name}"
-  location            = "${azurerm_redis_cache.test.location}"
-  resource_group_name = "${azurerm_redis_cache.test.resource_group_name}"
-  capacity            = "${azurerm_redis_cache.test.capacity}"
-  family              = "${azurerm_redis_cache.test.family}"
-  sku_name            = "${azurerm_redis_cache.test.sku_name}"
-  enable_non_ssl_port = "${azurerm_redis_cache.test.enable_non_ssl_port}"
+  name                = azurerm_redis_cache.test.name
+  location            = azurerm_redis_cache.test.location
+  resource_group_name = azurerm_redis_cache.test.resource_group_name
+  capacity            = azurerm_redis_cache.test.capacity
+  family              = azurerm_redis_cache.test.family
+  sku_name            = azurerm_redis_cache.test.sku_name
+  enable_non_ssl_port = azurerm_redis_cache.test.enable_non_ssl_port
 
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, template)
 }
 
 func testAccAzureRMRedisCache_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -526,13 +538,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
-  redis_configuration {}
+  redis_configuration {
+  }
 
   tags = {
     environment = "production"
@@ -543,6 +556,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -550,8 +567,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -569,6 +586,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_premiumSharded(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -576,8 +597,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -596,6 +617,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_premiumShardedScaled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -603,8 +628,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 2
   family              = "P"
   sku_name            = "Premium"
@@ -623,6 +648,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -630,19 +659,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "c"
   sku_name            = "basic"
   enable_non_ssl_port = false
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMRedisCacheBackupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -650,8 +684,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -666,6 +700,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheBackupEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -673,8 +711,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -685,8 +723,8 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -704,6 +742,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheAOFBackupDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -711,8 +753,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -727,6 +769,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheAOFBackupEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -734,8 +780,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -746,8 +792,8 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -764,6 +810,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCachePatchSchedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -771,8 +821,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -794,6 +844,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheSubscribeAllEvents(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -801,8 +855,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "unlikely23exst2acct%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -813,8 +867,8 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
@@ -829,6 +883,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCache_internalSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -837,33 +895,38 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
-  subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration {}
+  subnet_id           = azurerm_subnet.test.id
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMRedisCache_internalSubnetStaticIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -872,34 +935,39 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                      = "acctestRedis-%d"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
   capacity                  = 1
   family                    = "P"
   sku_name                  = "Premium"
   enable_non_ssl_port       = false
-  subnet_id                 = "${azurerm_subnet.test.id}"
+  subnet_id                 = azurerm_subnet.test.id
   private_static_ip_address = "10.0.1.20"
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMRedisCache_internalSubnet_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -908,27 +976,28 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
-  subnet_id           = "${azurerm_subnet.test.id}"
-  redis_configuration {}
+  subnet_id           = azurerm_subnet.test.id
+  redis_configuration {
+  }
   zones = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -936,6 +1005,10 @@ resource "azurerm_redis_cache" "test" {
 
 func testAccAzureRMRedisCacheWithoutAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -944,26 +1017,26 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
-  subnet_id           = "${azurerm_subnet.test.id}"
+  subnet_id           = azurerm_subnet.test.id
   redis_configuration {
     enable_authentication = false
   }

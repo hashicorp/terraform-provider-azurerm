@@ -26,45 +26,45 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplestorage"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "examplecontainer"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_eventhub_namespace" "example" {
   name                = "example-namesapce"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   sku                 = "Basic"
 }
 
 resource "azurerm_eventhub" "example" {
   name                = "example-eventhub"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_eventhub_namespace.example.name
   partition_count     = 2
   message_retention   = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
-  eventhub_name       = "${azurerm_eventhub.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  eventhub_name       = azurerm_eventhub.example.name
   name                = "acctest"
   send                = true
 }
 
 resource "azurerm_iothub" "example" {
   name                = "Example-IoTHub"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -73,18 +73,18 @@ resource "azurerm_iothub" "example" {
 
   endpoint {
     type                       = "AzureIotHub.StorageContainer"
-    connection_string          = "${azurerm_storage_account.example.primary_blob_connection_string}"
+    connection_string          = azurerm_storage_account.example.primary_blob_connection_string
     name                       = "export"
     batch_frequency_in_seconds = 60
     max_chunk_size_in_bytes    = 10485760
-    container_name             = "${azurerm_storage_container.example.name}"
+    container_name             = azurerm_storage_container.example.name
     encoding                   = "Avro"
     file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
   }
 
   endpoint {
     type              = "AzureIotHub.EventHub"
-    connection_string = "${azurerm_eventhub_authorization_rule.example.primary_connection_string}"
+    connection_string = azurerm_eventhub_authorization_rule.example.primary_connection_string
     name              = "export2"
   }
 
@@ -108,7 +108,6 @@ resource "azurerm_iothub" "example" {
     purpose = "testing"
   }
 }
-
 ```
 
 ## Argument Reference
@@ -146,11 +145,9 @@ A `sku` block supports the following:
 
 * `name` - (Required) The name of the sku. Possible values are `B1`, `B2`, `B3`, `F1`, `S1`, `S2`, and `S3`.
 
-* `tier` - (Required) The billing tier for the IoT Hub. Possible values are `Basic`, `Free` or `Standard`.
+* `capacity` - (Required) The number of provisioned IoT Hub units.
 
 ~> **NOTE:** Only one IotHub can be on the `Free` tier per subscription.
-
-* `capacity` - (Required) The number of provisioned IoT Hub units.
 
 ---
 
@@ -256,9 +253,9 @@ A `shared access policy` block contains the following:
 
 * `permissions` - The permissions assigned to the shared access policy.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

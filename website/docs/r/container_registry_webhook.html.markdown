@@ -21,23 +21,25 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_container_registry" "acr" {
   name                = "containerRegistry1"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
   sku                 = "Standard"
   admin_enabled       = false
 }
 
 resource "azurerm_container_registry_webhook" "webhook" {
   name                = "mywebhook"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  registry_name       = "${azurerm_container_registry.acr.name}"
-  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = azurerm_resource_group.rg.name
+  registry_name       = azurerm_container_registry.acr.name
+  location            = azurerm_resource_group.rg.location
 
-  service_uri    = "https://mywebhookreceiver.example/mytag"
-  status         = "enabled"
-  scope          = "mytag:*"
-  actions        = ["push"]
-  custom_headers = { "Content-Type" = "application/json" }
+  service_uri = "https://mywebhookreceiver.example/mytag"
+  status      = "enabled"
+  scope       = "mytag:*"
+  actions     = ["push"]
+  custom_headers = {
+    "Content-Type" = "application/json"
+  }
 }
 ```
 
@@ -69,9 +71,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Container Registry Webhook.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

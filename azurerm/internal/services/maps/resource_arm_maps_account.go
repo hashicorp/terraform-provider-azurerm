@@ -12,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,6 @@ func resourceArmMapsAccount() *schema.Resource {
 		Read:   resourceArmMapsAccountRead,
 		Update: resourceArmMapsAccountCreateUpdate,
 		Delete: resourceArmMapsAccountDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,6 +32,11 @@ func resourceArmMapsAccount() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.MapsAccountID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -49,10 +53,9 @@ func resourceArmMapsAccount() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"s0",
-					"s1",
-					// TODO: revert this in 2.0
-				}, true),
+					"S0",
+					"S1",
+				}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -133,25 +136,23 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MapsAccountID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["accounts"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Maps Account %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
@@ -159,9 +160,9 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("x_ms_client_id", props.XMsClientID)
 	}
 
-	keysResp, err := client.ListKeys(ctx, resGroup, name)
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read Access Keys request on Maps Account %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read Access Keys request on Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
@@ -174,15 +175,13 @@ func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MapsAccountID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["accounts"]
 
-	if _, err := client.Delete(ctx, resGroup, name); err != nil {
-		return fmt.Errorf("Error deleting Maps Account %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("Error deleting Maps Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

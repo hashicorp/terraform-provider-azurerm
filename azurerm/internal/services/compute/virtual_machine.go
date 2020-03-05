@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -282,10 +283,9 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:     schema.TypeString,
-					Optional: true,
-					// TODO: make this more specific
-					ValidateFunc: azure.ValidateResourceID,
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.DiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {

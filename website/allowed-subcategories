@@ -5,10 +5,8 @@ App Service (Web Apps)
 Application Insights
 Authorization
 Automation
-Azure Active Directory
 Base
 Batch
-Beta
 Bot
 CDN
 Cognitive Services
@@ -20,10 +18,10 @@ Data Explorer
 Data Factory
 Data Lake
 Database
+Database Migration
 Databricks
 Dev Test
 DevSpace
-Front Door
 HDInsight
 Healthcare
 IoT Hub
@@ -43,7 +41,6 @@ Portal
 Private DNS
 Recovery Services
 Redis
-Scheduler
 Search
 Security Center
 Service Fabric

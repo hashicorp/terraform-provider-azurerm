@@ -52,7 +52,6 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -88,13 +87,6 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			"alias": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"network_interface_ids": {
-				Type:       schema.TypeList,
-				Computed:   true,
-				Deprecated: "This field has been deprecated and will be removed in version 2.0 of the Azure Provider",
-				Elem:       &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -150,11 +142,6 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
-		if props.NetworkInterfaces != nil {
-			if err := d.Set("network_interface_ids", dataSourceFlattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
-				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
-			}
-		}
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
@@ -166,21 +153,6 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 }
 
 func dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
-	results := make([]string, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if id := item.ID; id != nil {
-			results = append(results, *id)
-		}
-	}
-
-	return results
-}
-
-func dataSourceFlattenArmPrivateLinkServiceInterface(input *[]network.Interface) []string {
 	results := make([]string, 0)
 	if input == nil {
 		return results

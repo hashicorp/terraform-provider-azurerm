@@ -275,12 +275,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 			Target:     []string{"Running"},
 			Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
 			MinTimeout: 15 * time.Second,
-		}
-
-		if features.SupportsCustomTimeouts() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = 60 * time.Minute
+			Timeout:    d.Timeout(schema.TimeoutCreate),
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {

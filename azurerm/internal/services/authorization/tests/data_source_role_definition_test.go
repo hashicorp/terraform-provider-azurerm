@@ -142,15 +142,12 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t 
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("VirtualMachineContributor"),
+				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Virtual Machine Contributor"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
 					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.#", "38"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.0", "Microsoft.Authorization/*/read"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.15", "Microsoft.Network/networkSecurityGroups/join/action"),
 					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "0"),
 				),
 			},
@@ -160,6 +157,10 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t 
 
 func testAccDataSourceAzureRMRoleDefinition_builtIn(name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_role_definition" "test" {
   name = "%s"
 }
@@ -168,12 +169,17 @@ data "azurerm_role_definition" "test" {
 
 func testAccDataSourceRoleDefinition_basic(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
   description        = "Created by the Data Source Role Definition Acceptance Test"
 
   permissions {
@@ -187,13 +193,13 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 
 data "azurerm_role_definition" "test" {
-  role_definition_id = "${azurerm_role_definition.test.role_definition_id}"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  role_definition_id = azurerm_role_definition.test.role_definition_id
+  scope              = data.azurerm_subscription.primary.id
 }
 `, id, data.RandomInteger)
 }
@@ -203,8 +209,8 @@ func testAccDataSourceRoleDefinition_byName(id string, data acceptance.TestData)
 %s
 
 data "azurerm_role_definition" "byName" {
-  name  = "${azurerm_role_definition.test.name}"
-  scope = "${data.azurerm_subscription.primary.id}"
+  name  = azurerm_role_definition.test.name
+  scope = data.azurerm_subscription.primary.id
 }
 `, testAccDataSourceRoleDefinition_basic(id, data))
 }

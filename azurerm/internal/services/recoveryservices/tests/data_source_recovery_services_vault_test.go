@@ -32,7 +32,7 @@ func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 
 func testAccDataSourceRecoveryServicesVault_basic(data acceptance.TestData) string {
 	template := testAccAzureRMRecoveryServicesVault_basic(data)
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 data "azurerm_recovery_services_vault" "test" {

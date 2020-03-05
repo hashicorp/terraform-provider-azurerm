@@ -21,7 +21,7 @@ data "azurerm_public_ips" "example" {
 
 ## Argument Reference
 
-* `resource_group_name` - (Required) Specifies the name of the resource group.
+* `resource_group_name` - Specifies the name of the resource group.
 * `attached` - (Optional) Filter to include IP Addresses which are attached to a device, such as a VM/LB (`true`) or unattached (`false`).
 * `name_prefix` - (Optional) A prefix match used for the IP Addresses `name` field, case sensitive.
 * `allocation_type` - (Optional) The Allocation Type for the Public IP Address. Possible values include `Static` or `Dynamic`.
@@ -37,9 +37,7 @@ A `public_ips` block contains:
 * `fqdn` - The FQDN of the Public IP Address
 * `name` - The Name of the Public IP Address
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

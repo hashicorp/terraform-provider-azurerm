@@ -52,7 +52,7 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPSCertificate_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_dps_certificate"),
 			},
 		},
 	})
@@ -142,6 +142,10 @@ func testCheckAzureRMIotHubDPSCertificateExists(resourceName string) resource.Te
 
 func testAccAzureRMIotHubDPSCertificate_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -149,8 +153,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -160,31 +164,35 @@ resource "azurerm_iothub_dps" "test" {
 
 resource "azurerm_iothub_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iot_dps_name        = azurerm_iothub_dps.test.name
 
-  certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
+  certificate_content = filebase64("testdata/batch_certificate.cer")
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMIotHubDPSCertificate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubDPS_basic(data)
+	template := testAccAzureRMIotHubDPSCertificate_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_dps_certificate" "test" {
-  name                = "${azurerm_iothub_dps_certificate.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
+resource "azurerm_iothub_dps_certificate" "import" {
+  name                = azurerm_iothub_dps_certificate.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  iot_dps_name        = azurerm_iothub_dps.test.name
 
-  certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
+  certificate_content = filebase64("testdata/batch_certificate.cer")
 }
 `, template)
 }
 
 func testAccAzureRMIotHubDPSCertificate_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -192,8 +200,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -207,10 +215,10 @@ resource "azurerm_iothub_dps" "test" {
 
 resource "azurerm_iothub_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iot_dps_name        = azurerm_iothub_dps.test.name
 
-  certificate_content = "${filebase64("testdata/application_gateway_test.cer")}"
+  certificate_content = filebase64("testdata/application_gateway_test.cer")
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
