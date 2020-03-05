@@ -2,7 +2,7 @@ package network
 
 import "testing"
 
-func TestValidateHubVirtualNetworkConnectionName(t *testing.T) {
+func TestValidateVirtualHubConnectionName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -62,7 +62,7 @@ func TestValidateHubVirtualNetworkConnectionName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateHubVirtualNetworkConnectionName(v.input, "name")
+		_, errors := ValidateVirtualHubConnectionName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

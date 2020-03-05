@@ -110,25 +110,6 @@ func TestAccAzureRMVirtualHub_routes(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualHub_virtualNetworkConnections(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHub_virtualNetworkConnections(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMVirtualHub_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
 
@@ -278,54 +259,6 @@ resource "azurerm_virtual_hub" "test" {
   }
 }
 `, template, data.RandomInteger)
-}
-
-func testAccAzureRMVirtualHub_virtualNetworkConnections(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHub_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VirtualNetwork-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.5.0.0/16"]
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "acctest-NetworkSecurityGroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest-Subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.5.1.0/24"
-}
-
-resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = "${azurerm_subnet.test.id}"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-
-resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-VirtualHub-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_prefix      = "10.0.2.0/24"
-  virtual_wan_id      = "${azurerm_virtual_wan.test.id}"
-
-  virtual_network_connection {
-    name                                       = "testConnection"
-    remote_virtual_network_id                  = "${azurerm_virtual_network.test.id}"
-    allow_hub_to_remote_vnet_transit           = true
-    allow_remote_vnet_to_use_hub_vnet_gateways = false
-    enable_internet_security                   = true
-  }
-}
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMVirtualHub_tags(data acceptance.TestData) string {

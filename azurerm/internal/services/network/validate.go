@@ -97,7 +97,7 @@ func ValidateVirtualHubName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-func ValidateHubVirtualNetworkConnectionName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateVirtualHubConnectionName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\da-zA-Z][-_.\da-zA-Z]{0,78}[_\da-zA-Z]$`).MatchString(value) {
