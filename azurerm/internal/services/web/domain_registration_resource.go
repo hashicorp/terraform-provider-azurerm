@@ -2,20 +2,24 @@ package web
 
 import (
 	"fmt"
+	"github.com/Azure/go-autorest/autorest"
+	"log"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"time"
 )
 
 func resourceArmDomainRegistration() *schema.Resource {
@@ -62,10 +66,11 @@ func resourceArmDomainRegistration() *schema.Resource {
 				Required: true,
 				Elem: schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"agreement_keys": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
+						"agreed_at": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsRFC3339Time,
 						},
 						"agreed_by": {
 							Type:         schema.TypeString,
@@ -73,11 +78,13 @@ func resourceArmDomainRegistration() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: validation.IsCIDR,
 						},
-						"agreed_at": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsRFC3339Time,
+						"agreement_keys": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -87,11 +94,13 @@ func resourceArmDomainRegistration() *schema.Resource {
 			"auto_renew": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"dns_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "AzureDNS",
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.AzureDNS),
 					string(web.DefaultDomainRegistrarDNS),
@@ -99,14 +108,15 @@ func resourceArmDomainRegistration() *schema.Resource {
 			},
 
 			"dns_zone_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"privacy": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"tags": tags.Schema(),
@@ -135,6 +145,88 @@ func resourceArmDomainRegistration() *schema.Resource {
 	}
 }
 
+func resourceArmDomainRegistrationCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.DomainsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Failure checking for presence of existing Domain Registration %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_domain_registration", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
+
+	adminContact := expandDomainRegistrationContact(d.Get("admin_contact").([]interface{}))
+	billingContact := expandDomainRegistrationContact(d.Get("billing_contact").([]interface{}))
+	registrantContact := expandDomainRegistrationContact(d.Get("registrant_contact").([]interface{}))
+	techContact := expandDomainRegistrationContact(d.Get("technical_contact").([]interface{}))
+
+	consent, err := expandDomainRegistrationPurchaseConsent(d)
+	if err != nil {
+		return err
+	}
+
+	autoRenew := d.Get("auto_renew").(bool)
+	dnsType := d.Get("dns_type").(web.DNSType)
+
+	domain := web.Domain{
+		Name: &name,
+		Location: &location,
+		//Kind:             nil,  // TODO - Find documentation on this
+		DomainProperties: &web.DomainProperties{
+			ContactAdmin:              adminContact,
+			ContactBilling:            billingContact,
+			ContactRegistrant:         registrantContact,
+			ContactTech:               techContact,
+			Privacy:                   utils.Bool(d.Get("privacy").(bool)),
+			AutoRenew:                 &autoRenew,
+			Consent:                   consent,
+			DomainNotRenewableReasons: nil,
+			DNSType:                   dnsType,
+			//AuthCode:                    nil, // TODO - Find documentation on this
+		},
+		Tags:     expandedTags,
+	}
+
+	if v, ok := d.GetOk("dns_zone_id"); ok {
+		dnsZoneID := v.(string)
+		domain.DNSZoneID = &dnsZoneID
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, domain)
+	if err != nil {
+		return fmt.Errorf("Failure in creating Domain Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Failure waiting for creation of Domain Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Failure reading Domain Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("ID for Domain Registration %q (Resource Group %q) was nil", name, resourceGroup)
+	}
+
+	return resourceArmDomainRegistrationRead(d, meta)
+}
 
 func resourceArmDomainRegistrationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.DomainsClient
@@ -151,24 +243,19 @@ func resourceArmDomainRegistrationRead(d *schema.ResourceData, meta interface{})
 		fmt.Errorf("Error reading Domain Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	//Required
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", azure.NormalizeLocation(domain.Location))
-
 	d.Set("admin_contact", flattenDomainRegistrationContact(domain.ContactAdmin))
 	d.Set("billing_contact", flattenDomainRegistrationContact(domain.ContactBilling))
 	d.Set("registrant_contact", flattenDomainRegistrationContact(domain.ContactRegistrant))
 	d.Set("technical_contact", flattenDomainRegistrationContact(domain.ContactTech))
-
-	// Computed
+	d.Set("consent", flattenDomainRegistrationPurchaseConsent(domain.Consent))
+	d.Set("auto_renew", domain.AutoRenew)
 	d.Set("created_time", domain.CreatedTime)
 	d.Set("expiration_time", domain.ExpirationTime)
 	d.Set("last_renewed", domain.LastRenewedTime)
 	d.Set("kind", domain.Kind)
-
-
-
 
 	return tags.FlattenAndSet(d, domain.Tags)
 }

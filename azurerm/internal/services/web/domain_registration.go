@@ -1,10 +1,13 @@
 package web
 
 import (
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"time"
 )
 
 func domainRegistrationContactSchema() *schema.Schema {
@@ -169,6 +172,27 @@ func flattenDomainRegistrationContactMailingAddress(input *web.Address) map[stri
 	return address
 }
 
+func flattenDomainRegistrationPurchaseConsent(input *web.DomainPurchaseConsent) map[string]interface{} {
+	consent := make(map[string]interface{})
+	if input == nil {
+		return consent
+	}
+
+	if input.AgreedBy != nil {
+		consent["agreed_by"] = input.AgreedBy
+	}
+
+	if input.AgreedAt != nil {
+		consent["agreed_at"] = input.AgreedAt
+	}
+
+	if input.AgreementKeys != nil {
+		consent["agreement_keys"] = input.AgreementKeys
+	}
+
+	return consent
+}
+
 func expandDomainRegistrationContact(input []interface{}) *web.Contact {
 	contactRaw := input[0].(map[string]interface{})
 
@@ -215,4 +239,31 @@ func expandDomainRegistrationContactMailingAddress(input []interface{}) *web.Add
 	}
 
 	return contactAddress
+}
+
+func expandDomainRegistrationPurchaseConsent(d *schema.ResourceData) (*web.DomainPurchaseConsent, error) {
+	consents := d.Get("consent").([]interface{})
+	consent := consents[0].(map[string]interface{})
+
+	agreedAtRaw, err := date.ParseTime(time.RFC3339, consent["agreed_at"].(string))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse date for `agreed_at`: %+v", err)
+	}
+
+	agreedAt := date.Time{
+		Time: agreedAtRaw,
+	}
+
+	agreementKeys := make([]string, 0)
+	for _, agreementKey := range consent["agreement_keys"].([]string) {
+		agreementKeys = append(agreementKeys, agreementKey)
+	}
+
+	domainPurchaseConsent := web.DomainPurchaseConsent{
+		AgreedAt:      &agreedAt,
+		AgreedBy:      utils.String(consent["agreed_by"].(string)),
+		AgreementKeys: &agreementKeys,
+	}
+
+	return &domainPurchaseConsent, nil
 }
