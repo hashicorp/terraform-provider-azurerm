@@ -18,9 +18,9 @@ provider "azurerm" {
 }
 
 data "azurerm_database_migration_project" "example" {
-  name                  = "example-dbms-project"
-  resource_group_name   = "example-rg"
-  service_name          = "example-dbms"
+  name                = "example-dbms-project"
+  resource_group_name = "example-rg"
+  service_name        = "example-dbms"
 }
 
 output "name" {

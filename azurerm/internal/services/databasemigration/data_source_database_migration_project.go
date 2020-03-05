@@ -2,6 +2,7 @@ package databasemigration
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,6 +15,10 @@ import (
 func dataSourceArmDatabaseMigrationProject() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmDatabaseMigrationProjectRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

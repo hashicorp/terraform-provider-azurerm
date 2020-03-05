@@ -175,12 +175,12 @@ func testAccAzureRMDatabaseMigrationProject_basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_database_migration_project" "test" {
-	name                = "acctestDbmsProject-%d"
-	service_name        = azurerm_database_migration_service.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	source_platform     = "SQL"
-	target_platform     = "SQLDB"
+  name                = "acctestDbmsProject-%d"
+  service_name        = azurerm_database_migration_service.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  source_platform     = "SQL"
+  target_platform     = "SQLDB"
 }
 `, template, data.RandomInteger)
 }
@@ -192,15 +192,15 @@ func testAccAzureRMDatabaseMigrationProject_complete(data acceptance.TestData) s
 %s
 
 resource "azurerm_database_migration_project" "test" {
-	name                = "acctestDbmsProject-%d"
-	service_name        = azurerm_database_migration_service.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	source_platform     = "SQL"
-	target_platform     = "SQLDB"
-    tags = {
- 		name = "Test"
-    }
+  name                = "acctestDbmsProject-%d"
+  service_name        = azurerm_database_migration_service.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  source_platform     = "SQL"
+  target_platform     = "SQLDB"
+  tags = {
+    name = "Test"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -212,11 +212,11 @@ func testAccAzureRMDatabaseMigrationProject_requiresImport(data acceptance.TestD
 
 resource "azurerm_database_migration_project" "import" {
   name                = azurerm_database_migration_project.test.name
-  service_name		  = azurerm_database_migration_project.test.service_name
+  service_name        = azurerm_database_migration_project.test.service_name
   resource_group_name = azurerm_database_migration_project.test.resource_group_name
   location            = azurerm_database_migration_project.test.location
-  source_platform     =  azurerm_database_migration_project.test.source_platform
-  target_platform     =  azurerm_database_migration_project.test.target_platform
+  source_platform     = azurerm_database_migration_project.test.source_platform
+  target_platform     = azurerm_database_migration_project.test.target_platform
 }
 `, template)
 }

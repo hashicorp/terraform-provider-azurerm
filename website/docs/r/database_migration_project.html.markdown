@@ -35,20 +35,20 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_database_migration_service" "example" {
-	name                = "example-dbms"
-	location            = azurerm_resource_group.example.location
-	resource_group_name = azurerm_resource_group.example.name
-	virtual_subnet_id   = azurerm_subnet.example.id
-	sku_name            = "Standard_1vCores"
+  name                = "example-dbms"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  virtual_subnet_id   = azurerm_subnet.example.id
+  sku_name            = "Standard_1vCores"
 }
 
 resource "azurerm_database_migration_project" "example" {
-	name                = "example-dbms-project"
-	service_name        = azurerm_database_migration_service.example.name
-	resource_group_name = azurerm_resource_group.example.name
-	location            = zurerm_resource_group.example.location
-	source_platform     = "SQL"
-	target_platform     = "SQLDB"
+  name                = "example-dbms-project"
+  service_name        = azurerm_database_migration_service.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = zurerm_resource_group.example.location
+  source_platform     = "SQL"
+  target_platform     = "SQLDB"
 }
 ```
 
