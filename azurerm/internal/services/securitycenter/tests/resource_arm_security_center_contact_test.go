@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMSecurityCenter_contact(t *testing.T) {
-	//there is only *one* read contact, if tests will conflict if run at the same time
+	// there is only *one* read contact, if tests will conflict if run at the same time
 	testCases := map[string]map[string]func(t *testing.T){
 		"contact": {
 			"basic":          testAccAzureRMSecurityCenterContact_basic,

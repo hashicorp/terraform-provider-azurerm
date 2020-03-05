@@ -94,7 +94,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
-			/// AppServicePlanProperties
+			// / AppServicePlanProperties
 			"app_service_environment_id": {
 				Type:     schema.TypeString,
 				Optional: true,

@@ -3,8 +3,6 @@ package validate
 import (
 	"fmt"
 	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 // LowerCasedString validates that the string is lower-cased
@@ -27,9 +25,4 @@ func LowerCasedString(i interface{}, k string) ([]string, []error) {
 	}
 
 	return nil, nil
-}
-
-// deprecated use validation.StringIsNotEmpty instead
-func NoEmptyStrings(i interface{}, k string) ([]string, []error) {
-	return validation.StringIsNotEmpty(i, k)
 }

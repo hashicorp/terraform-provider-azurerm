@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
@@ -64,7 +63,7 @@ func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
 			"start_time": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.RFC3339Time,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
 	}

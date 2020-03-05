@@ -422,7 +422,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
-		//TODO: Start - Remove in next major version
+		// TODO: Start - Remove in next major version
 		cifsEnabled := false
 		nfsv3Enabled := false
 		nfsv4Enabled := false
@@ -432,19 +432,19 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
 			}
-			cifsEnabled = *v //TODO: Remove in next major version
+			cifsEnabled = *v // TODO: Remove in next major version
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
-			nfsv3Enabled = *v //TODO: Remove in next major version
+			nfsv3Enabled = *v // TODO: Remove in next major version
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
-			nfsv4Enabled = *v //TODO: Remove in next major version
+			nfsv4Enabled = *v // TODO: Remove in next major version
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -461,7 +461,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			"unix_read_only":    unixReadOnly,
 			"unix_read_write":   unixReadWrite,
 			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
-			//TODO: Remove in next major version
+			// TODO: Remove in next major version
 			"cifs_enabled":  cifsEnabled,
 			"nfsv3_enabled": nfsv3Enabled,
 			"nfsv4_enabled": nfsv4Enabled,

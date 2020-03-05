@@ -587,7 +587,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	return networkConfiguration, nil
 }
 
-//ExpandBatchPoolEndpointConfiguration expands Batch pool endpoint configuration
+// ExpandBatchPoolEndpointConfiguration expands Batch pool endpoint configuration
 func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
 	if len(list) == 0 {
 		return nil, nil
@@ -626,7 +626,7 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 	}, nil
 }
 
-//ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
+// ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
 func ExpandBatchPoolNetworkSecurityGroupRule(list []interface{}) ([]batch.NetworkSecurityGroupRule, error) {
 	if len(list) == 0 {
 		return nil, nil

@@ -74,7 +74,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 
 			// TODO: support Tags when this bug is fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/5249
-			//"tags": tags.Schema(),
+			// "tags": tags.Schema(),
 		},
 	}
 }
