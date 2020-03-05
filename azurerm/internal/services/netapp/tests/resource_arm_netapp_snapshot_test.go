@@ -185,6 +185,9 @@ resource "azurerm_netapp_snapshot" "import" {
   name                = azurerm_netapp_snapshot.test.name
   location            = azurerm_netapp_snapshot.test.location
   resource_group_name = azurerm_netapp_snapshot.test.resource_group_name
+  account_name        = azurerm_netapp_snapshot.test.account_name
+  pool_name           = azurerm_netapp_snapshot.test.pool_name
+  volume_name         = azurerm_netapp_snapshot.test.volume_name
 }
 `, testAccAzureRMNetAppSnapshot_basic(data))
 }
