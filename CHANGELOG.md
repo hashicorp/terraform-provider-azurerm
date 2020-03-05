@@ -11,6 +11,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+batch: upgrading to API version `2019-08-01` [GH-5967]
 * `azurerm_application_gateway` - support up to `125` for the `capacity` property with V2 SKU's [GH-5906]
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
 * `azurerm_batch_pool` - support for the `public_ips` property [GH-5967]
@@ -40,7 +41,6 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
 * `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource [GH-5935]
 * `azurerm_app_service_plan` - Updates no longer fail if App Service Environment ID is not specified [GH-5915]
-
 
 ## 2.0.0 (February 24, 2020)
 
