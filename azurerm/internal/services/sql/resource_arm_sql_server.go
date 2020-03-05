@@ -38,7 +38,7 @@ func resourceArmSqlServer() *schema.Resource {
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
-		Schema: helper.BlobExtendedAuditingSchemaFrom(map[string]*schema.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -102,8 +102,10 @@ func resourceArmSqlServer() *schema.Resource {
 				},
 			},
 
+			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
+
 			"tags": tags.Schema(),
-		}),
+		},
 	}
 }
 
@@ -175,7 +177,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("blob_extended_auditing_policy").([]interface{})),
+		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
 	}
 	if _, err = auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps); err != nil {
 		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
@@ -231,8 +233,8 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	flattenBlobAuditing := helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)
-	if err := d.Set("blob_extended_auditing_policy", flattenBlobAuditing); err != nil {
-		return fmt.Errorf("Error setting `blob_extended_auditing_policy`: %+v", err)
+	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
+		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

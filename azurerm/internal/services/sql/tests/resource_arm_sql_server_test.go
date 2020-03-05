@@ -183,20 +183,20 @@ func TestAccAzureRMSqlServer_updateWithBlobAuditingPolices(t *testing.T) {
 				Config: testAccAzureRMSqlServer_withBlobAuditingPolices(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.storage_secondary_key_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.retention_in_days", "6"),
+					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.storage_account_access_key_is_secondary", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.retention_in_days", "6"),
 				),
 			},
-			data.ImportStep("administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"),
+			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
 			{
 				Config: testAccAzureRMSqlServer_withBlobAuditingPolicesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.storage_secondary_key_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.retention_in_days", "11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.storage_account_access_key_is_secondary", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.retention_in_days", "11"),
 				),
 			},
-			data.ImportStep("administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"),
+			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
 		},
 	})
 }
@@ -432,11 +432,11 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  blob_extended_auditing_policy {
-    storage_account_access_key    = azurerm_storage_account.test.primary_access_key
-    storage_endpoint              = azurerm_storage_account.test.primary_blob_endpoint
-    storage_secondary_key_enabled = true
-    retention_in_days             = 6
+  extended_auditing_policy {
+    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
+    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
   }
 }
 `, data.RandomIntOfLength(15), data.Locations.Primary)
@@ -477,11 +477,11 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  blob_extended_auditing_policy {
-    storage_account_access_key    = azurerm_storage_account.test2.primary_access_key
-    storage_endpoint              = azurerm_storage_account.test2.primary_blob_endpoint
-    storage_secondary_key_enabled = false
-    retention_in_days             = 11
+  extended_auditing_policy {
+    storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
+    storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
+    storage_account_access_key_is_secondary = false
+    retention_in_days                       = 11
   }
 }
 `, data.RandomIntOfLength(15), data.Locations.Primary)

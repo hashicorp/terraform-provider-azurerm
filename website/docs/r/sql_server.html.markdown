@@ -38,11 +38,11 @@ resource "azurerm_sql_server" "example" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  blob_extended_auditing_policy {
-    storage_endpoint              = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key    = azurerm_storage_account.example.primary_access_key
-    storage_secondary_key_enabled = true
-    retention_in_days             = 6
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
   }
 
   tags = {
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `blob_extended_auditing_policy` - (Optional) A `blob_extended_auditing_policy` block as defined below.
+* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -99,13 +99,13 @@ The following attributes are exported:
 
 ---
 
-A `blob_extended_auditing_policy` block supports the following:
+A `extended_auditing_policy` block supports the following:
 
 * `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
 
 * `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 
-* `storage_secondary_key_enabled` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
+* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
