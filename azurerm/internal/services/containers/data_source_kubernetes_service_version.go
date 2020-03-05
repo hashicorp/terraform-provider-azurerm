@@ -40,6 +40,12 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"include_preview": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -66,6 +72,7 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 
 	var versions []string
 	versionPrefix := d.Get("version_prefix").(string)
+	includePreview := d.Get("include_preview").(bool)
 
 	if props := listResp.OrchestratorVersionProfileProperties; props != nil {
 		if orchestrators := props.Orchestrators; orchestrators != nil {
@@ -74,8 +81,16 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 					continue
 				}
 
+				isPreview := false
 				orchestratorType := *rawV.OrchestratorType
 				kubeVersion := *rawV.OrchestratorVersion
+
+				if rawV.IsPreview == nil {
+					log.Printf("[DEBUG] IsPreview is nil")
+				} else {
+					isPreview = *rawV.IsPreview
+					log.Printf("[DEBUG] IsPreview is %t", isPreview)
+				}
 
 				if !strings.EqualFold(orchestratorType, "Kubernetes") {
 					log.Printf("[DEBUG] Orchestrator %q was not Kubernetes", orchestratorType)
@@ -84,6 +99,11 @@ func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta int
 
 				if versionPrefix != "" && !strings.HasPrefix(kubeVersion, versionPrefix) {
 					log.Printf("[DEBUG] Version %q doesn't match the prefix %q", kubeVersion, versionPrefix)
+					continue
+				}
+
+				if isPreview && !includePreview {
+					log.Printf("[DEBUG] Orchestrator %q is a preview release, ignoring", kubeVersion)
 					continue
 				}
 

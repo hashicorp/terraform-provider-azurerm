@@ -23,9 +23,9 @@ data "azurerm_iothub_dps" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Iot Device Provisioning Service resource.
+* `name` - Specifies the name of the Iot Device Provisioning Service resource.
 
-* `resource_group_name` - (Required) The name of the resource group under which the Iot Device Provisioning Service is located in.
+* `resource_group_name` - The name of the resource group under which the Iot Device Provisioning Service is located in.
 
 ## Attributes Reference
 
@@ -42,3 +42,9 @@ The following attributes are exported:
 * `id_scope` - The unique identifier of the IoT Device Provisioning Service.
 
 * `service_operations_host_name` - The service endpoint of the IoT Device Provisioning Service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the IoT Hub Device Provisioning Service.

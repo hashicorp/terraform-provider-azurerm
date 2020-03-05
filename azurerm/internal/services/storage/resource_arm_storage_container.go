@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -74,17 +73,6 @@ func resourceArmStorageContainer() *schema.Resource {
 			"has_legal_hold": {
 				Type:     schema.TypeBool,
 				Computed: true,
-			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
-
-			"properties": {
-				Type:       schema.TypeMap,
-				Computed:   true,
-				Deprecated: "This field will be removed in version 2.0 of the Azure Provider",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 		},
 	}
@@ -229,16 +217,11 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", account.ResourceGroup)
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
-	}
-
-	if err := d.Set("properties", flattenStorageContainerProperties(props)); err != nil {
-		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
 
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
@@ -275,21 +258,6 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-
-func flattenStorageContainerProperties(input containers.ContainerProperties) map[string]interface{} {
-	output := map[string]interface{}{
-		"last_modified":  input.Header.Get("Last-Modified"),
-		"lease_duration": "",
-		"lease_state":    string(input.LeaseState),
-		"lease_status":   string(input.LeaseStatus),
-	}
-
-	if input.LeaseDuration != nil {
-		output["lease_duration"] = string(*input.LeaseDuration)
-	}
-
-	return output
 }
 
 func expandStorageContainerAccessLevel(input string) containers.AccessLevel {

@@ -37,8 +37,8 @@ func testAccDataSourceAzureRMSqlServer_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_sql_server" "test" {
-  name                = "${azurerm_sql_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_sql_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

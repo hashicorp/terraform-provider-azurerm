@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
-* `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below. 
+* `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below.
 
 * `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
 
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 The `backup` block supports:
 
-* `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`. 
+* `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`.
 
 * `time` - (Required) The time of day to perform the backup in 24hour format.
 
@@ -99,13 +99,13 @@ The `backup` block supports:
 
 The `retention_daily` block supports:
 
-* `count` - (Required) The number of daily backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of daily backups to keep. Must be between `1` and `9999`
 
 ---
 
 The `retention_weekly` block supports:
 
-* `count` - (Required) The number of weekly backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of weekly backups to keep. Must be between `1` and `9999`
 
 * `weekdays` - (Required) The weekday backups to retain. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
@@ -113,7 +113,7 @@ The `retention_weekly` block supports:
 
 The `retention_monthly` block supports:
 
-* `count` - (Required) The number of monthly backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of monthly backups to keep. Must be between `1` and `9999`
 
 * `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
@@ -123,7 +123,7 @@ The `retention_monthly` block supports:
 
 The `retention_yearly` block supports:
 
-* `count` - (Required) The number of yearly backups to keep. Must be between `1` and `9999` 
+* `count` - (Required) The number of yearly backups to keep. Must be between `1` and `9999`
 
 * `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
@@ -139,6 +139,15 @@ The following attributes are exported:
 
 * `id` - The ID of the VM Backup Policy.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the VM Backup Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the VM Backup Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the VM Backup Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the VM Backup Policy.
+
 ## Import
 
 VM Backup Policies can be imported using the `resource id`, e.g.
@@ -146,5 +155,3 @@ VM Backup Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_backup_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
 ```
-
- 

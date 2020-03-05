@@ -151,7 +151,7 @@ DASH
 
 ```
 
-It is recommended to follow the steps outlined 
+It is recommended to follow the steps outlined
 [here](https://docs.microsoft.com/en-us/azure/azure-portal/azure-portal-dashboards-create-programmatically#fetch-the-json-representation-of-the-dashboard) to create a Dashboard in the Portal and extract the relevant JSON to use in this resource. From the extracted JSON, the contents of the `properties: {}` object can used. Variables can be injected as needed - see above example.
 
 ### Using a `template_file` data source or the `templatefile` function
@@ -178,7 +178,7 @@ Since the contents of the dashboard JSON can be quite lengthy, use a template fi
                          "settings": {
                              "content": {
                                  "settings": {
-                                     "content": "${md_content}", // <-- note the 'var.' is dropped 
+                                     "content": "${md_content}", // <-- note the 'var.' is dropped
                                      "subtitle": "",
                                      "title": ""
                                  }
@@ -248,7 +248,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `dashboard_properties` - (Required) JSON data representing dashboard body. See above for details on how to obtain this from the Portal. 
+* `dashboard_properties` - (Required) JSON data representing dashboard body. See above for details on how to obtain this from the Portal.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -256,7 +256,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Dashboard ID.
+* `id` - The ID of the Dashboard.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Dashboard.
+* `update` - (Defaults to 30 minutes) Used when updating the Dashboard.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dashboard.
 
 ## Import
 
@@ -265,4 +274,5 @@ Dashboards can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dashboard.my-board /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Portal/dashboards/00000000-0000-0000-0000-000000000000
 ```
-Note the URI in the above sample can be found using the Resource Explorer tool in the Azure Portal. 
+
+Note the URI in the above sample can be found using the Resource Explorer tool in the Azure Portal.

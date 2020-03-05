@@ -7,7 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -84,63 +85,6 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 	return []interface{}{
 		map[string]interface{}{
 			"ultra_ssd_enabled": ultraSsdEnabled,
-		},
-	}
-}
-
-func VirtualMachineScaleSetBootDiagnosticsSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				// TODO: should this be `storage_account_endpoint`?
-				"storage_account_uri": {
-					Type:     schema.TypeString,
-					Required: true,
-					// TODO: validation
-				},
-			},
-		},
-	}
-}
-
-func ExpandVirtualMachineScaleSetBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
-	if len(input) == 0 {
-		return &compute.DiagnosticsProfile{
-			BootDiagnostics: &compute.BootDiagnostics{
-				Enabled:    utils.Bool(false),
-				StorageURI: utils.String(""),
-			},
-		}
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	storageAccountURI := raw["storage_account_uri"].(string)
-
-	return &compute.DiagnosticsProfile{
-		BootDiagnostics: &compute.BootDiagnostics{
-			Enabled:    utils.Bool(true),
-			StorageURI: utils.String(storageAccountURI),
-		},
-	}
-}
-
-func FlattenVirtualMachineScaleSetBootDiagnostics(input *compute.DiagnosticsProfile) []interface{} {
-	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled {
-		return []interface{}{}
-	}
-
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageURI != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageURI
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"storage_account_uri": storageAccountUri,
 		},
 	}
 }
@@ -246,7 +190,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
@@ -255,7 +199,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 					Optional: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
-						ValidateFunc: validate.NoEmptyStrings,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 				"enable_accelerated_networking": {
@@ -292,7 +236,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
@@ -365,14 +309,14 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
 				"domain_name_label": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"idle_timeout_in_minutes": {
 					Type:         schema.TypeInt,
@@ -391,13 +335,13 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
 								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -819,7 +763,7 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: validate.DiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
@@ -987,14 +931,14 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: validate.DiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 1023),
+					ValidateFunc: validation.IntBetween(0, 2048),
 				},
 
 				"write_accelerator_enabled": {
@@ -1107,90 +1051,6 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 	}
 }
 
-func VirtualMachineScaleSetSourceImageReferenceSchema() *schema.Schema {
-	// whilst originally I was hoping we could use the 'id' from `azurerm_platform_image' unfortunately Azure doesn't
-	// like this as a value for the 'id' field:
-	// Id /...../Versions/16.04.201909091 is not a valid resource reference."
-	// as such the image is split into two fields (source_image_id and source_image_reference) to provide better validation
-	return &schema.Schema{
-		Type:          schema.TypeList,
-		Optional:      true,
-		MaxItems:      1,
-		ConflictsWith: []string{"source_image_id"},
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"publisher": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"offer": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"sku": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"version": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-			},
-		},
-	}
-}
-
-func ExpandVirtualMachineScaleSetSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
-	if imageId != "" {
-		return &compute.ImageReference{
-			ID: utils.String(imageId),
-		}, nil
-	}
-
-	if len(referenceInput) == 0 {
-		return nil, fmt.Errorf("Either a `source_image_id` or a `source_image_reference` block must be specified!")
-	}
-
-	raw := referenceInput[0].(map[string]interface{})
-	return &compute.ImageReference{
-		Publisher: utils.String(raw["publisher"].(string)),
-		Offer:     utils.String(raw["offer"].(string)),
-		Sku:       utils.String(raw["sku"].(string)),
-		Version:   utils.String(raw["version"].(string)),
-	}, nil
-}
-
-func FlattenVirtualMachineScaleSetSourceImageReference(input *compute.ImageReference) []interface{} {
-	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
-	if input == nil || input.ID != nil {
-		return []interface{}{}
-	}
-
-	var publisher, offer, sku, version string
-
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-	if input.Offer != nil {
-		offer = *input.Offer
-	}
-	if input.Sku != nil {
-		sku = *input.Sku
-	}
-	if input.Version != nil {
-		version = *input.Version
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"publisher": publisher,
-			"offer":     offer,
-			"sku":       sku,
-			"version":   version,
-		},
-	}
-}
-
 func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -1277,7 +1137,7 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.ISO8601Duration,
+					ValidateFunc: azValidate.ISO8601Duration,
 				},
 			},
 		},

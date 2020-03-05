@@ -26,6 +26,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: outside of this pr make this private
+
 var IothubResourceName = "azurerm_iothub"
 
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
@@ -94,20 +96,7 @@ func resourceArmIotHub() *schema.Resource {
 								string(devices.S1),
 								string(devices.S2),
 								string(devices.S3),
-							}, true), // todo 2.0 make this case sensitive (all constants?)
-						},
-
-						"tier": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Computed:         true,
-							Deprecated:       "This property is no longer required and will be removed in version 2.0 of the provider",
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Basic),
-								string(devices.Free),
-								string(devices.Standard),
-							}, true),
+							}, false),
 						},
 
 						"capacity": {
@@ -117,34 +106,6 @@ func resourceArmIotHub() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"hostname": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"event_hub_events_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"event_hub_operations_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"event_hub_events_path": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"event_hub_operations_path": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"shared_access_policy": {
@@ -172,6 +133,19 @@ func resourceArmIotHub() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"event_hub_partition_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(2, 128),
+			},
+			"event_hub_retention_in_days": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 7),
 			},
 
 			"file_upload": {
@@ -407,7 +381,7 @@ func resourceArmIotHub() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"ip_mask": {
 							Type:         schema.TypeString,
@@ -424,6 +398,34 @@ func resourceArmIotHub() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"event_hub_events_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"event_hub_events_path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_path": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -470,8 +472,6 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
 	routingProperties := devices.RoutingProperties{}
 
 	if _, ok := d.GetOk("route"); ok {
@@ -495,14 +495,12 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error expanding `file_upload`: %+v", err)
 	}
 
-	ipFilterRules := expandIPFilterRules(d)
-
-	properties := devices.IotHubDescription{
+	props := devices.IotHubDescription{
 		Name:     utils.String(name),
-		Location: utils.String(location),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      expandIoTHubSku(d),
 		Properties: &devices.IotHubProperties{
-			IPFilterRules:                 ipFilterRules,
+			IPFilterRules:                 expandIPFilterRules(d),
 			Routing:                       &routingProperties,
 			StorageEndpoints:              storageEndpoints,
 			MessagingEndpoints:            messagingEndpoints,
@@ -511,7 +509,23 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
+	retention, retentionOk := d.GetOk("event_hub_retention_in_days")
+	partition, partitionOk := d.GetOk("event_hub_partition_count")
+	if partitionOk || retentionOk {
+		eh := devices.EventHubProperties{}
+		if retentionOk {
+			eh.RetentionTimeInDays = utils.Int64(int64(retention.(int)))
+		}
+		if partitionOk {
+			eh.PartitionCount = utils.Int32(int32(partition.(int)))
+		}
+
+		props.Properties.EventHubEndpoints = map[string]*devices.EventHubProperties{
+			"events": &eh,
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
 	if err != nil {
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -574,6 +588,8 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 			if k == "events" {
 				d.Set("event_hub_events_endpoint", v.Endpoint)
 				d.Set("event_hub_events_path", v.Path)
+				d.Set("event_hub_partition_count", v.PartitionCount)
+				d.Set("event_hub_retention_in_days", v.RetentionTimeInDays)
 			} else if k == "operationsMonitoringEvents" {
 				d.Set("event_hub_operations_endpoint", v.Endpoint)
 				d.Set("event_hub_operations_path", v.Path)
@@ -655,12 +671,7 @@ func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourc
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: iothubStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 40 * time.Minute
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -858,7 +869,6 @@ func flattenIoTHubSku(input *devices.IotHubSkuInfo) []interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = string(input.Name)
-	output["tier"] = string(input.Tier)
 	if capacity := input.Capacity; capacity != nil {
 		output["capacity"] = int(*capacity)
 	}

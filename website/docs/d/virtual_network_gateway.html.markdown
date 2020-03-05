@@ -19,14 +19,14 @@ data "azurerm_virtual_network_gateway" "example" {
 }
 
 output "virtual_network_gateway_id" {
-  value = "${data.azurerm_virtual_network_gateway.example.id}"
+  value = data.azurerm_virtual_network_gateway.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Network Gateway.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Network Gateway is located in.
+* `name` - Specifies the name of the Virtual Network Gateway.
+* `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway is located in.
 
 ## Attributes Reference
 
@@ -41,7 +41,7 @@ output "virtual_network_gateway_id" {
 * `enable_bgp` - Will BGP (Border Gateway Protocol) will be enabled
     for this Virtual Network Gateway.
 
-* `active_active` - (Optional) Is this an Active-Active Gateway?
+* `active_active` - Is this an Active-Active Gateway?
 
 * `default_local_network_gateway_id` -  The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
@@ -86,13 +86,13 @@ The `vpn_client_configuration` block supports:
 * `revoked_certificate` - One or more `revoked_certificate` blocks which
     are defined below.
 
-* `radius_server_address` - (Optional) The address of the Radius server.
+* `radius_server_address` - The address of the Radius server.
     This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
 
-* `radius_server_secret` - (Optional) The secret used by the Radius server.
+* `radius_server_secret` - The secret used by the Radius server.
     This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
 
-* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
+* `vpn_client_protocols` - List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
 
 The `bgp_settings` block supports:
@@ -119,3 +119,9 @@ The `root_revoked_certificate` block supports:
 * `name` - The user-defined name of the revoked certificate.
 
 * `public_cert_data` - The SHA1 thumbprint of the certificate to be revoked.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.

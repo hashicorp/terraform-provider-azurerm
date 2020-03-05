@@ -19,14 +19,14 @@ data "azurerm_virtual_network" "example" {
 }
 
 output "virtual_network_id" {
-  value = "${data.azurerm_virtual_network.example.id}"
+  value = data.azurerm_virtual_network.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Network.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Network is located in.
+* `name` - Specifies the name of the Virtual Network.
+* `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.
 
 ## Attributes Reference
 
@@ -36,3 +36,9 @@ output "virtual_network_id" {
 * `dns_servers` - The list of DNS servers used by the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
 * `vnet_peerings` - A mapping of name - virtual network id of the virtual network peerings.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.

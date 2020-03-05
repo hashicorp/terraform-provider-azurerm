@@ -119,6 +119,10 @@ func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
 
 func testAccAzureRMPostgreSQLFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -126,8 +130,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -145,8 +149,8 @@ resource "azurerm_postgresql_server" "test" {
 
 resource "azurerm_postgresql_firewall_rule" "test" {
   name                = "acctest-PSQL-fwrule-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_postgresql_server.test.name
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "255.255.255.255"
 }
@@ -159,11 +163,11 @@ func testAccAzureRMPostgreSQLFirewallRule_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_postgresql_firewall_rule" "import" {
-  name                = "${azurerm_postgresql_firewall_rule.test.name}"
-  resource_group_name = "${azurerm_postgresql_firewall_rule.test.resource_group_name}"
-  server_name         = "${azurerm_postgresql_firewall_rule.test.server_name}"
-  start_ip_address    = "${azurerm_postgresql_firewall_rule.test.start_ip_address}"
-  end_ip_address      = "${azurerm_postgresql_firewall_rule.test.end_ip_address}"
+  name                = azurerm_postgresql_firewall_rule.test.name
+  resource_group_name = azurerm_postgresql_firewall_rule.test.resource_group_name
+  server_name         = azurerm_postgresql_firewall_rule.test.server_name
+  start_ip_address    = azurerm_postgresql_firewall_rule.test.start_ip_address
+  end_ip_address      = azurerm_postgresql_firewall_rule.test.end_ip_address
 }
 `, template)
 }

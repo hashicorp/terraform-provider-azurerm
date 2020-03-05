@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -24,7 +25,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
@@ -51,7 +51,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
@@ -64,6 +63,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
+
+//go:generate go run ../tools/website-categories/main.go -path=../../../website/allowed-subcategories
 
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
@@ -83,13 +84,13 @@ func SupportedServices() []common.ServiceRegistration {
 		databricks.Registration{},
 		datafactory.Registration{},
 		datalake.Registration{},
+		databasemigration.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
 		dns.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		frontdoor.Registration{},
-		graph.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},
@@ -116,7 +117,6 @@ func SupportedServices() []common.ServiceRegistration {
 		redis.Registration{},
 		relay.Registration{},
 		resource.Registration{},
-		scheduler.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
 		servicebus.Registration{},

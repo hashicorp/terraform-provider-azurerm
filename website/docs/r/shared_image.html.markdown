@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_shared_image_gallery" "example" {
   name                = "example_image_gallery"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   description         = "Shared images and things."
 
   tags = {
@@ -33,9 +33,9 @@ resource "azurerm_shared_image_gallery" "example" {
 
 resource "azurerm_shared_image" "example" {
   name                = "my-image"
-  gallery_name        = "${azurerm_shared_image_gallery.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  gallery_name        = azurerm_shared_image_gallery.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   os_type             = "Linux"
 
   identifier {
@@ -89,6 +89,15 @@ A `identifier` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Shared Image.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Shared Image.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image.
 
 ## Import
 

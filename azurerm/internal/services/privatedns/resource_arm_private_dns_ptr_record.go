@@ -50,7 +50,7 @@ func resourceArmPrivateDnsPtrRecord() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"records": {
@@ -64,6 +64,11 @@ func resourceArmPrivateDnsPtrRecord() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(1, 2147483647),
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -152,6 +157,7 @@ func resourceArmPrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
+	d.Set("fqdn", resp.Fqdn)
 
 	if props := resp.RecordSetProperties; props != nil {
 		if err := d.Set("records", flattenAzureRmPrivateDnsPtrRecords(resp.PtrRecords)); err != nil {

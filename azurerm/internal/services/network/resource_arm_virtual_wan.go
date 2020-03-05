@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -41,7 +40,7 @@ func resourceArmVirtualWan() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -78,14 +77,13 @@ func resourceArmVirtualWan() *schema.Resource {
 				Default: string(network.OfficeTrafficCategoryNone),
 			},
 
-			"tags": tags.Schema(),
-
-			// Remove in 2.0
-			"security_provider_name": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure and will be removed in version 2.0 of the Azure Provider",
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "Standard",
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -104,6 +102,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
 	allowVnetToVnetTraffic := d.Get("allow_vnet_to_vnet_traffic").(bool)
 	office365LocalBreakoutCategory := d.Get("office365_local_breakout_category").(string)
+	virtualWanType := d.Get("type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -127,6 +126,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 			AllowBranchToBranchTraffic:     utils.Bool(allowBranchToBranchTraffic),
 			AllowVnetToVnetTraffic:         utils.Bool(allowVnetToVnetTraffic),
 			Office365LocalBreakoutCategory: network.OfficeTrafficCategory(office365LocalBreakoutCategory),
+			Type:                           utils.String(virtualWanType),
 		},
 	}
 
@@ -185,6 +185,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
 		d.Set("allow_vnet_to_vnet_traffic", props.AllowVnetToVnetTraffic)
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
+		d.Set("type", props.Type)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

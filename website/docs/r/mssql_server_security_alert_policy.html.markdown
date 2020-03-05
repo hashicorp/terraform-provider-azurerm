@@ -65,7 +65,7 @@ The following arguments are supported:
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
 * `email_account_admins` - (Optional) Boolean flag which specifies if the alert is sent to the account administrators or not. Defaults to `false`.
-    
+
 * `email_addresses` - (Optional) Specifies an array of e-mail addresses to which the alert is sent.
 
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs. Defaults to `0`.
@@ -81,10 +81,19 @@ The following attributes are exported:
 
 * `id` - The ID of the MS SQL Server Security Alert Policy.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MSSQL Server Security Alert Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the MSSQL Server Security Alert Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL Server Security Alert Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MSSQL Server Security Alert Policy.
+
 ## Import
 
 MS SQL Server Security Alert Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_server_security_alert_policy.example  /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/servers/mssqlserver/securityAlertPolicies/Default 
+terraform import azurerm_mssql_server_security_alert_policy.example  /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/servers/mssqlserver/securityAlertPolicies/Default
 ```

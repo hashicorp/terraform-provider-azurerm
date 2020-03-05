@@ -104,7 +104,7 @@ The following Provider block can be specified - where `1.21.0` is the version of
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.38.0"
+  version = "=1.44.0"
 }
 ```
 
@@ -124,12 +124,12 @@ variable "client_certificate_password" {}
 
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.38.0"
+  version = "=1.44.0"
 
   subscription_id             = "00000000-0000-0000-0000-000000000000"
   client_id                   = "00000000-0000-0000-0000-000000000000"
-  client_certificate_path     = "${var.client_certificate_path}"
-  client_certificate_password = "${var.client_certificate_password}"
+  client_certificate_path     = var.client_certificate_path
+  client_certificate_password = var.client_certificate_password
   tenant_id                   = "00000000-0000-0000-0000-000000000000"
 }
 ```

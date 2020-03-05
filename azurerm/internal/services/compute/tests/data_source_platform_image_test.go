@@ -30,6 +30,10 @@ func TestAccDataSourceAzureRMPlatformImage_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMPlatformImageBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"

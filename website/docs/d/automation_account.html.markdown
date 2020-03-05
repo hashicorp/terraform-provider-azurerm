@@ -17,16 +17,17 @@ data "azurerm_automation_account" "example" {
   name                = "example-account"
   resource_group_name = "example-resources"
 }
+
 output "automation_account_id" {
-  value = "${data.azurerm_automation_account.example.id}"
+  value = data.azurerm_automation_account.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Automation Account.
+* `name` - The name of the Automation Account.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Automation Account exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the Automation Account exists.
 
 ## Attributes Reference
 
@@ -37,3 +38,9 @@ output "automation_account_id" {
 * `secondary_key` - The Secondary Access Key for the Automation Account.
 
 * `endpoint` - The Endpoint for this Auomation Account.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Account.

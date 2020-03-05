@@ -246,6 +246,10 @@ func testCheckAzureRMDataFactoryDestroy(s *terraform.State) error {
 
 func testAccAzureRMDataFactory_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -253,14 +257,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMDataFactory_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -268,8 +276,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "production"
@@ -280,6 +288,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -287,8 +299,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "production"
@@ -300,6 +312,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -307,8 +323,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   identity {
     type = "SystemAssigned"
@@ -319,6 +335,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_github(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -326,8 +346,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   github_configuration {
     git_url         = "https://github.com/terraform-providers/"
@@ -342,6 +362,10 @@ resource "azurerm_data_factory" "test" {
 
 func testAccAzureRMDataFactory_githubUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -349,8 +373,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdf%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   github_configuration {
     git_url         = "https://github.com/terraform-providers/"

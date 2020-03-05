@@ -136,6 +136,10 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecretCertificate(t *testin
 
 func testAccDataSourceKeyVaultAccessPolicy(name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_key_vault_access_policy" "test" {
   name = "%s"
 }

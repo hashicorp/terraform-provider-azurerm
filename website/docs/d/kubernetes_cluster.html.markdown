@@ -26,9 +26,9 @@ data "azurerm_kubernetes_cluster" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the managed Kubernetes Cluster.
+* `name` - The name of the managed Kubernetes Cluster.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the managed Kubernetes Cluster exists.
+* `resource_group_name` - The name of the Resource Group in which the managed Kubernetes Cluster exists.
 
 ## Attributes Reference
 
@@ -213,13 +213,13 @@ A `oms_agent` block exports the following:
 
 A `kube_dashboard` block supports the following:
 
-* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
+* `enabled` - Is the Kubernetes Dashboard enabled?
 
 ---
 
 A `azure_policy` block supports the following:
 
-* `enabled` - (Required) Is Azure Policy for Kubernetes enabled?
+* `enabled` - Is Azure Policy for Kubernetes enabled?
 
 ---
 
@@ -240,3 +240,9 @@ A `service_principal` block supports the following:
 A `ssh_key` block exports the following:
 
 * `key_data` - The Public SSH Key used to access the cluster.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Managed Kubernetes Cluster (AKS).

@@ -29,12 +29,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_traffic_manager_profile" "example" {
-  name                   = "${random_id.server.hex}"
-  resource_group_name    = "${azurerm_resource_group.example.name}"
+  name                   = random_id.server.hex
+  resource_group_name    = azurerm_resource_group.example.name
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "${random_id.server.hex}"
+    relative_name = random_id.server.hex
     ttl           = 100
   }
 
@@ -111,12 +111,18 @@ The `monitor_config` block supports:
 
 The following attributes are exported:
 
-* `id` - The Traffic Manager Profile id.
+* `id` - The ID of the Traffic Manager Profile.
+
 * `fqdn` - The FQDN of the created Profile.
 
-## Notes
+## Timeouts
 
-The Traffic Manager is created with the location `global`.
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Traffic Manager Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Traffic Manager Profile.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Traffic Manager Profile.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Traffic Manager Profile.
 
 ## Import
 

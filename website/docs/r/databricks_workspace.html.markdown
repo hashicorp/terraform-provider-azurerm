@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_databricks_workspace" "example" {
   name                = "databricks-test"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   sku                 = "standard"
 
   tags = {
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard` or `premium`. Changing this forces a new resource to be created.
+* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`. Changing this forces a new resource to be created.
 
 * `managed_resource_group_name` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
@@ -71,6 +71,15 @@ The following attributes are exported:
 * `id` - The ID of the Databricks Workspace.
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Workspace.
 
 ## Import
 
