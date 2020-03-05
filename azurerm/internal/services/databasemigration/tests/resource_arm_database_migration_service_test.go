@@ -118,7 +118,7 @@ func testCheckAzureRMDatabaseMigrationServiceExists(resourceName string) resourc
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Data Migration Service not found: %s", resourceName)
+			return fmt.Errorf("Database Migration Service not found: %s", resourceName)
 		}
 
 		id, err := parse.DatabaseMigrationServiceID(rs.Primary.ID)
@@ -131,7 +131,7 @@ func testCheckAzureRMDatabaseMigrationServiceExists(resourceName string) resourc
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Data Migration Service (Service Name %q / Group Name %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Bad: Database Migration Service (Service Name %q / Group Name %q) does not exist", id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on ServicesClient: %+v", err)
 		}

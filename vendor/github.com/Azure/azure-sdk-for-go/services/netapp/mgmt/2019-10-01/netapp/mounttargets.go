@@ -97,7 +97,7 @@ func (client MountTargetsClient) ListPreparer(ctx context.Context, resourceGroup
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
