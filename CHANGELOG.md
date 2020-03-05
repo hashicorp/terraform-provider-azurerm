@@ -2,9 +2,11 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_database_migration_project` [GH-5993]
 * **New Data Source:** `azurerm_database_migration_service` [GH-5258]
 * **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
 * **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
+* **New Resource:** `azurerm_database_migration_project` [GH-5993]
 * **New Resource:** `azurerm_database_migration_service` [GH-5258]
 * **New Resource:** `azurerm_hpc_cache` [GH-5528]
 * **New Resource:** `azurerm_monitor_scheduled_query_rules_alert` [GH-5053]
