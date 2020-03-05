@@ -23,7 +23,7 @@ data "azurerm_key_vault_key" "example" {
 }
 
 output "key_type" {
-  value = data.azurerm_key_vault_secret.example.key_type
+  value = data.azurerm_key_vault_key.example.key_type
 }
 ```
 

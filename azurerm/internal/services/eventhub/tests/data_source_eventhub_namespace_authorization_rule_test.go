@@ -25,6 +25,10 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 
 func testAccDataSourceEventHubNamespaceAuthorizationRule_basic(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -32,16 +36,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctest-EHN-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "acctest-EHN-AR%[1]d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   listen = %[3]t
   send   = %[4]t
@@ -49,9 +53,9 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 data "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "${azurerm_eventhub_namespace_authorization_rule.test.name}"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_eventhub_namespace_authorization_rule.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }

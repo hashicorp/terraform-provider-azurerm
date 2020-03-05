@@ -76,8 +76,8 @@ func testAccDataSourceAzureRMFunctionApp_basic(data acceptance.TestData) string 
 %s
 
 data "azurerm_function_app" "test" {
-  name                = "${azurerm_function_app.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_function_app.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }
@@ -88,8 +88,8 @@ func testAccDataSourceAzureRMFunctionApp_connectionStrings(data acceptance.TestD
 %s
 
 data "azurerm_function_app" "test" {
-  name                = "${azurerm_function_app.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_function_app.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }
@@ -100,8 +100,8 @@ func testAccDataSourceAzureRMFunctionApp_appSettings(data acceptance.TestData) s
 %s
 
 data "azurerm_function_app" "test" {
-  name                = "${azurerm_function_app.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_function_app.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

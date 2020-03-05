@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -397,6 +397,15 @@ func resourceArmBatchPool() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"public_ips": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
+						},
 						"endpoint_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -745,6 +754,8 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Error flattening `fixed_scale `: %+v", err)
 			}
 		}
+
+		d.Set("max_tasks_per_node", props.MaxTasksPerNode)
 
 		if props.DeploymentConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&

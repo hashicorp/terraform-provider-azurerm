@@ -227,6 +227,10 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) re
 
 func testAccAzureRMMariaDBVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -235,33 +239,27 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mariadb_server" "test" {
   name                         = "acctestmariadbsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -272,9 +270,9 @@ resource "azurerm_mariadb_server" "test" {
 
 resource "azurerm_mariadb_virtual_network_rule" "test" {
   name                = "acctestmariadbvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mariadb_server.test.name
+  subnet_id           = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -284,16 +282,20 @@ func testAccAzureRMMariaDBVirtualNetworkRule_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_mariadb_virtual_network_rule" "import" {
-  name                = "${azurerm_mariadb_virtual_network_rule.test.name}"
-  resource_group_name = "${azurerm_mariadb_virtual_network_rule.test.resource_group_name}"
-  server_name         = "${azurerm_mariadb_virtual_network_rule.test.server_name}"
-  subnet_id           = "${azurerm_mariadb_virtual_network_rule.test.subnet_id}"
+  name                = azurerm_mariadb_virtual_network_rule.test.name
+  resource_group_name = azurerm_mariadb_virtual_network_rule.test.resource_group_name
+  server_name         = azurerm_mariadb_virtual_network_rule.test.server_name
+  subnet_id           = azurerm_mariadb_virtual_network_rule.test.subnet_id
 }
 `, testAccAzureRMMariaDBVirtualNetworkRule_basic(data))
 }
 
 func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -302,41 +304,35 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.128/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mariadb_server" "test" {
   name                         = "acctestmariadbsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -347,15 +343,19 @@ resource "azurerm_mariadb_server" "test" {
 
 resource "azurerm_mariadb_virtual_network_rule" "test" {
   name                = "acctestmariadbvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test1.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mariadb_server.test.name
+  subnet_id           = azurerm_subnet.test1.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -364,41 +364,35 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "subnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "subnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.128/25"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mariadb_server" "test" {
   name                         = "acctestmariadbsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -409,15 +403,19 @@ resource "azurerm_mariadb_server" "test" {
 
 resource "azurerm_mariadb_virtual_network_rule" "test" {
   name                = "acctestmariadbvnetrule%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  subnet_id           = "${azurerm_subnet.test2.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mariadb_server.test.name
+  subnet_id           = azurerm_subnet.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -426,56 +424,50 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "vnet1" {
   name                = "acctestvnet1%d"
   address_space       = ["10.7.29.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "vnet2" {
   name                = "acctestvnet2%d"
   address_space       = ["10.1.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "vnet1_subnet1" {
   name                 = "acctestsubnet1%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "vnet1_subnet2" {
   name                 = "acctestsubnet2%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefix       = "10.7.29.128/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "vnet2_subnet1" {
   name                 = "acctestsubnet3%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet2.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.vnet2.name
   address_prefix       = "10.1.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mariadb_server" "test" {
   name                         = "acctestmariadbsvr-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
-
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name                     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -486,23 +478,23 @@ resource "azurerm_mariadb_server" "test" {
 
 resource "azurerm_mariadb_virtual_network_rule" "rule1" {
   name                = "acctestmariadbvnetrule1%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet1_subnet1.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mariadb_server.test.name
+  subnet_id           = azurerm_subnet.vnet1_subnet1.id
 }
 
 resource "azurerm_mariadb_virtual_network_rule" "rule2" {
   name                = "acctestmariadbvnetrule2%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet1_subnet2.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mariadb_server.test.name
+  subnet_id           = azurerm_subnet.vnet1_subnet2.id
 }
 
 resource "azurerm_mariadb_virtual_network_rule" "rule3" {
   name                = "acctestmariadbvnetrule3%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet2_subnet1.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mariadb_server.test.name
+  subnet_id           = azurerm_subnet.vnet2_subnet1.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

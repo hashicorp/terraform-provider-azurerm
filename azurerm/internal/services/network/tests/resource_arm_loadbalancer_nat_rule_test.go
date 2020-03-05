@@ -39,7 +39,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
 				),
 			},
-			data.ImportStep("location"), // todo remove location in 2.0
+			data.ImportStep(),
 		},
 	})
 }
@@ -68,7 +68,7 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
 				),
 			},
-			data.ImportStep("location"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -97,7 +97,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
 				),
 			},
-			data.ImportStep("location"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMLoadBalancerNatRule_complete(data, natRuleName),
 				Check: resource.ComposeTestCheckFunc(
@@ -107,7 +107,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 						"azurerm_lb_nat_rule.test", "id", natRuleId),
 				),
 			},
-			data.ImportStep("location"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMLoadBalancerNatRule_basic(data, natRuleName, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
@@ -116,7 +116,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
 				),
 			},
-			data.ImportStep("location"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -303,6 +303,10 @@ func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *netwo
 
 func testAccAzureRMLoadBalancerNatRule_template(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-lb-%[1]d"
   location = "%[2]s"
@@ -310,21 +314,21 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "test-ip-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "%[3]s"
 }
 
 resource "azurerm_lb" "test" {
   name                = "arm-test-loadbalancer-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "%[3]s"
 
   frontend_ip_configuration {
     name                 = "one-%[1]d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
@@ -335,7 +339,6 @@ func testAccAzureRMLoadBalancerNatRule_basic(data acceptance.TestData, natRuleNa
 %s
 
 resource "azurerm_lb_nat_rule" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -353,7 +356,6 @@ func testAccAzureRMLoadBalancerNatRule_complete(data acceptance.TestData, natRul
 
 resource "azurerm_lb_nat_rule" "test" {
   name                = "%s"
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
 
@@ -376,11 +378,10 @@ func testAccAzureRMLoadBalancerNatRule_requiresImport(data acceptance.TestData, 
 %s
 
 resource "azurerm_lb_nat_rule" "import" {
-  name                           = "${azurerm_lb_nat_rule.test.name}"
-  loadbalancer_id                = "${azurerm_lb_nat_rule.test.loadbalancer_id}"
-  location                       = "${azurerm_lb_nat_rule.test.location}"
-  resource_group_name            = "${azurerm_lb_nat_rule.test.resource_group_name}"
-  frontend_ip_configuration_name = "${azurerm_lb_nat_rule.test.frontend_ip_configuration_name}"
+  name                           = azurerm_lb_nat_rule.test.name
+  loadbalancer_id                = azurerm_lb_nat_rule.test.loadbalancer_id
+  resource_group_name            = azurerm_lb_nat_rule.test.resource_group_name
+  frontend_ip_configuration_name = azurerm_lb_nat_rule.test.frontend_ip_configuration_name
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -393,7 +394,6 @@ func testAccAzureRMLoadBalancerNatRule_multipleRules(data acceptance.TestData, n
 %s
 
 resource "azurerm_lb_nat_rule" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -404,7 +404,6 @@ resource "azurerm_lb_nat_rule" "test" {
 }
 
 resource "azurerm_lb_nat_rule" "test2" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -420,7 +419,6 @@ func testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_nat_rule" "test" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"
@@ -431,7 +429,6 @@ resource "azurerm_lb_nat_rule" "test" {
 }
 
 resource "azurerm_lb_nat_rule" "test2" {
-  location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
   name                           = "%s"

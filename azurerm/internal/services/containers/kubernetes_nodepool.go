@@ -14,7 +14,7 @@ import (
 func SchemaDefaultNodePool() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -142,11 +142,6 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 
 func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedClusterAgentPoolProfile, error) {
 	input := d.Get("default_node_pool").([]interface{})
-	// TODO: in 2.0 make this Required
-	// this exists to allow users to migrate to default_node_pool
-	if len(input) == 0 {
-		return nil, nil
-	}
 
 	raw := input[0].(map[string]interface{})
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)

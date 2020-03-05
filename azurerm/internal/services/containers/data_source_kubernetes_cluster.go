@@ -144,13 +144,6 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							},
 						},
 
-						// TODO: remove this in a future version
-						"dns_prefix": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This field is no longer returned from the Azure API",
-						},
-
 						"vm_size": {
 							Type:     schema.TypeString,
 							Computed: true,

@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `description` - (Optional) Description to go with DSC Configuration.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ## Attributes Reference
 
 The following attributes are exported:

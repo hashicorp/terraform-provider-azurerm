@@ -135,8 +135,6 @@ A `ip_restriction` block exports the following:
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
-* `virtual_network_name` - The name of the Virtual Network which this App Service is attached to.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

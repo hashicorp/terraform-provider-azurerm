@@ -33,9 +33,9 @@ func testAccDataSourceApiManagementApiVersionSet_basic(data acceptance.TestData)
 %s
 
 data "azurerm_api_management_api_version_set" "test" {
-  name                = "${azurerm_api_management_api_version_set.test.name}"
-  resource_group_name = "${azurerm_api_management_api_version_set.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_api_version_set.test.api_management_name}"
+  name                = azurerm_api_management_api_version_set.test.name
+  resource_group_name = azurerm_api_management_api_version_set.test.resource_group_name
+  api_management_name = azurerm_api_management_api_version_set.test.api_management_name
 }
 `, config)
 }

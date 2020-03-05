@@ -129,10 +129,6 @@ A `container` block supports:
 
 * `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
 
-* `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
-
-~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
-
 * `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.

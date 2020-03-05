@@ -169,6 +169,10 @@ func testCheckAzureRMIotHubDPSExists(resourceName string) resource.TestCheckFunc
 
 func testAccAzureRMIotHubDPS_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -176,8 +180,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -193,9 +197,9 @@ func testAccAzureRMIotHubDPS_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_iothub_dps" "import" {
-  name                = "${azurerm_iothub_dps.test.name}"
-  resource_group_name = "${azurerm_iothub_dps.test.resource_group_name}"
-  location            = "${azurerm_iothub_dps.test.location}"
+  name                = azurerm_iothub_dps.test.name
+  resource_group_name = azurerm_iothub_dps.test.resource_group_name
+  location            = azurerm_iothub_dps.test.location
 
   sku {
     name     = "S1"
@@ -207,6 +211,10 @@ resource "azurerm_iothub_dps" "import" {
 
 func testAccAzureRMIotHubDPS_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -214,8 +222,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -231,6 +239,10 @@ resource "azurerm_iothub_dps" "test" {
 
 func testAccAzureRMIotHubDPS_linkedHubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -238,8 +250,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -248,14 +260,14 @@ resource "azurerm_iothub_dps" "test" {
 
   linked_hub {
     connection_string       = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
-    location                = "${azurerm_resource_group.test.location}"
+    location                = azurerm_resource_group.test.location
     allocation_weight       = 15
     apply_allocation_policy = true
   }
 
   linked_hub {
     connection_string = "HostName=test2.azure-devices.net;SharedAccessKeyName=iothubowner2;SharedAccessKey=key2"
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -263,6 +275,10 @@ resource "azurerm_iothub_dps" "test" {
 
 func testAccAzureRMIotHubDPS_linkedHubsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -270,8 +286,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -280,7 +296,7 @@ resource "azurerm_iothub_dps" "test" {
 
   linked_hub {
     connection_string = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=booo"
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     allocation_weight = 150
   }
 }

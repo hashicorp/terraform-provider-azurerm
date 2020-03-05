@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -63,6 +64,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
+//go:generate go run ../tools/website-categories/main.go -path=../../../website/allowed-subcategories
+
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
 		analysisservices.Registration{},
@@ -81,6 +84,7 @@ func SupportedServices() []common.ServiceRegistration {
 		databricks.Registration{},
 		datafactory.Registration{},
 		datalake.Registration{},
+		databasemigration.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
 		dns.Registration{},

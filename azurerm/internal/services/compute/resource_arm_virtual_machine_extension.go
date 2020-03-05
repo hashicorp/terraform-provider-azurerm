@@ -96,24 +96,19 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualMachineId := d.Get("virtual_machine_id").(string)
-	v, err := ParseVirtualMachineID(virtualMachineId)
+	virtualMachineId, err := ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-
-	virtualMachineName := v.Name
-	resourceGroup := v.ResourceGroup
+	virtualMachineName := virtualMachineId.Name
+	resourceGroup := virtualMachineId.ResourceGroup
 
 	virtualMachine, err := vmClient.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {
 		return fmt.Errorf("Error getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	location := ""
-	if virtualMachine.Location != nil {
-		location = *virtualMachine.Location
-	}
+	location := *virtualMachine.Location
 	if location == "" {
 		return fmt.Errorf("Error reading location of Virtual Machine %q", virtualMachineName)
 	}

@@ -330,7 +330,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }

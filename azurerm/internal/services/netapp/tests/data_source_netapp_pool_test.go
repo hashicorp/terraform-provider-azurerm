@@ -35,9 +35,9 @@ func testAccDataSourceNetAppPool_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_netapp_pool" "test" {
-  resource_group_name = "${azurerm_netapp_pool.test.resource_group_name}"
-  account_name        = "${azurerm_netapp_pool.test.account_name}"
-  name                = "${azurerm_netapp_pool.test.name}"
+  resource_group_name = azurerm_netapp_pool.test.resource_group_name
+  account_name        = azurerm_netapp_pool.test.account_name
+  name                = azurerm_netapp_pool.test.name
 }
 `, config)
 }

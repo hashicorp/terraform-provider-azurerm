@@ -66,6 +66,10 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string
 
 func testAccAzureRMSecurityCenterSubscriptionPricing_tier(tier string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier = "%s"
 }

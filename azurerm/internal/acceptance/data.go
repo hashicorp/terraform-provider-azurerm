@@ -24,7 +24,7 @@ type TestData struct {
 	// Locations is a set of Azure Regions which should be used for this Test
 	Locations Regions
 
-	// RandomString is a random integer which is unique to this test case
+	// RandomInteger is a random integer which is unique to this test case
 	RandomInteger int
 
 	// RandomString is a random 5 character string is unique to this test case
@@ -90,6 +90,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	return testData
 }
 
+// RandomIntOfLength is a random 8 to 18 digit integer which is unique to this test case
 func (td *TestData) RandomIntOfLength(len int) int {
 	// len should not be
 	//  - greater then 18, longest a int can represent
@@ -115,4 +116,14 @@ func (td *TestData) RandomIntOfLength(len int) int {
 	i, _ := strconv.Atoi(v + r)
 
 	return i
+}
+
+// RandomStringOfLength is a random 1 to 1024 character string which is unique to this test case
+func (td *TestData) RandomStringOfLength(len int) string {
+	// len should not be less then 1 or greater than 1024
+	if 1 > len || len > 1024 {
+		panic(fmt.Sprintf("Invalid Test: RandomStringOfLength: length argument must be between 1 and 1024 characters"))
+	}
+
+	return acctest.RandString(len)
 }

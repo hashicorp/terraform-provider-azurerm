@@ -132,6 +132,10 @@ func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.Te
 
 func testAccAzureRMLogAnalyticsSolution_containerMonitoring(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -139,17 +143,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
@@ -165,11 +169,11 @@ func testAccAzureRMLogAnalyticsSolution_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_log_analytics_solution" "import" {
-  solution_name         = "${azurerm_log_analytics_solution.test.solution_name}"
-  location              = "${azurerm_log_analytics_solution.test.location}"
-  resource_group_name   = "${azurerm_log_analytics_solution.test.resource_group_name}"
-  workspace_resource_id = "${azurerm_log_analytics_solution.test.workspace_resource_id}"
-  workspace_name        = "${azurerm_log_analytics_solution.test.workspace_name}"
+  solution_name         = azurerm_log_analytics_solution.test.solution_name
+  location              = azurerm_log_analytics_solution.test.location
+  resource_group_name   = azurerm_log_analytics_solution.test.resource_group_name
+  workspace_resource_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  workspace_name        = azurerm_log_analytics_solution.test.workspace_name
 
   plan {
     publisher = "Microsoft"
@@ -181,6 +185,10 @@ resource "azurerm_log_analytics_solution" "import" {
 
 func testAccAzureRMLogAnalyticsSolution_security(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -188,17 +196,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "Security"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
