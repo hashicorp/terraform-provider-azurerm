@@ -149,6 +149,8 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"tags": tags.SchemaDataSource(),
+
 						"os_disk_size_gb": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -749,6 +751,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.EnableNodePublicIP != nil {
 			agentPoolProfile["enable_node_public_ip"] = *profile.EnableNodePublicIP
+		}
+
+		if profile.Tags != nil {
+			agentPoolProfile["tags"] = tags.Flatten(profile.Tags)
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)

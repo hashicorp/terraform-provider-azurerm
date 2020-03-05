@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -96,6 +97,8 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 
+				"tags": tags.Schema(),
+
 				"os_disk_size_gb": {
 					Type:         schema.TypeInt,
 					Optional:     true,
@@ -136,6 +139,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
 			NodeTaints:             defaultCluster.NodeTaints,
+			Tags:                   defaultCluster.Tags,
 		},
 	}
 }
@@ -147,12 +151,14 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
+	t := d.Get("tags").(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
 		NodeTaints:         nodeTaints,
+		Tags:               tags.Expand(t),
 		Type:               containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
 

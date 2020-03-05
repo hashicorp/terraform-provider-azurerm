@@ -35,6 +35,7 @@ func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -43,6 +44,7 @@ func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
 				),
 			},
 			data.ImportStep(),
@@ -51,6 +53,7 @@ func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -555,6 +558,7 @@ func testAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 				Config: testAccAzureRMKubernetesClusterNodePool_windowsConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.os", "Windows"),
 				),
 			},
 			data.ImportStep(),
@@ -793,6 +797,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+
+  tags = {
+    environment = "Staging"
+  }
 }
 `, template)
 }
@@ -994,6 +1002,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_type               = "Windows"
+
+  tags = {
+    os = "Windows"
+  }
 }
 `, template)
 }
