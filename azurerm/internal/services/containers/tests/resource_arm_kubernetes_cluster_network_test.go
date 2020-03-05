@@ -1291,6 +1291,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

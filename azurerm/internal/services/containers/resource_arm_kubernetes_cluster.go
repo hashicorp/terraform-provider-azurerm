@@ -1186,31 +1186,31 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 
 	config := d[0].(map[string]interface{})
 
-	loadBalancerProfile := &containerservice.ManagedClusterLoadBalancerProfile{}
+	profile := &containerservice.ManagedClusterLoadBalancerProfile{}
 
 	if port := config["allocated_outbound_port"].(int); port >= 0 {
-		loadBalancerProfile.AllocatedOutboundPorts = utils.Int32(int32(port))
+		profile.AllocatedOutboundPorts = utils.Int32(int32(port))
 	}
 
 	if idleTimeout := config["idle_timeout_in_minutes"].(int); idleTimeout >= 0 {
-		loadBalancerProfile.IdleTimeoutInMinutes = utils.Int32(int32(idleTimeout))
+		profile.IdleTimeoutInMinutes = utils.Int32(int32(idleTimeout))
 	}
 
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int32(ipCount.(int)); c > 0 {
-			loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+			profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
 		}
 	}
 
 	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
-		loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
+		profile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
 	}
 
 	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil {
-		loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
+		profile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
-	return loadBalancerProfile, nil
+	return profile, nil
 }
 
 func idsToResourceReferences(set interface{}) *[]containerservice.ResourceReference {
