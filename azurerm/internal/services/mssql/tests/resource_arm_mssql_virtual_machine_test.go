@@ -278,9 +278,9 @@ resource "azurerm_network_security_rule" "MSSQLRule" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                      = "acctest-NIC-%[1]d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
+  name                = "acctest-NIC-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
