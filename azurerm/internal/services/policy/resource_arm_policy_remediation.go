@@ -90,16 +90,16 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	defer cancel()
 
 	name := d.Get("name").(string)
-	scope, err := parse.RemediationScopeID(d.Get("scope").(string))
+	scope, err := parse.PolicyScopeID(d.Get("scope").(string))
 	if err != nil {
-		return fmt.Errorf("Error creating Policy Remediation %q: %+v", name, err)
+		return fmt.Errorf("unable to create Policy Remediation %q: %+v", name, err)
 	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := RemediationGetAtScope(ctx, client, name, scope)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
+				return fmt.Errorf("unable to check for present of existing Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -120,28 +120,28 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	switch scope.(type) {
-	case parse.RemediationScopeAtSubscription:
-		_, err = client.CreateOrUpdateAtSubscription(ctx, scope.(parse.RemediationScopeAtSubscription).SubscriptionId, name, parameters)
-	case parse.RemediationScopeAtResourceGroup:
-		_, err = client.CreateOrUpdateAtResourceGroup(ctx, scope.(parse.RemediationScopeAtResourceGroup).SubscriptionId,
-			scope.(parse.RemediationScopeAtResourceGroup).ResourceGroup, name, parameters)
-	case parse.RemediationScopeAtResource:
+	case parse.ScopeAtSubscription:
+		_, err = client.CreateOrUpdateAtSubscription(ctx, scope.(parse.ScopeAtSubscription).SubscriptionId, name, parameters)
+	case parse.ScopeAtResourceGroup:
+		_, err = client.CreateOrUpdateAtResourceGroup(ctx, scope.(parse.ScopeAtResourceGroup).SubscriptionId,
+			scope.(parse.ScopeAtResourceGroup).ResourceGroup, name, parameters)
+	case parse.ScopeAtResource:
 		_, err = client.CreateOrUpdateAtResource(ctx, scope.ScopeId(), name, parameters)
-	case parse.RemediationScopeAtManagementGroup:
-		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.(parse.RemediationScopeAtManagementGroup).ManagementGroupId, name, parameters)
+	case parse.ScopeAtManagementGroup:
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.(parse.ScopeAtManagementGroup).ManagementGroupId, name, parameters)
 	default:
-		err = fmt.Errorf("Invalid scope type")
+		return fmt.Errorf("unable to create Policy Remediation %q: invalid scope type", name)
 	}
 	if err != nil {
-		return fmt.Errorf("Error creating Policy Remediation: %+v", err)
+		return fmt.Errorf("unable to create Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 	}
 
 	resp, err := RemediationGetAtScope(ctx, client, name, scope)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
+		return fmt.Errorf("unable to retrieve Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Policy Remediation %q (Scope %q) ID", name, scope.ScopeId())
+		return fmt.Errorf("cannot read Policy Remediation %q (Scope %q) ID", name, scope.ScopeId())
 	}
 	d.SetId(*resp.ID)
 
@@ -155,17 +155,17 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 
 	id, err := parse.RemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error reading Policy Remediation: %+v", err)
+		return fmt.Errorf("unable to read Policy Remediation: %+v", err)
 	}
 
-	resp, err := RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId)
+	resp, err := RemediationGetAtScope(ctx, client, id.Name, id.PolicyScopeId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Policy Remediation %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
+		return fmt.Errorf("unable to read Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
 	}
 
 	d.Set("name", id.Name)
@@ -173,7 +173,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 
 	if props := resp.RemediationProperties; props != nil {
 		if err := d.Set("location_filters", flattenArmRemediationLocationFilters(props.Filters)); err != nil {
-			return fmt.Errorf("Error setting `location_filters`: %+v", err)
+			return fmt.Errorf("unable to set `location_filters`: %+v", err)
 		}
 
 		d.Set("policy_assignment_id", props.PolicyAssignmentID)
@@ -193,21 +193,21 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	switch scope := id.RemediationScopeId; scope.(type) {
-	case parse.RemediationScopeAtSubscription:
-		_, err = client.DeleteAtSubscription(ctx, scope.(parse.RemediationScopeAtSubscription).SubscriptionId, id.Name)
-	case parse.RemediationScopeAtResourceGroup:
-		_, err = client.DeleteAtResourceGroup(ctx, scope.(parse.RemediationScopeAtResourceGroup).SubscriptionId,
-			scope.(parse.RemediationScopeAtResourceGroup).ResourceGroup, id.Name)
-	case parse.RemediationScopeAtResource:
+	switch scope := id.PolicyScopeId; scope.(type) {
+	case parse.ScopeAtSubscription:
+		_, err = client.DeleteAtSubscription(ctx, scope.(parse.ScopeAtSubscription).SubscriptionId, id.Name)
+	case parse.ScopeAtResourceGroup:
+		_, err = client.DeleteAtResourceGroup(ctx, scope.(parse.ScopeAtResourceGroup).SubscriptionId,
+			scope.(parse.ScopeAtResourceGroup).ResourceGroup, id.Name)
+	case parse.ScopeAtResource:
 		_, err = client.DeleteAtResource(ctx, scope.ScopeId(), id.Name)
-	case parse.RemediationScopeAtManagementGroup:
-		_, err = client.DeleteAtManagementGroup(ctx, scope.(parse.RemediationScopeAtManagementGroup).ManagementGroupId, id.Name)
+	case parse.ScopeAtManagementGroup:
+		_, err = client.DeleteAtManagementGroup(ctx, scope.(parse.ScopeAtManagementGroup).ManagementGroupId, id.Name)
 	default:
-		err = fmt.Errorf("Invalid scope type")
+		return fmt.Errorf("unable to delete Policy Remediation %q: invalid scope type", id.Name)
 	}
 	if err != nil {
-		return fmt.Errorf("Error creating Policy Remediation: %+v", err)
+		return fmt.Errorf("unable to delete Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
 	}
 
 	return nil
@@ -234,20 +234,20 @@ func flattenArmRemediationLocationFilters(input *policyinsights.RemediationFilte
 }
 
 // RemediationGetAtScope is a wrapper of the 4 Get functions on RemediationsClient, combining them into one to simplify code.
-func RemediationGetAtScope(ctx context.Context, client *policyinsights.RemediationsClient, name string, scopeId parse.RemediationScopeId) (policyinsights.Remediation, error) {
+func RemediationGetAtScope(ctx context.Context, client *policyinsights.RemediationsClient, name string, scopeId parse.PolicyScopeId) (policyinsights.Remediation, error) {
 	switch scopeId.(type) {
-	case parse.RemediationScopeAtSubscription:
-		scopeAtSubscription := scopeId.(parse.RemediationScopeAtSubscription)
+	case parse.ScopeAtSubscription:
+		scopeAtSubscription := scopeId.(parse.ScopeAtSubscription)
 		return client.GetAtSubscription(ctx, scopeAtSubscription.SubscriptionId, name)
-	case parse.RemediationScopeAtResourceGroup:
-		scopeAtResourceGroup := scopeId.(parse.RemediationScopeAtResourceGroup)
+	case parse.ScopeAtResourceGroup:
+		scopeAtResourceGroup := scopeId.(parse.ScopeAtResourceGroup)
 		return client.GetAtResourceGroup(ctx, scopeAtResourceGroup.SubscriptionId, scopeAtResourceGroup.ResourceGroup, name)
-	case parse.RemediationScopeAtResource:
+	case parse.ScopeAtResource:
 		return client.GetAtResource(ctx, scopeId.ScopeId(), name)
-	case parse.RemediationScopeAtManagementGroup:
-		scopeAtManagementGroup := scopeId.(parse.RemediationScopeAtManagementGroup)
+	case parse.ScopeAtManagementGroup:
+		scopeAtManagementGroup := scopeId.(parse.ScopeAtManagementGroup)
 		return client.GetAtManagementGroup(ctx, scopeAtManagementGroup.ManagementGroupId, name)
 	default:
-		return policyinsights.Remediation{}, fmt.Errorf("Error reading Policy Remediation: Invalid scope type")
+		return policyinsights.Remediation{}, fmt.Errorf("unable to read Policy Remediation %q: invalid scope type", name)
 	}
 }

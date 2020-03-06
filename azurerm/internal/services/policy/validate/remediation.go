@@ -21,9 +21,14 @@ func RemediationName(i interface{}, k string) (warnings []string, errors []error
 		errors = append(errors, fmt.Errorf("%s cannot be empty and must not exceed '260' characters", k))
 		return
 	}
-	invalidCharacters := `%^#/\&?`
+	const invalidCharacters = `%^#/\&?`
 	if strings.ContainsAny(v, invalidCharacters) {
 		errors = append(errors, fmt.Errorf("%s cannot contain the following characters: %s", k, invalidCharacters))
+	}
+	// Despite the service accepts remediation name with capitalized characters, but in the response,
+	// all upper case characters will be converted to lower cases. Therefore we forbid user to use upper case letters here
+	if !strings.EqualFold(v, strings.ToLower(v)) {
+		errors = append(errors, fmt.Errorf("%s cannot contain upper case letters", k))
 	}
 
 	return warnings, errors
@@ -51,7 +56,7 @@ func RemediationScopeID(i interface{}, k string) (warnings []string, errors []er
 		return
 	}
 
-	if _, err := parse.RemediationScopeID(v); err != nil {
+	if _, err := parse.PolicyScopeID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

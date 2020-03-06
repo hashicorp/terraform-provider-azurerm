@@ -16,6 +16,7 @@ import (
 
 func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -27,6 +28,28 @@ func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
 					testCheckAzureRMPolicyRemediationExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "policy_assignment_id"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyRemediationExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "policy_assignment_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "policy_definition_reference_id"),
 				),
 			},
 			data.ImportStep(),
@@ -163,7 +186,7 @@ func testCheckAzureRMPolicyRemediationExists(resourceName string) resource.TestC
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.RemediationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
+		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.PolicyScopeId); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Policy Insights Remediation %q (Scope %q) does not exist", id.Name, id.ScopeId())
 			}
@@ -188,7 +211,7 @@ func testCheckAzureRMPolicyRemediationDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
+		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.PolicyScopeId); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Policy.RemediationsClient: %+v", err)
 			}
@@ -259,9 +282,108 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestRemediation-%[1]d"
+  name                 = "acctestremediation-%[1]d"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
+}
+`, data.RandomInteger)
+}
+
+func testAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "testPolicySet"
+  policy_type  = "Custom"
+  display_name = "Test Policy Set"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definitions = <<POLICY_DEFINITIONS
+    [
+        {
+            "parameters": {
+                "listOfAllowedLocations": {
+                    "value": "[parameters('allowedLocations')]"
+                }
+            },
+            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+        }
+    ]
+POLICY_DEFINITIONS
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestDef-%[1]d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "my-policy-definition"
+
+  policy_rule = <<POLICY_RULE
+    {
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+    {
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "acctestAssign-%[1]d"
+  scope                = data.azurerm_subscription.current.id
+  policy_definition_id = azurerm_policy_set_definition.test.id
+  description          = "Policy Assignment created via an Acceptance Test"
+  display_name         = "My Example Policy Assignment"
+
+  parameters = <<PARAMETERS
+{
+  "allowedLocations": {
+    "value": [ "West Europe" ]
+  }
+}
+PARAMETERS
+}
+
+resource "azurerm_policy_remediation" "test" {
+  name                 = "acctestremediation-%[1]d"
+  scope                = azurerm_policy_assignment.test.scope
+  policy_assignment_id = azurerm_policy_assignment.test.id
+policy_definition_reference_id = azurerm_policy_definition.test.id
 }
 `, data.RandomInteger)
 }
@@ -328,7 +450,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestRemediation-%[1]d"
+  name                 = "acctestremediation-%[1]d"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
 }
@@ -397,7 +519,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestRemediation-%[1]d"
+  name                 = "acctestremediation-%[1]d"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
   location_filters     = ["westus"]
@@ -483,7 +605,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestRemediation-%[1]d"
+  name                 = "acctestremediation-%[1]d"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
 }
@@ -603,7 +725,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestRemediation-%[1]d"
+  name                 = "acctestremediation-%[1]d"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
 }
