@@ -380,10 +380,10 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestremediation-%[1]d"
-  scope                = azurerm_policy_assignment.test.scope
-  policy_assignment_id = azurerm_policy_assignment.test.id
-policy_definition_reference_id = azurerm_policy_definition.test.id
+  name                           = "acctestremediation-%[1]d"
+  scope                          = azurerm_policy_assignment.test.scope
+  policy_assignment_id           = azurerm_policy_assignment.test.id
+  policy_definition_reference_id = azurerm_policy_definition.test.id
 }
 `, data.RandomInteger)
 }
