@@ -172,25 +172,5 @@ func TestRemediationID(t *testing.T) {
 		if !reflect.DeepEqual(v.Expected.PolicyScopeId, actual.PolicyScopeId) {
 			t.Fatalf("Expected %+v but got %+v", v.Expected.PolicyScopeId, actual.PolicyScopeId)
 		}
-
-		//if actual.Type != v.Expected.Type {
-		//	t.Fatalf("Expected type %q but got type %q", v.Expected.Type, actual.Type)
-		//}
-		//
-		//if actual.ScopeId != v.Expected.ScopeId {
-		//	t.Fatalf("Expected %q but got %q", v.Expected.ScopeId, actual.ScopeId)
-		//}
-		//
-		//if actual.SubscriptionId != v.Expected.SubscriptionId {
-		//	t.Fatalf("Expected %q but got %q", v.Expected.SubscriptionId, actual.SubscriptionId)
-		//}
-		//
-		//if actual.ResourceGroup != v.Expected.ResourceGroup {
-		//	t.Fatalf("Expected %q but got %q", v.Expected.ResourceGroup, actual.ResourceGroup)
-		//}
-		//
-		//if actual.ManagementGroupId != v.Expected.ManagementGroupId {
-		//	t.Fatalf("Expected %q but got %q", v.Expected.ManagementGroupId, actual.ManagementGroupId)
-		//}
 	}
 }
