@@ -78,6 +78,39 @@ func TestAccAzureRMVirtualHubConnection_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualHubConnection_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHubConnection_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualHubConnection_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualHubConnection_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubClient
@@ -95,9 +128,8 @@ func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.Te
 		}
 
 		resourceGroup := id.ResourceGroup
-		hubName := id.Name
 		name := rs.Primary.Attributes["name"]
-		resp, err := client.Get(ctx, resourceGroup, hubName)
+		resp, err := client.Get(ctx, resourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on network.VirtualHubClient: %+v", err)
 		}
@@ -145,10 +177,9 @@ func testCheckAzureRMVirtualHubConnectionDestroy(s *terraform.State) error {
 		}
 
 		resourceGroup := id.ResourceGroup
-		hubName := id.Name
 		name := rs.Primary.Attributes["name"]
 
-		resp, err := client.Get(ctx, resourceGroup, hubName)
+		resp, err := client.Get(ctx, resourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on network.VirtualHubClient: %+v", err)
@@ -183,7 +214,7 @@ func testAccAzureRMVirtualHubConnection_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestvhubconn-%d"
+  name                      = "acctestbasicvhubconn-%d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
@@ -208,15 +239,49 @@ func testAccAzureRMVirtualHubConnection_complete(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_connection" "test" {
-  name                                       = "acctestvhubconn-%d"
-  virtual_hub_id                             = azurerm_virtual_hub.test.id
-  remote_virtual_network_id                  = azurerm_virtual_network.test.id
-  allow_hub_to_remote_vnet_transit           = true
-  allow_remote_vnet_to_use_hub_vnet_gateways = false
-  enable_internet_security                   = true
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestvirtnet2%d"
+  address_space       = ["10.6.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
-`, template, data.RandomInteger)
+
+resource "azurerm_network_security_group" "test2" {
+  name                = "acctestnsg2%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet2%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefix       = "10.6.1.0/24"
+}
+
+resource "azurerm_subnet_network_security_group_association" "test2" {
+  subnet_id                 = azurerm_subnet.test2.id
+  network_security_group_id = azurerm_network_security_group.test2.id
+}
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                                           = "acctestvhubconn-%d"
+  virtual_hub_id                                 = azurerm_virtual_hub.test.id
+  remote_virtual_network_id                      = azurerm_virtual_network.test.id
+  hub_to_vitual_network_traffic_allowed          = true
+  vitual_network_to_hub_gateways_traffic_allowed = false
+  internet_security_enabled                      = false
+}
+
+resource "azurerm_virtual_hub_connection" "test2" {
+  name                                           = "acctestvhubconn2-%d"
+  virtual_hub_id                                 = azurerm_virtual_hub.test.id
+  remote_virtual_network_id                      = azurerm_virtual_network.test2.id
+  hub_to_vitual_network_traffic_allowed          = false
+  vitual_network_to_hub_gateways_traffic_allowed = false
+  internet_security_enabled                      = true
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMVirtualHubConnection_template(data acceptance.TestData) string {
@@ -226,7 +291,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-vhub-%d"
   location = "%s"
 }
 
@@ -262,7 +327,7 @@ resource "azurerm_virtual_wan" "test" {
 }
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctestvhub-%d"
+  name                = "acctest-VHUB-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id

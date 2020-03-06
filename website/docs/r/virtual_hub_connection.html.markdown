@@ -17,17 +17,20 @@ resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
+
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
   address_space       = ["172.0.0.0/16"]
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
+
 resource "azurerm_virtual_wan" "test" {
   name                = "example-vwan"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 }
+
 resource "azurerm_virtual_hub" "example" {
   name                = "example-hub"
   resource_group_name = azurerm_resource_group.example.name
@@ -35,6 +38,7 @@ resource "azurerm_virtual_hub" "example" {
   virtual_wan_id      = azurerm_virtual_wan.example.id
   address_prefix      = "10.0.1.0/24"
 }
+
 resource "azurerm_virtual_hub_connection" "example" {
   name                      = "example-vhub"
   virtual_hub_id            = azurerm_virtual_hub.example.id
@@ -54,17 +58,25 @@ The following arguments are supported:
 
 ---
 
-* `allow_hub_to_remote_vnet_transit` - (Optional) Allow the Virtual Hub to transit traffic via the Remote Virtual Network? Changing this forces a new resource to be created. 
+* `hub_to_vitual_network_traffic_allowed` - (Optional) Is the Virtual Hub traffic allowed to transit via the Remote Virtual Network? Changing this forces a new resource to be created.
 
-* `allow_remote_vnet_to_use_hub_vnet_gateways` - (Optional) Allow the Remote Virtual Network to transit use the Hub's Virtual Network Gateway's? Changing this forces a new resource to be created.
+* `vitual_network_to_hub_gateways_traffic_allowed` - (Optional) Is Remote Virtual Network traffic allowed to transit the Hub's Virtual Network Gateway's? Changing this forces a new resource to be created.
 
-* `enable_internet_security` - (Optional) Should Internet Security be enabled? Changing this forces a new resource to be created.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Hub Connection.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Connection.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub Connection.
 
 ## Import
 
