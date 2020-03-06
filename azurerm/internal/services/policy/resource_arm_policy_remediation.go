@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -84,7 +85,7 @@ func resourceArmPolicyRemediation() *schema.Resource {
 }
 
 func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).PolicyInsights.RemediationsClient
+	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -118,8 +119,17 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	if _, err := RemediationCreateUpdateAtScope(ctx, client, name, *scope, parameters); err != nil {
-		return fmt.Errorf("Error creating Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId, err)
+	switch scope.Type {
+	case parse.AtSubscription:
+		_, err = client.CreateOrUpdateAtSubscription(ctx, scope.SubscriptionId, name, parameters)
+	case parse.AtResourceGroup:
+		_, err = client.CreateOrUpdateAtResourceGroup(ctx, scope.SubscriptionId, scope.ResourceGroup, name, parameters)
+	case parse.AtResource:
+		_, err = client.CreateOrUpdateAtResource(ctx, scope.ScopeId, name, parameters)
+	case parse.AtManagementGroup:
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.ManagementGroupId, name, parameters)
+	default:
+		return fmt.Errorf("Error creating Policy Remediation: Invalid scope type %q", scope.Type)
 	}
 
 	resp, err := RemediationGetAtScope(ctx, client, name, *scope)
@@ -135,7 +145,7 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).PolicyInsights.RemediationsClient
+	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -170,7 +180,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).PolicyInsights.RemediationsClient
+	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,8 +189,17 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	if _, err := RemediationDeleteAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
-		return fmt.Errorf("Error deleting Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId, err)
+	switch id.Type {
+	case parse.AtSubscription:
+		_, err = client.DeleteAtSubscription(ctx, id.SubscriptionId, id.Name)
+	case parse.AtResourceGroup:
+		_, err = client.DeleteAtResourceGroup(ctx, id.SubscriptionId, id.ResourceGroup, id.Name)
+	case parse.AtResource:
+		_, err = client.DeleteAtResource(ctx, id.ScopeId, id.Name)
+	case parse.AtManagementGroup:
+		_, err = client.DeleteAtManagementGroup(ctx, id.ManagementGroupId, id.Name)
+	default:
+		return fmt.Errorf("Error deleting Policy Remediation: Invalid scope type %q", id.Type)
 	}
 
 	return nil
@@ -204,4 +223,20 @@ func flattenArmRemediationLocationFilters(input *policyinsights.RemediationFilte
 	}
 
 	return utils.FlattenStringSlice(input.Locations)
+}
+
+// RemediationGetAtScope is a wrapper of the 4 Get functions on RemediationsClient, combining them into one to simplify code.
+func RemediationGetAtScope(ctx context.Context, client *policyinsights.RemediationsClient, name string, scope parse.RemediationScopeId) (policyinsights.Remediation, error) {
+	switch scope.Type {
+	case parse.AtSubscription:
+		return client.GetAtSubscription(ctx, scope.SubscriptionId, name)
+	case parse.AtResourceGroup:
+		return client.GetAtResourceGroup(ctx, scope.SubscriptionId, scope.ResourceGroup, name)
+	case parse.AtResource:
+		return client.GetAtResource(ctx, scope.ScopeId, name)
+	case parse.AtManagementGroup:
+		return client.GetAtManagementGroup(ctx, scope.ManagementGroupId, name)
+	default:
+		return policyinsights.Remediation{}, fmt.Errorf("Error reading Policy Remediation: Invalid scope type %q", scope.Type)
+	}
 }
