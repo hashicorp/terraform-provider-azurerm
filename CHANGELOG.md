@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_database_migration_project` [GH-5993]
 * **New Resource:** `azurerm_database_migration_service` [GH-5258]
 * **New Resource:** `azurerm_hpc_cache` [GH-5528]
+* **New Resource:** `azurerm_iotcentral_application` [GH-5446]
 * **New Resource:** `azurerm_monitor_scheduled_query_rules_alert` [GH-5053]
 * **New Resource:** `azurerm_monitor_scheduled_query_rules_log` [GH-5053]
 
