@@ -2,18 +2,28 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_database_migration_project` [GH-5993]
+* **New Data Source:** `azurerm_database_migration_service` [GH-5258]
 * **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
 * **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
+* **New Resource:** `azurerm_database_migration_project` [GH-5993]
+* **New Resource:** `azurerm_database_migration_service` [GH-5258]
+* **New Resource:** `azurerm_hpc_cache` [GH-5528]
 * **New Resource:** `azurerm_monitor_scheduled_query_rules_alert` [GH-5053]
 * **New Resource:** `azurerm_monitor_scheduled_query_rules_log` [GH-5053]
 
 IMPROVEMENTS:
 
+batch: upgrading to API version `2019-08-01` [GH-5967]
+netapp: upgrading to API version `2019-10-01` [GH-5485]
 * `azurerm_application_gateway` - support up to `125` for the `capacity` property with V2 SKU's [GH-5906]
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
+* `azurerm_batch_pool` - support for the `public_ips` property [GH-5967]
 * `azurerm_frontdoor` - exposed new attributes in `backend_pool_health_probe` block `enabled` and `probe_method` [GH-5924]
 * `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
 * `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
+* `azurerm_netapp_volume` - support for the `protocol_types` property [GH-5485]
+* `azurerm_netapp_volume` - deprecated the `cifs_enabled`, `nfsv3_enabled`, and `nfsv4_enabled` properties in favour of `protocols_enabled` [GH-5485]
 * `azurerm_private_dns_a_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_dns_aaaa_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_dns_cname_record` - export the `fqdn` property [GH-5949]
@@ -21,8 +31,10 @@ IMPROVEMENTS:
 * `azurerm_private_dns_ptr_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_dns_srv_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_endpoint` - exposed `private_ip_address` as a computed attribute [GH-5838]
-* `azurerm_virtual_wan` - support for the `type` property [GH-5877]
+* `azurerm_redis_cache` - support for the `primary_connection_string` and `secondary_connection_string` properties [GH-5958]
 * `azurerm_storage_account` - support up to 50 tags [GH-5934]
+* `azurerm_virtual_wan` - support for the `type` property [GH-5877]
+
 
 BUG FIXES:
 
@@ -33,9 +45,9 @@ BUG FIXES:
 * `azurerm_frontdoor` - fix the way `backend_pool_load_balancing`/`backend_pool_health_probe` [GH-5924]
 * `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
+* `azurerm_netapp_volume` - support volmes uoto `100TB` in size [GH-5485]
 * `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource [GH-5935]
 * `azurerm_app_service_plan` - Updates no longer fail if App Service Environment ID is not specified [GH-5915]
-
 
 ## 2.0.0 (February 24, 2020)
 

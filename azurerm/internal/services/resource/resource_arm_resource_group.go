@@ -98,9 +98,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	name := id.Name
-
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
@@ -128,15 +126,13 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	name := id.Name
-
-	deleteFuture, err := client.Delete(ctx, name)
+	deleteFuture, err := client.Delete(ctx, id.Name)
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Resource Group %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.Name, err)
 	}
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
@@ -145,7 +141,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Resource Group %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.Name, err)
 	}
 
 	return nil

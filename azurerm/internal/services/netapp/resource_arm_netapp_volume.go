@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -36,7 +36,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -75,6 +75,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			"service_level": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(netapp.Premium),
 					string(netapp.Standard),
@@ -89,6 +90,20 @@ func resourceArmNetAppVolume() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"protocols": {
+				Type:     schema.TypeSet,
+				ForceNew: true,
+				Optional: true,
+				Computed: true,
+				MaxItems: 2,
+				Elem: &schema.Schema{Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"NFSv3",
+						"NFSv4.1",
+						"CIFS",
+					}, false)},
+			},
+
 			"storage_quota_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -96,7 +111,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			},
 
 			"export_policy_rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 5,
 				Elem: &schema.Resource{
@@ -106,6 +121,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 5),
 						},
+
 						"allowed_clients": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -114,22 +130,47 @@ func resourceArmNetAppVolume() *schema.Resource {
 								ValidateFunc: validate.CIDR,
 							},
 						},
+
+						"protocols_enabled": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							MinItems: 1,
+							Elem: &schema.Schema{Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"NFSv3",
+									"NFSv4.1",
+									"CIFS",
+								}, false)},
+						},
+
 						"cifs_enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "Deprecated in favor of `protocols_enabled`",
 						},
+
 						"nfsv3_enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "Deprecated in favor of `protocols_enabled`",
 						},
+
 						"nfsv4_enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "Deprecated in favor of `protocols_enabled`",
 						},
+
 						"unix_read_only": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
 						"unix_read_write": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -167,8 +208,13 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := d.Get("service_level").(string)
 	subnetId := d.Get("subnet_id").(string)
+	protocols := d.Get("protocols").(*schema.Set).List()
+	if len(protocols) == 0 {
+		protocols = append(protocols, "NFSv3")
+	}
+
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
+	exportPolicyRule := d.Get("export_policy_rule").([]interface{})
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
@@ -176,6 +222,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 			CreationToken:  utils.String(volumePath),
 			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
 			SubnetID:       utils.String(subnetId),
+			ProtocolTypes:  utils.ExpandStringSlice(protocols),
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   expandArmNetAppVolumeExportPolicyRule(exportPolicyRule),
 		},
@@ -236,7 +283,7 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
-
+		d.Set("protocols", props.ProtocolTypes)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
@@ -310,9 +357,34 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			v := item.(map[string]interface{})
 			ruleIndex := int32(v["rule_index"].(int))
 			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*schema.Set).List()), ",")
-			cifsEnabled := v["cifs_enabled"].(bool)
-			nfsv3Enabled := v["nfsv3_enabled"].(bool)
-			nfsv4Enabled := v["nfsv4_enabled"].(bool)
+
+			cifsEnabled := false
+			nfsv3Enabled := false
+			nfsv41Enabled := false
+
+			if vpe := v["protocols_enabled"]; vpe != nil {
+				protocolsEnabled := vpe.([]interface{})
+				if len(protocolsEnabled) != 0 {
+					for _, protocol := range protocolsEnabled {
+						if protocol != nil {
+							switch strings.ToLower(protocol.(string)) {
+							case "cifs":
+								cifsEnabled = true
+							case "nfsv3":
+								nfsv3Enabled = true
+							case "nfsv4.1":
+								nfsv41Enabled = true
+							}
+						}
+					}
+				} else {
+					// TODO: Remove in next major version
+					cifsEnabled = v["cifs_enabled"].(bool)
+					nfsv3Enabled = v["nfsv3_enabled"].(bool)
+					nfsv41Enabled = v["nfsv4_enabled"].(bool)
+				}
+			}
+
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 
@@ -320,7 +392,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 				AllowedClients: utils.String(allowedClients),
 				Cifs:           utils.Bool(cifsEnabled),
 				Nfsv3:          utils.Bool(nfsv3Enabled),
-				Nfsv4:          utils.Bool(nfsv4Enabled),
+				Nfsv41:         utils.Bool(nfsv41Enabled),
 				RuleIndex:      utils.Int32(ruleIndex),
 				UnixReadOnly:   utils.Bool(unixReadOnly),
 				UnixReadWrite:  utils.Bool(unixReadWrite),
@@ -350,17 +422,29 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
+		//TODO: Start - Remove in next major version
 		cifsEnabled := false
-		if v := item.Cifs; v != nil {
-			cifsEnabled = *v
-		}
 		nfsv3Enabled := false
-		if v := item.Nfsv3; v != nil {
-			nfsv3Enabled = *v
-		}
 		nfsv4Enabled := false
-		if v := item.Nfsv4; v != nil {
-			nfsv4Enabled = *v
+		// End - Remove in next major version
+		protocolsEnabled := []string{}
+		if v := item.Cifs; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "CIFS")
+			}
+			cifsEnabled = *v //TODO: Remove in next major version
+		}
+		if v := item.Nfsv3; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "NFSv3")
+			}
+			nfsv3Enabled = *v //TODO: Remove in next major version
+		}
+		if v := item.Nfsv41; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
+			}
+			nfsv4Enabled = *v //TODO: Remove in next major version
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -372,13 +456,15 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		}
 
 		results = append(results, map[string]interface{}{
-			"rule_index":      ruleIndex,
-			"allowed_clients": utils.FlattenStringSlice(&allowedClients),
-			"cifs_enabled":    cifsEnabled,
-			"nfsv3_enabled":   nfsv3Enabled,
-			"nfsv4_enabled":   nfsv4Enabled,
-			"unix_read_only":  unixReadOnly,
-			"unix_read_write": unixReadWrite,
+			"rule_index":        ruleIndex,
+			"allowed_clients":   utils.FlattenStringSlice(&allowedClients),
+			"unix_read_only":    unixReadOnly,
+			"unix_read_write":   unixReadWrite,
+			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
+			//TODO: Remove in next major version
+			"cifs_enabled":  cifsEnabled,
+			"nfsv3_enabled": nfsv3Enabled,
+			"nfsv4_enabled": nfsv4Enabled,
 		})
 	}
 
