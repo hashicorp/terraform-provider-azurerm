@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	parseMgmtGroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
 )
 
 type ProvisioningType int
@@ -70,8 +71,8 @@ func RemediationScopeID(input string) (*RemediationScopeId, error) {
 	}
 
 	if isManagementGroupId(input) {
-		managementGroupId, _ := ManagementGroupID(input) // if this is a management group ID, there should not be any error.
-		scopeId.ManagementGroupId = managementGroupId.GroupId
+		managementGroupId, _ := parseMgmtGroup.ManagementGroupID(input) // if this is a management group ID, there should not be any error.
+		scopeId.ManagementGroupId = managementGroupId.GroupID
 		scopeId.Type = AtManagementGroup
 	} else {
 		id, err := azure.ParseAzureResourceID(input)
@@ -96,35 +97,6 @@ func RemediationScopeID(input string) (*RemediationScopeId, error) {
 }
 
 func isManagementGroupId(input string) bool {
-	_, err := ManagementGroupID(input)
+	_, err := parseMgmtGroup.ManagementGroupID(input)
 	return err == nil
-}
-
-// TODO -- move this to management group RP directory
-type ManagementGroupId struct {
-	GroupId string
-}
-
-func ManagementGroupID(input string) (*ManagementGroupId, error) {
-	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/management[Gg]roups/`)
-	if !regex.MatchString(input) {
-		return nil, fmt.Errorf("unable to parse Management Group ID %q", input)
-	}
-
-	// Split the input ID by the regex
-	segments := regex.Split(input, -1)
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("unable to parse Management Group ID %q: expected id to have two segments after splitting", input)
-	}
-	groupID := segments[1]
-	// portal says: The name can only be an ASCII letter, digit, -, _, (, ), . and have a maximum length constraint of 90
-	if matched := regexp.MustCompile(`^[a-zA-Z0-9_().-]{1,90}$`).Match([]byte(groupID)); !matched {
-		return nil, fmt.Errorf("unable to parse Management Group ID %q: group id can only consist of ASCII letters, digits, -, _, (, ), . , and cannot exceed the maximum length of 90", input)
-	}
-
-	id := ManagementGroupId{
-		GroupId: groupID,
-	}
-
-	return &id, nil
 }
