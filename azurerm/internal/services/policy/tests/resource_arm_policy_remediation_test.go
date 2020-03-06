@@ -160,12 +160,12 @@ func testCheckAzureRMPolicyRemediationExists(resourceName string) resource.TestC
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).PolicyInsights.RemediationsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.RemediationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Policy Insights Remediation %q (Scope %q) does not exist", id.Name, id.ScopeId)
+				return fmt.Errorf("Bad: Policy Insights Remediation %q (Scope %q) does not exist", id.Name, id.ScopeId())
 			}
 			return fmt.Errorf("Bad: Get on PolicyInsights.RemediationsClient: %+v", err)
 		}
@@ -175,7 +175,7 @@ func testCheckAzureRMPolicyRemediationExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMPolicyRemediationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).PolicyInsights.RemediationsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.RemediationsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -190,7 +190,7 @@ func testCheckAzureRMPolicyRemediationDestroy(s *terraform.State) error {
 
 		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on remediationsClient: %+v", err)
+				return fmt.Errorf("Bad: Get on Policy.RemediationsClient: %+v", err)
 			}
 		}
 

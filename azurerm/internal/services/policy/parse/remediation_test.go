@@ -1,6 +1,9 @@
 package parse
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestRemediationID(t *testing.T) {
 	testData := []struct {
@@ -24,9 +27,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Policyinsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:           AtSubscription,
-					ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
+				RemediationScopeId: RemediationScopeAtSubscription{
+					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
 					SubscriptionId: "00000000-0000-0000-0000-000000000000",
 				},
 			},
@@ -36,9 +38,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/microsoft.policyinsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:           AtSubscription,
-					ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
+				RemediationScopeId: RemediationScopeAtSubscription{
+					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
 					SubscriptionId: "00000000-0000-0000-0000-000000000000",
 				},
 			},
@@ -58,9 +59,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Policyinsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:           AtResourceGroup,
-					ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1",
+				RemediationScopeId: RemediationScopeAtResourceGroup{
+					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1",
 					SubscriptionId: "00000000-0000-0000-0000-000000000000",
 					ResourceGroup:  "group1",
 				},
@@ -71,9 +71,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/microsoft.policyinsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:           AtResourceGroup,
-					ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1",
+				RemediationScopeId: RemediationScopeAtResourceGroup{
+					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1",
 					SubscriptionId: "00000000-0000-0000-0000-000000000000",
 					ResourceGroup:  "group1",
 				},
@@ -94,11 +93,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Policyinsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:           AtResource,
-					ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "group1",
+				RemediationScopeId: RemediationScopeAtResource{
+					scopeId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1",
 				},
 			},
 		},
@@ -107,11 +103,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/microsoft.compute/virtualmachines/vm1/providers/microsoft.policyinsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:           AtResource,
-					ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/microsoft.compute/virtualmachines/vm1",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "group1",
+				RemediationScopeId: RemediationScopeAtResource{
+					scopeId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/microsoft.compute/virtualmachines/vm1",
 				},
 			},
 		},
@@ -125,9 +118,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.PolicyInsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:              AtManagementGroup,
-					ScopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
+				RemediationScopeId: RemediationScopeAtManagementGroup{
+					scopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
 					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
 				},
 			},
@@ -137,9 +129,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/providers/Microsoft.Management/managementGroups/group1/providers/Microsoft.PolicyInsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:              AtManagementGroup,
-					ScopeId:           "/providers/Microsoft.Management/managementGroups/group1",
+				RemediationScopeId: RemediationScopeAtManagementGroup{
+					scopeId:           "/providers/Microsoft.Management/managementGroups/group1",
 					ManagementGroupId: "group1",
 				},
 			},
@@ -149,9 +140,8 @@ func TestRemediationID(t *testing.T) {
 			Input: "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000/providers/microsoft.policyinsights/remediations/test",
 			Expected: &RemediationId{
 				Name: "test",
-				RemediationScopeId: RemediationScopeId{
-					Type:              AtManagementGroup,
-					ScopeId:           "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000",
+				RemediationScopeId: RemediationScopeAtManagementGroup{
+					scopeId:           "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000",
 					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
 				},
 			},
@@ -179,25 +169,29 @@ func TestRemediationID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Type != v.Expected.Type {
-			t.Fatalf("Expected type %q but got type %q", v.Expected.Type, actual.Type)
+		if !reflect.DeepEqual(v.Expected.RemediationScopeId, actual.RemediationScopeId) {
+			t.Fatalf("Expected %+v but got %+v", v.Expected.RemediationScopeId, actual.RemediationScopeId)
 		}
 
-		if actual.ScopeId != v.Expected.ScopeId {
-			t.Fatalf("Expected %q but got %q", v.Expected.ScopeId, actual.ScopeId)
-		}
-
-		if actual.SubscriptionId != v.Expected.SubscriptionId {
-			t.Fatalf("Expected %q but got %q", v.Expected.SubscriptionId, actual.SubscriptionId)
-		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-
-		if actual.ManagementGroupId != v.Expected.ManagementGroupId {
-			t.Fatalf("Expected %q but got %q", v.Expected.ManagementGroupId, actual.ManagementGroupId)
-		}
+		//if actual.Type != v.Expected.Type {
+		//	t.Fatalf("Expected type %q but got type %q", v.Expected.Type, actual.Type)
+		//}
+		//
+		//if actual.ScopeId != v.Expected.ScopeId {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.ScopeId, actual.ScopeId)
+		//}
+		//
+		//if actual.SubscriptionId != v.Expected.SubscriptionId {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.SubscriptionId, actual.SubscriptionId)
+		//}
+		//
+		//if actual.ResourceGroup != v.Expected.ResourceGroup {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.ResourceGroup, actual.ResourceGroup)
+		//}
+		//
+		//if actual.ManagementGroupId != v.Expected.ManagementGroupId {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.ManagementGroupId, actual.ManagementGroupId)
+		//}
 	}
 }
 
@@ -206,7 +200,7 @@ func TestRemediationScopeID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *RemediationScopeId
+		Expected RemediationScopeId
 	}{
 		{
 			Name:  "Empty",
@@ -221,9 +215,8 @@ func TestRemediationScopeID(t *testing.T) {
 		{
 			Name:  "Subscription Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Expected: &RemediationScopeId{
-				Type:           AtSubscription,
-				ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Expected: RemediationScopeAtSubscription{
+				scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
 				SubscriptionId: "00000000-0000-0000-0000-000000000000",
 			},
 		},
@@ -240,9 +233,8 @@ func TestRemediationScopeID(t *testing.T) {
 		{
 			Name:  "Resource Group ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1",
-			Expected: &RemediationScopeId{
-				Type:           AtResourceGroup,
-				ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1",
+			Expected: RemediationScopeAtResourceGroup{
+				scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1",
 				SubscriptionId: "00000000-0000-0000-0000-000000000000",
 				ResourceGroup:  "group1",
 			},
@@ -255,28 +247,23 @@ func TestRemediationScopeID(t *testing.T) {
 		{
 			Name:  "Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1",
-			Expected: &RemediationScopeId{
-				Type:           AtResource,
-				ScopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1",
-				SubscriptionId: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "group1",
+			Expected: RemediationScopeAtResource{
+				scopeId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1",
 			},
 		},
 		{
 			Name:  "Management Group ID",
 			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
-			Expected: &RemediationScopeId{
-				Type:              AtManagementGroup,
-				ScopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
+			Expected: RemediationScopeAtManagementGroup{
+				scopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
 				ManagementGroupId: "00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
 			Name:  "Management Group ID with readable id",
 			Input: "/providers/Microsoft.Management/managementGroups/group1",
-			Expected: &RemediationScopeId{
-				Type:              AtManagementGroup,
-				ScopeId:           "/providers/Microsoft.Management/managementGroups/group1",
+			Expected: RemediationScopeAtManagementGroup{
+				scopeId:           "/providers/Microsoft.Management/managementGroups/group1",
 				ManagementGroupId: "group1",
 			},
 		},
@@ -294,24 +281,28 @@ func TestRemediationScopeID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %+v", err)
 		}
 
-		if actual.Type != v.Expected.Type {
-			t.Fatalf("Expected type %q but got type %q", v.Expected.Type, actual.Type)
+		if !reflect.DeepEqual(v.Expected, actual) {
+			t.Fatalf("Expected %+v but got %+v", v.Expected, actual)
 		}
 
-		if actual.ScopeId != v.Expected.ScopeId {
-			t.Fatalf("Expected %q but got %q", v.Expected.ScopeId, actual.ScopeId)
-		}
-
-		if actual.SubscriptionId != v.Expected.SubscriptionId {
-			t.Fatalf("Expected %q but got %q", v.Expected.SubscriptionId, actual.SubscriptionId)
-		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-
-		if actual.ManagementGroupId != v.Expected.ManagementGroupId {
-			t.Fatalf("Expected %q but got %q", v.Expected.ManagementGroupId, actual.ManagementGroupId)
-		}
+		//if actual.Type != v.Expected.Type {
+		//	t.Fatalf("Expected type %q but got type %q", v.Expected.Type, actual.Type)
+		//}
+		//
+		//if actual.ScopeId != v.Expected.ScopeId {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.ScopeId, actual.ScopeId)
+		//}
+		//
+		//if actual.SubscriptionId != v.Expected.SubscriptionId {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.SubscriptionId, actual.SubscriptionId)
+		//}
+		//
+		//if actual.ResourceGroup != v.Expected.ResourceGroup {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.ResourceGroup, actual.ResourceGroup)
+		//}
+		//
+		//if actual.ManagementGroupId != v.Expected.ManagementGroupId {
+		//	t.Fatalf("Expected %q but got %q", v.Expected.ManagementGroupId, actual.ManagementGroupId)
+		//}
 	}
 }

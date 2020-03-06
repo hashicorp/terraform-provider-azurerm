@@ -96,10 +96,10 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := RemediationGetAtScope(ctx, client, name, *scope)
+		existing, err := RemediationGetAtScope(ctx, client, name, scope)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId, err)
+				return fmt.Errorf("Error checking for present of existing Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -119,25 +119,26 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	switch scope.Type {
-	case parse.AtSubscription:
-		_, err = client.CreateOrUpdateAtSubscription(ctx, scope.SubscriptionId, name, parameters)
-	case parse.AtResourceGroup:
-		_, err = client.CreateOrUpdateAtResourceGroup(ctx, scope.SubscriptionId, scope.ResourceGroup, name, parameters)
-	case parse.AtResource:
-		_, err = client.CreateOrUpdateAtResource(ctx, scope.ScopeId, name, parameters)
-	case parse.AtManagementGroup:
-		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.ManagementGroupId, name, parameters)
+	switch scope.(type) {
+	case parse.RemediationScopeAtSubscription:
+		_, err = client.CreateOrUpdateAtSubscription(ctx, scope.(parse.RemediationScopeAtSubscription).SubscriptionId, name, parameters)
+	case parse.RemediationScopeAtResourceGroup:
+		_, err = client.CreateOrUpdateAtResourceGroup(ctx, scope.(parse.RemediationScopeAtResourceGroup).SubscriptionId,
+			scope.(parse.RemediationScopeAtResourceGroup).ResourceGroup, name, parameters)
+	case parse.RemediationScopeAtResource:
+		_, err = client.CreateOrUpdateAtResource(ctx, scope.ScopeId(), name, parameters)
+	case parse.RemediationScopeAtManagementGroup:
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.(parse.RemediationScopeAtManagementGroup).ManagementGroupId, name, parameters)
 	default:
-		return fmt.Errorf("Error creating Policy Remediation: Invalid scope type %q", scope.Type)
+		return fmt.Errorf("Error creating Policy Remediation: Invalid scope type")
 	}
 
-	resp, err := RemediationGetAtScope(ctx, client, name, *scope)
+	resp, err := RemediationGetAtScope(ctx, client, name, scope)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId, err)
+		return fmt.Errorf("Error retrieving Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Policy Remediation %q (Scope %q) ID", name, scope.ScopeId)
+		return fmt.Errorf("Cannot read Policy Remediation %q (Scope %q) ID", name, scope.ScopeId())
 	}
 	d.SetId(*resp.ID)
 
@@ -161,11 +162,11 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId, err)
+		return fmt.Errorf("Error reading Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("scope", id.ScopeId)
+	d.Set("scope", id.ScopeId())
 
 	if props := resp.RemediationProperties; props != nil {
 		if err := d.Set("location_filters", flattenArmRemediationLocationFilters(props.Filters)); err != nil {
@@ -189,17 +190,18 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	switch id.Type {
-	case parse.AtSubscription:
-		_, err = client.DeleteAtSubscription(ctx, id.SubscriptionId, id.Name)
-	case parse.AtResourceGroup:
-		_, err = client.DeleteAtResourceGroup(ctx, id.SubscriptionId, id.ResourceGroup, id.Name)
-	case parse.AtResource:
-		_, err = client.DeleteAtResource(ctx, id.ScopeId, id.Name)
-	case parse.AtManagementGroup:
-		_, err = client.DeleteAtManagementGroup(ctx, id.ManagementGroupId, id.Name)
+	switch scope := id.RemediationScopeId; scope.(type) {
+	case parse.RemediationScopeAtSubscription:
+		_, err = client.DeleteAtSubscription(ctx, scope.(parse.RemediationScopeAtSubscription).SubscriptionId, id.Name)
+	case parse.RemediationScopeAtResourceGroup:
+		_, err = client.DeleteAtResourceGroup(ctx, scope.(parse.RemediationScopeAtResourceGroup).SubscriptionId,
+			scope.(parse.RemediationScopeAtResourceGroup).ResourceGroup, id.Name)
+	case parse.RemediationScopeAtResource:
+		_, err = client.DeleteAtResource(ctx, scope.ScopeId(), id.Name)
+	case parse.RemediationScopeAtManagementGroup:
+		_, err = client.DeleteAtManagementGroup(ctx, scope.(parse.RemediationScopeAtManagementGroup).ManagementGroupId, id.Name)
 	default:
-		return fmt.Errorf("Error deleting Policy Remediation: Invalid scope type %q", id.Type)
+		return fmt.Errorf("Error deleting Policy Remediation: Invalid scope type")
 	}
 
 	return nil
@@ -226,17 +228,20 @@ func flattenArmRemediationLocationFilters(input *policyinsights.RemediationFilte
 }
 
 // RemediationGetAtScope is a wrapper of the 4 Get functions on RemediationsClient, combining them into one to simplify code.
-func RemediationGetAtScope(ctx context.Context, client *policyinsights.RemediationsClient, name string, scope parse.RemediationScopeId) (policyinsights.Remediation, error) {
-	switch scope.Type {
-	case parse.AtSubscription:
-		return client.GetAtSubscription(ctx, scope.SubscriptionId, name)
-	case parse.AtResourceGroup:
-		return client.GetAtResourceGroup(ctx, scope.SubscriptionId, scope.ResourceGroup, name)
-	case parse.AtResource:
-		return client.GetAtResource(ctx, scope.ScopeId, name)
-	case parse.AtManagementGroup:
-		return client.GetAtManagementGroup(ctx, scope.ManagementGroupId, name)
+func RemediationGetAtScope(ctx context.Context, client *policyinsights.RemediationsClient, name string, scopeId parse.RemediationScopeId) (policyinsights.Remediation, error) {
+	switch scopeId.(type) {
+	case parse.RemediationScopeAtSubscription:
+		scopeAtSubscription := scopeId.(parse.RemediationScopeAtSubscription)
+		return client.GetAtSubscription(ctx, scopeAtSubscription.SubscriptionId, name)
+	case parse.RemediationScopeAtResourceGroup:
+		scopeAtResourceGroup := scopeId.(parse.RemediationScopeAtResourceGroup)
+		return client.GetAtResourceGroup(ctx, scopeAtResourceGroup.SubscriptionId, scopeAtResourceGroup.ResourceGroup, name)
+	case parse.RemediationScopeAtResource:
+		return client.GetAtResource(ctx, scopeId.ScopeId(), name)
+	case parse.RemediationScopeAtManagementGroup:
+		scopeAtManagementGroup := scopeId.(parse.RemediationScopeAtManagementGroup)
+		return client.GetAtManagementGroup(ctx, scopeAtManagementGroup.ManagementGroupId, name)
 	default:
-		return policyinsights.Remediation{}, fmt.Errorf("Error reading Policy Remediation: Invalid scope type %q", scope.Type)
+		return policyinsights.Remediation{}, fmt.Errorf("Error reading Policy Remediation: Invalid scope type")
 	}
 }

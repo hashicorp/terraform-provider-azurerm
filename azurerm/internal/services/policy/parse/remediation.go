@@ -8,22 +8,53 @@ import (
 	parseMgmtGroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
 )
 
-type ProvisioningType int
-
-const (
-	AtSubscription ProvisioningType = iota
-	AtManagementGroup
-	AtResourceGroup
-	AtResource
-)
-
 type RemediationId struct {
 	Name string
 	RemediationScopeId
 }
 
+type RemediationScopeId interface {
+	ScopeId() string
+}
+
+type RemediationScopeAtSubscription struct {
+	SubscriptionId string
+	scopeId        string
+}
+
+func (id RemediationScopeAtSubscription) ScopeId() string {
+	return id.scopeId
+}
+
+type RemediationScopeAtResourceGroup struct {
+	scopeId        string
+	SubscriptionId string
+	ResourceGroup  string
+}
+
+func (id RemediationScopeAtResourceGroup) ScopeId() string {
+	return id.scopeId
+}
+
+type RemediationScopeAtResource struct {
+	scopeId string
+}
+
+func (id RemediationScopeAtResource) ScopeId() string {
+	return id.scopeId
+}
+
+type RemediationScopeAtManagementGroup struct {
+	scopeId           string
+	ManagementGroupId string
+}
+
+func (id RemediationScopeAtManagementGroup) ScopeId() string {
+	return id.scopeId
+}
+
 // TODO: This paring function is currently suppressing every case difference due to github issue: https://github.com/Azure/azure-rest-api-specs/issues/8353
-// Currently the returned Remediation response from the service will have all the IDs converted into lower cases.
+// Currently the returned Remediation response from the service will have all the IDs converted into lower cases
 func RemediationID(input string) (*RemediationId, error) {
 	// in general, the id of a remediation should be:
 	// {scope}/providers/Microsoft.PolicyInsights/remediations/{name}
@@ -39,61 +70,59 @@ func RemediationID(input string) (*RemediationId, error) {
 	}
 
 	scope := segments[0]
-	scopeId, err := RemediationScopeID(scope)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse Policy Remediation ID %q: %+v", input, err)
-	}
-
 	name := segments[1]
 	if name == "" {
 		return nil, fmt.Errorf("unable to parse Policy Remediation ID %q: remediation name is empty", input)
 	}
 
-	id := RemediationId{
-		Name:               name,
-		RemediationScopeId: *scopeId,
+	scopeId, err := RemediationScopeID(scope)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse Policy Remediation ID %q: %+v", input, err)
 	}
 
-	return &id, nil
+	return &RemediationId{
+		Name:               name,
+		RemediationScopeId: scopeId,
+	}, nil
 }
 
-type RemediationScopeId struct {
-	ScopeId           string
-	Type              ProvisioningType
-	SubscriptionId    string
-	ResourceGroup     string
-	ManagementGroupId string
-}
-
-func RemediationScopeID(input string) (*RemediationScopeId, error) {
-	scopeId := RemediationScopeId{
-		ScopeId: input,
+func RemediationScopeID(input string) (RemediationScopeId, error) {
+	if input == "" {
+		return nil, fmt.Errorf("unable to parse Remediation Scope ID: ID is empty")
 	}
 
 	if isManagementGroupId(input) {
-		managementGroupId, _ := parseMgmtGroup.ManagementGroupID(input) // if this is a management group ID, there should not be any error.
-		scopeId.ManagementGroupId = managementGroupId.GroupID
-		scopeId.Type = AtManagementGroup
-	} else {
-		id, err := azure.ParseAzureResourceID(input)
-		if err != nil {
-			return nil, err
-		}
-		scopeId.SubscriptionId = id.SubscriptionID
-		scopeId.ResourceGroup = id.ResourceGroup
-		if id.ResourceGroup == "" {
-			// it is a subscription id
-			scopeId.Type = AtSubscription
-		} else if err := id.ValidateNoEmptySegments(input); err == nil {
-			// it is a resource group id
-			scopeId.Type = AtResourceGroup
-		} else {
-			// it is a resource id
-			scopeId.Type = AtResource
-		}
+		id, _ := parseMgmtGroup.ManagementGroupID(input)
+		return RemediationScopeAtManagementGroup{
+			scopeId:           input,
+			ManagementGroupId: id.GroupID,
+		}, nil
 	}
-
-	return &scopeId, nil
+	// scope is not a management group ID, should be subscription ID, resource group ID or a resource ID
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse Policy Remediation ID %q: %+v", input, err)
+	}
+	noExtraSegments := id.ValidateNoEmptySegments(input) == nil
+	if id.ResourceGroup == "" && noExtraSegments {
+		// should be a subscription id
+		return RemediationScopeAtSubscription{
+			scopeId:        input,
+			SubscriptionId: id.SubscriptionID,
+		}, nil
+	}
+	if id.ResourceGroup != "" && noExtraSegments {
+		// should be a resourceGroup id
+		return RemediationScopeAtResourceGroup{
+			scopeId:        input,
+			SubscriptionId: id.SubscriptionID,
+			ResourceGroup:  id.ResourceGroup,
+		}, nil
+	}
+	// should be a resource ID
+	return RemediationScopeAtResource{
+		scopeId: input,
+	}, nil
 }
 
 func isManagementGroupId(input string) bool {

@@ -30,6 +30,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		AssignmentsClient:    &assignmentsClient,
 		DefinitionsClient:    &definitionsClient,
 		SetDefinitionsClient: &setDefinitionsClient,
-		RemediationsClient: &remediationsClient,
+		RemediationsClient:   &remediationsClient,
 	}
 }
