@@ -40,6 +40,7 @@ import (
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
 	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
 	media "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/client"
+	mixedreality "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality/client"
 	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
@@ -110,6 +111,7 @@ type Client struct {
 	Maps              *maps.Client
 	MariaDB           *mariadb.Client
 	Media             *media.Client
+	MixedReality      *mixedreality.Client
 	Monitor           *monitor.Client
 	MSI               *msi.Client
 	MSSQL             *mssql.Client
@@ -179,6 +181,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Maps = maps.NewClient(o)
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
+	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
 	client.MSI = msi.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
