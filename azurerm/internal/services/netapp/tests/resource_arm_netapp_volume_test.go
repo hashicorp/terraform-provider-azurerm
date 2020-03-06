@@ -374,7 +374,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "foo" = "bar"
+    "FoO" = "BaR"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -449,7 +449,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "foo" = "bar"
+    "FoO" = "BaR"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)

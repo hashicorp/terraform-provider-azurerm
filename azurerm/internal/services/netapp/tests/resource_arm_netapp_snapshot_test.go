@@ -221,7 +221,7 @@ resource "azurerm_netapp_snapshot" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "foo" = "bar"
+    "FoO" = "BaR"
   }
 }
 `, template, data.RandomInteger)
@@ -241,7 +241,7 @@ resource "azurerm_netapp_snapshot" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "foo" = "baz"
+    "FoO" = "BaR"
   }
 }
 `, template, data.RandomInteger)

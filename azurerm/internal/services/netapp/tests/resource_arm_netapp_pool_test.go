@@ -232,7 +232,7 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 15
 
   tags = {
-    "foo" = "bar"
+    "FoO" = "BaR"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

@@ -101,7 +101,7 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 
 	parameters := netapp.Snapshot{
 		Location: utils.String(location),
-		Tags:     tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name)

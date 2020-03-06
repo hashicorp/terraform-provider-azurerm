@@ -241,7 +241,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "foo" = "bar"
+    "FoO" = "BaR"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
