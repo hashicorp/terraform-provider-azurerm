@@ -158,6 +158,10 @@ func testCheckAzureRMIotCentralApplicationDestroy(s *terraform.State) error {
 
 func testAccAzureRMIotCentralApplication_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -175,6 +179,10 @@ resource "azurerm_iotcentral_application" "test" {
 
 func testAccAzureRMIotCentralApplication_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[2]d"
   location = "%[1]s"
@@ -197,6 +205,10 @@ resource "azurerm_iotcentral_application" "test" {
 
 func testAccAzureRMIotCentralApplication_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[2]d"
   location = "%[1]s"
