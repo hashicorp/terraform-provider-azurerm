@@ -45,35 +45,35 @@ func TestValidateDomainRegistrationID(t *testing.T) {
 
 func TestValidateDomainRegistrationName(t *testing.T) {
 	cases := []struct {
-		Name string
+		Name  string
 		Valid bool
 	}{
 		{
-			Name: "",
+			Name:  "",
 			Valid: false,
 		},
 		{
-			Name: "-testDomain",
+			Name:  "-testDomain",
 			Valid: false,
 		},
 		{
-			Name: "testDomain-",
+			Name:  "testDomain-",
 			Valid: false,
 		},
 		{
-			Name: "testDomain.",
+			Name:  "testDomain.",
 			Valid: false,
 		},
 		{
-			Name: "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz12",
+			Name:  "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz12",
 			Valid: false,
 		},
 		{
-			Name: "1testDomain",
+			Name:  "1testDomain",
 			Valid: true,
 		},
 		{
-			Name: "testdomain1",
+			Name:  "testdomain1",
 			Valid: true,
 		},
 	}

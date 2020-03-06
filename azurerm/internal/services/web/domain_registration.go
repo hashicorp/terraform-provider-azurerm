@@ -1,13 +1,15 @@
 package web
 
 import (
-	"fmt"
+	"context"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"time"
 )
 
 func domainRegistrationContactSchema() *schema.Schema {
@@ -19,6 +21,7 @@ func domainRegistrationContactSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"mailing_address": {
 					Type:     schema.TypeList,
+					Required: true,
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -241,29 +244,58 @@ func expandDomainRegistrationContactMailingAddress(input []interface{}) *web.Add
 	return contactAddress
 }
 
-func expandDomainRegistrationPurchaseConsent(d *schema.ResourceData) (*web.DomainPurchaseConsent, error) {
-	consents := d.Get("consent").([]interface{})
-	consent := consents[0].(map[string]interface{})
+//func expandDomainRegistrationPurchaseConsent(d *schema.ResourceData) (*web.DomainPurchaseConsent, error) {
+//	consents := d.Get("consent").([]interface{})
+//	consent := consents[0].(map[string]interface{})
+//
+//	agreedAtRaw, err := date.ParseTime(time.RFC3339, consent["agreed_at"].(string))
+//	if err != nil {
+//		return nil, fmt.Errorf("Failed to parse date for `agreed_at`: %+v", err)
+//	}
+//
+//	agreedAt := date.Time{
+//		Time: agreedAtRaw,
+//	}
+//
+//	agreementKeys := make([]string, 0)
+//	for _, agreementKey := range consent["agreement_keys"].([]string) {
+//		agreementKeys = append(agreementKeys, agreementKey)
+//	}
+//
+//	domainPurchaseConsent := web.DomainPurchaseConsent{
+//		AgreedAt:      &agreedAt,
+//		AgreedBy:      utils.String(consent["agreed_by"].(string)),
+//		AgreementKeys: &agreementKeys,
+//	}
+//
+//	return &domainPurchaseConsent, nil
+//}
 
-	agreedAtRaw, err := date.ParseTime(time.RFC3339, consent["agreed_at"].(string))
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse date for `agreed_at`: %+v", err)
+func getDomainPurchaseConsent(ctx context.Context, meta interface{}, tld string, adminEmail *string) (*web.DomainPurchaseConsent, error) {
+	client := meta.(*clients.Client).Web.TopLevelDomainsClient
+
+	tldAgreementOption := web.TopLevelDomainAgreementOption{
+		IncludePrivacy: utils.Bool(true),
 	}
 
-	agreedAt := date.Time{
-		Time: agreedAtRaw,
+	agreementCollection, err := client.ListAgreements(ctx, tld, tldAgreementOption)
+	if err != nil {
+		return nil, err
 	}
 
 	agreementKeys := make([]string, 0)
-	for _, agreementKey := range consent["agreement_keys"].([]string) {
-		agreementKeys = append(agreementKeys, agreementKey)
+	for agreementCollection.NotDone() {
+		for _, v := range agreementCollection.Values() {
+			agreementKeys = append(agreementKeys, *v.AgreementKey)
+		}
+
+		_ = agreementCollection.NextWithContext(ctx)
 	}
 
-	domainPurchaseConsent := web.DomainPurchaseConsent{
-		AgreedAt:      &agreedAt,
-		AgreedBy:      utils.String(consent["agreed_by"].(string)),
+	consent := web.DomainPurchaseConsent{
 		AgreementKeys: &agreementKeys,
+		AgreedAt:      &date.Time{Time: time.Now()},
+		AgreedBy:      adminEmail,
 	}
-
-	return &domainPurchaseConsent, nil
+	return &consent, nil
 }

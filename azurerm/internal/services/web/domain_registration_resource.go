@@ -2,8 +2,8 @@ package web
 
 import (
 	"fmt"
-	"github.com/Azure/go-autorest/autorest"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
@@ -34,7 +34,7 @@ func resourceArmDomainRegistration() *schema.Resource {
 		}),
 		// todo - find sensible values
 		Timeouts: &schema.ResourceTimeout{
-			Create:  schema.DefaultTimeout(30 * time.Minute),
+			Create:  schema.DefaultTimeout(3 * time.Hour),
 			Read:    schema.DefaultTimeout(30 * time.Minute),
 			Update:  schema.DefaultTimeout(30 * time.Minute),
 			Delete:  schema.DefaultTimeout(30 * time.Minute),
@@ -50,8 +50,6 @@ func resourceArmDomainRegistration() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": azure.SchemaLocation(),
-
 			"admin_contact": domainRegistrationContactSchema(),
 
 			"billing_contact": domainRegistrationContactSchema(),
@@ -59,36 +57,6 @@ func resourceArmDomainRegistration() *schema.Resource {
 			"registrant_contact": domainRegistrationContactSchema(),
 
 			"technical_contact": domainRegistrationContactSchema(),
-
-			"consent": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Required: true,
-				Elem: schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"agreed_at": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsRFC3339Time,
-						},
-						"agreed_by": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsCIDR,
-						},
-						"agreement_keys": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							Elem: schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
-				},
-			},
 
 			// Optional
 			"auto_renew": {
@@ -122,6 +90,35 @@ func resourceArmDomainRegistration() *schema.Resource {
 			"tags": tags.Schema(),
 
 			// Computed
+			"consent": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"agreed_at": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"agreed_by": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"agreement_keys": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"created_time": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -166,7 +163,7 @@ func resourceArmDomainRegistrationCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation("global")
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
@@ -175,16 +172,19 @@ func resourceArmDomainRegistrationCreate(d *schema.ResourceData, meta interface{
 	registrantContact := expandDomainRegistrationContact(d.Get("registrant_contact").([]interface{}))
 	techContact := expandDomainRegistrationContact(d.Get("technical_contact").([]interface{}))
 
-	consent, err := expandDomainRegistrationPurchaseConsent(d)
+	nameParts := strings.Split(name, ".")
+	tld := nameParts[len(nameParts)-1]
+
+	consent, err := getDomainPurchaseConsent(ctx, meta, tld, adminContact.Email)
 	if err != nil {
 		return err
 	}
 
 	autoRenew := d.Get("auto_renew").(bool)
-	dnsType := d.Get("dns_type").(web.DNSType)
+	dnsType := d.Get("dns_type").(string)
 
 	domain := web.Domain{
-		Name: &name,
+		Name:     &name,
 		Location: &location,
 		//Kind:             nil,  // TODO - Find documentation on this
 		DomainProperties: &web.DomainProperties{
@@ -196,10 +196,10 @@ func resourceArmDomainRegistrationCreate(d *schema.ResourceData, meta interface{
 			AutoRenew:                 &autoRenew,
 			Consent:                   consent,
 			DomainNotRenewableReasons: nil,
-			DNSType:                   dnsType,
+			DNSType:                   web.DNSType(dnsType),
 			//AuthCode:                    nil, // TODO - Find documentation on this
 		},
-		Tags:     expandedTags,
+		Tags: expandedTags,
 	}
 
 	if v, ok := d.GetOk("dns_zone_id"); ok {
@@ -228,19 +228,27 @@ func resourceArmDomainRegistrationCreate(d *schema.ResourceData, meta interface{
 	return resourceArmDomainRegistrationRead(d, meta)
 }
 
+func resourceArmDomainRegistrationUpdate(d *schema.ResourceData, meta interface{}) error {
+	// TODO - Stubbed for create/delete testing
+	return resourceArmDomainRegistrationRead(d, meta)
+}
+
 func resourceArmDomainRegistrationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.DomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.DomainRegistrationID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	name := id.Name
 	resourceGroup := id.ResourceGroup
 
 	domain, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		fmt.Errorf("Error reading Domain Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading Domain Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -252,9 +260,9 @@ func resourceArmDomainRegistrationRead(d *schema.ResourceData, meta interface{})
 	d.Set("technical_contact", flattenDomainRegistrationContact(domain.ContactTech))
 	d.Set("consent", flattenDomainRegistrationPurchaseConsent(domain.Consent))
 	d.Set("auto_renew", domain.AutoRenew)
-	d.Set("created_time", domain.CreatedTime)
-	d.Set("expiration_time", domain.ExpirationTime)
-	d.Set("last_renewed", domain.LastRenewedTime)
+	d.Set("created_time", domain.CreatedTime.String())
+	d.Set("expiration_time", domain.ExpirationTime.String())
+	d.Set("last_renewed", domain.LastRenewedTime.String())
 	d.Set("kind", domain.Kind)
 
 	return tags.FlattenAndSet(d, domain.Tags)
@@ -284,7 +292,6 @@ func resourceArmDomainRegistrationDelete(d *schema.ResourceData, meta interface{
 		}
 
 		return fmt.Errorf("Error deleting Domain Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
-
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -18,7 +19,7 @@ func DomainRegistrationID(input string) (*DomainRegistration, error) {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Domain Registration ID %q: %+v", input, err)
 	}
 
-	domainRegistration := DomainRegistration {
+	domainRegistration := DomainRegistration{
 		ResourceGroup: id.ResourceGroup,
 	}
 

@@ -13,6 +13,7 @@ type Client struct {
 	CertificatesClient           *web.CertificatesClient
 	CertificatesOrderClient      *web.AppServiceCertificateOrdersClient
 	DomainsClient                *web.DomainsClient
+	TopLevelDomainsClient        *web.TopLevelDomainsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -37,6 +38,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	domainsClient := web.NewDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&domainsClient.Client, o.ResourceManagerAuthorizer)
 
+	topLevelDomainsClient := web.NewTopLevelDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&topLevelDomainsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AppServiceEnvironmentsClient: &appServiceEnvironmentsClient,
 		AppServicePlansClient:        &appServicePlansClient,
@@ -45,5 +49,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		CertificatesClient:           &certificatesClient,
 		CertificatesOrderClient:      &certificatesOrderClient,
 		DomainsClient:                &domainsClient,
+		TopLevelDomainsClient:        &topLevelDomainsClient,
 	}
 }
