@@ -10,7 +10,7 @@ func TestRemediationID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *RemediationId
+		Expected *PolicyRemediationId
 	}{
 		{
 			Name:  "Empty",
@@ -25,7 +25,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Subscription",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Policyinsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtSubscription{
 					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
@@ -36,7 +36,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Subscription with wrong casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/microsoft.policyinsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtSubscription{
 					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000",
@@ -57,7 +57,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Resource Group",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Policyinsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtResourceGroup{
 					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1",
@@ -69,7 +69,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Resource Group with wrong casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/microsoft.policyinsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtResourceGroup{
 					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1",
@@ -91,7 +91,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Resource",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.Policyinsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtResource{
 					scopeId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1",
@@ -101,7 +101,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Resource with wrong casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/microsoft.compute/virtualmachines/vm1/providers/microsoft.policyinsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtResource{
 					scopeId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/microsoft.compute/virtualmachines/vm1",
@@ -116,7 +116,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Management Group",
 			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.PolicyInsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtManagementGroup{
 					scopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
@@ -127,7 +127,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Management Group with readable id",
 			Input: "/providers/Microsoft.Management/managementGroups/group1/providers/Microsoft.PolicyInsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtManagementGroup{
 					scopeId:           "/providers/Microsoft.Management/managementGroups/group1",
@@ -138,7 +138,7 @@ func TestRemediationID(t *testing.T) {
 		{
 			Name:  "Policy Remediation ID at Management Group with wrong casing",
 			Input: "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000/providers/microsoft.policyinsights/remediations/test",
-			Expected: &RemediationId{
+			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtManagementGroup{
 					scopeId:           "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000",
@@ -156,7 +156,7 @@ func TestRemediationID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := RemediationID(v.Input)
+		actual, err := PolicyRemediationID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

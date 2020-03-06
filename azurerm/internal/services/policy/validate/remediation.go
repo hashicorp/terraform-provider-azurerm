@@ -41,23 +41,8 @@ func RemediationID(i interface{}, k string) (warnings []string, errors []error) 
 		return
 	}
 
-	if _, err := parse.RemediationID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
-	return warnings, errors
-}
-
-func RemediationScopeID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := parse.PolicyScopeID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+	if _, err := parse.PolicyRemediationID(v); err != nil {
+		errors = append(errors, fmt.Errorf("cannot parse %q as a Policy Remediation ID: %+v", k, err))
 		return
 	}
 

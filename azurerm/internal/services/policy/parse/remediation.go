@@ -5,14 +5,14 @@ import (
 	"regexp"
 )
 
-type RemediationId struct {
+type PolicyRemediationId struct {
 	Name string
 	PolicyScopeId
 }
 
 // TODO: This paring function is currently suppressing every case difference due to github issue: https://github.com/Azure/azure-rest-api-specs/issues/8353
 // Currently the returned Remediation response from the service will have all the IDs converted into lower cases
-func RemediationID(input string) (*RemediationId, error) {
+func PolicyRemediationID(input string) (*PolicyRemediationId, error) {
 	// in general, the id of a remediation should be:
 	// {scope}/providers/Microsoft.PolicyInsights/remediations/{name}
 	regex := regexp.MustCompile(`/providers/[Mm]icrosoft\.[Pp]olicy[Ii]nsights/remediations/`)
@@ -37,7 +37,7 @@ func RemediationID(input string) (*RemediationId, error) {
 		return nil, fmt.Errorf("unable to parse Policy Remediation ID %q: %+v", input, err)
 	}
 
-	return &RemediationId{
+	return &PolicyRemediationId{
 		Name:          name,
 		PolicyScopeId: scopeId,
 	}, nil

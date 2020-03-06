@@ -178,7 +178,7 @@ func testCheckAzureRMPolicyRemediationExists(resourceName string) resource.TestC
 			return fmt.Errorf("Policy Insights Remediation not found: %s", resourceName)
 		}
 
-		id, err := parse.RemediationID(rs.Primary.ID)
+		id, err := parse.PolicyRemediationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -206,7 +206,7 @@ func testCheckAzureRMPolicyRemediationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.RemediationID(rs.Primary.ID)
+		id, err := parse.PolicyRemediationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

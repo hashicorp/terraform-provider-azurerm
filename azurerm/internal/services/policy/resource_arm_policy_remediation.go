@@ -27,7 +27,7 @@ func resourceArmPolicyRemediation() *schema.Resource {
 		Delete: resourceArmPolicyRemediationDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.RemediationID(id)
+			_, err := parse.PolicyRemediationID(id)
 			return err
 		}),
 
@@ -52,7 +52,7 @@ func resourceArmPolicyRemediation() *schema.Resource {
 				ForceNew: true,
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.RemediationScopeID,
+				ValidateFunc:     validate.PolicyScopeID,
 			},
 
 			"policy_assignment_id": {
@@ -153,7 +153,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RemediationID(d.Id())
+	id, err := parse.PolicyRemediationID(d.Id())
 	if err != nil {
 		return fmt.Errorf("unable to read Policy Remediation: %+v", err)
 	}
@@ -188,7 +188,7 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RemediationID(d.Id())
+	id, err := parse.PolicyRemediationID(d.Id())
 	if err != nil {
 		return err
 	}
