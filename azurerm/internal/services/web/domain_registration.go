@@ -244,33 +244,6 @@ func expandDomainRegistrationContactMailingAddress(input []interface{}) *web.Add
 	return contactAddress
 }
 
-//func expandDomainRegistrationPurchaseConsent(d *schema.ResourceData) (*web.DomainPurchaseConsent, error) {
-//	consents := d.Get("consent").([]interface{})
-//	consent := consents[0].(map[string]interface{})
-//
-//	agreedAtRaw, err := date.ParseTime(time.RFC3339, consent["agreed_at"].(string))
-//	if err != nil {
-//		return nil, fmt.Errorf("Failed to parse date for `agreed_at`: %+v", err)
-//	}
-//
-//	agreedAt := date.Time{
-//		Time: agreedAtRaw,
-//	}
-//
-//	agreementKeys := make([]string, 0)
-//	for _, agreementKey := range consent["agreement_keys"].([]string) {
-//		agreementKeys = append(agreementKeys, agreementKey)
-//	}
-//
-//	domainPurchaseConsent := web.DomainPurchaseConsent{
-//		AgreedAt:      &agreedAt,
-//		AgreedBy:      utils.String(consent["agreed_by"].(string)),
-//		AgreementKeys: &agreementKeys,
-//	}
-//
-//	return &domainPurchaseConsent, nil
-//}
-
 func getDomainPurchaseConsent(ctx context.Context, meta interface{}, tld string, adminEmail *string) (*web.DomainPurchaseConsent, error) {
 	client := meta.(*clients.Client).Web.TopLevelDomainsClient
 
