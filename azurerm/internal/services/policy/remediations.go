@@ -1,11 +1,11 @@
-package policyinsights
+package policy
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/policyinsights/mgmt/2019-10-01/policyinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policyinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 )
 
 // RemediationCreateUpdateAtScope is a wrapper of the 4 CreateOrUpdate functions on RemediationsClient, combining them into one to simplify code.

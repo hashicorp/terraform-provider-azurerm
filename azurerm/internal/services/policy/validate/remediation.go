@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policyinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 )
 
 func RemediationName(i interface{}, k string) (warnings []string, errors []error) {

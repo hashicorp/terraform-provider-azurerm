@@ -47,7 +47,6 @@ import (
 	network "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/client"
 	notificationhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/client"
 	policy "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/client"
-	policyinsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policyinsights/client"
 	portal "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/client"
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
@@ -117,7 +116,6 @@ type Client struct {
 	Network           *network.Client
 	NotificationHubs  *notificationhub.Client
 	Policy            *policy.Client
-	PolicyInsights    *policyinsights.Client
 	Portal            *portal.Client
 	Postgres          *postgres.Client
 	PrivateDns        *privatedns.Client
@@ -186,7 +184,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Policy = policy.NewClient(o)
-	client.PolicyInsights = policyinsights.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)

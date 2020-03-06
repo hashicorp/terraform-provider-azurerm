@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -9,8 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policyinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policyinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -163,7 +163,7 @@ func testCheckAzureRMPolicyRemediationExists(resourceName string) resource.TestC
 		client := acceptance.AzureProvider.Meta().(*clients.Client).PolicyInsights.RemediationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := policyinsights.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
+		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Policy Insights Remediation %q (Scope %q) does not exist", id.Name, id.ScopeId)
 			}
@@ -188,7 +188,7 @@ func testCheckAzureRMPolicyRemediationDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := policyinsights.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
+		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.RemediationScopeId); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on remediationsClient: %+v", err)
 			}
@@ -202,6 +202,10 @@ func testCheckAzureRMPolicyRemediationDestroy(s *terraform.State) error {
 
 func testAccAzureRMPolicyRemediation_atSubscription(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_policy_definition" "test" {
@@ -264,6 +268,10 @@ resource "azurerm_policy_remediation" "test" {
 
 func testAccAzureRMPolicyRemediation_atResourceGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-policy-%[1]d"
   location = "%[2]s"
@@ -329,6 +337,10 @@ resource "azurerm_policy_remediation" "test" {
 
 func testAccAzureRMPolicyRemediation_updateLocation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-policy-%[1]d"
   location = "%[2]s"
@@ -408,6 +420,10 @@ resource "azurerm_policy_remediation" "import" {
 
 func testAccAzureRMPolicyRemediation_atManagementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctest-policy-%[1]d"
 }
@@ -476,6 +492,10 @@ resource "azurerm_policy_remediation" "test" {
 
 func testAccAzureRMPolicyRemediation_atResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-policy-%[1]d"
   location = "%[2]s"
