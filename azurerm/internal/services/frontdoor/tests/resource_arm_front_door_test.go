@@ -331,7 +331,7 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_basicDisabled(data acceptance.TestData) string {
@@ -397,7 +397,7 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_requiresImport(data acceptance.TestData) string {
@@ -512,7 +512,7 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_waf(data acceptance.TestData) string {
@@ -583,7 +583,7 @@ resource "azurerm_frontdoor" "test" {
     web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.test.id
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_DisableCache(data acceptance.TestData) string {
@@ -647,7 +647,7 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_EnableCache(data acceptance.TestData) string {
@@ -713,7 +713,7 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_CustomHttpsEnabled(data acceptance.TestData) string {
@@ -781,7 +781,7 @@ resource "azurerm_frontdoor" "test" {
     }
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_CustomHttpsDisabled(data acceptance.TestData) string {
@@ -846,7 +846,7 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMFrontDoor_multiplePools(data acceptance.TestData) string {
