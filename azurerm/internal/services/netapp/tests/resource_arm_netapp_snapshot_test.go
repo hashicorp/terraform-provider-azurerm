@@ -71,7 +71,7 @@ func TestAccAzureRMNetAppSnapshot_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -95,7 +95,7 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -105,7 +105,7 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "baz"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaZ"),
 				),
 			},
 			data.ImportStep(),
@@ -241,7 +241,7 @@ resource "azurerm_netapp_snapshot" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "FoO" = "BaR"
+    "FoO" = "BaZ"
   }
 }
 `, template, data.RandomInteger)

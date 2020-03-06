@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -97,11 +98,10 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 
 	parameters := netapp.Snapshot{
 		Location: utils.String(location),
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name)
@@ -129,31 +129,26 @@ func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetAppSnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["netAppAccounts"]
-	poolName := id.Path["capacityPools"]
-	volumeName := id.Path["volumes"]
-	name := id.Path["snapshots"]
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Snapshots %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Snapshots %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading NetApp Snapshots %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("account_name", accountName)
-	d.Set("pool_name", poolName)
-	d.Set("volume_name", volumeName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("account_name", id.AccountName)
+	d.Set("pool_name", id.PoolName)
+	d.Set("volume_name", id.VolumeName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -166,35 +161,26 @@ func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetAppSnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["netAppAccounts"]
-	poolName := id.Path["capacityPools"]
-	volumeName := id.Path["volumes"]
-	name := id.Path["snapshots"]
-
-	t := d.Get("tags").(map[string]interface{})
 
 	parameters := netapp.SnapshotPatch{
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err = client.Update(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name)
-	if err != nil {
-		return fmt.Errorf("Error updating NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err = client.Update(ctx, parameters, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name); err != nil {
+		return fmt.Errorf("Error updating NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
-	d.SetId(*resp.ID)
 
 	return resourceArmNetAppSnapshotRead(d, meta)
 }
@@ -204,27 +190,22 @@ func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetAppSnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["netAppAccounts"]
-	poolName := id.Path["capacityPools"]
-	volumeName := id.Path["volumes"]
-	name := id.Path["snapshots"]
 
-	future, err := client.Delete(ctx, resourceGroup, accountName, poolName, volumeName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
