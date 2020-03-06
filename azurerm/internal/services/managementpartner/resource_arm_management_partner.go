@@ -3,7 +3,6 @@ package managementpartner
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementpartner/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -55,7 +55,7 @@ func resourceArmManagementPartnerCreate(d *schema.ResourceData, meta interface{}
 
 	partnerId := d.Get("partner_id").(string)
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, partnerId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -104,12 +104,12 @@ func resourceArmManagementPartnerRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseManagementPartnerId(d.Id())
+	id, err := parse.ParseManagementPartnerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.partnerId)
+	resp, err := client.Get(ctx, id.PartnerId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Management Partner %q does not exist - removing from state", d.Id())
@@ -130,32 +130,15 @@ func resourceArmManagementPartnerDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseManagementPartnerId(d.Id())
+	id, err := parse.ParseManagementPartnerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.partnerId)
+	_, err = client.Delete(ctx, id.PartnerId)
 	if err != nil {
-		return fmt.Errorf("Error deleting Management Partner %q: %+v", id.partnerId, err)
+		return fmt.Errorf("Error deleting Management Partner %q: %+v", id.PartnerId, err)
 	}
 
 	return nil
-}
-
-type managementPartnerId struct {
-	partnerId string
-}
-
-func parseManagementPartnerId(input string) (*managementPartnerId, error) {
-	// /providers/Microsoft.ManagementPartner/partners/5127255
-	segments := strings.Split(input, "/")
-	if len(segments) != 5 {
-		return nil, fmt.Errorf("Expected there to be 5 segments but got %d", len(segments))
-	}
-
-	id := managementPartnerId{
-		partnerId: segments[4],
-	}
-	return &id, nil
 }

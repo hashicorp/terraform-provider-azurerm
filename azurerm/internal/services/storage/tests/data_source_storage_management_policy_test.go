@@ -9,15 +9,14 @@ import (
 )
 
 func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
-	config := testAccDataSourceAzureRMStorageManagementPolicy_basic(data)
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_management_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMStorageManagementPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.name", "rule1"),
@@ -42,6 +41,10 @@ func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMStorageManagementPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -49,16 +52,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
-  storage_account_id = "${azurerm_storage_account.test.id}"
+  storage_account_id = azurerm_storage_account.test.id
 
   rule {
     name    = "rule1"
@@ -81,7 +84,7 @@ resource "azurerm_storage_management_policy" "test" {
 }
 
 data "azurerm_storage_management_policy" "test" {
-  storage_account_id = "${azurerm_storage_management_policy.test.storage_account_id}"
+  storage_account_id = azurerm_storage_management_policy.test.storage_account_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

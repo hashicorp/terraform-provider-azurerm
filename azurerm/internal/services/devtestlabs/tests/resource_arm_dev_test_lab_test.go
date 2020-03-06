@@ -84,6 +84,9 @@ func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 
 func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -96,8 +99,6 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for DevTest Lab: %s", labName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, labName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get devTestLabsClient: %+v", err)
@@ -141,6 +142,10 @@ func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevTestLab_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -148,8 +153,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -160,15 +165,19 @@ func testAccAzureRMDevTestLab_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dev_test_lab" "import" {
-  name                = "${azurerm_dev_test_lab.test.name}"
-  location            = "${azurerm_dev_test_lab.test.location}"
-  resource_group_name = "${azurerm_dev_test_lab.test.resource_group_name}"
+  name                = azurerm_dev_test_lab.test.name
+  location            = azurerm_dev_test_lab.test.location
+  resource_group_name = azurerm_dev_test_lab.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMDevTestLab_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -176,8 +185,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   storage_type        = "Standard"
 
   tags = {

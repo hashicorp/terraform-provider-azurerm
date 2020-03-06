@@ -15,6 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 )
 
+func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_autoScale(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -53,6 +58,11 @@ func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -88,6 +98,11 @@ func testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_availabilityZones(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -109,6 +124,11 @@ func testAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -125,6 +145,11 @@ func testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.
 			},
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_multiplePools(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
@@ -158,6 +183,11 @@ func testAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_manualScale(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -177,6 +207,11 @@ func testAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
@@ -208,6 +243,11 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing
 			},
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
@@ -258,6 +298,11 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *t
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -294,6 +339,11 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -322,6 +372,11 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -343,6 +398,11 @@ func testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_nodeTaints(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -362,6 +422,11 @@ func testAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_requiresImport(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
@@ -393,6 +458,11 @@ func testAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -412,6 +482,11 @@ func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
@@ -435,6 +510,11 @@ func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -456,6 +536,11 @@ func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) 
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_windows(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -475,6 +560,11 @@ func testAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
@@ -509,6 +599,9 @@ func testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 }
 
 func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kubernetes_cluster_node_pool" {
 			continue
@@ -521,8 +614,6 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 
 		if err != nil {
@@ -539,6 +630,9 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 
 func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -551,9 +645,6 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 		if err != nil {
@@ -602,6 +693,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_availabilitySetConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -637,6 +732,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_availabilityZonesConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -664,9 +762,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
@@ -687,7 +785,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   availability_zones    = ["1"]
-  vnet_subnet_id = azurerm_subnet.test.id
+  vnet_subnet_id        = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
@@ -805,11 +903,11 @@ func testAccAzureRMKubernetesClusterNodePool_nodePublicIPConfig(data acceptance.
 %s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                   = "internal"
-  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
-  vm_size                = "Standard_DS2_v2"
-  node_count             = 1
-  enable_node_public_ip  = true
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  enable_node_public_ip = true
 }
 `, template)
 }
@@ -931,6 +1029,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -958,6 +1060,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -988,11 +1094,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-
-  # TODO: remove in 2.0
-  lifecycle {
-    ignore_changes = ["route_table_id"]
-  }
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
@@ -1023,6 +1124,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

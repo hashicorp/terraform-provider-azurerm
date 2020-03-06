@@ -12,14 +12,13 @@ import (
 func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 
-	config := testAccAzureRMLogicAppActionHttp_basic(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogicAppActionHttp_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),
@@ -112,7 +111,7 @@ func testAccAzureRMLogicAppActionHttp_basic(data acceptance.TestData) string {
 
 resource "azurerm_logic_app_action_http" "test" {
   name         = "action%d"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
   method       = "GET"
   uri          = "http://example.com/hello"
 }
@@ -125,10 +124,10 @@ func testAccAzureRMLogicAppActionHttp_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_logic_app_action_http" "import" {
-  name         = "${azurerm_logic_app_action_http.test.name}"
-  logic_app_id = "${azurerm_logic_app_action_http.test.logic_app_id}"
-  method       = "${azurerm_logic_app_action_http.test.method}"
-  uri          = "${azurerm_logic_app_action_http.test.uri}"
+  name         = azurerm_logic_app_action_http.test.name
+  logic_app_id = azurerm_logic_app_action_http.test.logic_app_id
+  method       = azurerm_logic_app_action_http.test.method
+  uri          = azurerm_logic_app_action_http.test.uri
 }
 `, template)
 }
@@ -140,7 +139,7 @@ func testAccAzureRMLogicAppActionHttp_headers(data acceptance.TestData) string {
 
 resource "azurerm_logic_app_action_http" "test" {
   name         = "action%d"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
   method       = "GET"
   uri          = "http://example.com/hello"
 
@@ -154,6 +153,10 @@ resource "azurerm_logic_app_action_http" "test" {
 
 func testAccAzureRMLogicAppActionHttp_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -161,8 +164,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

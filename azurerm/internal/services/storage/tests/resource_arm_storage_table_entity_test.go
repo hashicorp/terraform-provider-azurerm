@@ -86,6 +86,9 @@ func TestAccAzureRMTableEntity_update(t *testing.T) {
 
 func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -96,9 +99,6 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 		accountName := rs.Primary.Attributes["storage_account_name"]
 		partitionKey := rs.Primary.Attributes["partition_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -132,6 +132,9 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_table_entity" {
 			continue
@@ -141,9 +144,6 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["storage_account_name"]
 		partitionKey := rs.Primary.Attributes["parititon_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -183,8 +183,8 @@ func testAccAzureRMTableEntity_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  table_name           = "${azurerm_storage_table.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
+  table_name           = azurerm_storage_table.test.name
 
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
@@ -200,9 +200,9 @@ func testAccAzureRMTableEntity_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  table_name           = "${azurerm_storage_table.test.name}"
+resource "azurerm_storage_table_entity" "import" {
+  storage_account_name = azurerm_storage_account.test.name
+  table_name           = azurerm_storage_table.test.name
 
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
@@ -219,8 +219,8 @@ func testAccAzureRMTableEntity_updated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  table_name           = "${azurerm_storage_table.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
+  table_name           = azurerm_storage_table.test.name
 
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
@@ -234,6 +234,10 @@ resource "azurerm_storage_table_entity" "test" {
 
 func testAccAzureRMTableEntity_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -241,16 +245,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

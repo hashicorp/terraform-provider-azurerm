@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -152,10 +153,12 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.GetProperties(ctx, resourceGroup, name)
+		resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if resp.StatusCode != http.StatusNotFound {
 				return fmt.Errorf("Cognitive Services Account still exists:\n%#v", resp)
@@ -170,22 +173,24 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := conn.GetProperties(ctx, resourceGroup, name)
+		resp, err := conn.GetProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on cognitiveAccountsClient: %+v", err)
@@ -197,6 +202,10 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 
 func testAccAzureRMCognitiveAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -204,20 +213,21 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Face"
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMCognitiveAccount_speechServices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -225,14 +235,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "SpeechServices"
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -243,21 +250,22 @@ func testAccAzureRMCognitiveAccount_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_cognitive_account" "import" {
-  name                = "${azurerm_cognitive_account.test.name}"
-  location            = "${azurerm_cognitive_account.test.location}"
-  resource_group_name = "${azurerm_cognitive_account.test.resource_group_name}"
-  kind                = "${azurerm_cognitive_account.test.kind}"
+  name                = azurerm_cognitive_account.test.name
+  location            = azurerm_cognitive_account.test.location
+  resource_group_name = azurerm_cognitive_account.test.resource_group_name
+  kind                = azurerm_cognitive_account.test.kind
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 }
 `, template)
 }
 
 func testAccAzureRMCognitiveAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -265,14 +273,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Face"
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 
   tags = {
     Acceptance = "Test"

@@ -10,7 +10,6 @@ import (
 
 func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
-	config := testAccDataSourceAzureRMRouteTable_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -18,7 +17,7 @@ func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMRouteTable_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "0"),
@@ -30,7 +29,6 @@ func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
-	config := testAccDataSourceAzureRMRouteTable_singleRoute(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -38,7 +36,7 @@ func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMRouteTable_singleRoute(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "1"),
@@ -53,7 +51,6 @@ func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
 
 func TestAccDataSourceAzureRMRouteTable_multipleRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
-	config := testAccDataSourceAzureRMRouteTable_multipleRoutes(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -61,7 +58,7 @@ func TestAccDataSourceAzureRMRouteTable_multipleRoutes(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMRouteTable_multipleRoutes(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "2"),
@@ -83,8 +80,8 @@ func testAccDataSourceAzureRMRouteTable_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_route_table" "test" {
-  name                = "${azurerm_route_table.test.name}"
-  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+  name                = azurerm_route_table.test.name
+  resource_group_name = azurerm_route_table.test.resource_group_name
 }
 `, r)
 }
@@ -95,8 +92,8 @@ func testAccDataSourceAzureRMRouteTable_singleRoute(data acceptance.TestData) st
 %s
 
 data "azurerm_route_table" "test" {
-  name                = "${azurerm_route_table.test.name}"
-  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+  name                = azurerm_route_table.test.name
+  resource_group_name = azurerm_route_table.test.resource_group_name
 }
 `, r)
 }
@@ -107,8 +104,8 @@ func testAccDataSourceAzureRMRouteTable_multipleRoutes(data acceptance.TestData)
 %s
 
 data "azurerm_route_table" "test" {
-  name                = "${azurerm_route_table.test.name}"
-  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+  name                = azurerm_route_table.test.name
+  resource_group_name = azurerm_route_table.test.resource_group_name
 }
 `, r)
 }

@@ -150,6 +150,9 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy(s *terraform.State)
 
 func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -163,9 +166,6 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string)
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {
@@ -182,6 +182,10 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string)
 
 func testAccAzureRMServiceBusQueueAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -189,24 +193,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctest-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctest-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
   name                = "acctest-%[1]d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  queue_name          = "${azurerm_servicebus_queue.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  queue_name          = azurerm_servicebus_queue.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   listen = %[3]t
   send   = %[4]t
@@ -220,14 +224,14 @@ func testAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(data acceptan
 %s
 
 resource "azurerm_servicebus_queue_authorization_rule" "import" {
-  name                = "${azurerm_servicebus_queue_authorization_rule.test.name}"
-  namespace_name      = "${azurerm_servicebus_queue_authorization_rule.test.namespace_name}"
-  queue_name          = "${azurerm_servicebus_queue_authorization_rule.test.queue_name}"
-  resource_group_name = "${azurerm_servicebus_queue_authorization_rule.test.resource_group_name}"
+  name                = azurerm_servicebus_queue_authorization_rule.test.name
+  namespace_name      = azurerm_servicebus_queue_authorization_rule.test.namespace_name
+  queue_name          = azurerm_servicebus_queue_authorization_rule.test.queue_name
+  resource_group_name = azurerm_servicebus_queue_authorization_rule.test.resource_group_name
 
-  listen = "${azurerm_servicebus_queue_authorization_rule.test.listen}"
-  send   = "${azurerm_servicebus_queue_authorization_rule.test.send}"
-  manage = "${azurerm_servicebus_queue_authorization_rule.test.manage}"
+  listen = azurerm_servicebus_queue_authorization_rule.test.listen
+  send   = azurerm_servicebus_queue_authorization_rule.test.send
+  manage = azurerm_servicebus_queue_authorization_rule.test.manage
 }
 `, testAccAzureRMServiceBusQueueAuthorizationRule_base(data, listen, send, manage))
 }

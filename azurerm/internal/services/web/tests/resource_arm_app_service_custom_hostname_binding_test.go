@@ -140,6 +140,7 @@ func testAccAzureRMAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceE
 
 func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_custom_hostname_binding" {
@@ -150,7 +151,6 @@ func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) 
 		appServiceName := rs.Primary.Attributes["app_service_name"]
 		hostname := rs.Primary.Attributes["hostname"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 
 		if err != nil {
@@ -168,6 +168,9 @@ func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) 
 
 func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -178,8 +181,6 @@ func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) 
 		appServiceName := rs.Primary.Attributes["app_service_name"]
 		hostname := rs.Primary.Attributes["hostname"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -195,6 +196,10 @@ func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) 
 
 func testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(data acceptance.TestData, appServiceName string, domain string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -202,8 +207,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -213,15 +218,15 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
   hostname            = "%s"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_name    = azurerm_app_service.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, domain)
 }
@@ -232,9 +237,9 @@ func testAccAzureRMAppServiceCustomHostnameBinding_requiresImportConfig(data acc
 %s
 
 resource "azurerm_app_service_custom_hostname_binding" "import" {
-  hostname            = "${azurerm_app_service_custom_hostname_binding.test.name}"
-  app_service_name    = "${azurerm_app_service_custom_hostname_binding.test.app_service_name}"
-  resource_group_name = "${azurerm_app_service_custom_hostname_binding.test.resource_group_name}"
+  hostname            = azurerm_app_service_custom_hostname_binding.test.name
+  app_service_name    = azurerm_app_service_custom_hostname_binding.test.app_service_name
+  resource_group_name = azurerm_app_service_custom_hostname_binding.test.resource_group_name
 }
 `, template)
 }
@@ -246,14 +251,18 @@ func testAccAzureRMAppServiceCustomHostnameBinding_multipleConfig(data acceptanc
 
 resource "azurerm_app_service_custom_hostname_binding" "test2" {
   hostname            = "%s"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_name    = azurerm_app_service.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template, altDomain)
 }
 
 func testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(data acceptance.TestData, appServiceName, domain string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -261,8 +270,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -272,23 +281,24 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
-data "azurerm_client_config" "test" {}
+data "azurerm_client_config" "test" {
+}
 
 resource "azurerm_key_vault" "test" {
   name                = "acct-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.test.tenant_id
   sku_name            = "standard"
 
   access_policy {
-    tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
-    object_id               = "${data.azurerm_client_config.test.service_principal_object_id}"
+    tenant_id               = data.azurerm_client_config.test.tenant_id
+    object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["delete", "get", "set"]
     certificate_permissions = ["create", "delete", "get", "import"]
   }
@@ -296,7 +306,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acct-%d"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {
@@ -329,23 +339,23 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 data "azurerm_key_vault_secret" "test" {
-  name         = "${azurerm_key_vault_certificate.test.name}"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  name         = azurerm_key_vault_certificate.test.name
+  key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_app_service_certificate" "test" {
   name                = "acctestCert-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  pfx_blob            = "${data.azurerm_key_vault_secret.test.value}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  pfx_blob            = data.azurerm_key_vault_secret.test.value
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
   hostname            = "%s"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_name    = azurerm_app_service.test.name
+  resource_group_name = azurerm_resource_group.test.name
   ssl_state           = "SniEnabled"
-  thumbprint          = "${azurerm_app_service_certificate.test.thumbprint}"
+  thumbprint          = azurerm_app_service_certificate.test.thumbprint
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, data.RandomInteger, data.RandomInteger, domain, data.RandomInteger, domain)
 }

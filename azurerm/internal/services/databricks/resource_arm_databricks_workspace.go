@@ -12,10 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +27,6 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 		Read:   resourceArmDatabricksWorkspaceRead,
 		Update: resourceArmDatabricksWorkspaceCreateUpdate,
 		Delete: resourceArmDatabricksWorkspaceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -36,6 +34,11 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DatabricksWorkspaceID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -56,6 +59,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"standard",
 					"premium",
+					"trial",
 				}, false),
 			},
 
@@ -66,7 +70,42 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"custom_parameters": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"no_public_ip": {
+							Type:     schema.TypeBool,
+							ForceNew: true,
+							Optional: true,
+						},
+
+						"public_subnet_name": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+
+						"private_subnet_name": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+
+						"virtual_network_id": {
+							Type:         schema.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						},
+					},
+				},
 			},
 
 			"managed_resource_group_id": {
@@ -125,6 +164,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 		Location: utils.String(location),
 		WorkspaceProperties: &databricks.WorkspaceProperties{
 			ManagedResourceGroupID: &managedResourceGroupID,
+			Parameters:             expandWorkspaceCustomParameters(d),
 		},
 		Tags: expandedTags,
 	}
@@ -156,27 +196,25 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabricksWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["workspaces"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Databricks Workspace %q was not found in Resource Group %q - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] Databricks Workspace %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Databricks Workspace %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Databricks Workspace %s: %s", id.Name, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -193,6 +231,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+		d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -203,26 +242,92 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabricksWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["workspaces"]
-
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting Databricks Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Error waiting for deletion of Databricks Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
 	return nil
+}
+
+func flattenWorkspaceCustomParameters(p *databricks.WorkspaceCustomParameters) []interface{} {
+	if p == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if v := p.EnableNoPublicIP; v != nil {
+		if v.Value != nil {
+			parameters["no_public_ip"] = *v.Value
+		}
+	}
+
+	if v := p.CustomPrivateSubnetName; v != nil {
+		if v.Value != nil {
+			parameters["private_subnet_name"] = *v.Value
+		}
+	}
+
+	if v := p.CustomPublicSubnetName; v != nil {
+		if v.Value != nil {
+			parameters["public_subnet_name"] = *v.Value
+		}
+	}
+
+	if v := p.CustomVirtualNetworkID; v != nil {
+		if v.Value != nil {
+			parameters["virtual_network_id"] = *v.Value
+		}
+	}
+
+	return []interface{}{parameters}
+}
+
+func expandWorkspaceCustomParameters(d *schema.ResourceData) *databricks.WorkspaceCustomParameters {
+	configList, ok := d.GetOkExists("custom_parameters")
+	if !ok {
+		return nil
+	}
+	config := configList.([]interface{})[0].(map[string]interface{})
+	parameters := databricks.WorkspaceCustomParameters{}
+
+	if v, ok := config["no_public_ip"].(bool); ok {
+		parameters.EnableNoPublicIP = &databricks.WorkspaceCustomBooleanParameter{
+			Value: &v,
+		}
+	}
+
+	if v := config["public_subnet_name"].(string); v != "" {
+		parameters.CustomPublicSubnetName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v := config["private_subnet_name"].(string); v != "" {
+		parameters.CustomPrivateSubnetName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v := config["virtual_network_id"].(string); v != "" {
+		parameters.CustomVirtualNetworkID = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	return &parameters
 }
 
 func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string, errors []error) {
@@ -240,10 +345,10 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 
 	// First, second, and last characters must be a letter or number with a total length between 3 to 64 characters
 	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
-	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
+	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-_a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must be 3 - 30 characters in length", k))
 		errors = append(errors, fmt.Errorf("%q first, second, and last characters must be a letter or number", k))
-		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, and hyphens", k))
+		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, underscores, and hyphens", k))
 	}
 
 	// No consecutive hyphens

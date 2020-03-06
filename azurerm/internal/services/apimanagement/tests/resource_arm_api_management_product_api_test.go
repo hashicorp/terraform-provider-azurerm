@@ -56,6 +56,8 @@ func TestAccAzureRMAPIManagementProductApi_requiresImport(t *testing.T) {
 
 func testCheckAzureRMAPIManagementProductApiDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductApisClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_api" {
 			continue
@@ -66,7 +68,6 @@ func testCheckAzureRMAPIManagementProductApiDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -81,6 +82,9 @@ func testCheckAzureRMAPIManagementProductApiDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementProductApiExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductApisClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -91,8 +95,6 @@ func testCheckAzureRMAPIManagementProductApiExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductApisClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
@@ -107,6 +109,10 @@ func testCheckAzureRMAPIManagementProductApiExists(resourceName string) resource
 
 func testAccAzureRMAPIManagementProductApi_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -114,8 +120,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -124,8 +130,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_product" "test" {
   product_id            = "test-product"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  api_management_name   = azurerm_api_management.test.name
+  resource_group_name   = azurerm_resource_group.test.name
   display_name          = "Test Product"
   subscription_required = true
   approval_required     = false
@@ -134,8 +140,8 @@ resource "azurerm_api_management_product" "test" {
 
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
   protocols           = ["https"]
@@ -143,10 +149,10 @@ resource "azurerm_api_management_api" "test" {
 }
 
 resource "azurerm_api_management_product_api" "test" {
-  product_id          = "${azurerm_api_management_product.test.product_id}"
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  product_id          = azurerm_api_management_product.test.product_id
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -157,10 +163,10 @@ func testAccAzureRMAPIManagementProductApi_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_api_management_product_api" "import" {
-  api_name            = "${azurerm_api_management_product_api.test.api_name}"
-  product_id          = "${azurerm_api_management_product_api.test.product_id}"
-  api_management_name = "${azurerm_api_management_product_api.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_product_api.test.resource_group_name}"
+  api_name            = azurerm_api_management_product_api.test.api_name
+  product_id          = azurerm_api_management_product_api.test.product_id
+  api_management_name = azurerm_api_management_product_api.test.api_management_name
+  resource_group_name = azurerm_api_management_product_api.test.resource_group_name
 }
 `, template)
 }

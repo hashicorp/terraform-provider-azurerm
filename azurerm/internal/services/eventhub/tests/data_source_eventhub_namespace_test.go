@@ -47,6 +47,10 @@ func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
 
 func testAccDataSourceEventHubNamespace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -54,20 +58,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
 }
 
 data "azurerm_eventhub_namespace" "test" {
-  name                = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_eventhub_namespace.test.resource_group_name}"
+  name                = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_eventhub_namespace.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceEventHubNamespace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -75,8 +83,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                     = "acctesteventhubnamespace-%d"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
   sku                      = "Standard"
   capacity                 = "2"
   auto_inflate_enabled     = true
@@ -84,8 +92,8 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 data "azurerm_eventhub_namespace" "test" {
-  name                = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_eventhub_namespace.test.resource_group_name}"
+  name                = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_eventhub_namespace.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

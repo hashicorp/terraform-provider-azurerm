@@ -17,7 +17,6 @@ import (
 
 func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicImportPFX(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,28 +24,7 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
-				),
-			},
-			data.ImportStep("certificate"),
-		},
-	})
-}
-
-func TestAccAzureRMKeyVaultCertificate_basicImportPFXClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicImportPFX(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -87,7 +65,6 @@ func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -95,7 +72,7 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					testCheckAzureRMKeyVaultCertificateDisappears(data.ResourceName),
@@ -108,7 +85,6 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -116,7 +92,7 @@ func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *te
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists("azurerm_key_vault_certificate.test"),
 					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
@@ -129,7 +105,6 @@ func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *te
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -137,7 +112,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secret_id"),
@@ -151,7 +126,6 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerateSans(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -159,7 +133,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerateSans(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -174,7 +148,6 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerateTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -182,7 +155,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerateTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -197,7 +170,6 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -205,7 +177,7 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -221,7 +193,6 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -229,7 +200,7 @@ func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -242,6 +213,7 @@ func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 
 func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+	vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -250,8 +222,12 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			// deleted, this is fine.
+			return nil
+		}
 
 		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
@@ -280,6 +256,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -289,10 +266,13 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 		}
 
 		name := rs.Primary.Attributes["name"]
-		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+		}
 
-		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -317,6 +297,7 @@ func testCheckAzureRMKeyVaultCertificateExists(resourceName string) resource.Tes
 func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -325,10 +306,13 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 		name := rs.Primary.Attributes["name"]
-		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+		}
 
-		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Certificate %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -352,7 +336,12 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 
 func testAccAzureRMKeyVaultCertificate_basicImportPFX(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -361,15 +350,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkeyvault%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "delete",
@@ -389,80 +378,10 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = "${filebase64("testdata/keyvaultcert.pfx")}"
-    password = ""
-  }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-}
-
-func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-
-    certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-
-    storage_permissions = [
-      "set",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
-
-  certificate {
-    contents = "${filebase64("testdata/keyvaultcert.pfx")}"
+    contents = filebase64("testdata/keyvaultcert.pfx")
     password = ""
   }
 
@@ -492,11 +411,11 @@ func testAccAzureRMKeyVaultCertificate_requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_key_vault_certificate" "import" {
-  name         = "${azurerm_key_vault_certificate.test.name}"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  name         = azurerm_key_vault_certificate.test.name
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = "${filebase64("testdata/keyvaultcert.pfx")}"
+    contents = filebase64("testdata/keyvaultcert.pfx")
     password = ""
   }
 
@@ -522,7 +441,12 @@ resource "azurerm_key_vault_certificate" "import" {
 
 func testAccAzureRMKeyVaultCertificate_basicGenerate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -531,15 +455,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkeyvault%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "create",
@@ -564,7 +488,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {
@@ -612,7 +536,12 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -621,15 +550,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkeyvault%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "create",
@@ -654,7 +583,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {
@@ -709,7 +638,12 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -718,15 +652,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkeyvault%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "create",
@@ -747,7 +681,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {
@@ -799,7 +733,12 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -808,15 +747,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkeyvault%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "create",
@@ -840,8 +779,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {
@@ -895,7 +834,12 @@ resource "azurerm_key_vault_certificate" "test" {
 
 func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -904,15 +848,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkeyvault%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "create",
@@ -936,8 +880,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "acctestcert%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {

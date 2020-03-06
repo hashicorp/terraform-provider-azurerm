@@ -221,23 +221,23 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 // in the schema, and on Azure.
 func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// first check within the schema for the local network gateway:
+		// first, check that it exists on Azure:
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// then, check within the schema for the local network gateway:
 		res, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Local network gateway '%s' not found.", resourceName)
 		}
 
-		// then, extract the name and the resource group:
+		// and finally, extract the name and the resource group:
 		id, err := azure.ParseAzureResourceID(res.Primary.ID)
 		if err != nil {
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
 		resGrp := id.ResourceGroup
-
-		// and finally, check that it exists on Azure:
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resGrp, localNetName)
 		if err != nil {
@@ -254,23 +254,23 @@ func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.Tes
 
 func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// first check within the schema for the local network gateway:
+		// first, check that it exists on Azure:
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// then check within the schema for the local network gateway:
 		res, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Local network gateway '%s' not found.", resourceName)
 		}
 
-		// then, extract the name and the resource group:
+		// and finally, extract the name and the resource group:
 		id, err := azure.ParseAzureResourceID(res.Primary.ID)
 		if err != nil {
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
-
-		// and finally, check that it exists on Azure:
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, localNetName)
 		if err != nil {
@@ -289,6 +289,9 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 }
 
 func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "azurerm_local_network_gateway" {
 			continue
@@ -301,8 +304,6 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
 
 		if err != nil {
@@ -321,6 +322,10 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 
 func testAccAzureRMLocalNetworkGatewayConfig_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -328,8 +333,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 }
@@ -342,9 +347,9 @@ func testAccAzureRMLocalNetworkGatewayConfig_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_local_network_gateway" "import" {
-  name                = "${azurerm_local_network_gateway.test.name}"
-  location            = "${azurerm_local_network_gateway.test.location}"
-  resource_group_name = "${azurerm_local_network_gateway.test.resource_group_name}"
+  name                = azurerm_local_network_gateway.test.name
+  location            = azurerm_local_network_gateway.test.location
+  resource_group_name = azurerm_local_network_gateway.test.resource_group_name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 }
@@ -353,6 +358,10 @@ resource "azurerm_local_network_gateway" "import" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -360,8 +369,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 
@@ -374,6 +383,10 @@ resource "azurerm_local_network_gateway" "test" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -381,8 +394,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 
@@ -396,6 +409,10 @@ resource "azurerm_local_network_gateway" "test" {
 
 func testAccAzureRMLocalNetworkGatewayConfig_bgpSettingsComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
   location = "%s"
@@ -403,8 +420,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
   name                = "acctestlng-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 

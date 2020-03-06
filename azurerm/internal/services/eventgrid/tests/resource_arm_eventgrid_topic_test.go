@@ -117,6 +117,9 @@ func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
 
 func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.TopicsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -129,8 +132,6 @@ func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for EventGrid Topic: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.TopicsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -149,6 +150,10 @@ func testAccAzureRMEventGridTopic_basic(data acceptance.TestData) string {
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -156,8 +161,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, location, data.RandomInteger)
 }
@@ -168,9 +173,9 @@ func testAccAzureRMEventGridTopic_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_eventgrid_topic" "import" {
-  name                = "${azurerm_eventgrid_topic.test.name}"
-  location            = "${azurerm_eventgrid_topic.test.location}"
-  resource_group_name = "${azurerm_eventgrid_topic.test.resource_group_name}"
+  name                = azurerm_eventgrid_topic.test.name
+  location            = azurerm_eventgrid_topic.test.location
+  resource_group_name = azurerm_eventgrid_topic.test.resource_group_name
 }
 `, template)
 }
@@ -179,6 +184,10 @@ func testAccAzureRMEventGridTopic_basicWithTags(data acceptance.TestData) string
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -186,8 +195,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "foo" = "bar"

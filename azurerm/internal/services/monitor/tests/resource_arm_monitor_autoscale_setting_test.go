@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
-	config := testAccAzureRMMonitorAutoScaleSetting_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorAutoScaleSetting_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -67,7 +66,6 @@ func TestAccAzureRMMonitorAutoScaleSetting_requiresImport(t *testing.T) {
 
 func TestAccAzureRMMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
-	config := testAccAzureRMMonitorAutoScaleSetting_multipleProfiles(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -75,7 +73,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorAutoScaleSetting_multipleProfiles(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -205,7 +203,6 @@ func TestAccAzureRMMonitorAutoScaleSetting_customEmails(t *testing.T) {
 
 func TestAccAzureRMMonitorAutoScaleSetting_recurrence(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
-	config := testAccAzureRMMonitorAutoScaleSetting_recurrence(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -213,7 +210,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_recurrence(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorAutoScaleSetting_recurrence(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -268,7 +265,6 @@ func TestAccAzureRMMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 
 func TestAccAzureRMMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
-	config := testAccAzureRMMonitorAutoScaleSetting_fixedDate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -276,7 +272,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorAutoScaleSetting_fixedDate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -293,6 +289,9 @@ func TestAccAzureRMMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 
 func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -303,9 +302,6 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Monitor AutoScale Setting: %s", autoscaleSettingName)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
 		if err != nil {
@@ -353,9 +349,9 @@ func testAccAzureRMMonitorAutoScaleSetting_basic(data acceptance.TestData) strin
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
 
   profile {
     name = "metricRules"
@@ -369,7 +365,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -396,10 +392,10 @@ func testAccAzureRMMonitorAutoScaleSetting_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_monitor_autoscale_setting" "import" {
-  name                = "${azurerm_monitor_autoscale_setting.test.name}"
-  resource_group_name = "${azurerm_monitor_autoscale_setting.test.resource_group_name}"
-  location            = "${azurerm_monitor_autoscale_setting.test.location}"
-  target_resource_id  = "${azurerm_monitor_autoscale_setting.test.target_resource_id}"
+  name                = azurerm_monitor_autoscale_setting.test.name
+  resource_group_name = azurerm_monitor_autoscale_setting.test.resource_group_name
+  location            = azurerm_monitor_autoscale_setting.test.location
+  target_resource_id  = azurerm_monitor_autoscale_setting.test.target_resource_id
 
   profile {
     name = "metricRules"
@@ -413,7 +409,7 @@ resource "azurerm_monitor_autoscale_setting" "import" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -441,9 +437,9 @@ func testAccAzureRMMonitorAutoScaleSetting_multipleProfiles(data acceptance.Test
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
 
   profile {
     name = "primary"
@@ -457,7 +453,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -477,7 +473,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -528,9 +524,9 @@ func testAccAzureRMMonitorAutoScaleSetting_capacity(data acceptance.TestData, mi
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
   enabled             = false
 
   profile {
@@ -545,7 +541,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -573,9 +569,9 @@ func testAccAzureRMMonitorAutoScaleSetting_multipleRules(data acceptance.TestDat
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
   enabled             = true
 
   profile {
@@ -590,7 +586,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -610,7 +606,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -638,9 +634,9 @@ func testAccAzureRMMonitorAutoScaleSetting_email(data acceptance.TestData) strin
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
 
   profile {
     name = "metricRules"
@@ -654,7 +650,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -690,9 +686,9 @@ func testAccAzureRMMonitorAutoScaleSetting_emailUpdated(data acceptance.TestData
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
 
   profile {
     name = "metricRules"
@@ -706,7 +702,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -742,9 +738,9 @@ func testAccAzureRMMonitorAutoScaleSetting_recurrence(data acceptance.TestData) 
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
 
   profile {
     name = "recurrence"
@@ -786,9 +782,9 @@ func testAccAzureRMMonitorAutoScaleSetting_recurrenceUpdated(data acceptance.Tes
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
 
   profile {
     name = "recurrence"
@@ -830,9 +826,9 @@ func testAccAzureRMMonitorAutoScaleSetting_fixedDate(data acceptance.TestData) s
 
 resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
 
   profile {
     name = "fixedDate"
@@ -855,6 +851,10 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 
 func testAccAzureRMMonitorAutoScaleSetting_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -863,21 +863,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -898,7 +898,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = azurerm_subnet.test.id
       primary   = true
     }
   }

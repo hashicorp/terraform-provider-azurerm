@@ -140,6 +140,9 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 
 func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up a WebTest
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -148,8 +151,6 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, name)
 		if err != nil {
@@ -166,6 +167,10 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 func testAccAzureRMApplicationInsightsWebTests_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -173,16 +178,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_web_test" "test" {
   name                    = "acctestappinsightswebtests-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
   kind                    = "ping"
   geo_locations           = ["us-tx-sn1-azr"]
 
@@ -193,12 +198,17 @@ resource "azurerm_application_insights_web_test" "test" {
   </Items>
 </WebTest>
 XML
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMApplicationInsightsWebTests_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -206,16 +216,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_web_test" "test" {
   name                    = "acctestappinsightswebtests-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
   kind                    = "ping"
   frequency               = 900
   timeout                 = 120
@@ -229,6 +239,7 @@ resource "azurerm_application_insights_web_test" "test" {
   </Items>
 </WebTest>
 XML
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -239,12 +250,12 @@ func testAccAzureRMApplicationInsightsWebTests_requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_application_insights_web_test" "import" {
-  name                    = "${azurerm_application_insights_web_test.test.name}"
-  location                = "${azurerm_application_insights_web_test.test.location}"
-  resource_group_name     = "${azurerm_application_insights_web_test.test.resource_group_name}"
-  application_insights_id = "${azurerm_application_insights_web_test.test.application_insights_id}"
-  kind                    = "${azurerm_application_insights_web_test.test.kind}"
-  configuration           = "${azurerm_application_insights_web_test.test.configuration}"
+  name                    = azurerm_application_insights_web_test.test.name
+  location                = azurerm_application_insights_web_test.test.location
+  resource_group_name     = azurerm_application_insights_web_test.test.resource_group_name
+  application_insights_id = azurerm_application_insights_web_test.test.application_insights_id
+  kind                    = azurerm_application_insights_web_test.test.kind
+  configuration           = azurerm_application_insights_web_test.test.configuration
 }
 `, template)
 }

@@ -1,0 +1,120 @@
+---
+subcategory: "CosmosDB (DocumentDB)"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_cosmosdb_gremlin_graph"
+description: |-
+  Manages a Gremlin Graph within a Cosmos DB Account.
+---
+
+# azurerm_cosmosdb_gremlin_graph
+
+Manages a Gremlin Graph within a Cosmos DB Account.
+
+## Example Usage
+
+```hcl
+data "azurerm_cosmosdb_account" "example" {
+  name                = "tfex-cosmosdb-account"
+  resource_group_name = "tfex-cosmosdb-account-rg"
+}
+
+resource "azurerm_cosmosdb_gremlin_database" "example" {
+  name                = "tfex-cosmos-gremlin-db"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
+}
+
+resource "azurerm_cosmosdb_gremlin_graph" "example" {
+  name                = "tfex-cosmos-gremlin-graph"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+  database_name       = azurerm_cosmosdb_gremlin_database.example.name
+  partition_key_path  = "/Example"
+  throughput          = 400
+
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
+
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+
+  unique_key {
+    paths = ["/definition/id1", "/definition/id2"]
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) Specifies the name of the Cosmos DB Gremlin Graph. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Gremlin Graph is created. Changing this forces a new resource to be created.
+
+* `account_name` - (Required) The name of the CosmosDB Account to create the Gremlin Graph within. Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The name of the Cosmos DB Graph Database in which the Cosmos DB Gremlin Graph is created. Changing this forces a new resource to be created.
+
+* `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
+
+* `throughput` - (Optional) The throughput of the Gremlin database (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+
+* `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below. Changing this forces a new resource to be created.
+
+* `conflict_resolution_policy` - (Required) The conflict resolution policy for the graph. One or more `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
+
+* `unique_key` (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
+
+---
+
+An `index_policy` block supports the following:
+
+* `automatic` - (Optional) Indicates if the indexing policy is automatic. Defaults to `true`.
+
+* `indexing_mode` - (Required) Indicates the indexing mode. Possible values include: `Consistent`, `Lazy`, `None`.
+
+* `included_paths` - (Optional) List of paths to include in the indexing. Required if `indexing_mode` is `Consistent` or `Lazy`.
+
+* `excluded_paths` - (Optional) List of paths to exclude from indexing. Required if `indexing_mode` is `Consistent` or `Lazy`.
+
+An `conflict_resolution_policy` block supports the following:
+
+* `mode` - (Required) Indicates the conflict resolution mode. Possible values include: `LastWriterWins`, `Custom`.
+
+* `conflict_resolution_path` - (Optional) The conflict resolution path in the case of LastWriterWins mode.
+
+* `conflict_resolution_procedure` - (Optional) The procedure to resolve conflicts in the case of custom mode.
+
+An `unique_key` block supports the following:
+
+* `paths` - (Required) A list of paths to use for this unique key.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the CosmosDB Gremlin Graph.
+``
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Gremlin Graph.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Gremlin Graph.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Gremlin Graph.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Gremlin Graph.
+
+## Import
+
+Cosmos Gremlin Graphs can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_cosmosdb_gremlin_graph.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/gremlin/databases/db1/graphs/graphs1
+```

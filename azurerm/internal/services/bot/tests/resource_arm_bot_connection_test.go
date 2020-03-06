@@ -59,6 +59,9 @@ func testAccAzureRMBotConnection_complete(t *testing.T) {
 
 func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -71,9 +74,6 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, name)
 		if err != nil {
@@ -122,9 +122,9 @@ func testAccAzureRMBotConnection_basicConfig(data acceptance.TestData) string {
 
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
-  bot_name              = "${azurerm_bot_channels_registration.test.name}"
-  location              = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  bot_name              = azurerm_bot_channels_registration.test.name
+  location              = azurerm_bot_channels_registration.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "box"
   client_id             = "test"
   client_secret         = "secret"
@@ -139,9 +139,9 @@ func testAccAzureRMBotConnection_completeConfig(data acceptance.TestData) string
 
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
-  bot_name              = "${azurerm_bot_channels_registration.test.name}"
-  location              = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  bot_name              = azurerm_bot_channels_registration.test.name
+  location              = azurerm_bot_channels_registration.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Salesforce"
   client_id             = "test"
   client_secret         = "secret"
@@ -161,9 +161,9 @@ func testAccAzureRMBotConnection_completeUpdateConfig(data acceptance.TestData) 
 
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
-  bot_name              = "${azurerm_bot_channels_registration.test.name}"
-  location              = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  bot_name              = azurerm_bot_channels_registration.test.name
+  location              = azurerm_bot_channels_registration.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Salesforce"
   client_id             = "test2"
   client_secret         = "secret2"

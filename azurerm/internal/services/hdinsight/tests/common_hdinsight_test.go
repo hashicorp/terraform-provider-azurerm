@@ -12,13 +12,14 @@ import (
 
 func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).HDInsight.ClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != terraformResourceName {
 				continue
 			}
 
-			client := acceptance.AzureProvider.Meta().(*clients.Client).HDInsight.ClustersClient
-			ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 			name := rs.Primary.Attributes["name"]
 			resourceGroup := rs.Primary.Attributes["resource_group_name"]
 			resp, err := client.Get(ctx, resourceGroup, name)
@@ -36,6 +37,9 @@ func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(
 
 func testCheckAzureRMHDInsightClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).HDInsight.ClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -45,8 +49,6 @@ func testCheckAzureRMHDInsightClusterExists(resourceName string) resource.TestCh
 		clusterName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).HDInsight.ClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

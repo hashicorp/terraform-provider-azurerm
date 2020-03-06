@@ -61,6 +61,12 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+
+			"protocols": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -100,6 +106,12 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
+
+		protocolTypes := make([]string, 0)
+		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
+			protocolTypes = append(protocolTypes, *prtclTypes...)
+		}
+		d.Set("protocols", protocolTypes)
 
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)

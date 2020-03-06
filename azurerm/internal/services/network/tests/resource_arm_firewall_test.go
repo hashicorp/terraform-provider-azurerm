@@ -50,35 +50,6 @@ func TestValidateFirewallName(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMFirewall_basicOld(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFirewall_basicOld(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_configuration.0.private_ip_address"),
-				),
-			},
-			{
-				Config: testAccAzureRMFirewall_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_configuration.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
@@ -234,6 +205,9 @@ func TestAccAzureRMFirewall_disappears(t *testing.T) {
 
 func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -246,8 +220,6 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -263,6 +235,9 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 
 func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -275,8 +250,6 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on azureFirewallsClient: %+v", err)
@@ -316,51 +289,12 @@ func testCheckAzureRMFirewallDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMFirewall_basicOld(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "AzureFirewallSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.1.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_firewall" "test" {
-  name                = "acctestfirewall%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func testAccAzureRMFirewall_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -369,34 +303,34 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = "${azurerm_subnet.test.id}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -404,6 +338,10 @@ resource "azurerm_firewall" "test" {
 
 func testAccAzureRMFirewall_multiplePublicIps(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -412,47 +350,47 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "test_2" {
   name                = "acctestpip2%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = "${azurerm_subnet.test.id}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 
   ip_configuration {
     name                 = "configuration_2"
-    public_ip_address_id = "${azurerm_public_ip.test_2.id}"
+    public_ip_address_id = azurerm_public_ip.test_2.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -464,14 +402,14 @@ func testAccAzureRMFirewall_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_firewall" "import" {
-  name                = "${azurerm_firewall.test.name}"
-  location            = "${azurerm_firewall.test.location}"
-  resource_group_name = "${azurerm_firewall.test.resource_group_name}"
+  name                = azurerm_firewall.test.name
+  location            = azurerm_firewall.test.location
+  resource_group_name = azurerm_firewall.test.resource_group_name
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = "${azurerm_subnet.test.id}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 }
 `, template)
@@ -479,6 +417,10 @@ resource "azurerm_firewall" "import" {
 
 func testAccAzureRMFirewall_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -487,34 +429,34 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = "${azurerm_subnet.test.id}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 
   tags = {
@@ -527,6 +469,10 @@ resource "azurerm_firewall" "test" {
 
 func testAccAzureRMFirewall_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -535,34 +481,34 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = "${azurerm_subnet.test.id}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 
   tags = {
@@ -575,6 +521,10 @@ resource "azurerm_firewall" "test" {
 func testAccAzureRMFirewall_withZones(data acceptance.TestData, zones []string) string {
 	zoneString := strings.Join(zones, ",")
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -583,34 +533,34 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
   name                = "acctestfirewall%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = "${azurerm_subnet.test.id}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 
   zones = [%s]

@@ -85,6 +85,9 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 
 func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -96,9 +99,6 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string)
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Authorization: %s", expressRouteCircuitName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName, authorizationName)
 		if err != nil {
@@ -142,6 +142,10 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationDestroy(s *terraform.State)
 
 func testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -149,8 +153,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -170,8 +174,8 @@ resource "azurerm_express_route_circuit" "test" {
 
 resource "azurerm_express_route_circuit_authorization" "test" {
   name                       = "acctestauth%d"
-  express_route_circuit_name = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name = azurerm_express_route_circuit.test.name
+  resource_group_name        = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -182,15 +186,19 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImportConfig(data ac
 %s
 
 resource "azurerm_express_route_circuit_authorization" "import" {
-  name                       = "${azurerm_express_route_circuit_authorization.test.name}"
-  express_route_circuit_name = "${azurerm_express_route_circuit_authorization.test.express_route_circuit_name}"
-  resource_group_name        = "${azurerm_express_route_circuit_authorization.test.resource_group_name}"
+  name                       = azurerm_express_route_circuit_authorization.test.name
+  express_route_circuit_name = azurerm_express_route_circuit_authorization.test.express_route_circuit_name
+  resource_group_name        = azurerm_express_route_circuit_authorization.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -198,8 +206,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -219,14 +227,14 @@ resource "azurerm_express_route_circuit" "test" {
 
 resource "azurerm_express_route_circuit_authorization" "test1" {
   name                       = "acctestauth1%d"
-  express_route_circuit_name = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name = azurerm_express_route_circuit.test.name
+  resource_group_name        = azurerm_resource_group.test.name
 }
 
 resource "azurerm_express_route_circuit_authorization" "test2" {
   name                       = "acctestauth2%d"
-  express_route_circuit_name = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name = azurerm_express_route_circuit.test.name
+  resource_group_name        = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

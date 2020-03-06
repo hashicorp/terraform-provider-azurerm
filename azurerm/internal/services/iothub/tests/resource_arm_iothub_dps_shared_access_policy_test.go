@@ -91,110 +91,131 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *t
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
-  service_config  = true
+  service_config      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
-  registration_write = true
+  registration_write  = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
-  enrollment_read = true
+  enrollment_read     = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
+
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_dps_name     = azurerm_iothub_dps.test.name
   name                = "acctest"
-  enrollment_write = true
+  enrollment_write    = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -209,8 +230,6 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) reso
 		keyName := rs.Primary.Attributes["name"]
 		iothubDpsName := rs.Primary.Attributes["iothub_dps_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 
 		_, err = client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 		if err != nil {
@@ -245,7 +264,7 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy(s *terraform.State) erro
 
 		for _, sharedAccessPolicy := range *resp.Properties.AuthorizationPolicies {
 			if *sharedAccessPolicy.KeyName == keyName {
-				return fmt.Errorf("Bad: Shared Access Policy %s still exists on IoTHb DPS %s", keyName, iothubDpsName)
+				return fmt.Errorf("Bad: Shared Access Policy %s still exists on IoTHub DPS %s", keyName, iothubDpsName)
 			}
 		}
 	}

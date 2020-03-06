@@ -93,6 +93,9 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 
 func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -103,9 +106,6 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Logic App Workflow: %s", workflowName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
@@ -148,6 +148,10 @@ func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
 
 func testAccAzureRMLogicAppWorkflow_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -155,8 +159,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -167,15 +171,19 @@ func testAccAzureRMLogicAppWorkflow_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_logic_app_workflow" "import" {
-  name                = "${azurerm_logic_app_workflow.test.name}"
-  location            = "${azurerm_logic_app_workflow.test.location}"
-  resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
+  name                = azurerm_logic_app_workflow.test.name
+  location            = azurerm_logic_app_workflow.test.location
+  resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMLogicAppWorkflow_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -183,8 +191,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "Source" = "AcceptanceTests"

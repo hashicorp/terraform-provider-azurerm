@@ -14,6 +14,9 @@ import (
 
 func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -28,9 +31,6 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 		actionName := rs.Primary.Attributes["name"]
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
@@ -62,6 +62,9 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -76,9 +79,6 @@ func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestChe
 		triggerName := rs.Primary.Attributes["name"]
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {

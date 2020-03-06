@@ -70,6 +70,8 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 
 func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_property" {
 			continue
@@ -79,7 +81,6 @@ func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -95,6 +96,9 @@ func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -104,8 +108,6 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -124,6 +126,10 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 
 func testAccAzureRMAPIManagementProperty_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -131,8 +137,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -141,8 +147,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_property" "test" {
   name                = "acctestAMProperty-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "TestProperty%d"
   value               = "Test Value"
   tags                = ["tag1", "tag2"]
@@ -152,6 +158,10 @@ resource "azurerm_api_management_property" "test" {
 
 func testAccAzureRMAPIManagementProperty_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -159,8 +169,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -169,8 +179,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_property" "test" {
   name                = "acctestAMProperty-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "TestProperty2%d"
   value               = "Test Value2"
   secret              = true

@@ -105,6 +105,9 @@ func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
 
 func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -113,9 +116,6 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
 		if err != nil {
@@ -159,6 +159,10 @@ func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevTestLabSchedule_autoShutdownBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -166,23 +170,21 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctdtl-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_schedule" "test" {
   name                = "LabVmsShutdown"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lab_name            = azurerm_dev_test_lab.test.name
   daily_recurrence {
     time = "0100"
   }
   time_zone_id = "India Standard Time"
   task_type    = "LabVmsShutdownTask"
   notification_settings {
-
   }
 
   tags = {
@@ -194,6 +196,10 @@ resource "azurerm_dev_test_schedule" "test" {
 
 func testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -201,17 +207,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctdtl-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_schedule" "test" {
   name                = "LabVmsShutdown"
   status              = "Enabled"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lab_name            = azurerm_dev_test_lab.test.name
   daily_recurrence {
     time = "0900"
   }
@@ -226,12 +231,15 @@ resource "azurerm_dev_test_schedule" "test" {
     environment = "Production"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMDevTestLabSchedule_autoStartupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -239,16 +247,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctdtl-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_schedule" "test" {
   name                = "LabVmAutoStart"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lab_name            = azurerm_dev_test_lab.test.name
   weekly_recurrence {
     time      = "1100"
     week_days = ["Monday", "Tuesday"]
@@ -258,7 +265,6 @@ resource "azurerm_dev_test_schedule" "test" {
   task_type    = "LabVmsStartupTask"
 
   notification_settings {
-
   }
 
   tags = {
@@ -270,6 +276,10 @@ resource "azurerm_dev_test_schedule" "test" {
 
 func testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -277,16 +287,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctdtl-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_schedule" "test" {
   name                = "LabVmAutoStart"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lab_name            = azurerm_dev_test_lab.test.name
   weekly_recurrence {
     time      = "1000"
     week_days = ["Wednesday", "Thursday", "Friday"]
@@ -296,7 +305,6 @@ resource "azurerm_dev_test_schedule" "test" {
   task_type    = "LabVmsStartupTask"
 
   notification_settings {
-
   }
 
   status = "Enabled"
@@ -305,12 +313,15 @@ resource "azurerm_dev_test_schedule" "test" {
     environment = "Production"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMDevTestLabSchedule_concurrent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -318,16 +329,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctdtl-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_schedule" "test" {
   name                = "LabVmAutoStart"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lab_name            = azurerm_dev_test_lab.test.name
   weekly_recurrence {
     time      = "1100"
     week_days = ["Monday", "Tuesday"]
@@ -337,7 +347,6 @@ resource "azurerm_dev_test_schedule" "test" {
   task_type    = "LabVmsStartupTask"
 
   notification_settings {
-
   }
 
   tags = {
@@ -347,16 +356,15 @@ resource "azurerm_dev_test_schedule" "test" {
 
 resource "azurerm_dev_test_schedule" "test2" {
   name                = "LabVmsShutdown"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lab_name            = azurerm_dev_test_lab.test.name
   daily_recurrence {
     time = "0100"
   }
   time_zone_id = "India Standard Time"
   task_type    = "LabVmsShutdownTask"
   notification_settings {
-
   }
 
   tags = {

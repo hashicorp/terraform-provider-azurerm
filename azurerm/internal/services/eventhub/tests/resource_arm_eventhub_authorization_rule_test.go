@@ -149,6 +149,9 @@ func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error 
 
 func testCheckAzureRMEventHubAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -163,8 +166,6 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -180,6 +181,10 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(resourceName string) resour
 
 func testAccAzureRMEventHubAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -187,16 +192,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%[1]d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   partition_count   = 2
   message_retention = 1
@@ -204,9 +209,9 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_authorization_rule" "test" {
   name                = "acctest-%[1]d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   listen = %[3]t
   send   = %[4]t
@@ -221,13 +226,13 @@ func testAccAzureRMEventHubAuthorizationRule_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_eventhub_authorization_rule" "import" {
-  name                = "${azurerm_eventhub_authorization_rule.test.name}"
-  namespace_name      = "${azurerm_eventhub_authorization_rule.test.namespace_name}"
-  eventhub_name       = "${azurerm_eventhub_authorization_rule.test.eventhub_name}"
-  resource_group_name = "${azurerm_eventhub_authorization_rule.test.resource_group_name}"
-  listen              = "${azurerm_eventhub_authorization_rule.test.listen}"
-  send                = "${azurerm_eventhub_authorization_rule.test.send}"
-  manage              = "${azurerm_eventhub_authorization_rule.test.manage}"
+  name                = azurerm_eventhub_authorization_rule.test.name
+  namespace_name      = azurerm_eventhub_authorization_rule.test.namespace_name
+  eventhub_name       = azurerm_eventhub_authorization_rule.test.eventhub_name
+  resource_group_name = azurerm_eventhub_authorization_rule.test.resource_group_name
+  listen              = azurerm_eventhub_authorization_rule.test.listen
+  send                = azurerm_eventhub_authorization_rule.test.send
+  manage              = azurerm_eventhub_authorization_rule.test.manage
 }
 `, template)
 }

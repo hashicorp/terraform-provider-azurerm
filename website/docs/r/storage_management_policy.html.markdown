@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_management_policy"
-sidebar_current: "docs-azurerm-resource-storage-management-policy"
 description: |-
   Manages an Azure Storage Account Management Policy.
 ---
@@ -21,16 +20,16 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
-  location                 = "${azurerm_resource_group.example.location}"
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "example" {
-  storage_account_id = "${azurerm_storage_account.example.id}"
+  storage_account_id = azurerm_storage_account.example.id
 
   rule {
     name    = "rule1"
@@ -122,10 +121,19 @@ The following attributes are exported:
 
 * `id` - The ID of the Storage Account Management Policy.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Account Management Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Management Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Management Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Management Policy.
+
 ## Import
 
 Storage Account Management Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_management_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myaccountname/managementPoliices/default
+terraform import azurerm_storage_management_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myaccountname/managementPolicies/default
 ```

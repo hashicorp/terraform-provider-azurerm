@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription_rule"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-rule"
 description: |-
   Manages a ServiceBus Subscription Rule.
 ---
@@ -21,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -32,26 +31,26 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "example" {
   name                = "tfex_sevicebus_topic"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
   name                = "tfex_sevicebus_subscription"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  topic_name          = "${azurerm_servicebus_topic.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  topic_name          = azurerm_servicebus_topic.example.name
   max_delivery_count  = 1
 }
 
 resource "azurerm_servicebus_subscription_rule" "example" {
   name                = "tfex_sevicebus_rule"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  topic_name          = "${azurerm_servicebus_topic.example.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  topic_name          = azurerm_servicebus_topic.example.name
+  subscription_name   = azurerm_servicebus_subscription.example.name
   filter_type         = "SqlFilter"
   sql_filter          = "color = 'red'"
 }
@@ -67,8 +66,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -78,26 +77,26 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "example" {
   name                = "tfex_sevicebus_topic"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
   name                = "tfex_sevicebus_subscription"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  topic_name          = "${azurerm_servicebus_topic.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  topic_name          = azurerm_servicebus_topic.example.name
   max_delivery_count  = 1
 }
 
 resource "azurerm_servicebus_subscription_rule" "example" {
   name                = "tfex_sevicebus_rule"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  topic_name          = "${azurerm_servicebus_topic.example.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  topic_name          = azurerm_servicebus_topic.example.name
+  subscription_name   = azurerm_servicebus_subscription.example.name
   filter_type         = "CorrelationFilter"
 
   correlation_filter {
@@ -155,6 +154,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ServiceBus Subscription Rule ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Subscription Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Subscription Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Subscription Rule.
 
 ## Import
 

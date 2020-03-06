@@ -87,6 +87,9 @@ func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
 
 func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -95,9 +98,6 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -113,6 +113,9 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_firewall_rule" {
 			continue
@@ -121,9 +124,6 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -142,6 +142,9 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -151,9 +154,6 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -170,6 +170,10 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 
 func testAccAzureRMSqlFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -177,8 +181,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -186,8 +190,8 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_firewall_rule" "test" {
   name                = "acctestsqlserver%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "255.255.255.255"
 }
@@ -199,17 +203,21 @@ func testAccAzureRMSqlFirewallRule_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_sql_firewall_rule" "import" {
-  name                = "${azurerm_sql_firewall_rule.test.name}"
-  resource_group_name = "${azurerm_sql_firewall_rule.test.resource_group_name}"
-  server_name         = "${azurerm_sql_firewall_rule.test.server_name}"
-  start_ip_address    = "${azurerm_sql_firewall_rule.test.start_ip_address}"
-  end_ip_address      = "${azurerm_sql_firewall_rule.test.end_ip_address}"
+  name                = azurerm_sql_firewall_rule.test.name
+  resource_group_name = azurerm_sql_firewall_rule.test.resource_group_name
+  server_name         = azurerm_sql_firewall_rule.test.server_name
+  start_ip_address    = azurerm_sql_firewall_rule.test.start_ip_address
+  end_ip_address      = azurerm_sql_firewall_rule.test.end_ip_address
 }
 `, testAccAzureRMSqlFirewallRule_basic(data))
 }
 
 func testAccAzureRMSqlFirewallRule_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -217,8 +225,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -226,8 +234,8 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_sql_firewall_rule" "test" {
   name                = "acctestsqlserver%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
   start_ip_address    = "10.0.17.62"
   end_ip_address      = "10.0.17.62"
 }

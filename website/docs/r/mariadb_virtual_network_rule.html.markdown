@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_virtual_network_rule"
-sidebar_current: "docs-azurerm-resource-database-mariadb-virtual-network-rule"
 description: |-
   Manages a MariaDB Virtual Network Rule.
 ---
@@ -24,33 +23,28 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mariadb_server" "example" {
   name                         = "mariadb-server-1"
-  location                     = "${azurerm_resource_group.example.location}"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = azurerm_resource_group.example.location
+  resource_group_name          = azurerm_resource_group.example.name
   administrator_login          = "mariadbadminun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120
@@ -61,9 +55,9 @@ resource "azurerm_mariadb_server" "example" {
 
 resource "azurerm_mariadb_virtual_network_rule" "example" {
   name                = "mariadb-vnet-rule"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_mariadb_server.example.name}"
-  subnet_id           = "${azurerm_subnet.internal.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mariadb_server.example.name
+  subnet_id           = azurerm_subnet.internal.id
 }
 ```
 
@@ -91,6 +85,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the MariaDB Virtual Network Rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MariaDB Virtual Network Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the MariaDB Virtual Network Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Virtual Network Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MariaDB Virtual Network Rule.
 
 ## Import
 

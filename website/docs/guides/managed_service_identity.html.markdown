@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Authenticating via Managed Identity"
-sidebar_current: "docs-azurerm-guide-authentication-managed-service-identity"
 description: |-
   This guide will cover how to use managed identity for Azure resources as authentication for the Azure Provider.
 
@@ -52,15 +51,15 @@ resource "azurerm_virtual_machine" "example" {
   }
 }
 
-data "azurerm_builtin_role_definition" "contributor" {
+data "azurerm_role_definition" "contributor" {
   name = "Contributor"
 }
 
 resource "azurerm_role_assignment" "example" {
-  name               = "${azurerm_virtual_machine.example.name}"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${data.azurerm_subscription.subscription.id}${data.azurerm_builtin_role_definition.contributor.id}"
-  principal_id       = "${lookup(azurerm_virtual_machine.example.identity[0], "principal_id")}"
+  name               = azurerm_virtual_machine.example.name
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.subscription.id}${data.azurerm_role_definition.contributor.id}"
+  principal_id       = azurerm_virtual_machine.example.identity[0]["principal_id"]
 }
 ```
 
@@ -97,7 +96,6 @@ provider "azurerm" {
   version = "~> 1.23"
 
   use_msi = true
-
   #...
 }
 ```

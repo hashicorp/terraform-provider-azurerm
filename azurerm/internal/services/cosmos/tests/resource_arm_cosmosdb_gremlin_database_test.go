@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -145,37 +146,37 @@ func testCheckAzureRMCosmosGremlinDatabaseExists(resourceName string) resource.T
 
 func testAccAzureRMCosmosGremlinDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%[1]s
-	
-	resource "azurerm_cosmosdb_gremlin_database" "test" {
-		name                = "acctest-%[2]d"
-		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-		account_name        = "${azurerm_cosmosdb_account.test.name}"
-	  }
-	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(data), data.RandomInteger)
+%[1]s
+
+resource "azurerm_cosmosdb_gremlin_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger)
 }
 
 func testAccAzureRMCosmosDatabase_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+%s
 
-	resource "azurerm_cosmosdb_gremlin_database" "import" {
-		name                = "${azurerm_cosmosdb_database.test.name}"
-		resource_group_name = "${azurerm_cosmosdb_database.test.name"
-		account_name        = "${azurerm_cosmosdb_database.test.name}"
-	}
-	`, testAccAzureRMCosmosGremlinDatabase_basic(data))
+resource "azurerm_cosmosdb_gremlin_database" "import" {
+  name                = azurerm_cosmosdb_gremlin_database.test.name
+  resource_group_name = azurerm_cosmosdb_gremlin_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_gremlin_database.test.account_name
+}
+`, testAccAzureRMCosmosGremlinDatabase_basic(data))
 }
 
 func testAccAzureRMCosmosGremlinDatabase_complete(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
-	%[1]s
+%[1]s
 
-	resource "azurerm_cosmosdb_gremlin_database" "test" {
-		name                = "acctest-%[2]d"
-		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-		account_name        = "${azurerm_cosmosdb_account.test.name}"
-		throughput          = %[3]d
-	  }
-	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(data), data.RandomInteger, throughput)
+resource "azurerm_cosmosdb_gremlin_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  throughput          = %[3]d
+}
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableGremlin"}), data.RandomInteger, throughput)
 }

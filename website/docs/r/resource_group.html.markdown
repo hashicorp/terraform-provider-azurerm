@@ -2,7 +2,6 @@
 subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
-sidebar_current: "docs-azurerm-resource-resource-group"
 description: |-
     Manages a resource group on Azure.
 ---
@@ -40,7 +39,17 @@ The following arguments are supported:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource group ID.
+* `id` - The ID of the Resource Group.
+
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the Resource Group.
+* `update` - (Defaults to 90 minutes) Used when updating the Resource Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Resource Group.
 
 ## Import
 

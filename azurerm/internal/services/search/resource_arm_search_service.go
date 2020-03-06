@@ -12,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,6 @@ func resourceArmSearchService() *schema.Resource {
 		Read:   resourceArmSearchServiceRead,
 		Update: resourceArmSearchServiceCreateUpdate,
 		Delete: resourceArmSearchServiceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,6 +32,11 @@ func resourceArmSearchService() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SearchServiceID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -62,14 +66,13 @@ func resourceArmSearchService() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"partition_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtMost(12),
 			},
 
 			"primary_key": {
@@ -167,14 +170,12 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SearchServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["searchServices"]
 
-	resp, err := client.Get(ctx, resourceGroup, name, nil)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
@@ -185,8 +186,8 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error reading Search Service: %+v", err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -206,14 +207,14 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
-	adminKeysResp, err := adminKeysClient.Get(ctx, resourceGroup, name, nil)
+	adminKeysResp, err := adminKeysClient.Get(ctx, id.ResourceGroup, id.Name, nil)
 	if err == nil {
 		d.Set("primary_key", adminKeysResp.PrimaryKey)
 		d.Set("secondary_key", adminKeysResp.SecondaryKey)
 	}
 
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
-	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, resourceGroup, name, nil)
+	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, id.ResourceGroup, id.Name, nil)
 	if err == nil {
 		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Value))
 	}
@@ -226,21 +227,19 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SearchServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["searchServices"]
 
-	resp, err := client.Delete(ctx, resourceGroup, name, nil)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, nil)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Search Service %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Search Service %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

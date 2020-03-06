@@ -109,6 +109,9 @@ func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -121,9 +124,6 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image: %s", imageName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName)
 		if err != nil {
@@ -140,6 +140,10 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 
 func testAccAzureRMSharedImage_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -147,15 +151,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_shared_image" "test" {
   name                = "acctestimg%d"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
   identifier {
@@ -173,11 +177,11 @@ func testAccAzureRMSharedImage_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_shared_image" "import" {
-  name                = "${azurerm_shared_image.test.name}"
-  gallery_name        = "${azurerm_shared_image.test.gallery_name}"
-  resource_group_name = "${azurerm_shared_image.test.resource_group_name}"
-  location            = "${azurerm_shared_image.test.location}"
-  os_type             = "${azurerm_shared_image.test.os_type}"
+  name                = azurerm_shared_image.test.name
+  gallery_name        = azurerm_shared_image.test.gallery_name
+  resource_group_name = azurerm_shared_image.test.resource_group_name
+  location            = azurerm_shared_image.test.location
+  os_type             = azurerm_shared_image.test.os_type
 
   identifier {
     publisher = "AccTesPublisher%d"
@@ -190,6 +194,10 @@ resource "azurerm_shared_image" "import" {
 
 func testAccAzureRMSharedImage_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -197,15 +205,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_shared_image" "test" {
   name                  = "acctestimg%d"
-  gallery_name          = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  gallery_name          = azurerm_shared_image_gallery.test.name
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
   os_type               = "Linux"
   description           = "Wubba lubba dub dub"
   eula                  = "Do you agree there's infinite Rick's and Infinite Morty's?"

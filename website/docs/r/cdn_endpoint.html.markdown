@@ -2,7 +2,6 @@
 subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_endpoint"
-sidebar_current: "docs-azurerm-resource-cdn-endpoint"
 description: |-
   Manages a CDN Endpoint.
 
@@ -30,16 +29,16 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_cdn_profile" "example" {
   name                = "exampleCdnProfile"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "example" {
-  name                = "${random_id.server.hex}"
-  profile_name        = "${azurerm_cdn_profile.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = random_id.server.hex
+  profile_name        = azurerm_cdn_profile.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   origin {
     name      = "exampleCdnOrigin"
@@ -74,7 +73,7 @@ The following arguments are supported:
 
 * `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
-* `origin` - (Optional) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below.
+* `origin` - (Required) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below.
 
 * `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins. Defaults to the host name of the origin.
 
@@ -106,7 +105,16 @@ The `geo_filter` block supports:
 
 The following attributes are exported:
 
-* `id` - The CDN Endpoint ID.
+* `id` - The ID of the CDN Endpoint.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CDN Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CDN Endpoint.
 
 ## Import
 

@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
 )
 
 func TestAccAzureRMHealthCareService_basic(t *testing.T) {
@@ -76,24 +77,23 @@ func TestAccAzureRMHealthCareService_complete(t *testing.T) {
 
 func testCheckAzureRMHealthCareServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).HealthCare.HealthcareServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		healthcareServiceName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for healthcare service: %s", healthcareServiceName)
+		id, err := parse.HealthcareServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).HealthCare.HealthcareServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := client.Get(ctx, resourceGroup, healthcareServiceName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: Healthcare service %q (resource group: %q) does not exist", healthcareServiceName, resourceGroup)
+				return fmt.Errorf("Bad: Healthcare service %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on healthcareServiceClient: %+v", err)
@@ -112,10 +112,12 @@ func testCheckAzureRMHealthCareServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.HealthcareServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return nil
 		}
@@ -133,7 +135,12 @@ func testAccAzureRMHealthCareService_basic(data acceptance.TestData) string {
 	location := "westus2"
 
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-health-%d"
@@ -142,14 +149,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_healthcare_service" "test" {
   name                = "testacc%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   access_policy_object_ids = [
-    "${data.azurerm_client_config.current.service_principal_object_id}",
+    data.azurerm_client_config.current.object_id,
   ]
 }
-`, data.RandomInteger, location, data.RandomInteger/10) //name can only be 24 chars long
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
 }
 
 func testAccAzureRMHealthCareService_requiresImport(data acceptance.TestData) string {
@@ -163,7 +170,7 @@ resource "azurerm_healthcare_service" "import" {
   resource_group_name = azurerm_healthcare_service.test.resource_group_name
 
   access_policy_object_ids = [
-    "${data.azurerm_client_config.current.service_principal_object_id}",
+    "${data.azurerm_client_config.current.object_id}",
   ]
 }
 `, template)
@@ -174,7 +181,12 @@ func testAccAzureRMHealthCareService_complete(data acceptance.TestData) string {
 	location := "westus2"
 
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-health-%d"
@@ -183,8 +195,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_healthcare_service" "test" {
   name                = "testacc%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "production"
@@ -192,7 +204,7 @@ resource "azurerm_healthcare_service" "test" {
   }
 
   access_policy_object_ids = [
-    "${data.azurerm_client_config.current.service_principal_object_id}",
+    data.azurerm_client_config.current.object_id,
   ]
 
   authentication_configuration {
@@ -209,5 +221,5 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 }
-`, data.RandomInteger, location, data.RandomInteger/10) //name can only be 24 chars long
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
 }

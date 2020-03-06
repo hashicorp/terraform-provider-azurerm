@@ -197,6 +197,9 @@ func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
 
 func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.NamespacesClientPreview
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -208,9 +211,6 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.NamespacesClientPreview
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {
@@ -227,6 +227,10 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 
 func testAccAzureRMServiceBusNamespace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -234,8 +238,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -246,16 +250,20 @@ func testAccAzureRMServiceBusNamespace_requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_servicebus_namespace" "import" {
-  name                = "${azurerm_servicebus_namespace.test.name}"
-  location            = "${azurerm_servicebus_namespace.test.location}"
-  resource_group_name = "${azurerm_servicebus_namespace.test.resource_group_name}"
-  sku                 = "${azurerm_servicebus_namespace.test.sku}"
+  name                = azurerm_servicebus_namespace.test.name
+  location            = azurerm_servicebus_namespace.test.location
+  resource_group_name = azurerm_servicebus_namespace.test.resource_group_name
+  sku                 = azurerm_servicebus_namespace.test.sku
 }
 `, testAccAzureRMServiceBusNamespace_basic(data))
 }
 
 func testAccAzureRMServiceBusNamespaceNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -263,8 +271,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -272,6 +280,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -279,8 +291,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = 1
 }
@@ -289,6 +301,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_basicCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -296,8 +312,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
   capacity            = 1
 }
@@ -306,6 +322,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_premiumCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -313,8 +333,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = 0
 }
@@ -323,6 +343,10 @@ resource "azurerm_servicebus_namespace" "test" {
 
 func testAccAzureRMServiceBusNamespace_zoneRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -330,8 +354,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = 1
   zone_redundant      = true

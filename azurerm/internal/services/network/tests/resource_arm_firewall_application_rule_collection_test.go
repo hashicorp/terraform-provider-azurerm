@@ -383,6 +383,9 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateFirewallTags(t *testi
 
 func testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -393,8 +396,6 @@ func testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName string
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -418,6 +419,9 @@ func testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName string
 
 func testCheckAzureRMFirewallApplicationRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -427,8 +431,6 @@ func testCheckAzureRMFirewallApplicationRuleCollectionDoesNotExist(resourceName 
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -446,6 +448,9 @@ func testCheckAzureRMFirewallApplicationRuleCollectionDoesNotExist(resourceName 
 
 func testCheckAzureRMFirewallApplicationRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -456,8 +461,6 @@ func testCheckAzureRMFirewallApplicationRuleCollectionDisappears(resourceName st
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -492,8 +495,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_basic(data acceptance.TestD
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Allow"
 
@@ -523,9 +526,9 @@ func testAccAzureRMFirewallApplicationRuleCollection_requiresImport(data accepta
 %s
 
 resource "azurerm_firewall_application_rule_collection" "import" {
-  name                = "${azurerm_firewall_application_rule_collection.test.name}"
-  azure_firewall_name = "${azurerm_firewall_application_rule_collection.test.azure_firewall_name}"
-  resource_group_name = "${azurerm_firewall_application_rule_collection.test.resource_group_name}"
+  name                = azurerm_firewall_application_rule_collection.test.name
+  azure_firewall_name = azurerm_firewall_application_rule_collection.test.azure_firewall_name
+  resource_group_name = azurerm_firewall_application_rule_collection.test.resource_group_name
   priority            = 100
   action              = "Allow"
 
@@ -556,8 +559,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_updatedName(data acceptance
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Allow"
 
@@ -588,8 +591,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_multiple(data acceptance.Te
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Allow"
 
@@ -613,8 +616,8 @@ resource "azurerm_firewall_application_rule_collection" "test" {
 
 resource "azurerm_firewall_application_rule_collection" "test_add" {
   name                = "acctestarc_add"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 200
   action              = "Deny"
 
@@ -645,8 +648,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_multipleUpdate(data accepta
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 300
   action              = "Deny"
 
@@ -670,8 +673,8 @@ resource "azurerm_firewall_application_rule_collection" "test" {
 
 resource "azurerm_firewall_application_rule_collection" "test_add" {
   name                = "acctestarc_add"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 400
   action              = "Allow"
 
@@ -702,8 +705,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_multipleRules(data acceptan
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Allow"
 
@@ -751,8 +754,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_multipleProtocols(data acce
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Allow"
 
@@ -788,8 +791,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_multipleProtocolsUpdate(dat
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Allow"
 
@@ -825,8 +828,8 @@ func testAccAzureRMFirewallApplicationRuleCollection_updateFirewallTags(data acc
 
 resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Allow"
 

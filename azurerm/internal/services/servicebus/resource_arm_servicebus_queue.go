@@ -49,8 +49,6 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"location": azure.SchemaLocationDeprecated(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_delete_on_idle": {
@@ -119,20 +117,6 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional: true,
 			},
 
-			// TODO: remove this in 2.0
-			"enable_batched_operations": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure.",
-			},
-
-			// TODO: remove this in 2.0
-			"support_ordering": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure.",
-			},
-
 			"max_delivery_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -170,7 +154,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_queue", *existing.ID)
 		}
 	}
 

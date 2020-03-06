@@ -60,6 +60,9 @@ func TestAccAzureRMMySQLFirewallRule_requiresImport(t *testing.T) {
 
 func testCheckAzureRMMySQLFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -72,9 +75,6 @@ func testCheckAzureRMMySQLFirewallRuleExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Firewall Rule: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -117,6 +117,10 @@ func testCheckAzureRMMySQLFirewallRuleDestroy(s *terraform.State) error {
 
 func testAccAzureRMMySQLFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -124,15 +128,10 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -148,8 +147,8 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_firewall_rule" "test" {
   name                = "acctestfwrule-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "255.255.255.255"
 }
@@ -161,11 +160,11 @@ func testAccAzureRMMySQLFirewallRule_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_mysql_firewall_rule" "import" {
-  name                = "${azurerm_mysql_firewall_rule.test.name}"
-  resource_group_name = "${azurerm_mysql_firewall_rule.test.resource_group_name}"
-  server_name         = "${azurerm_mysql_firewall_rule.test.server_name}"
-  start_ip_address    = "${azurerm_mysql_firewall_rule.test.start_ip_address}"
-  end_ip_address      = "${azurerm_mysql_firewall_rule.test.end_ip_address}"
+  name                = azurerm_mysql_firewall_rule.test.name
+  resource_group_name = azurerm_mysql_firewall_rule.test.resource_group_name
+  server_name         = azurerm_mysql_firewall_rule.test.server_name
+  start_ip_address    = azurerm_mysql_firewall_rule.test.start_ip_address
+  end_ip_address      = azurerm_mysql_firewall_rule.test.end_ip_address
 }
 `, testAccAzureRMMySQLFirewallRule_basic(data))
 }

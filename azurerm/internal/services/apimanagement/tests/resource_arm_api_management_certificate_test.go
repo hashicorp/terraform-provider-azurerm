@@ -68,6 +68,8 @@ func TestAccAzureRMAPIManagementCertificate_requiresImport(t *testing.T) {
 
 func testCheckAzureRMAPIManagementCertificateDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.CertificatesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_certificate" {
 			continue
@@ -77,7 +79,6 @@ func testCheckAzureRMAPIManagementCertificateDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -93,6 +94,9 @@ func testCheckAzureRMAPIManagementCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.CertificatesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -102,8 +106,6 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.CertificatesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -118,6 +120,10 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 
 func testAccAzureRMAPIManagementCertificate_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -125,25 +131,21 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data                = "${filebase64("testdata/keyvaultcert.pfx")}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  data                = filebase64("testdata/keyvaultcert.pfx")
   password            = ""
 }
-`, data.RandomInteger, data.Locations, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMAPIManagementCertificate_requiresImport(data acceptance.TestData) string {
@@ -152,11 +154,11 @@ func testAccAzureRMAPIManagementCertificate_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_api_management_certificate" "import" {
-  name                = "${azurerm_api_management_certificate.test.name}"
-  api_management_name = "${azurerm_api_management_certificate.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_certificate.test.resource_group_name}"
-  data                = "${azurerm_api_management_certificate.test.data}"
-  password            = "${azurerm_api_management_certificate.test.password}"
+  name                = azurerm_api_management_certificate.test.name
+  api_management_name = azurerm_api_management_certificate.test.api_management_name
+  resource_group_name = azurerm_api_management_certificate.test.resource_group_name
+  data                = azurerm_api_management_certificate.test.data
+  password            = azurerm_api_management_certificate.test.password
 }
 `, template)
 }

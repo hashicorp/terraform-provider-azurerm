@@ -17,7 +17,6 @@ import (
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	config := testAccAzureRMStorageTable_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageTable_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageTableExists(data.ResourceName),
 				),
@@ -63,7 +62,6 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	config := testAccAzureRMStorageTable_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -71,7 +69,7 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageTable_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageTableExists("azurerm_storage_table.test"),
 					testAccARMStorageTableDisappears("azurerm_storage_table.test"),
@@ -110,6 +108,9 @@ func TestAccAzureRMStorageTable_acl(t *testing.T) {
 
 func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -117,9 +118,6 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -149,6 +147,9 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 
 func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -156,9 +157,6 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -191,6 +189,9 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_table" {
 			continue
@@ -198,9 +199,6 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -260,6 +258,10 @@ func TestValidateArmStorageTableName(t *testing.T) {
 
 func testAccAzureRMStorageTable_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -267,8 +269,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -279,8 +281,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -291,15 +292,18 @@ func testAccAzureRMStorageTable_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_storage_table" "import" {
-  name                 = "${azurerm_storage_table.test.name}"
-  resource_group_name  = "${azurerm_storage_table.test.resource_group_name}"
-  storage_account_name = "${azurerm_storage_table.test.storage_account_name}"
+  name                 = azurerm_storage_table.test.name
+  storage_account_name = azurerm_storage_table.test.storage_account_name
 }
 `, template)
 }
 
 func testAccAzureRMStorageTable_acl(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -307,8 +311,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -319,8 +323,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
 
@@ -336,6 +339,10 @@ resource "azurerm_storage_table" "test" {
 
 func testAccAzureRMStorageTable_aclUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -343,8 +350,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -355,8 +362,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   acl {
     id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"

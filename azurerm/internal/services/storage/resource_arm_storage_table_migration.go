@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -27,7 +26,7 @@ func ResourceStorageTableStateResourceV0V1() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: ValidateArmStorageAccountName,
 			},
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 			"acl": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -46,17 +45,17 @@ func ResourceStorageTableStateResourceV0V1() *schema.Resource {
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},

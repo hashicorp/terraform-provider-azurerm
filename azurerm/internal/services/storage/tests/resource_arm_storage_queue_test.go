@@ -74,6 +74,25 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageQueue_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageQueue_basicAzureADAuth(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageQueueExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -125,6 +144,9 @@ func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
 
 func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -132,9 +154,6 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -163,6 +182,9 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_queue" {
 			continue
@@ -170,9 +192,6 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -206,9 +225,20 @@ func testAccAzureRMStorageQueue_basic(data acceptance.TestData) string {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMStorageQueue_basicAzureADAuth(data acceptance.TestData) string {
+	template := testAccAzureRMStorageQueue_basic(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+}
+
+%s
+`, template)
 }
 
 func testAccAzureRMStorageQueue_requiresImport(data acceptance.TestData) string {
@@ -217,8 +247,8 @@ func testAccAzureRMStorageQueue_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_storage_queue" "import" {
-  name                 = "${azurerm_storage_queue.test.name}"
-  storage_account_name = "${azurerm_storage_queue.test.storage_account_name}"
+  name                 = azurerm_storage_queue.test.name
+  storage_account_name = azurerm_storage_queue.test.storage_account_name
 }
 `, template)
 }
@@ -230,7 +260,7 @@ func testAccAzureRMStorageQueue_metaData(data acceptance.TestData) string {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello = "world"
@@ -246,7 +276,7 @@ func testAccAzureRMStorageQueue_metaDataUpdated(data acceptance.TestData) string
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
     hello = "world"
@@ -258,6 +288,10 @@ resource "azurerm_storage_queue" "test" {
 
 func testAccAzureRMStorageQueue_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -265,8 +299,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -274,6 +308,5 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -10,7 +10,6 @@ import (
 
 func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
-	config := testAccDataSourceAzureRMNetworkSecurityGroupBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -18,7 +17,7 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMNetworkSecurityGroupBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
@@ -31,7 +30,6 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
-	config := testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -39,7 +37,7 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
@@ -61,7 +59,6 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 
 func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
-	config := testAccDataSourceAzureRMNetworkSecurityGroupTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +66,7 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMNetworkSecurityGroupTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
@@ -83,6 +80,10 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 
 func testAccDataSourceAzureRMNetworkSecurityGroupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -90,19 +91,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 data "azurerm_network_security_group" "test" {
-  name                = "${azurerm_network_security_group.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_network_security_group.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -110,8 +115,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   security_rule {
     name                       = "test123"
@@ -127,14 +132,18 @@ resource "azurerm_network_security_group" "test" {
 }
 
 data "azurerm_network_security_group" "test" {
-  name                = "${azurerm_network_security_group.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_network_security_group.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMNetworkSecurityGroupTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -142,8 +151,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"
@@ -151,8 +160,8 @@ resource "azurerm_network_security_group" "test" {
 }
 
 data "azurerm_network_security_group" "test" {
-  name                = "${azurerm_network_security_group.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_network_security_group.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

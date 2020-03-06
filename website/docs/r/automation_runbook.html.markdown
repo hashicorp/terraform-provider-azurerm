@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_runbook"
-sidebar_current: "docs-azurerm-resource-automation-runbook"
 description: |-
   Manages a Automation Runbook.
 ---
@@ -21,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -30,14 +29,14 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_runbook" "example" {
-  name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an example runbook"
-  runbook_type        = "PowerShellWorkflow"
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is an example runbook"
+  runbook_type            = "PowerShellWorkflow"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
@@ -55,8 +54,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -68,20 +67,20 @@ data "local_file" "example" {
 }
 
 resource "azurerm_automation_runbook" "example" {
-  name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an example runbook"
-  runbook_type        = "PowerShell"
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is an example runbook"
+  runbook_type            = "PowerShell"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 
-  content = "${data.local_file.example.content}"
+  content = data.local_file.example.content
 }
 ```
 
@@ -95,7 +94,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
+* `automation_account_name` - (Required) The name of the automation account in which the Runbook is created. Changing this forces a new resource to be created.
 
 * `runbook_type` - (Required) The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell` or `Script`.
 
@@ -124,6 +123,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Automation Runbook ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation Runbook.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Runbook.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Runbook.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation Runbook.
 
 ## Import
 

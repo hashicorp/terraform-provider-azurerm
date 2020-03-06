@@ -2,7 +2,6 @@
 subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_user_assigned_identity"
-sidebar_current: "docs-azurerm-resource-authorization-user-assigned-identity"
 description: |-
   Manages a new user assigned identity.
 ---
@@ -51,6 +50,15 @@ The following attributes are exported:
 * `principal_id` - Service Principal ID associated with the user assigned identity.
 
 * `client_id` - Client ID associated with the user assigned identity.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the User Assigned Identity.
+* `update` - (Defaults to 30 minutes) Used when updating the User Assigned Identity.
+* `read` - (Defaults to 5 minutes) Used when retrieving the User Assigned Identity.
+* `delete` - (Defaults to 30 minutes) Used when deleting the User Assigned Identity.
 
 ## Import
 

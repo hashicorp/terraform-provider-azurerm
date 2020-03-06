@@ -174,6 +174,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 
 func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesOrderClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_certificate_order" {
@@ -183,7 +184,6 @@ func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -201,6 +201,9 @@ func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error
 
 func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesOrderClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -213,8 +216,6 @@ func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for App Service Certificate Order: %s", appServiceName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesOrderClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -230,6 +231,10 @@ func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resou
 
 func testAccAzureRMAppServiceCertificateOrder_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -238,7 +243,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
 }
@@ -247,6 +252,10 @@ resource "azurerm_app_service_certificate_order" "test" {
 
 func testAccAzureRMAppServiceCertificateOrder_wildcard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -255,7 +264,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=*.example.com"
   product_type        = "WildCard"
 }
@@ -268,17 +277,21 @@ func testAccAzureRMAppServiceCertificateOrder_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_app_service_certificate_order" "import" {
-  name                = "${azurerm_app_service_certificate_order.test.name}"
-  location            = "${azurerm_app_service_certificate_order.test.location}"
-  resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
-  distinguished_name  = "${azurerm_app_service_certificate_order.test.distinguished_name}"
-  product_type        = "${azurerm_app_service_certificate_order.test.product_type}"
+  name                = azurerm_app_service_certificate_order.test.name
+  location            = azurerm_app_service_certificate_order.test.location
+  resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
+  distinguished_name  = azurerm_app_service_certificate_order.test.distinguished_name
+  product_type        = azurerm_app_service_certificate_order.test.product_type
 }
 `, template)
 }
 
 func testAccAzureRMAppServiceCertificateOrder_complete(data acceptance.TestData, keySize int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -287,7 +300,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
   auto_renew          = false

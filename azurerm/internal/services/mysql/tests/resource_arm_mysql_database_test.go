@@ -60,7 +60,6 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
-	config := testAccAzureRMMySQLDatabase_charsetUppercase(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -68,7 +67,7 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLDatabase_charsetUppercase(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
@@ -81,7 +80,6 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
-	config := testAccAzureRMMySQLDatabase_charsetMixedcase(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -89,7 +87,7 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLDatabase_charsetMixedcase(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
@@ -102,6 +100,9 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 
 func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -114,9 +115,6 @@ func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheck
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Database: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.DatabasesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -158,6 +156,10 @@ func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
 
 func testAccAzureRMMySQLDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -165,15 +167,10 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -189,8 +186,8 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_database" "test" {
   name                = "acctestdb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
@@ -202,17 +199,21 @@ func testAccAzureRMMySQLDatabase_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_mysql_database" "import" {
-  name                = "${azurerm_mysql_database.test.name}"
-  resource_group_name = "${azurerm_mysql_database.test.resource_group_name}"
-  server_name         = "${azurerm_mysql_database.test.server_name}"
-  charset             = "${azurerm_mysql_database.test.charset}"
-  collation           = "${azurerm_mysql_database.test.collation}"
+  name                = azurerm_mysql_database.test.name
+  resource_group_name = azurerm_mysql_database.test.resource_group_name
+  server_name         = azurerm_mysql_database.test.server_name
+  charset             = azurerm_mysql_database.test.charset
+  collation           = azurerm_mysql_database.test.collation
 }
 `, testAccAzureRMMySQLDatabase_basic(data))
 }
 
 func testAccAzureRMMySQLDatabase_charsetUppercase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -220,15 +221,10 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -244,8 +240,8 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_database" "test" {
   name                = "acctestdb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
   charset             = "UTF8"
   collation           = "utf8_unicode_ci"
 }
@@ -254,6 +250,10 @@ resource "azurerm_mysql_database" "test" {
 
 func testAccAzureRMMySQLDatabase_charsetMixedcase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -261,15 +261,10 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -285,8 +280,8 @@ resource "azurerm_mysql_server" "test" {
 
 resource "azurerm_mysql_database" "test" {
   name                = "acctestdb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_server.test.name
   charset             = "Utf8"
   collation           = "utf8_unicode_ci"
 }

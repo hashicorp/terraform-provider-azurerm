@@ -157,7 +157,7 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
+func TestAccAzureRMAvailabilitySet_unmanaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -166,10 +166,10 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAvailabilitySet_managed(data),
+				Config: testAccAzureRMAvailabilitySet_unmanaged(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -179,6 +179,9 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 
 func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -192,9 +195,6 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		vmss, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -211,6 +211,9 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 
 func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -223,8 +226,6 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Delete(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
@@ -237,6 +238,9 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_availability_set" {
 			continue
@@ -245,8 +249,6 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -264,6 +266,10 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 
 func testAccAzureRMAvailabilitySet_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -271,8 +277,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -283,15 +289,19 @@ func testAccAzureRMAvailabilitySet_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_availability_set" "import" {
-  name                = "${azurerm_availability_set.test.name}"
-  location            = "${azurerm_availability_set.test.location}"
-  resource_group_name = "${azurerm_availability_set.test.resource_group_name}"
+  name                = azurerm_availability_set.test.name
+  location            = azurerm_availability_set.test.location
+  resource_group_name = azurerm_availability_set.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMAvailabilitySet_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -299,8 +309,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -312,6 +322,10 @@ resource "azurerm_availability_set" "test" {
 
 func testAccAzureRMAvailabilitySet_withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -319,8 +333,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"
@@ -331,6 +345,10 @@ resource "azurerm_availability_set" "test" {
 
 func testAccAzureRMAvailabilitySet_withPPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -338,22 +356,26 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "acctestPPG-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_availability_set" "test" {
   name                = "acctestavset-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  proximity_placement_group_id = "${azurerm_proximity_placement_group.test.id}"
+  proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMAvailabilitySet_withDomainCounts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -361,16 +383,20 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                         = "acctestavset-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   platform_update_domain_count = 3
   platform_fault_domain_count  = 3
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAvailabilitySet_managed(data acceptance.TestData) string {
+func testAccAzureRMAvailabilitySet_unmanaged(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -378,11 +404,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                         = "acctestavset-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   platform_update_domain_count = 3
   platform_fault_domain_count  = 3
-  managed                      = true
+  managed                      = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

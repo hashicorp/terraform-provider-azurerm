@@ -188,6 +188,10 @@ func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
 
 func testAccAzureRMContainerRegistryWebhook_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -217,6 +221,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -250,6 +258,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -284,6 +296,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_actions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -313,6 +329,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_actionsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -343,6 +363,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_status(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -374,6 +398,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_statusUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -405,6 +433,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_serviceUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -434,6 +466,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_serviceUriUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -465,6 +501,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_scope(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -496,6 +536,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_scopeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -527,6 +571,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_customHeaders(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -560,6 +608,10 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testAccAzureRMContainerRegistryWebhook_customHeadersUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -594,6 +646,7 @@ resource "azurerm_container_registry_webhook" "test" {
 
 func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.WebhooksClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_registry_webhook" {
@@ -604,7 +657,6 @@ func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
 		registryName := rs.Primary.Attributes["registry_name"]
 		name := rs.Primary.Attributes["name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, name)
 
 		if err != nil {
@@ -622,6 +674,9 @@ func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
 
 func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.WebhooksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -639,8 +694,6 @@ func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no registry name found in state for Container Registry Webhook: %s", webhookName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.WebhooksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, webhookName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

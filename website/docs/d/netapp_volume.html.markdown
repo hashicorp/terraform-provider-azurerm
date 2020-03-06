@@ -2,9 +2,8 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_volume"
-sidebar_current: "docs-azurerm-datasource-netapp-volume"
 description: |-
-Gets information about an existing NetApp Volume
+  Gets information about an existing NetApp Volume
 ---
 
 # Data Source: azurerm_netapp_volume
@@ -22,7 +21,7 @@ data "azurerm_netapp_volume" "example" {
 }
 
 output "netapp_volume_id" {
-  value = "${data.azurerm_netapp_volume.example.id}"
+  value = data.azurerm_netapp_volume.example.id
 }
 ```
 
@@ -30,13 +29,13 @@ output "netapp_volume_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the NetApp Volume.
+* `name` - The name of the NetApp Volume.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the NetApp Volume exists.
+* `resource_group_name` - The Name of the Resource Group where the NetApp Volume exists.
 
-* `account_name` - (Required) The name of the NetApp account where the NetApp pool exists.
+* `account_name` - The name of the NetApp account where the NetApp pool exists.
 
-* `pool_name` - (Required) The name of the NetApp pool where the NetApp volume exists.
+* `pool_name` - The name of the NetApp pool where the NetApp volume exists.
 
 ## Attributes Reference
 
@@ -51,3 +50,9 @@ The following attributes are exported:
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.

@@ -55,7 +55,7 @@ func TestAccAzureRMSubnetNatGatewayAssociation_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSubnetNatGatewayAssociation_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError(""),
+				ExpectError: acceptance.RequiresImportError(data.ResourceType),
 			},
 		},
 	})
@@ -83,8 +83,38 @@ func TestAccAzureRMSubnetNatGatewayAssociation_deleted(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubnetNatGatewayAssociation_updateSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_nat_gateway_association", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		// intentional since this is a virtual resource
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnetNatGatewayAssociation_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetNatGatewayAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSubnetNatGatewayAssociation_updateSubnet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetNatGatewayAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMSubnetNatGatewayAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -98,8 +128,6 @@ func testCheckAzureRMSubnetNatGatewayAssociationExists(resourceName string) reso
 		resourceGroupName := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -124,6 +152,9 @@ func testCheckAzureRMSubnetNatGatewayAssociationExists(resourceName string) reso
 
 func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -137,8 +168,6 @@ func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) 
 		resourceGroup := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -168,6 +197,9 @@ func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) 
 
 func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -180,8 +212,6 @@ func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCh
 		resourceGroupName := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -204,37 +234,22 @@ func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCh
 }
 
 func testAccAzureRMSubnetNatGatewayAssociation_basic(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetNatGatewayAssociation_template(data)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-network-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
+%s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_nat_gateway" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
 resource "azurerm_subnet_nat_gateway_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  nat_gateway_id = "${azurerm_nat_gateway.test.id}"
+  subnet_id      = azurerm_subnet.test.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template)
 }
 
 func testAccAzureRMSubnetNatGatewayAssociation_requiresImport(data acceptance.TestData) string {
@@ -243,7 +258,55 @@ func testAccAzureRMSubnetNatGatewayAssociation_requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_subnet_nat_gateway_association" "import" {
-  subnet_id      = "${azurerm_subnet_nat_gateway_association.test.subnet_id}"
-  nat_gateway_id = "${azurerm_subnet_nat_gateway_association.test.nat_gateway_id}"
+  subnet_id      = azurerm_subnet_nat_gateway_association.test.subnet_id
+  nat_gateway_id = azurerm_subnet_nat_gateway_association.test.nat_gateway_id
+}
 `, template)
+}
+
+func testAccAzureRMSubnetNatGatewayAssociation_updateSubnet(data acceptance.TestData) string {
+	template := testAccAzureRMSubnetNatGatewayAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_subnet_nat_gateway_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+`, template)
+}
+
+func testAccAzureRMSubnetNatGatewayAssociation_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-network-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

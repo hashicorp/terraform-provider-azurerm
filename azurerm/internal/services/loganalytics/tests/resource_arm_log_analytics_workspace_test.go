@@ -148,6 +148,9 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 
 func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -159,9 +162,6 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: '%s'", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -177,6 +177,10 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 }
 func testAccAzureRMLogAnalyticsWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -184,8 +188,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -197,9 +201,9 @@ func testAccAzureRMLogAnalyticsWorkspace_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_log_analytics_workspace" "import" {
-  name                = "${azurerm_log_analytics_workspace.test.name}"
-  location            = "${azurerm_log_analytics_workspace.test.location}"
-  resource_group_name = "${azurerm_log_analytics_workspace.test.resource_group_name}"
+  name                = azurerm_log_analytics_workspace.test.name
+  location            = azurerm_log_analytics_workspace.test.location
+  resource_group_name = azurerm_log_analytics_workspace.test.resource_group_name
   sku                 = "PerGB2018"
 }
 `, template)
@@ -207,6 +211,10 @@ resource "azurerm_log_analytics_workspace" "import" {
 
 func testAccAzureRMLogAnalyticsWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -214,8 +222,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
 

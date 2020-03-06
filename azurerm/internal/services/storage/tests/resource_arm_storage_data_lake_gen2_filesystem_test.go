@@ -83,13 +83,13 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 
 func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
@@ -111,13 +111,13 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 }
 
 func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_data_lake_gen2_filesystem" {
 			continue
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
@@ -155,7 +155,7 @@ func testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(data acceptance.
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "import" {
   name               = azurerm_storage_data_lake_gen2_filesystem.test.name
-  storage_account_id = azurerm_storage_data_lake_gen2_filesystem.storage_account_id
+  storage_account_id = azurerm_storage_data_lake_gen2_filesystem.test.storage_account_id
 }
 `, template)
 }
@@ -178,6 +178,10 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
 
 func testAccAzureRMStorageDataLakeGen2FileSystem_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -185,8 +189,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"

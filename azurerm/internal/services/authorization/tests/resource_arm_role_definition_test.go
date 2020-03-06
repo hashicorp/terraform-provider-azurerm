@@ -172,6 +172,9 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 
 func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -180,8 +183,6 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
 		if err != nil {
@@ -196,6 +197,9 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_role_definition" {
 			continue
@@ -204,8 +208,6 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
 		if err != nil {
@@ -222,12 +224,17 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 
 func testAccAzureRMRoleDefinition_basic(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
 
   permissions {
     actions     = ["*"]
@@ -235,7 +242,7 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 `, id, data.RandomInteger)
@@ -246,9 +253,9 @@ func testAccAzureRMRoleDefinition_requiresImport(id string, data acceptance.Test
 %s
 
 resource "azurerm_role_definition" "import" {
-  role_definition_id = "${azurerm_role_definition.test.role_definition_id}"
-  name               = "${azurerm_role_definition.test.name}"
-  scope              = "${azurerm_role_definition.test.scope}"
+  role_definition_id = azurerm_role_definition.test.role_definition_id
+  name               = azurerm_role_definition.test.name
+  scope              = azurerm_role_definition.test.scope
 
   permissions {
     actions     = ["*"]
@@ -256,7 +263,7 @@ resource "azurerm_role_definition" "import" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 `, testAccAzureRMRoleDefinition_basic(id, data))
@@ -264,12 +271,17 @@ resource "azurerm_role_definition" "import" {
 
 func testAccAzureRMRoleDefinition_complete(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
   description        = "Acceptance Test Role Definition"
 
   permissions {
@@ -280,7 +292,7 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 `, id, data.RandomInteger)
@@ -288,12 +300,17 @@ resource "azurerm_role_definition" "test" {
 
 func testAccAzureRMRoleDefinition_updated(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "test" {
   role_definition_id = "%s"
   name               = "acctestrd-%d-updated"
-  scope              = "${data.azurerm_subscription.primary.id}"
+  scope              = data.azurerm_subscription.primary.id
   description        = "Acceptance Test Role Definition"
 
   permissions {
@@ -302,7 +319,7 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 `, id, data.RandomInteger)
@@ -310,11 +327,16 @@ resource "azurerm_role_definition" "test" {
 
 func testAccAzureRMRoleDefinition_emptyId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "test" {
   name  = "acctestrd-%d"
-  scope = "${data.azurerm_subscription.primary.id}"
+  scope = data.azurerm_subscription.primary.id
 
   permissions {
     actions     = ["*"]
@@ -322,7 +344,7 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 `, data.RandomInteger)
@@ -330,11 +352,16 @@ resource "azurerm_role_definition" "test" {
 
 func testAccAzureRMRoleDefinition_updateEmptyId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_subscription" "primary" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "test" {
   name  = "acctestrd-%d"
-  scope = "${data.azurerm_subscription.primary.id}"
+  scope = data.azurerm_subscription.primary.id
 
   permissions {
     actions     = ["*"]
@@ -342,7 +369,7 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
+    data.azurerm_subscription.primary.id,
   ]
 }
 `, data.RandomInteger)

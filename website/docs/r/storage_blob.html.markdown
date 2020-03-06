@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_blob"
-sidebar_current: "docs-azurerm-resource-storage-blob"
 description: |-
   Manages a Blob within a Storage Container.
 ---
@@ -21,24 +20,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplestoracc"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "content"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "example" {
   name                   = "my-awesome-content.zip"
-  resource_group_name    = "${azurerm_resource_group.example.name}"
-  storage_account_name   = "${azurerm_storage_account.example.name}"
-  storage_container_name = "${azurerm_storage_container.example.name}"
+  storage_account_name   = azurerm_storage_account.example.name
+  storage_container_name = azurerm_storage_container.example.name
   type                   = "Block"
   source                 = "some-local-file.zip"
 }
@@ -76,16 +74,21 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A map of custom blob metadata.
 
-* `attempts` - (Optional / **Deprecated**) The number of attempts to make per page or block when uploading. Defaults to `1`.
-
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage container.
-
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Blob.
 * `url` - The URL of the blob
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Blob.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Blob.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Blob.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Blob.
 
 ## Import
 

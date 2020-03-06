@@ -204,6 +204,9 @@ func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 }
 
 func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_snapshot" {
 			continue
@@ -212,8 +215,6 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -230,6 +231,9 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -241,9 +245,6 @@ func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc 
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Snapshot: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -260,6 +261,10 @@ func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc 
 
 func testAccAzureRMSnapshot_fromManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -267,8 +272,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestmd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -276,10 +281,10 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.test.id}"
+  source_uri          = azurerm_managed_disk.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -289,17 +294,21 @@ func testAccAzureRMSnapshot_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_snapshot" "import" {
-  name                = "${azurerm_snapshot.test.name}"
-  location            = "${azurerm_snapshot.test.location}"
-  resource_group_name = "${azurerm_snapshot.test.resource_group_name}"
-  create_option       = "${azurerm_snapshot.test.create_option}"
-  source_uri          = "${azurerm_snapshot.test.source_uri}"
+  name                = azurerm_snapshot.test.name
+  location            = azurerm_snapshot.test.location
+  resource_group_name = azurerm_snapshot.test.resource_group_name
+  create_option       = azurerm_snapshot.test.create_option
+  source_uri          = azurerm_snapshot.test.source_uri
 }
 `, testAccAzureRMSnapshot_fromManagedDisk(data))
 }
 
 func testAccAzureRMSnapshot_fromManagedDiskUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -307,8 +316,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestmd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -316,10 +325,10 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.test.id}"
+  source_uri          = azurerm_managed_disk.test.id
 
   tags = {
     Hello = "World"
@@ -330,6 +339,10 @@ resource "azurerm_snapshot" "test" {
 
 func testAccAzureRMSnapshot_encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -358,7 +371,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    object_id = "${data.azurerm_client_config.current.object_id}"
 
     key_permissions = [
       "create",
@@ -425,6 +438,10 @@ resource "azurerm_snapshot" "test" {
 
 func testAccAzureRMSnapshot_extendingManagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -432,8 +449,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestmd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -441,10 +458,10 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.test.id}"
+  source_uri          = azurerm_managed_disk.test.id
   disk_size_gb        = "20"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -452,6 +469,10 @@ resource "azurerm_snapshot" "test" {
 
 func testAccAzureRMSnapshot_fromExistingSnapshot(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -459,8 +480,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "original" {
   name                 = "acctestmd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -468,24 +489,28 @@ resource "azurerm_managed_disk" "original" {
 
 resource "azurerm_snapshot" "first" {
   name                = "acctestss1_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.original.id}"
+  source_uri          = azurerm_managed_disk.original.id
 }
 
 resource "azurerm_snapshot" "second" {
   name                = "acctestss2_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_resource_id  = "${azurerm_snapshot.first.id}"
+  source_resource_id  = azurerm_snapshot.first.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSnapshot_fromUnmanagedDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -494,33 +519,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctestnic-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -531,16 +556,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "acctestvm-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_F2"
   delete_os_disk_on_termination = true
 
@@ -575,11 +599,14 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Import"
   source_uri          = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-  depends_on          = ["azurerm_virtual_machine", "test"]
+  depends_on = [
+    azurerm_virtual_machine,
+    test,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

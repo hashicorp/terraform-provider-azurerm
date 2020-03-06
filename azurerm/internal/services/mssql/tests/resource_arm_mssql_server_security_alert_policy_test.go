@@ -74,6 +74,9 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
 
 func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("resource not found: %s", resourceName)
@@ -81,9 +84,6 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) r
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {
@@ -100,6 +100,9 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) r
 }
 
 func testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mssql_server_security_alert_policy" {
 			continue
@@ -107,9 +110,6 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy(s *terraform.State) e
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {
@@ -136,11 +136,11 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
   state                      = "Enabled"
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  disabled_alerts            = [
+  disabled_alerts = [
     "Sql_Injection",
     "Data_Exfiltration"
   ]
-  retention_days             = 20
+  retention_days = 20
 }
 `, server)
 }
@@ -152,17 +152,21 @@ func testAccAzureRMMssqlServerSecurityAlertPolicy_update(data acceptance.TestDat
 %s
 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
-  resource_group_name        = azurerm_resource_group.test.name
-  server_name                = azurerm_sql_server.test.name
-  state                      = "Enabled"
-  email_account_admins       = true
-  retention_days             = 30
+  resource_group_name  = azurerm_resource_group.test.name
+  server_name          = azurerm_sql_server.test.name
+  state                = "Enabled"
+  email_account_admins = true
+  retention_days       = 30
 }
 `, server)
 }
 
 func testAccAzureRMMssqlServerSecurityAlertPolicy_server(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%d"
   location = "%s"
@@ -170,8 +174,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -179,7 +183,7 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = "%s"
   account_tier             = "Standard"
   account_replication_type = "GRS"

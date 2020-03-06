@@ -101,6 +101,10 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *tes
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -129,6 +133,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -172,6 +180,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -212,6 +224,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -276,6 +292,9 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
 
 func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -288,9 +307,6 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) res
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory Managed Integration Runtime: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {

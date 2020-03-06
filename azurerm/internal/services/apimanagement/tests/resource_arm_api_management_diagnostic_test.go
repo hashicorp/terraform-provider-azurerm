@@ -56,6 +56,8 @@ func TestAccAzureRMApiManagementDiagnostic_requiresImport(t *testing.T) {
 
 func testCheckAzureRMApiManagementDiagnosticDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.DiagnosticClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_diagnostic" {
 			continue
@@ -65,7 +67,6 @@ func testCheckAzureRMApiManagementDiagnosticDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, identifier)
 
 		if err != nil {
@@ -81,6 +82,9 @@ func testCheckAzureRMApiManagementDiagnosticDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApiManagementDiagnosticExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.DiagnosticClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -90,8 +94,6 @@ func testCheckAzureRMApiManagementDiagnosticExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.DiagnosticClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, identifier)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -106,6 +108,10 @@ func testCheckAzureRMApiManagementDiagnosticExists(resourceName string) resource
 
 func testAccAzureRMApiManagementDiagnostic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -113,17 +119,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name = "Developer_1"
+  sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_diagnostic" "test" {
   identifier          = "applicationinsights"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   enabled             = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -135,10 +141,10 @@ func testAccAzureRMApiManagementDiagnostic_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_api_management_diagnostic" "import" {
-  identifier          = "${azurerm_api_management_diagnostic.test.identifier}"
-  resource_group_name = "${azurerm_api_management_diagnostic.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_diagnostic.test.api_management_name}"
-  enabled             = "${azurerm_api_management_diagnostic.test.enabled}"
+  identifier          = azurerm_api_management_diagnostic.test.identifier
+  resource_group_name = azurerm_api_management_diagnostic.test.resource_group_name
+  api_management_name = azurerm_api_management_diagnostic.test.api_management_name
+  enabled             = azurerm_api_management_diagnostic.test.enabled
 }
 `, template)
 }

@@ -24,7 +24,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -46,7 +45,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			), {
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
@@ -55,7 +53,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(data, "ReadWrite"),
@@ -65,8 +62,32 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskDiskEncryptionSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetDependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
 		},
 	})
 }
@@ -88,7 +109,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResizing(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// 60GB
@@ -99,7 +119,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResizing(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -121,7 +140,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskMultiple(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -143,7 +161,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_authPassword(data),
@@ -153,7 +170,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskRemove(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -176,7 +192,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// one disk
@@ -187,7 +202,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// two disks
@@ -198,7 +212,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// no disks
@@ -209,7 +222,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskScaling(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -231,7 +243,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeSt
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -253,7 +264,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeSt
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -275,7 +285,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypePr
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -298,7 +307,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUl
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -320,7 +328,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnab
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -422,6 +429,177 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, template, data.RandomInteger, caching)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
+	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
+	// TODO: switch back to default location
+	location := "westus2"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestkv%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  enabled_for_disk_encryption = true
+}
+
+resource "azurerm_key_vault_access_policy" "service-principal" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "update",
+  ]
+
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "examplekey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+`, data.RandomInteger, location, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetResource(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetDependencies(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestdes-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "disk-encryption" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "get",
+    "wrapkey",
+    "unwrapkey",
+  ]
+
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSet(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDisk_diskEncryptionSetResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  data_disk {
+    storage_account_type   = "Standard_LRS"
+    caching                = "ReadWrite"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+    disk_size_gb           = 10
+    lun                    = 10
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResize(data acceptance.TestData, diskSizeGb int) string {
@@ -591,6 +769,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+  zones               = [1, 2, 3]
 
   disable_password_authentication = false
 

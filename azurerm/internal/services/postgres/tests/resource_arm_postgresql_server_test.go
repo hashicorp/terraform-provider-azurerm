@@ -213,7 +213,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 				Config: testAccAzureRMPostgreSQLServer_basicNinePointSix(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "51200"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Disabled"),
@@ -224,7 +224,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 				Config: testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Enabled"),
@@ -246,10 +246,7 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 				Config: testAccAzureRMPostgreSQLServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "GeneralPurpose"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_32"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
@@ -258,10 +255,7 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 				Config: testAccAzureRMPostgreSQLServer_memoryOptimized(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "MO_Gen5_16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "MemoryOptimized"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "MO_Gen5_16"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "4194304"),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
@@ -274,6 +268,9 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 
 func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -285,9 +282,6 @@ func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCh
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Server: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -332,22 +326,21 @@ func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
 
 func testAccAzureRMPostgreSQLServer_basic(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -386,16 +379,11 @@ func testAccAzureRMPostgreSQLServer_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_postgresql_server" "import" {
-  name                = "${azurerm_postgresql_server.test.name}"
-  location            = "${azurerm_postgresql_server.test.location}"
-  resource_group_name = "${azurerm_postgresql_server.test.resource_group_name}"
+  name                = azurerm_postgresql_server.test.name
+  location            = azurerm_postgresql_server.test.location
+  resource_group_name = azurerm_postgresql_server.test.resource_group_name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -413,22 +401,21 @@ resource "azurerm_postgresql_server" "import" {
 
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -446,22 +433,21 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_4"
-    capacity = 4
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_4"
 
   storage_profile {
     storage_mb            = 640000
@@ -479,22 +465,21 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_basicMaxStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 947200
@@ -513,22 +498,21 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_generalPurpose(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "GP_Gen5_32"
-    capacity = 32
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_32"
 
   storage_profile {
     storage_mb            = 640000
@@ -546,22 +530,21 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_memoryOptimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-  sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
-    tier     = "MemoryOptimized"
-    family   = "Gen5"
-  }
+  sku_name = "MO_Gen5_16"
 
   storage_profile {
     storage_mb            = 4194304
@@ -579,22 +562,20 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
-    tier     = "MemoryOptimized"
-    family   = "Gen5"
-  }
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "MO_Gen5_16"
 
   storage_profile {
     storage_mb            = 4194304

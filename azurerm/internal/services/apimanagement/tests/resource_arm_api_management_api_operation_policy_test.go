@@ -91,6 +91,9 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_update(t *testing.T) {
 
 func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -102,8 +105,6 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -119,6 +120,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 
 func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_operation_policy" {
@@ -130,7 +132,6 @@ func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -153,10 +154,10 @@ func testAccAzureRMApiManagementAPIOperationPolicy_basic(data acceptance.TestDat
 %s
 
 resource "azurerm_api_management_api_operation_policy" "test" {
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  operation_id        = "${azurerm_api_management_api_operation.test.operation_id}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
   xml_link            = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
 }
 `, template)
@@ -168,11 +169,11 @@ func testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(data acceptanc
 %s
 
 resource "azurerm_api_management_api_operation_policy" "import" {
-  api_name            = "${azurerm_api_management_api_policy.test.api_name}"
-  api_management_name = "${azurerm_api_management_api_policy.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_api_policy.test.resource_group_name}"
-  operation_id        = "${azurerm_api_management_api_operation.test.operation_id}"
-  xml_link            = "${azurerm_api_management_api_policy.test.xml_link}"
+  api_name            = azurerm_api_management_api_policy.test.api_name
+  api_management_name = azurerm_api_management_api_policy.test.api_management_name
+  resource_group_name = azurerm_api_management_api_policy.test.resource_group_name
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
+  xml_link            = azurerm_api_management_api_policy.test.xml_link
 }
 `, template)
 }
@@ -183,10 +184,10 @@ func testAccAzureRMApiManagementAPIOperationPolicy_updated(data acceptance.TestD
 %s
 
 resource "azurerm_api_management_api_operation_policy" "test" {
-  api_name            = "${azurerm_api_management_api.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  operation_id        = "${azurerm_api_management_api_operation.test.operation_id}"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
 
   xml_content = <<XML
 <policies>
@@ -196,6 +197,7 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   </inbound>
 </policies>
 XML
+
 }
 `, template)
 }

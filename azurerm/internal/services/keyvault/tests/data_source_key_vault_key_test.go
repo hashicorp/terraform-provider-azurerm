@@ -33,8 +33,8 @@ func testAccDataSourceKeyVaultKey_complete(data acceptance.TestData) string {
 %s
 
 data "azurerm_key_vault_key" "test" {
-  name         = "${azurerm_key_vault_key.test.name}"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  name         = azurerm_key_vault_key.test.name
+  key_vault_id = azurerm_key_vault.test.id
 }
 `, t)
 }

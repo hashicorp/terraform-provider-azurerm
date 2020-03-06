@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -123,10 +124,10 @@ func testAccAzureRMCosmosDbTable_basic(data acceptance.TestData) string {
 
 resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 }
-`, testAccAzureRMCosmosDBAccount_capabilityTable(data), data.RandomInteger)
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger)
 }
 
 func testAccAzureRMCosmosDbTable_throughput(data acceptance.TestData, throughput int) string {
@@ -135,9 +136,9 @@ func testAccAzureRMCosmosDbTable_throughput(data acceptance.TestData, throughput
 
 resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  throughput		  = %[3]d
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  throughput          = %[3]d
 }
-`, testAccAzureRMCosmosDBAccount_capabilityTable(data), data.RandomInteger, throughput)
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, throughput)
 }

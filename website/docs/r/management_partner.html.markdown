@@ -2,7 +2,6 @@
 subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_partner"
-sidebar_current: "docs-azurerm-resource-management-partner"
 description: |-
   Manages a Management Partner.
 ---

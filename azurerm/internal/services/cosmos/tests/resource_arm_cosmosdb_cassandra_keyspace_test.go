@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -141,10 +142,10 @@ func testAccAzureRMCosmosDbCassandraKeyspace_basic(data acceptance.TestData) str
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 }
-`, testAccAzureRMCosmosDBAccount_capabilityCassandra(data), data.RandomInteger)
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger)
 }
 
 func testAccAzureRMCosmosDbCassandraKeyspace_throughput(data acceptance.TestData, throughput int) string {
@@ -153,10 +154,10 @@ func testAccAzureRMCosmosDbCassandraKeyspace_throughput(data acceptance.TestData
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
 
-  throughput          = %[3]d
+  throughput = %[3]d
 }
-`, testAccAzureRMCosmosDBAccount_capabilityCassandra(data), data.RandomInteger, throughput)
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger, throughput)
 }
