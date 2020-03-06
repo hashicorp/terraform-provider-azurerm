@@ -3,13 +3,11 @@ package storage
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -217,10 +215,10 @@ func resourceArmStorageAccount() *schema.Resource {
 						"default_action": {
 							Type:     schema.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.DefaultActionAllow),
-								string(storage.DefaultActionDeny),
-							}, false),
+							// ValidateFunc: validation.StringInSlice([]string{
+							// 	string(storage.DefaultActionAllow),
+							// 	string(storage.DefaultActionDeny),
+							// }, false),
 						},
 					},
 				},
@@ -1005,7 +1003,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
+	// endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1033,22 +1031,22 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resGroup, name, storage.Kerb)
-	if err != nil {
-		// the API returns a 200 with an inner error of a 409..
-		var hasWriteLock bool
-		var doesntHavePermissions bool
-		if e, ok := err.(azautorest.DetailedError); ok {
-			if status, ok := e.StatusCode.(int); ok {
-				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = status == http.StatusUnauthorized
-			}
-		}
+	// keys, err := client.ListKeys(ctx, resGroup, name, storage.Kerb)
+	// if err != nil {
+	// 	// the API returns a 200 with an inner error of a 409..
+	// 	var hasWriteLock bool
+	// 	var doesntHavePermissions bool
+	// 	if e, ok := err.(azautorest.DetailedError); ok {
+	// 		if status, ok := e.StatusCode.(int); ok {
+	// 			hasWriteLock = status == http.StatusConflict
+	// 			doesntHavePermissions = status == http.StatusUnauthorized
+	// 		}
+	// 	}
 
-		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resGroup, err)
-		}
-	}
+	// 	if !hasWriteLock && !doesntHavePermissions {
+	// 		return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resGroup, err)
+	// 	}
+	// }
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
@@ -1089,55 +1087,55 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccountKeys := *accessKeys
-			if len(storageAccountKeys) > 0 {
-				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, endpointSuffix)
-				d.Set("primary_connection_string", pcs)
-			}
+		// if accessKeys := keys.Keys; accessKeys != nil {
+		// 	storageAccountKeys := *accessKeys
+		// 	if len(storageAccountKeys) > 0 {
+		// 		pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, endpointSuffix)
+		// 		d.Set("primary_connection_string", pcs)
+		// 	}
 
-			if len(storageAccountKeys) > 1 {
-				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, endpointSuffix)
-				d.Set("secondary_connection_string", scs)
-			}
-		}
+		// 	if len(storageAccountKeys) > 1 {
+		// 		scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, endpointSuffix)
+		// 		d.Set("secondary_connection_string", scs)
+		// 	}
+		// }
 
 		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccountKeys := *accessKeys
-			var primaryBlobConnectStr string
-			if v := props.PrimaryEndpoints; v != nil {
-				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[0].Value)
-			}
-			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
-		}
+		// if accessKeys := keys.Keys; accessKeys != nil {
+		// 	storageAccountKeys := *accessKeys
+		// 	var primaryBlobConnectStr string
+		// 	if v := props.PrimaryEndpoints; v != nil {
+		// 		primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[0].Value)
+		// 	}
+		// 	d.Set("primary_blob_connection_string", primaryBlobConnectStr)
+		// }
 
 		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccountKeys := *accessKeys
-			var secondaryBlobConnectStr string
-			if v := props.SecondaryEndpoints; v != nil {
-				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[1].Value)
-			}
-			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
-		}
+		// if accessKeys := keys.Keys; accessKeys != nil {
+		// 	storageAccountKeys := *accessKeys
+		// 	var secondaryBlobConnectStr string
+		// 	if v := props.SecondaryEndpoints; v != nil {
+		// 		secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[1].Value)
+		// 	}
+		// 	d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
+		// }
 
 		if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkRuleSet)); err != nil {
 			return fmt.Errorf("Error setting `network_rules`: %+v", err)
 		}
 	}
 
-	if accessKeys := keys.Keys; accessKeys != nil {
-		storageAccountKeys := *accessKeys
-		d.Set("primary_access_key", storageAccountKeys[0].Value)
-		d.Set("secondary_access_key", storageAccountKeys[1].Value)
-	}
+	// if accessKeys := keys.Keys; accessKeys != nil {
+	// 	storageAccountKeys := *accessKeys
+	// 	d.Set("primary_access_key", storageAccountKeys[0].Value)
+	// 	d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	// }
 
 	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
