@@ -130,7 +130,10 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	case parse.RemediationScopeAtManagementGroup:
 		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.(parse.RemediationScopeAtManagementGroup).ManagementGroupId, name, parameters)
 	default:
-		return fmt.Errorf("Error creating Policy Remediation: Invalid scope type")
+		err = fmt.Errorf("Invalid scope type")
+	}
+	if err != nil {
+		return fmt.Errorf("Error creating Policy Remediation: %+v", err)
 	}
 
 	resp, err := RemediationGetAtScope(ctx, client, name, scope)
@@ -201,7 +204,10 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 	case parse.RemediationScopeAtManagementGroup:
 		_, err = client.DeleteAtManagementGroup(ctx, scope.(parse.RemediationScopeAtManagementGroup).ManagementGroupId, id.Name)
 	default:
-		return fmt.Errorf("Error deleting Policy Remediation: Invalid scope type")
+		err = fmt.Errorf("Invalid scope type")
+	}
+	if err != nil {
+		return fmt.Errorf("Error creating Policy Remediation: %+v", err)
 	}
 
 	return nil
