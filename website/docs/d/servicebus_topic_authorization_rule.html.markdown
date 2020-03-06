@@ -14,8 +14,10 @@ Use this data source to access information about a ServiceBus Topic Authorizatio
 
 ```hcl
 data "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "example-tfex_servicebus_topic"
+  name                = "example-tfex_name"
   resource_group_name = "example-resources"
+  namespace_name      = "example-namespace"
+  topic_name          = "example-servicebus_topic"
 }
 
 output "servicebus_authorization_rule_id" {
@@ -32,15 +34,15 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group in which the ServiceBus Namespace exists.
 
+* `namespace_name` - The name of the ServiceBus Namespace.
+
+* `topic_name` - The name of the ServiceBus Topic.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ServiceBus Topic ID.
-
-* `namespace_name` - The name of the ServiceBus Namespace.
-
-* `topic_name` - The name of the ServiceBus Topic.
 
 * `primary_key` - The Primary Key for the ServiceBus Topic authorization Rule.
 
