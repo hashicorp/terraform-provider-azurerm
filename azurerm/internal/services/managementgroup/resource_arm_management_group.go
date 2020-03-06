@@ -44,7 +44,7 @@ func resourceArmManagementGroup() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: parse.ValidateManagementGroupName,
+				ValidateFunc: validate.ManagementGroupName,
 			},
 
 			"display_name": {
@@ -176,13 +176,13 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseManagementGroupId(d.Id())
+	id, err := parse.ManagementGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	recurse := true
-	resp, err := client.Get(ctx, id.groupId, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := client.Get(ctx, id.GroupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
@@ -193,7 +193,7 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
 	}
 
-	d.Set("group_id", id.groupId)
+	d.Set("group_id", id.GroupId)
 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
@@ -224,20 +224,20 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseManagementGroupId(d.Id())
+	id, err := parse.ManagementGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	recurse := true
-	group, err := client.Get(ctx, id.groupId, "children", &recurse, "", managementGroupCacheControl)
+	group, err := client.Get(ctx, id.GroupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasNotFound(group.Response) {
-			log.Printf("[DEBUG] Management Group %q doesn't exist in Azure - nothing to do!", id.groupId)
+			log.Printf("[DEBUG] Management Group %q doesn't exist in Azure - nothing to do!", id.GroupId)
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Management Group %q: %+v", id.groupId, err)
+		return fmt.Errorf("Error retrieving Management Group %q: %+v", id.GroupId, err)
 	}
 
 	// before deleting a management group, return any subscriptions to the root management group
@@ -249,26 +249,26 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 				}
 
 				subscriptionId := *v.ID
-				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.groupId)
+				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.GroupId)
 				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
-				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.groupId, subscriptionId, managementGroupCacheControl)
+				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.GroupId, subscriptionId, managementGroupCacheControl)
 				if err2 != nil {
 					if !response.WasNotFound(deleteResp.Response) {
-						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, id.groupId, err2)
+						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, id.GroupId, err2)
 					}
 				}
 			}
 		}
 	}
 
-	resp, err := client.Delete(ctx, id.groupId, managementGroupCacheControl)
+	resp, err := client.Delete(ctx, id.GroupId, managementGroupCacheControl)
 	if err != nil {
-		return fmt.Errorf("Error deleting Management Group %q: %+v", id.groupId, err)
+		return fmt.Errorf("Error deleting Management Group %q: %+v", id.GroupId, err)
 	}
 
 	err = resp.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Management Group %q: %+v", id.groupId, err)
+		return fmt.Errorf("Error waiting for the deletion of Management Group %q: %+v", id.GroupId, err)
 	}
 
 	return nil
@@ -310,31 +310,13 @@ func flattenArmManagementGroupSubscriptionIds(input *[]managementgroups.ChildInf
 	return subscriptionIds, nil
 }
 
-type managementGroupId struct {
-	groupId string
-}
-
 type subscriptionId struct {
 	subscriptionId string
-}
-
-func parseManagementGroupId(input string) (*managementGroupId, error) {
-	// /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000
-	segments := strings.Split(input, "/")
-	if len(segments) != 5 {
-		return nil, fmt.Errorf("Expected there to be 5 segments but got %d", len(segments))
-	}
-
-	id := managementGroupId{
-		groupId: segments[4],
-	}
-	return &id, nil
 }
 
 func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
 	// this is either:
 	// /subscriptions/00000000-0000-0000-0000-000000000000
-	// /providers/Microsoft.Management/managementGroups/e4115b99-6be7-4153-a73f-5ff5e778ce28
 
 	// we skip out the managementGroup ID's
 	if strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/") {

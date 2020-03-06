@@ -3,10 +3,11 @@ package parse
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 type ManagementGroupId struct {
-	GroupID string
+	GroupId string
 }
 
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
@@ -20,29 +21,18 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Unable to parse Management Group ID %q: expected id to have two segments after splitting", input)
 	}
+
 	groupID := segments[1]
-	_, errs := ValidateManagementGroupName(groupID, "")
-	if len(errs) != 0 {
-		return nil, fmt.Errorf("Unable to parse Management Group ID %q: %+v", input, errs)
+	if groupID == "" {
+		return nil, fmt.Errorf("unable to parse Management Group ID %q: management group name is empty", input)
+	}
+	if segments := strings.Split(groupID, "/"); len(segments) != 1 {
+		return nil, fmt.Errorf("unable to parse Management Group ID %q: ID has extra segments", input)
 	}
 
 	id := ManagementGroupId{
-		GroupID: groupID,
+		GroupId: groupID,
 	}
 
 	return &id, nil
-}
-
-func ValidateManagementGroupName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	// portal says: The name can only be an ASCII letter, digit, -, _, (, ), . and have a maximum length constraint of 90
-	if matched := regexp.MustCompile(`^[a-zA-Z0-9_().-]{1,90}$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%s can only consist of ASCII letters, digits, -, _, (, ), . , and cannot exceed the maximum length of 90", k))
-	}
-	return
 }
