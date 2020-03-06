@@ -32,7 +32,7 @@ func TestAccAzureRMSpatialAnchorsAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSpatialAnchorsAccount_tags(t *testing.T) {
+func TestAccAzureRMSpatialAnchorsAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,11 +41,11 @@ func TestAccAzureRMSpatialAnchorsAccount_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSpatialAnchorsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSpatialAnchorsAccount_tags(data),
+				Config: testAccAzureRMSpatialAnchorsAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSpatialAnchorsAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
 				),
 			},
 			data.ImportStep(),
@@ -116,36 +116,36 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-mr-%d"
   location = "%s"
 }
 
 resource "azurerm_spatial_anchors_account" "test" {
-  name                = "acctest_saa%d"
+  name                = "accTEst_saa%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSpatialAnchorsAccount_tags(data acceptance.TestData) string {
+func testAccAzureRMSpatialAnchorsAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-mr-%d"
   location = "%s"
 }
 
 resource "azurerm_spatial_anchors_account" "test" {
-  name                = "acctestdf%d"
+  name                = "acCTestdf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    environment = "production"
+    Environment = "Production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
