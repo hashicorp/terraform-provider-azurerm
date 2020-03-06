@@ -21,9 +21,8 @@ import (
 
 func resourceArmSpatialAnchorsAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSpatialAnchorsAccountCreateUpdate,
+		Create: resourceArmSpatialAnchorsAccountCreate,
 		Read:   resourceArmSpatialAnchorsAccountRead,
-		Update: resourceArmSpatialAnchorsAccountCreateUpdate,
 		Delete: resourceArmSpatialAnchorsAccountDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SpatialAnchorsAccountID(id)
@@ -52,12 +51,12 @@ func resourceArmSpatialAnchorsAccount() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tags.Schema(),
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }
 
-func resourceArmSpatialAnchorsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSpatialAnchorsAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

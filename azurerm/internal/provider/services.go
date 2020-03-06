@@ -35,6 +35,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
@@ -100,6 +101,7 @@ func SupportedServices() []common.ServiceRegistration {
 		maps.Registration{},
 		mariadb.Registration{},
 		media.Registration{},
+		mixedreality.Registration{},
 		monitor.Registration{},
 		msi.Registration{},
 		mssql.Registration{},

@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccAzureRMSpatialAnchorsAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -32,8 +32,8 @@ func TestAccAzureRMSpatialAnchorsAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSpatialAnchorsAccount_tagsUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+func TestAccAzureRMSpatialAnchorsAccount_tags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,15 +46,6 @@ func TestAccAzureRMSpatialAnchorsAccount_tagsUpdated(t *testing.T) {
 					testCheckAzureRMSpatialAnchorsAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
-				),
-			},
-			{
-				Config: testAccAzureRMSpatialAnchorsAccount_tagsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpatialAnchorsAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.updated", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -155,30 +146,6 @@ resource "azurerm_spatial_anchors_account" "test" {
 
   tags = {
     environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMSpatialAnchorsAccount_tagsUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_spatial_anchors_account" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    environment = "production"
-    updated     = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
