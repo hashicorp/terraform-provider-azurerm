@@ -137,7 +137,7 @@ func resourceArmNotificationHub() *schema.Resource {
 
 			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
 			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tags.Schema(),
+			// "tags": tags.Schema(),
 		},
 	}
 }

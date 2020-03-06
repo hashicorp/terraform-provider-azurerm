@@ -8,9 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -64,13 +64,13 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 			"not_before_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.RFC3339Time,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"expiration_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.RFC3339Time,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"version": {
@@ -124,13 +124,13 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
-		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		notBeforeUnixTime := date.UnixTime(notBeforeDate)
 		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
-		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		expirationUnixTime := date.UnixTime(expirationDate)
 		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
@@ -190,13 +190,13 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	secretAttributes := &keyvault.SecretAttributes{}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
-		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		notBeforeUnixTime := date.UnixTime(notBeforeDate)
 		secretAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
-		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		expirationUnixTime := date.UnixTime(expirationDate)
 		secretAttributes.Expires = &expirationUnixTime
 	}

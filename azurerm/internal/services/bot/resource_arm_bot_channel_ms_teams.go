@@ -50,7 +50,7 @@ func resourceArmBotChannelMsTeams() *schema.Resource {
 			"calling_web_hook": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ValidateBotMSTeamsCallingWebHook(),
+				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},
 
 			"enable_calling": {

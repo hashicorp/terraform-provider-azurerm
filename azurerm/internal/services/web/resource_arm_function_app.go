@@ -221,7 +221,7 @@ func resourceArmFunctionApp() *schema.Resource {
 									"subnet_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},

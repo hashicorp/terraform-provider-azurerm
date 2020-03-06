@@ -92,7 +92,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then delete it so we can use the vhd to test import
+				// need to create a vm and then delete it so we can use the vhd to test import
 				Config:             testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Destroy:            false,
 				ExpectNonEmptyPlan: true,
