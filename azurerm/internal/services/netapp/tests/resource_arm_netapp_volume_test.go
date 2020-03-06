@@ -95,6 +95,8 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -116,6 +118,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -125,6 +128,8 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -134,6 +139,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -366,6 +372,10 @@ resource "azurerm_netapp_volume" "test" {
     unix_read_only  = true
     unix_read_write = false
   }
+
+  tags = {
+    "FoO" = "BaR"
+  }
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -436,6 +446,10 @@ resource "azurerm_netapp_volume" "test" {
     protocols_enabled = ["NFSv3"]
     unix_read_only    = false
     unix_read_write   = true
+  }
+
+  tags = {
+    "FoO" = "BaR"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
