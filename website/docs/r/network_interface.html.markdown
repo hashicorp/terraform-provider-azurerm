@@ -3,49 +3,45 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
 description: |-
-  Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
+  Manages a Network Interface.
 
 ---
 
 # azurerm_network_interface
 
-Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
+Manages a Network Interface.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "example" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "example-network"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "testsubnet"
+  name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "example" {
-  name                = "acceptanceTestNetworkInterface1"
+  name                = "example-nic"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
-    name                          = "testconfiguration1"
+    name                          = "internal"
     subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
-  }
-
-  tags = {
-    environment = "staging"
   }
 }
 ```
@@ -54,70 +50,79 @@ resource "azurerm_network_interface" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network interface. Changing this forces a new resource to be created.
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the network interface. Changing this forces a new resource to be created.
+* `location` - (Required) The location where the Network Interface should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the network interface is created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created.
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the network interface.
+* `resource_group_name` - (Required) The name of the Resource Group in which to create the Network Interface. Changing this forces a new resource to be created.
 
-* `internal_dns_name_label` - (Optional) Relative DNS name for this NIC used for internal communications between VMs in the same VNet
+---
 
-* `enable_ip_forwarding` - (Optional) Enables IP Forwarding on the NIC. Defaults to `false`.
+* `dns_servers` - (Optional) A list of IP Addresses defining the DNS Servers which should be used for this Network Interface.
 
-* `enable_accelerated_networking` - (Optional) Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Refer to [Create a Virtual Machine with Accelerated Networking](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli). Defaults to `false`.
+-> **Note:** Configuring DNS Servers on the Network Interface will override the DNS Servers defined on the Virtual Network.
 
-~> **NOTE:** when using Accelerated Networking in an Availability Set - the Availability Set must be deployed on an Accelerated Networking enabled cluster.
+* `enable_ip_forwarding` - (Optional) Should IP Forwarding be enabled? Defaults to `false`.
 
-* `dns_servers` - (Optional) List of DNS servers IP addresses to use for this NIC, overrides the VNet-level server list
+* `enable_accelerated_networking` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.
 
-* `ip_configuration` - (Required) One or more `ip_configuration` associated with this NIC as documented below.
+-> **Note:** Only certain Virtual Machine sizes are supported for Accelerated Networking - [more information can be found in this document](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli).
+
+-> **Note:** To use Accelerated Networking in an Availability Set, the Availability Set must be deployed onto an Accelerated Networking enabled cluster.
+
+* `internal_dns_name_label` - (Optional) The (relative) DNS Name used for internal communications between Virtual Machines in the same Virtual Network.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `ip_configuration` block supports:
+---
 
-* `name` - (Required) User-defined name of the IP.
+The `ip_configuration` block supports the following:
 
-* `subnet_id` - (Optional) Reference to a subnet in which this NIC has been created. Required when `private_ip_address_version` is IPv4.
+* `name` - (Required) A name used for this IP Configuration.
 
-* `private_ip_address` - (Optional) Static IP Address.
+* `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 
-* `private_ip_address_allocation` - (Required) Defines how a private IP address is assigned. Options are Static or Dynamic.
+-> **Note:** This is required when `private_ip_address_version` is set to `IPv4`.
 
 * `private_ip_address_version` - (Optional) The IP Version to use. Possible values are `IPv4` or `IPv6`. Defaults to `IPv4`.
 
+* `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
+
+~> **Note:** Azure does not assign a Dynamic IP Address until the Network Interface is attached to a running Virtual Machine (or other resource)
+
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
-* `application_gateway_backend_address_pools_ids` - (Optional / **Deprecated**) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
+* `primary` - (Optional) Is this the Primary IP Configuration? Must be `true` for the first `ip_configuration` when multiple are specified. Defaults to `false`.
 
--> **NOTE:** At this time Network Interface <-> Application Gateway Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+When `private_ip_address_allocation` is set to `Static` the following fields can be configured:
 
-* `load_balancer_backend_address_pools_ids` - (Optional / **Deprecated**) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
+* `private_ip_address` - (Optional) The Static IP Address which should be used.
 
--> **NOTE:** At this time Network Interface <-> Load Balancer Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
 
-* `load_balancer_inbound_nat_rules_ids` - (Optional / **Deprecated**) List of Load Balancer Inbound Nat Rules IDs involving this NIC
-
--> **NOTE:** At this time Network Interface <-> Load Balancer Inbound NAT Rule associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_nat_rule_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
-
-* `application_security_group_ids` - (Optional / **Deprecated**) List of Application Security Group IDs which should be attached to this NIC
-
--> **NOTE:** At this time Network Interface <-> Application Security Group associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_network_interface_application_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
-
-* `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
+* `subnet_id` - (Required) The ID of the Subnet where this Network Interface should be located in.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
+* `applied_dns_servers` - If the Virtual Machine using this Network Interface is part of an Availability Set, then this list will have the union of all DNS servers from all Network Interfaces that are part of the Availability Set.
+
 * `id` - The ID of the Network Interface.
-* `mac_address` - The media access control (MAC) address of the network interface.
+
+* `mac_address` - The Media Access Control (MAC) Address of the Network Interface.
+
 * `private_ip_address` - The first private IP address of the network interface.
+
+~> **Note:** If a `Dynamic` allocation method is used Azure will not allocate an IP Address until the Network Interface is attached to a running resource (such as a Virtual Machine).
+
 * `private_ip_addresses` - The private IP addresses of the network interface.
-* `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
-* `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
+
+~> **Note:** If a `Dynamic` allocation method is used Azure will not allocate an IP Address until the Network Interface is attached to a running resource (such as a Virtual Machine).
+
+* `virtual_machine_id` - The ID of the Virtual Machine which this Network Interface is connected to.
 
 ## Timeouts
 

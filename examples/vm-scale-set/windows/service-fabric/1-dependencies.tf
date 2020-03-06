@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 locals {
   vmss_name  = "${var.prefix}-vmss"
   vmss_count = 3

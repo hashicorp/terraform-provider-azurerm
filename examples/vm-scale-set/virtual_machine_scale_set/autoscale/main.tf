@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 locals {
   instance_count = 2
 }
@@ -69,7 +73,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   }
 }
 
-resource "azurerm_autoscale_setting" "example" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "autoscale-cpu"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
   location            = "${azurerm_resource_group.example.location}"

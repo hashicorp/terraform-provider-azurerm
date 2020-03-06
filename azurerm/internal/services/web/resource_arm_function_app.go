@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -143,6 +143,15 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"os_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"linux",
+				}, false),
+			},
+
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -192,10 +201,6 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"virtual_network_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"http2_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -211,12 +216,12 @@ func resourceArmFunctionApp() *schema.Resource {
 									"ip_address": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validate.CIDR,
 									},
 									"subnet_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -307,6 +312,13 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
+	if osTypeRaw, ok := d.GetOk("os_type"); ok {
+		osType := osTypeRaw.(string)
+		if osType == "linux" {
+			kind = "functionapp,linux"
+		}
+	}
+
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
@@ -389,11 +401,14 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Name
-
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
+	if osTypeRaw, ok := d.GetOk("os_type"); ok {
+		osType := osTypeRaw.(string)
+		if osType == "Linux" {
+			kind = "functionapp,linux"
+		}
+	}
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
@@ -408,7 +423,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -432,13 +447,13 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("Error updating Function App %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error updating Function App %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Function App %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for update of Function App %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
@@ -446,35 +461,33 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		Properties: appSettings,
 	}
 
-	_, err = client.UpdateApplicationSettings(ctx, resGroup, name, settings)
-	if err != nil {
-		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
+	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.Name, settings); err != nil {
+		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", id.Name, err)
 	}
 
 	if d.HasChange("site_config") {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
-			return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		if _, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource); err != nil {
-			return fmt.Errorf("Error updating Configuration for Function App %q: %+v", name, err)
+		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
+			return fmt.Errorf("Error updating Configuration for Function App %q: %+v", id.Name, err)
 		}
 	}
 
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
-		id := d.Id()
 		authSettings := web.SiteAuthSettings{
-			ID:                         &id,
+			ID:                         utils.String(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
-		if _, err := client.UpdateAuthSettings(ctx, resGroup, name, authSettings); err != nil {
-			return fmt.Errorf("Error updating Authentication Settings for Function App %q: %+v", name, err)
+		if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.Name, authSettings); err != nil {
+			return fmt.Errorf("Error updating Authentication Settings for Function App %q: %+v", id.Name, err)
 		}
 	}
 
@@ -485,8 +498,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			Properties: connectionStrings,
 		}
 
-		if _, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties); err != nil {
-			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
+		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.Name, properties); err != nil {
+			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.Name, err)
 		}
 	}
 
@@ -503,35 +516,32 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Function App %q (resource group %q) was not found - removing from state", name, resGroup)
+			log.Printf("[DEBUG] Function App %q (resource group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", id.Name, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", name, resGroup)
+			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", id.Name, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, resGroup, name)
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", id.Name, err)
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, resGroup, name)
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return err
 	}
@@ -541,16 +551,21 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", id.Name, err)
 	}
-	authResp, err := client.GetAuthSettings(ctx, resGroup, name)
+	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
+	osType := ""
+	if v := resp.Kind; v != nil && strings.Contains(*v, "linux") {
+		osType = "linux"
+	}
+	d.Set("os_type", osType)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -592,9 +607,9 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
-	configResp, err := client.GetConfiguration(ctx, resGroup, name)
+	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", id.Name, err)
 	}
 
 	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
@@ -625,14 +640,11 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Name
-
-	log.Printf("[DEBUG] Deleting Function App %q (resource group %q)", name, resGroup)
+	log.Printf("[DEBUG] Deleting Function App %q (resource group %q)", id.Name, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
@@ -744,10 +756,6 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.Cors = &expand
 	}
 
-	if v, ok := config["virtual_network_name"]; ok {
-		siteConfig.VnetName = utils.String(v.(string))
-	}
-
 	if v, ok := config["http2_enabled"]; ok {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
@@ -795,10 +803,6 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
-	}
-
-	if input.VnetName != nil {
-		result["virtual_network_name"] = *input.VnetName
 	}
 
 	if input.HTTP20Enabled != nil {
@@ -855,6 +859,10 @@ func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestrict
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
+		if ipAddress == "Any" {
+			continue
+		}
+
 		if ipAddress != "" {
 			ipSecurityRestriction.IPAddress = &ipAddress
 		}
@@ -914,6 +922,9 @@ func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []inter
 		ipAddress := ""
 		if v.IPAddress != nil {
 			ipAddress = *v.IPAddress
+			if ipAddress == "Any" {
+				continue
+			}
 		}
 
 		subnetId := ""

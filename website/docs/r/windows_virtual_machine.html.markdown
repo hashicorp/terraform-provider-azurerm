@@ -255,6 +255,8 @@ A `secret` block supports the following:
 
 A `winrm_listener` block supports the following:
 
+* `Protocol` - (Required) Specifies Specifies the protocol of listener. Possible values are `Http` or `Https`
+
 * `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`.
 
 ## Attributes Reference

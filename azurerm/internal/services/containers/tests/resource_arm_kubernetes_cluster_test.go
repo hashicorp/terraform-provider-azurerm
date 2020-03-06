@@ -37,10 +37,6 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"roleBasedAccessControl":                     testAccAzureRMKubernetesCluster_roleBasedAccessControl,
 			"roleBasedAccessControlAAD":                  testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
 		},
-		"legacy": {
-			"legacyAgentPoolProfileAvailabilitySet": testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet,
-			"legacyAgentPoolProfileVMSS":            testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS,
-		},
 		"network": {
 			"advancedNetworkingKubenet":                   testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
 			"advancedNetworkingKubenetComplete":           testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,

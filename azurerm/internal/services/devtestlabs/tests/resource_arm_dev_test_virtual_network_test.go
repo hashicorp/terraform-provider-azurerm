@@ -171,6 +171,10 @@ func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevTestVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -178,14 +182,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "acctestdtvn%d"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -196,15 +200,19 @@ func testAccAzureRMDevTestVirtualNetwork_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_dev_test_virtual_network" "import" {
-  name                = "${azurerm_dev_test_virtual_network.test.name}"
-  lab_name            = "${azurerm_dev_test_virtual_network.test.lab_name}"
-  resource_group_name = "${azurerm_dev_test_virtual_network.test.resource_group_name}"
+  name                = azurerm_dev_test_virtual_network.test.name
+  lab_name            = azurerm_dev_test_virtual_network.test.lab_name
+  resource_group_name = azurerm_dev_test_virtual_network.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMDevTestVirtualNetwork_subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -212,14 +220,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "acctestdtvn%d"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     use_public_ip_address           = "Deny"

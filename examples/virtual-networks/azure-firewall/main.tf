@@ -1,6 +1,5 @@
-# Configure the Azure Provider
 provider "azurerm" {
-    version = "=1.31.0"
+  features {}
 }
 
 # Create a resource group
@@ -15,7 +14,7 @@ resource "random_string" "azustring" {
   special = false
   upper = false
   number = false
-  
+
 }
 
 # Storage account to hold diag data from VMs and Azure Resources
@@ -89,7 +88,6 @@ resource "azurerm_subnet" "azusubnet" {
   resource_group_name      = "${azurerm_resource_group.azurg.name}"
   virtual_network_name = "${azurerm_virtual_network.azuvnet.name}"
   address_prefix       = "10.0.2.0/24"
-  route_table_id       = "${azurerm_route_table.azurt.id}"
 }
 
 resource "azurerm_subnet_route_table_association" "azurtassoc" {
@@ -262,7 +260,7 @@ resource "azurerm_virtual_machine" "vmserver" {
       storage_uri   =   "${azurerm_storage_account.azusa.primary_blob_endpoint}"
   }
 
-  
+
 tags = {
     environment = "Staging"
     owner = "Someone@contoso.com"

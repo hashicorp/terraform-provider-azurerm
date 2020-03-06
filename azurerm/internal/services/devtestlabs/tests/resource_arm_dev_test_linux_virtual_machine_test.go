@@ -214,14 +214,14 @@ func testAccAzureRMDevTestLinuxVirtualMachine_basic(data acceptance.TestData) st
 
 resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                   = "acctestvm-vm%d"
-  lab_name               = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
+  lab_name               = azurerm_dev_test_lab.test.name
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
   size                   = "Standard_F2"
   username               = "acct5stU5er"
-  password               = "Pa$$w0rd1234!"
-  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  password               = "Pa$w0rd1234!"
+  lab_virtual_network_id = azurerm_dev_test_virtual_network.test.id
+  lab_subnet_name        = azurerm_dev_test_virtual_network.test.subnet[0].name
   storage_type           = "Standard"
 
   gallery_image_reference {
@@ -240,15 +240,15 @@ func testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_dev_test_linux_virtual_machine" "import" {
-  name                   = "${azurerm_dev_test_linux_virtual_machine.test.name}"
-  lab_name               = "${azurerm_dev_test_linux_virtual_machine.test.lab_name}"
-  resource_group_name    = "${azurerm_dev_test_linux_virtual_machine.test.resource_group_name}"
-  location               = "${azurerm_dev_test_linux_virtual_machine.test.location}"
-  size                   = "${azurerm_dev_test_linux_virtual_machine.test.size}"
+  name                   = azurerm_dev_test_linux_virtual_machine.test.name
+  lab_name               = azurerm_dev_test_linux_virtual_machine.test.lab_name
+  resource_group_name    = azurerm_dev_test_linux_virtual_machine.test.resource_group_name
+  location               = azurerm_dev_test_linux_virtual_machine.test.location
+  size                   = azurerm_dev_test_linux_virtual_machine.test.size
   username               = "acct5stU5er"
-  password               = "Pa$$w0rd1234!"
-  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  password               = "Pa$w0rd1234!"
+  lab_virtual_network_id = azurerm_dev_test_virtual_network.test.id
+  lab_subnet_name        = azurerm_dev_test_virtual_network.test.subnet[0].name
   storage_type           = "Standard"
 
   gallery_image_reference {
@@ -268,14 +268,14 @@ func testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(data acceptance.TestData)
 
 resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                   = "acctestvm-vm%d"
-  lab_name               = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
+  lab_name               = azurerm_dev_test_lab.test.name
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
   size                   = "Standard_F2"
   username               = "acct5stU5er"
   ssh_key                = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
-  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  lab_virtual_network_id = azurerm_dev_test_virtual_network.test.id
+  lab_subnet_name        = azurerm_dev_test_virtual_network.test.subnet[0].name
   storage_type           = "Standard"
 
   gallery_image_reference {
@@ -295,15 +295,15 @@ func testAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(data acceptance.Te
 
 resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                       = "acctestvm-vm%d"
-  lab_name                   = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
-  location                   = "${azurerm_resource_group.test.location}"
+  lab_name                   = azurerm_dev_test_lab.test.name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
   size                       = "Standard_F2"
   username                   = "acct5stU5er"
-  password                   = "Pa$$w0rd1234!"
+  password                   = "Pa$w0rd1234!"
   disallow_public_ip_address = true
-  lab_virtual_network_id     = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name            = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  lab_virtual_network_id     = azurerm_dev_test_virtual_network.test.id
+  lab_subnet_name            = azurerm_dev_test_virtual_network.test.subnet[0].name
   storage_type               = "Standard"
 
   gallery_image_reference {
@@ -337,14 +337,14 @@ func testAccAzureRMDevTestLinuxVirtualMachine_storage(data acceptance.TestData, 
 
 resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                   = "acctestvm-vm%d"
-  lab_name               = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
+  lab_name               = azurerm_dev_test_lab.test.name
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
   size                   = "Standard_B1ms"
   username               = "acct5stU5er"
-  password               = "Pa$$w0rd1234!"
-  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  password               = "Pa$w0rd1234!"
+  lab_virtual_network_id = azurerm_dev_test_virtual_network.test.id
+  lab_subnet_name        = azurerm_dev_test_virtual_network.test.subnet[0].name
   storage_type           = "%s"
 
   gallery_image_reference {
@@ -359,6 +359,10 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
 
 func testAccAzureRMDevTestLinuxVirtualMachine_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -366,14 +370,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "acctestdtvn%d"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = azurerm_dev_test_lab.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     use_public_ip_address           = "Allow"

@@ -182,10 +182,10 @@ func testAccAzureRMAPIManagementSubscription_basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_management_subscription" "test" {
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  user_id             = "${azurerm_api_management_user.test.id}"
-  product_id          = "${azurerm_api_management_product.test.id}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
+  user_id             = azurerm_api_management_user.test.id
+  product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
 }
 `, template)
@@ -197,11 +197,11 @@ func testAccAzureRMAPIManagementSubscription_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_api_management_subscription" "import" {
-  resource_group_name = "${azurerm_api_management_subscription.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_subscription.test.api_management_name}"
-  user_id             = "${azurerm_api_management_subscription.test.user_id}"
-  product_id          = "${azurerm_api_management_subscription.test.product_id}"
-  display_name        = "${azurerm_api_management_subscription.test.display_name}"
+  resource_group_name = azurerm_api_management_subscription.test.resource_group_name
+  api_management_name = azurerm_api_management_subscription.test.api_management_name
+  user_id             = azurerm_api_management_subscription.test.user_id
+  product_id          = azurerm_api_management_subscription.test.product_id
+  display_name        = azurerm_api_management_subscription.test.display_name
 }
 `, template)
 }
@@ -212,10 +212,10 @@ func testAccAzureRMAPIManagementSubscription_update(data acceptance.TestData, st
 %s
 
 resource "azurerm_api_management_subscription" "test" {
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  user_id             = "${azurerm_api_management_user.test.id}"
-  product_id          = "${azurerm_api_management_product.test.id}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
+  user_id             = azurerm_api_management_user.test.id
+  product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "%s"
 }
@@ -228,10 +228,10 @@ func testAccAzureRMAPIManagementSubscription_complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_api_management_subscription" "test" {
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  user_id             = "${azurerm_api_management_user.test.id}"
-  product_id          = "${azurerm_api_management_product.test.id}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
+  user_id             = azurerm_api_management_user.test.id
+  product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "active"
 }
@@ -240,6 +240,10 @@ resource "azurerm_api_management_subscription" "test" {
 
 func testAccAzureRMAPIManagementSubscription_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -247,8 +251,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -257,8 +261,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_product" "test" {
   product_id            = "test-product"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  api_management_name   = azurerm_api_management.test.name
+  resource_group_name   = azurerm_resource_group.test.name
   display_name          = "Test Product"
   subscription_required = true
   approval_required     = false
@@ -267,8 +271,8 @@ resource "azurerm_api_management_product" "test" {
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"

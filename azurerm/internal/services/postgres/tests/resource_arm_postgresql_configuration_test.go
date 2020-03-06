@@ -193,8 +193,8 @@ func testAccAzureRMPostgreSQLConfiguration_template(data acceptance.TestData, na
 
 resource "azurerm_postgresql_configuration" "test" {
   name                = "%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_postgresql_server.test.name
   value               = "%s"
 }
 `, testAccAzureRMPostgreSQLConfiguration_empty(data), name, value)
@@ -202,6 +202,10 @@ resource "azurerm_postgresql_configuration" "test" {
 
 func testAccAzureRMPostgreSQLConfiguration_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-psql-%d"
   location = "%s"
@@ -209,8 +213,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctest-psql-server-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 

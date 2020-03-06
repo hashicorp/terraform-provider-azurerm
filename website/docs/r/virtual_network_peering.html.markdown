@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `allow_virtual_network_access` - (Optional) Controls if the VMs in the remote
     virtual network can access VMs in the local virtual network. Defaults to
-    false.
+    true.
 
 * `allow_forwarded_traffic` - (Optional) Controls if forwarded traffic from  VMs
     in the remote virtual network is allowed. Defaults to false.

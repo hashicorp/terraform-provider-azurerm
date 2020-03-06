@@ -34,8 +34,8 @@ func testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data acceptanc
 %s
 
 data "azurerm_lb_backend_address_pool" "test" {
-  name            = "${azurerm_lb_backend_address_pool.test.name}"
-  loadbalancer_id = "${azurerm_lb_backend_address_pool.test.loadbalancer_id}"
+  name            = azurerm_lb_backend_address_pool.test.name
+  loadbalancer_id = azurerm_lb_backend_address_pool.test.loadbalancer_id
 }
 `, resource)
 }
