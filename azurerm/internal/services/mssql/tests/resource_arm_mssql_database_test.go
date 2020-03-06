@@ -28,7 +28,7 @@ func TestAccAzureRMMsSqlDatabase_basic(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("tags"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -66,12 +66,26 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMMsSqlDatabase_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "elastic_pool_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
 				),
 			},
 			data.ImportStep(),
@@ -184,7 +198,7 @@ func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "copy")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -195,37 +209,17 @@ func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 				Config: testAccAzureRMMsSqlDatabase_createCopyMode(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "create_copy_mode.0.source_database_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 				),
 			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlDatabase_createPITRMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlDatabase_createPITRMode(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "create_pitr_mode.0.source_database_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "create_pitr_mode.0.restore_point_in_time", "2020-03-02T05:35:31.503Z"),
-				),
-			},
-			data.ImportStep(),
+			data.ImportStep("create_copy_mode.#","create_copy_mode.0.source_database_id"),
 		},
 	})
 }
 
 func TestAccAzureRMMsSqlDatabase_createRecoveryMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "recovery")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -236,7 +230,6 @@ func TestAccAzureRMMsSqlDatabase_createRecoveryMode(t *testing.T) {
 				Config: testAccAzureRMMsSqlDatabase_createRecoveryMode(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "create_recovery_mode.0.restorable_dropped_database_id"),
 				),
 			},
 			data.ImportStep(),
@@ -385,32 +378,25 @@ func testAccAzureRMMsSqlDatabase_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mssql_elasticpool" "test" {
-  name                = "acctest-pool-%[2]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
-  max_size_gb         = 4.8828125
-  zone_redundant      = false
-
-  sku {
-    name     = "BasicPool"
-    tier     = "Basic"
-    capacity = 50
-  }
-
-  per_database_settings {
-    min_capacity = 0
-    max_capacity = 5
-  }
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%[2]d"
+  mssql_server_id = azurerm_sql_server.test.id
+  collation       = "SQL_AltDiction_CP850_CI_AI"
+  license_type    = "BasePrice"
 }
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_update(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_mssql_database" "test" {
   name            = "acctest-db-%[2]d"
   mssql_server_id = azurerm_sql_server.test.id
   collation       = "SQL_AltDiction_CP850_CI_AI"
-  elastic_pool_id = azurerm_mssql_elasticpool.test.id
-  license_type    = "BasePrice"
+  license_type    = "LicenseIncluded"
 }
 `, template, data.RandomInteger)
 }
@@ -520,7 +506,7 @@ resource "azurerm_mssql_database" "test" {
 }
 
 func testAccAzureRMMsSqlDatabase_createCopyMode(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlDatabase_basic(data)
+	template := testAccAzureRMMsSqlDatabase_complete(data)
 	return fmt.Sprintf(`
 %s
 
@@ -529,23 +515,6 @@ resource "azurerm_mssql_database" "copy" {
   mssql_server_id = azurerm_sql_server.test.id
   create_copy_mode {
     source_database_id = azurerm_mssql_database.test.id
-  }
-
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMMsSqlDatabase_createPITRMode(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlDatabase_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_database" "pitr" {
-  name            = "acctest-dbc-%d"
-  mssql_server_id = azurerm_sql_server.test.id
-  create_pitr_mode {
-    source_database_id    = azurerm_mssql_database.test.id
-    restore_point_in_time = "2020-03-02T05:35:31.503Z"
   }
 
 }

@@ -98,6 +98,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						"source_database_id": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
@@ -437,11 +438,6 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error setting `business_critical`: %+v", err)
 	}
 
-	flattenedCreateCopyMode := flattenAzureRmMsSqlDatabaseCreateCopyMode(&resp)
-	if err := d.Set("create_copy_mode", flattenedCreateCopyMode); err != nil {
-		return fmt.Errorf("Error setting `create_copy_mode`: %+v", err)
-	}
-
 	flattenedCreatePITRMode := flattenAzureRmMsSqlDatabaseCreatePITRMode(&resp)
 	if err := d.Set("create_pitr_mode", flattenedCreatePITRMode); err != nil {
 		return fmt.Errorf("Error setting `create_pitr_mode`: %+v", err)
@@ -658,23 +654,6 @@ func expandAzureRmMsSqlDatabaseCreateCopyMode(d *schema.ResourceData, params *sq
 	return
 }
 
-func flattenAzureRmMsSqlDatabaseCreateCopyMode(input *sql.Database) []interface{} {
-	if input.CreateMode != sql.CreateModeCopy {
-		return []interface{}{}
-	}
-
-	var sourceDBId string
-	if input.SourceDatabaseID != nil {
-		sourceDBId = *input.SourceDatabaseID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"source_database_id": sourceDBId,
-		},
-	}
-}
-
 func expandAzureRmMsSqlDatabaseCreatePITRMode(d *schema.ResourceData, params *sql.Database) {
 	pitrModes := d.Get("create_pitr_mode").([]interface{})
 	if len(pitrModes) == 0 {
@@ -695,11 +674,7 @@ func flattenAzureRmMsSqlDatabaseCreatePITRMode(input *sql.Database) []interface{
 		return []interface{}{}
 	}
 
-	var sourceDBId, restorePointInTime string
-
-	if input.SourceDatabaseID != nil {
-		sourceDBId = *input.SourceDatabaseID
-	}
+	var restorePointInTime string
 
 	if input.RestorePointInTime != nil && !input.RestorePointInTime.IsZero() {
 		restorePointInTime = input.RestorePointInTime.Format(time.RFC3339)
@@ -707,7 +682,6 @@ func flattenAzureRmMsSqlDatabaseCreatePITRMode(input *sql.Database) []interface{
 
 	return []interface{}{
 		map[string]interface{}{
-			"source_database_id":    sourceDBId,
 			"restore_point_in_time": restorePointInTime,
 		},
 	}
