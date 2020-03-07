@@ -587,7 +587,7 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(

@@ -78,7 +78,7 @@ func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.Resource
 	vmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("backup_policy_id").(string)
 
-	//get VM name from id
+	// get VM name from id
 	parsedVmId, err := azure.ParseAzureResourceID(vmId)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)

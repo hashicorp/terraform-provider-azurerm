@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -571,6 +571,11 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 		}
 	}
 
+	if v, ok := networkConfigValue["public_ips"]; ok {
+		publicIPsRaw := v.(*schema.Set).List()
+		networkConfiguration.PublicIPs = utils.ExpandStringSlice(publicIPsRaw)
+	}
+
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
 		endpoint, err := ExpandBatchPoolEndpointConfiguration(v.([]interface{}))
 		if err != nil {
@@ -582,7 +587,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	return networkConfiguration, nil
 }
 
-//ExpandBatchPoolEndpointConfiguration expands Batch pool endpoint configuration
+// ExpandBatchPoolEndpointConfiguration expands Batch pool endpoint configuration
 func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
 	if len(list) == 0 {
 		return nil, nil
@@ -621,7 +626,7 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 	}, nil
 }
 
-//ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
+// ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
 func ExpandBatchPoolNetworkSecurityGroupRule(list []interface{}) ([]batch.NetworkSecurityGroupRule, error) {
 	if len(list) == 0 {
 		return nil, nil
@@ -661,6 +666,10 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 		result["subnet_id"] = *networkConfig.SubnetID
 	}
 
+	if networkConfig.PublicIPs != nil {
+		result["public_ips"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(networkConfig.PublicIPs))
+	}
+
 	if cfg := networkConfig.EndpointConfiguration; cfg != nil && cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
 		endpointConfigs := make([]interface{}, len(*cfg.InboundNatPools))
 
@@ -673,7 +682,7 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 				inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
 			}
 			if inboundNatPool.FrontendPortRangeStart != nil && inboundNatPool.FrontendPortRangeEnd != nil {
-				inboundNatPoolMap["frontend_port_range"] = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, inboundNatPool.FrontendPortRangeEnd)
+				inboundNatPoolMap["frontend_port_range"] = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, *inboundNatPool.FrontendPortRangeEnd)
 			}
 			inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
 

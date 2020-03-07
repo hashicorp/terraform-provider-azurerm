@@ -161,7 +161,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// Windows agents can be configured via the separate node pool resource
 		OsType: containerservice.Linux,
 
-		//// TODO: support these in time
+		// // TODO: support these in time
 		// OrchestratorVersion:    nil,
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",

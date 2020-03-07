@@ -24,6 +24,7 @@ func TestAccAzureRMPrivateDnsCNameRecord_basic(t *testing.T) {
 				Config: testAccAzureRMPrivateDnsCNameRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
 			data.ImportStep(),

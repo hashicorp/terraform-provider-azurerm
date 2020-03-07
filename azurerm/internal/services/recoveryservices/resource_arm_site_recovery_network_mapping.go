@@ -90,7 +90,7 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	//get network name from id
+	// get network name from id
 	parsedSourceNetworkId, err := azure.ParseAzureResourceID(sourceNetworkId)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_network_id '%s' (network mapping %s): %+v", sourceNetworkId, name, err)

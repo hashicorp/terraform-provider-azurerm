@@ -149,7 +149,7 @@ func TestValidateDiskEncryptionSetName(t *testing.T) {
 			expected: false,
 		},
 		{
-			//basic example
+			// basic example
 			input:    "hello",
 			expected: true,
 		},

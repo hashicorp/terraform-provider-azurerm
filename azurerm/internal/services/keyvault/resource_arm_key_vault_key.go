@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -113,13 +112,13 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			"not_before_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.RFC3339Time,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"expiration_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.RFC3339Time,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			// Computed
@@ -211,13 +210,13 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 
 	if v, ok := d.GetOk("not_before_date"); ok {
-		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		notBeforeUnixTime := date.UnixTime(notBeforeDate)
 		parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
-		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		expirationUnixTime := date.UnixTime(expirationDate)
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
@@ -278,13 +277,13 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
-		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		notBeforeUnixTime := date.UnixTime(notBeforeDate)
 		parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
-		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
 		expirationUnixTime := date.UnixTime(expirationDate)
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}

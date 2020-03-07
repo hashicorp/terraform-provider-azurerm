@@ -1786,22 +1786,6 @@ func ValidateArmStorageAccountName(v interface{}, _ string) (warnings []string, 
 	return warnings, errors
 }
 
-func ValidateArmStorageAccountType(v interface{}, _ string) (warnings []string, errors []error) {
-	validAccountTypes := []string{"standard_lrs", "standard_zrs",
-		"standard_grs", "standard_ragrs", "premium_lrs"}
-
-	input := strings.ToLower(v.(string))
-
-	for _, valid := range validAccountTypes {
-		if valid == input {
-			return
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("Invalid storage account type %q", input))
-	return warnings, errors
-}
-
 func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
 	identities := d.Get("identity").([]interface{})
 	identity := identities[0].(map[string]interface{})

@@ -63,6 +63,10 @@ output "hostname" {
 
 * `secondary_access_key` - The Secondary Access Key for the Redis Instance
 
+* `primary_connection_string` - The primary connection string of the Redis Instance.
+
+* `secondary_connection_string` - The secondary connection string of the Redis Instance.
+
 * `redis_configuration` - A `redis_configuration` block as defined below.
 
 ---

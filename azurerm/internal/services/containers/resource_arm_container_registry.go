@@ -642,7 +642,7 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 		value := make(map[string]interface{})
 		value["action"] = string(ipRule.Action)
 
-		//When a /32 CIDR is passed as an ip rule, Azure will drop the /32 leading to the resource wanting to be re-created next run
+		// When a /32 CIDR is passed as an ip rule, Azure will drop the /32 leading to the resource wanting to be re-created next run
 		if !strings.Contains(*ipRule.IPAddressOrRange, "/") {
 			*ipRule.IPAddressOrRange += "/32"
 		}
