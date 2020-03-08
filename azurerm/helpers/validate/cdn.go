@@ -54,3 +54,10 @@ func RuleActionUrlRedirectFragment() schema.SchemaValidateFunc {
 		"The Url Redirect Path must start with a slash.",
 	)
 }
+
+func RuleActionCacheExpirationDuration() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^(\\d+\\.)?([0-1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9]$"),
+		"The Cache duration must be in this format [d.]hh:mm:ss.",
+	)
+}
