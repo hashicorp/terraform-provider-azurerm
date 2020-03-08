@@ -416,6 +416,11 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		if err := d.Set("origin", origins); err != nil {
 			return fmt.Errorf("Error setting `origin`: %+v", err)
 		}
+
+		deliveryPolicy := flattenArmCdnEndpointDeliveryPolicy(props.DeliveryPolicy)
+		if err := d.Set("delivery_policy", deliveryPolicy); err != nil {
+			return fmt.Errorf("Error setting `delivery_policy`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -589,109 +594,4 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 	}
 
 	return results
-}
-
-func expandArmCdnEndpointDeliveryPolicy(d *schema.ResourceData) *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy {
-	policies := d.Get("delivery_policy").([]interface{})
-	if len(policies) == 0 {
-		return nil
-	}
-
-	deliveryPolicy := cdn.EndpointPropertiesUpdateParametersDeliveryPolicy{}
-
-	policy := policies[0].(map[string]interface{})
-	if descr, ok := policy["description"]; ok {
-		deliveryPolicy.Description = utils.String(descr.(string))
-	}
-
-	rules := policy["rule"].([]interface{})
-	deliveryRules := make([]cdn.DeliveryRule, len(rules))
-	for i, rule := range rules {
-		deliveryRules[i] = expandArmCdnEndpointDeliveryPolicyRule(rule.(map[string]interface{}))
-	}
-	deliveryPolicy.Rules = &deliveryRules
-
-	return &deliveryPolicy
-}
-
-func expandArmCdnEndpointDeliveryPolicyRule(rule map[string]interface{}) cdn.DeliveryRule {
-	deliveryRule := cdn.DeliveryRule{
-		Name:  utils.String(rule["name"].(string)),
-		Order: utils.Int32(rule["order"].(int32)),
-	}
-
-	conditions := make([]cdn.BasicDeliveryRuleCondition, 0)
-
-	if rsc, ok := rule["request_scheme_condition"]; ok {
-		conditions = append(conditions, *expandArmCdnEndpointConditionRequestScheme(rsc.([]interface{})[0].(map[string]interface{})))
-	}
-
-	deliveryRule.Conditions = &conditions
-
-	actions := make([]cdn.BasicDeliveryRuleAction, 0)
-
-	if ura, ok := rule["url_redirect_action"]; ok {
-		actions = append(actions, *expandArmCdnEndpointActionUrlRedirect(ura.([]interface{})[0].(map[string]interface{})))
-	}
-
-	deliveryRule.Actions = &actions
-
-	return deliveryRule
-}
-
-func expandArmCdnEndpointConditionRequestScheme(rsc map[string]interface{}) *cdn.DeliveryRuleRequestSchemeCondition {
-	requestSchemeCondition := cdn.DeliveryRuleRequestSchemeCondition{
-		Name: cdn.NameRequestScheme,
-	}
-
-	matchValues := rsc["match_values"].([]string)
-	params := cdn.RequestSchemeMatchConditionParameters{
-		MatchValues: &matchValues,
-	}
-
-	if operator, ok := rsc["operator"]; ok {
-		params.Operator = utils.String(operator.(string))
-	}
-
-	if negate, ok := rsc["negate_condition"]; ok {
-		params.NegateCondition = utils.Bool(negate.(bool))
-	}
-
-	requestSchemeCondition.Parameters = &params
-
-	return &requestSchemeCondition
-}
-
-func expandArmCdnEndpointActionUrlRedirect(ura map[string]interface{}) *cdn.URLRedirectAction {
-	urlRedirectAction := cdn.URLRedirectAction{
-		Name: cdn.NameURLRedirect,
-	}
-
-	params := cdn.URLRedirectActionParameters{
-		RedirectType: cdn.RedirectType(ura["redirect_type"].(string)),
-	}
-
-	if destProt, ok := ura["destination_protocol"]; ok {
-		params.DestinationProtocol = cdn.DestinationProtocol(destProt.(string))
-	}
-
-	if hostname, ok := ura["hostname"]; ok {
-		params.CustomHostname = utils.String(hostname.(string))
-	}
-
-	if path, ok := ura["path"]; ok {
-		params.CustomPath = utils.String(path.(string))
-	}
-
-	if queryString, ok := ura["query_string"]; ok {
-		params.CustomQueryString = utils.String(queryString.(string))
-	}
-
-	if fragment, ok := ura["fragment"]; ok {
-		params.CustomFragment = utils.String(fragment.(string))
-	}
-
-	urlRedirectAction.Parameters = &params
-
-	return &urlRedirectAction
 }
