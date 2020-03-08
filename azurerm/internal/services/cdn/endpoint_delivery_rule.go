@@ -49,7 +49,7 @@ func EndpointDeliveryRule() *schema.Resource {
 	}
 }
 
-func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) cdn.DeliveryRule {
+func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.DeliveryRule, error) {
 	deliveryRule := cdn.DeliveryRule{
 		Name:  utils.String(rule["name"].(string)),
 		Order: utils.Int32(int32(rule["order"].(int))),
@@ -70,12 +70,16 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) cdn.DeliveryR
 	}
 
 	if cea := rule["cache_expiration_action"]; len(cea.([]interface{})) > 0 {
-		actions = append(actions, *delivery_rule_actions.ExpandArmCdnEndpointActionCacheExpiration(cea.([]interface{})[0].(map[string]interface{})))
+		action, err := delivery_rule_actions.ExpandArmCdnEndpointActionCacheExpiration(cea.([]interface{})[0].(map[string]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		actions = append(actions, *action)
 	}
 
 	deliveryRule.Actions = &actions
 
-	return deliveryRule
+	return &deliveryRule, nil
 }
 
 func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[string]interface{} {
