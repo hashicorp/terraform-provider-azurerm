@@ -29,14 +29,14 @@ func EndpointDeliveryRule() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem:     delivery_rule_conditions.RuleConditionRequestScheme(),
+				Elem:     delivery_rule_conditions.RequestScheme(),
 			},
 
 			"url_redirect_action": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Elem:     delivery_rule_actions.RuleActionUrlRedirect(),
+				Elem:     delivery_rule_actions.URLRedirect(),
 			},
 		},
 	}

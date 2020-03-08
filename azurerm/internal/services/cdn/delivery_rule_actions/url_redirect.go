@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func RuleActionUrlRedirect() *schema.Resource {
+func URLRedirect() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"redirect_type": {

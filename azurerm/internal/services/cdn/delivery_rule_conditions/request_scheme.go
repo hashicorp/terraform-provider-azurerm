@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func RuleConditionRequestScheme() *schema.Resource {
+func RequestScheme() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"operator": {
