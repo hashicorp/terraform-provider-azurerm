@@ -44,16 +44,16 @@ func ExpandArmCdnEndpointConditionRequestScheme(rsc map[string]interface{}) *cdn
 
 	matchValues := []string{rsc["match_value"].(string)}
 	params := cdn.RequestSchemeMatchConditionParameters{
-		MatchValues: &matchValues,
+		OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestSchemeConditionParameters"),
+		MatchValues:     &matchValues,
+		NegateCondition: utils.Bool(rsc["negate_condition"].(bool)),
 	}
 
-	if operator, ok := rsc["operator"]; ok {
+	if operator := rsc["operator"]; operator.(string) != "" {
 		params.Operator = utils.String(operator.(string))
 	}
 
-	if negate, ok := rsc["negate_condition"]; ok {
-		params.NegateCondition = utils.Bool(negate.(bool))
-	}
+	params.NegateCondition = utils.Bool(rsc["negate_condition"].(bool))
 
 	requestSchemeCondition.Parameters = &params
 

@@ -65,26 +65,27 @@ func ExpandArmCdnEndpointActionUrlRedirect(ura map[string]interface{}) *cdn.URLR
 	}
 
 	params := cdn.URLRedirectActionParameters{
+		OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
 		RedirectType: cdn.RedirectType(ura["redirect_type"].(string)),
 	}
 
-	if destProt, ok := ura["protocol"]; ok {
+	if destProt := ura["protocol"]; destProt.(string) != "" {
 		params.DestinationProtocol = cdn.DestinationProtocol(destProt.(string))
 	}
 
-	if hostname, ok := ura["hostname"]; ok {
+	if hostname := ura["hostname"]; hostname.(string) != "" {
 		params.CustomHostname = utils.String(hostname.(string))
 	}
 
-	if path, ok := ura["path"]; ok {
+	if path := ura["path"]; path.(string) != "" {
 		params.CustomPath = utils.String(path.(string))
 	}
 
-	if queryString, ok := ura["query_string"]; ok {
+	if queryString := ura["query_string"]; queryString.(string) != "" {
 		params.CustomQueryString = utils.String(queryString.(string))
 	}
 
-	if fragment, ok := ura["fragment"]; ok {
+	if fragment := ura["fragment"]; fragment.(string) != "" {
 		params.CustomFragment = utils.String(fragment.(string))
 	}
 

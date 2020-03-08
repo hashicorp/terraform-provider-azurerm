@@ -45,12 +45,12 @@ func EndpointDeliveryRule() *schema.Resource {
 func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) cdn.DeliveryRule {
 	deliveryRule := cdn.DeliveryRule{
 		Name:  utils.String(rule["name"].(string)),
-		Order: utils.Int32(rule["order"].(int32)),
+		Order: utils.Int32(int32(rule["order"].(int))),
 	}
 
 	conditions := make([]cdn.BasicDeliveryRuleCondition, 0)
 
-	if rsc, ok := rule["request_scheme_condition"]; ok {
+	if rsc := rule["request_scheme_condition"]; len(rsc.([]interface{})) > 0 {
 		conditions = append(conditions, *delivery_rule_conditions.ExpandArmCdnEndpointConditionRequestScheme(rsc.([]interface{})[0].(map[string]interface{})))
 	}
 
@@ -58,7 +58,7 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) cdn.DeliveryR
 
 	actions := make([]cdn.BasicDeliveryRuleAction, 0)
 
-	if ura, ok := rule["url_redirect_action"]; ok {
+	if ura := rule["url_redirect_action"]; len(ura.([]interface{})) > 0 {
 		actions = append(actions, *delivery_rule_actions.ExpandArmCdnEndpointActionUrlRedirect(ura.([]interface{})[0].(map[string]interface{})))
 	}
 
@@ -95,6 +95,7 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 		for _, basicDeliveryRuleAction := range *deliveryRule.Actions {
 			if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
 				res["url_redirect_action"] = delivery_rule_actions.FlattenArmCdnEndpointActionUrlRedirect(action)
+				continue
 			}
 		}
 	}
