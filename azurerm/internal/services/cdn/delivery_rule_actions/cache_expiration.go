@@ -1,6 +1,8 @@
 package delivery_rule_actions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/cdn/mgmt/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -30,7 +32,7 @@ func CacheExpiration() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionCacheExpiration(cea map[string]interface{}) *cdn.DeliveryRuleCacheExpirationAction {
+func ExpandArmCdnEndpointActionCacheExpiration(cea map[string]interface{}) (*cdn.DeliveryRuleCacheExpirationAction, error) {
 	cacheExpirationAction := cdn.DeliveryRuleCacheExpirationAction{
 		Name: cdn.NameCacheExpiration,
 		Parameters: &cdn.CacheExpirationActionParameters{
@@ -41,10 +43,14 @@ func ExpandArmCdnEndpointActionCacheExpiration(cea map[string]interface{}) *cdn.
 	}
 
 	if duration := cea["duration"].(string); duration != "" {
+		if cacheExpirationAction.Parameters.CacheBehavior == cdn.BypassCache {
+			return nil, fmt.Errorf("Cache expiration duration must not be set when using behavior `BypassCache`")
+		}
+
 		cacheExpirationAction.Parameters.CacheDuration = utils.String(duration)
 	}
 
-	return &cacheExpirationAction
+	return &cacheExpirationAction, nil
 }
 
 func FlattenArmCdnEndpointActionCacheExpiration(cea *cdn.DeliveryRuleCacheExpirationAction) map[string]interface{} {

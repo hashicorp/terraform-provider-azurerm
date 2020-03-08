@@ -238,12 +238,16 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	deliveryPolicy := expandArmCdnEndpointDeliveryPolicy(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
+	}
+
+	deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `delivery_policy`: %s", err)
 	}
 
 	endpoint := cdn.Endpoint{
@@ -317,12 +321,16 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	deliveryPolicy := expandArmCdnEndpointDeliveryPolicy(d)
 	t := d.Get("tags").(map[string]interface{})
 
 	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
+	}
+
+	deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `delivery_policy`: %s", err)
 	}
 
 	endpoint := cdn.EndpointUpdateParameters{

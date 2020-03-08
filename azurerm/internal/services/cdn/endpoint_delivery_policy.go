@@ -30,10 +30,10 @@ func EndpointDeliveryPolicy() *schema.Schema {
 	}
 }
 
-func expandArmCdnEndpointDeliveryPolicy(d *schema.ResourceData) *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy {
+func expandArmCdnEndpointDeliveryPolicy(d *schema.ResourceData) (*cdn.EndpointPropertiesUpdateParametersDeliveryPolicy, error) {
 	policies := d.Get("delivery_policy").([]interface{})
 	if len(policies) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	deliveryPolicy := cdn.EndpointPropertiesUpdateParametersDeliveryPolicy{}
@@ -46,11 +46,15 @@ func expandArmCdnEndpointDeliveryPolicy(d *schema.ResourceData) *cdn.EndpointPro
 	rules := policy["rule"].([]interface{})
 	deliveryRules := make([]cdn.DeliveryRule, len(rules))
 	for i, rule := range rules {
-		deliveryRules[i] = expandArmCdnEndpointDeliveryRule(rule.(map[string]interface{}))
+		delRule, err := expandArmCdnEndpointDeliveryRule(rule.(map[string]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		deliveryRules[i] = *delRule
 	}
 	deliveryPolicy.Rules = &deliveryRules
 
-	return &deliveryPolicy
+	return &deliveryPolicy, nil
 }
 
 func flattenArmCdnEndpointDeliveryPolicy(deliveryPolicy *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy) []interface{} {
