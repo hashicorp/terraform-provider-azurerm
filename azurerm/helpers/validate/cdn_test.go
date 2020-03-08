@@ -84,7 +84,7 @@ func TestRuleActionUrlRedirectPath(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Path, func(t *testing.T) {
-			_, errors := RuleActionUrlRedirectPath()(tc.Path, "name")
+			_, errors := RuleActionUrlRedirectPath()(tc.Path, "path")
 
 			hasErrors := len(errors) > 0
 			if !hasErrors && tc.ShouldError {
@@ -135,7 +135,7 @@ func TestRuleActionUrlRedirectQueryString(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.QueryString, func(t *testing.T) {
-			_, errors := RuleActionUrlRedirectQueryString()(tc.QueryString, "name")
+			_, errors := RuleActionUrlRedirectQueryString()(tc.QueryString, "query_string")
 
 			hasErrors := len(errors) > 0
 			if !hasErrors && tc.ShouldError {
@@ -178,7 +178,7 @@ func TestRuleActionUrlRedirectFragment(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Fragment, func(t *testing.T) {
-			_, errors := RuleActionUrlRedirectFragment()(tc.Fragment, "name")
+			_, errors := RuleActionUrlRedirectFragment()(tc.Fragment, "fragment")
 
 			hasErrors := len(errors) > 0
 			if !hasErrors && tc.ShouldError {
@@ -187,6 +187,57 @@ func TestRuleActionUrlRedirectFragment(t *testing.T) {
 
 			if hasErrors && !tc.ShouldError {
 				t.Fatalf("Expected to get no errors for %q but got %d", tc.Fragment, len(errors))
+			}
+		})
+	}
+}
+
+func TestRuleActionCacheExpirationDuration(t *testing.T) {
+	cases := []struct {
+		Duration    string
+		ShouldError bool
+	}{
+		{
+			Duration:    "",
+			ShouldError: true,
+		},
+		{
+			Duration:    "23:44:21",
+			ShouldError: false,
+		},
+		{
+			Duration:    "9.23:44:21",
+			ShouldError: false,
+		},
+		{
+			Duration:    ".23:44:21",
+			ShouldError: true,
+		},
+		{
+			Duration:    "9.24:44:21",
+			ShouldError: true,
+		},
+		{
+			Duration:    "9.12:61:21",
+			ShouldError: true,
+		},
+		{
+			Duration:    "9.11:44:91",
+			ShouldError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Duration, func(t *testing.T) {
+			_, errors := RuleActionCacheExpirationDuration()(tc.Duration, "duration")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.Duration)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.Duration, len(errors))
 			}
 		})
 	}
