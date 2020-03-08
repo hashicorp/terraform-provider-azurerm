@@ -70,7 +70,10 @@ func flattenArmCdnEndpointDeliveryPolicy(deliveryPolicy *cdn.EndpointPropertiesU
 		for i, rule := range *deliveryPolicy.Rules {
 			rules[i] = flattenArmCdnEndpointDeliveryRule(&rule)
 		}
+		dp["rule"] = rules
 	}
+
+	deliveryPolicies = append(deliveryPolicies, dp)
 
 	return deliveryPolicies
 }

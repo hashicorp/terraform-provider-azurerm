@@ -85,7 +85,7 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 	if deliveryRule.Conditions != nil {
 		for _, basicDeliveryRuleCondition := range *deliveryRule.Conditions {
 			if condition, isRequestSchemeCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); isRequestSchemeCondition {
-				res["request_scheme_condition"] = delivery_rule_conditions.FlattenArmCdnEndpointConditionRequestScheme(condition)
+				res["request_scheme_condition"] = []interface{}{delivery_rule_conditions.FlattenArmCdnEndpointConditionRequestScheme(condition)}
 				continue
 			}
 		}
@@ -94,7 +94,7 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 	if deliveryRule.Actions != nil {
 		for _, basicDeliveryRuleAction := range *deliveryRule.Actions {
 			if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
-				res["url_redirect_action"] = delivery_rule_actions.FlattenArmCdnEndpointActionUrlRedirect(action)
+				res["url_redirect_action"] = []interface{}{delivery_rule_actions.FlattenArmCdnEndpointActionUrlRedirect(action)}
 				continue
 			}
 		}
