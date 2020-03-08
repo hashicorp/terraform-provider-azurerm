@@ -19,7 +19,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -219,7 +218,7 @@ func resourceArmRedisCache() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.DayOfTheWeek(true),
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
 						},
 						"start_hour_utc": {
 							Type:         schema.TypeInt,
@@ -252,6 +251,18 @@ func resourceArmRedisCache() *schema.Resource {
 			},
 
 			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -540,7 +551,8 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 
-	if props := resp.Properties; props != nil {
+	props := resp.Properties
+	if props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
 		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
@@ -563,6 +575,11 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
+
+	if props != nil {
+		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.PrimaryKey, *props.EnableNonSslPort))
+		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.SecondaryKey, *props.EnableNonSslPort))
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -909,4 +926,8 @@ func validateRedisBackupFrequency(v interface{}, _ string) (warnings []string, e
 	}
 
 	return warnings, errors
+}
+
+func getRedisConnectionString(redisHostName string, sslPort int32, accessKey string, enableSslPort bool) string {
+	return fmt.Sprintf("%s:%d,password=%s,ssl=%t,abortConnect=False", redisHostName, sslPort, accessKey, enableSslPort)
 }

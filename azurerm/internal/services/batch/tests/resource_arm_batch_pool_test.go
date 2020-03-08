@@ -380,6 +380,39 @@ func TestAccAzureRMBatchPool_customImage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchPool_frontEndPortRanges(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testaccAzureRMBatchPool_networkConfiguration(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.offer", "UbuntuServer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_scale.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.0.target_dedicated_nodes", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_configuration.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "network_configuration.0.subnet_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_configuration.0.public_ips.#", "1"),
+				),
+			},
+			data.ImportStep("stop_pending_resize_operation"),
+		},
+	})
+}
+
 func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -1200,4 +1233,79 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+}
+
+func testaccAzureRMBatchPool_networkConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchpool"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  domain_name_label   = "acctest-publicip"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
+
+  network_configuration {
+    subnet_id  = azurerm_subnet.test.id
+    public_ips = [azurerm_public_ip.test.id]
+
+    endpoint_configuration {
+      name                = "SSH"
+      protocol            = "TCP"
+      backend_port        = 22
+      frontend_port_range = "4000-4100"
+
+      network_security_group_rules {
+        access                = "Deny"
+        priority              = 1001
+        source_address_prefix = "*"
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }

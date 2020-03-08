@@ -3,6 +3,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -660,9 +661,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 32),
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 					},
 				},
@@ -1305,6 +1305,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: ApplicationGatewayCustomizeDiff,
 	}
 }
 
@@ -3723,4 +3725,26 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	}
 
 	return results
+}
+
+func ApplicationGatewayCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
+	capacity, hasCapacity := d.GetOk("sku.0.capacity")
+	tier := d.Get("sku.0.tier").(string)
+
+	if !hasAutoscaleConfig && !hasCapacity {
+		return fmt.Errorf("The Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
+	}
+
+	if hasCapacity {
+		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAF))) && (capacity.(int) < 1 || capacity.(int) > 32) {
+			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V1 SKU, the %q SKU must have a capacity value between 1 and 32", capacity, tier, tier)
+		}
+
+		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandardV2)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAFV2))) && (capacity.(int) < 1 || capacity.(int) > 125) {
+			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V2 SKU, the %q SKU must have a capacity value between 1 and 125", capacity, tier, tier)
+		}
+	}
+
+	return nil
 }

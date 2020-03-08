@@ -85,8 +85,8 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
-	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  //subnet 1 but not 2
-	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) //subnet 2 but not 1
+	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
+	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -412,8 +412,8 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resour
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
-			//If the error is that the resource we want to delete does not exist in the first
-			//place (404), then just return with no error.
+			// If the error is that the resource we want to delete does not exist in the first
+			// place (404), then just return with no error.
 			if response.WasNotFound(future.Response()) {
 				return nil
 			}
@@ -422,7 +422,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resour
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			//Same deal as before. Just in case.
+			// Same deal as before. Just in case.
 			if response.WasNotFound(future.Response()) {
 				return nil
 			}

@@ -70,6 +70,8 @@ func TestAccAzureRMNetAppSnapshot_complete(t *testing.T) {
 				Config: testAccAzureRMNetAppSnapshot_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -92,6 +94,18 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetAppSnapshot_updateTags(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaZ"),
 				),
 			},
 			data.ImportStep(),
@@ -100,6 +114,7 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", newVolumeName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -185,6 +200,9 @@ resource "azurerm_netapp_snapshot" "import" {
   name                = azurerm_netapp_snapshot.test.name
   location            = azurerm_netapp_snapshot.test.location
   resource_group_name = azurerm_netapp_snapshot.test.resource_group_name
+  account_name        = azurerm_netapp_snapshot.test.account_name
+  pool_name           = azurerm_netapp_snapshot.test.pool_name
+  volume_name         = azurerm_netapp_snapshot.test.volume_name
 }
 `, testAccAzureRMNetAppSnapshot_basic(data))
 }
@@ -201,6 +219,30 @@ resource "azurerm_netapp_snapshot" "test" {
   volume_name         = azurerm_netapp_volume.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "FoO" = "BaR"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMNetAppSnapshot_updateTags(data acceptance.TestData) string {
+	template := testAccAzureRMNetAppSnapshot_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_snapshot" "test" {
+  name                = "acctest-NetAppSnapshot-%d"
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_name         = azurerm_netapp_volume.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "FoO" = "BaZ"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -222,8 +264,10 @@ resource "azurerm_subnet" "update" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.update.name
   address_prefix       = "10.0.2.0/24"
+
   delegation {
     name = "netapp"
+
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]

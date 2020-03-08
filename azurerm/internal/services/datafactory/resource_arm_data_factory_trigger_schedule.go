@@ -63,7 +63,7 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validate.RFC3339Time, //times in the past just start immediately
+				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
 			},
 
 			// This time can only be  represented in UTC.
@@ -73,7 +73,7 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validate.RFC3339Time, //times in the past just start immediately
+				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
 			},
 
 			"frequency": {
@@ -154,14 +154,14 @@ func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("start_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) //should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		props.Recurrence.StartTime = &date.Time{Time: t}
 	} else {
 		props.Recurrence.StartTime = &date.Time{Time: time.Now()}
 	}
 
 	if v, ok := d.GetOk("end_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) //should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		props.Recurrence.EndTime = &date.Time{Time: t}
 	}
 

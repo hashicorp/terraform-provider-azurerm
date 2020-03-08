@@ -297,7 +297,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 
 			name := subnet["name"].(string)
 			log.Printf("[INFO] setting subnets inside vNet, processing %q", name)
-			//since subnets can also be created outside of vNet definition (as root objects)
+			// since subnets can also be created outside of vNet definition (as root objects)
 			// do a GET on subnet properties from the server before setting them
 			resGroup := d.Get("resource_group_name").(string)
 			vnetName := d.Get("name").(string)
@@ -310,7 +310,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			prefix := subnet["address_prefix"].(string)
 			secGroup := subnet["security_group"].(string)
 
-			//set the props from config and leave the rest intact
+			// set the props from config and leave the rest intact
 			subnetObj.Name = &name
 			if subnetObj.SubnetPropertiesFormat == nil {
 				subnetObj.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{}
@@ -452,7 +452,7 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 		if resp.StatusCode == http.StatusNotFound {
 			return &network.Subnet{}, nil
 		}
-		//raise an error if there was an issue other than 404 in getting subnet properties
+		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 

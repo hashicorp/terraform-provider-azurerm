@@ -63,10 +63,10 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
-	//"large" in this context is anything greater than 4 megabytes
-	largeSize := 12 * 1024 * 1024 //12 mb
+	// "large" in this context is anything greater than 4 megabytes
+	largeSize := 12 * 1024 * 1024 // 12 mb
 	bytes := make([]byte, largeSize)
-	rand.Read(bytes) //fill with random data
+	rand.Read(bytes) // fill with random data
 
 	tmpfile, err := ioutil.TempFile("", "azurerm-acc-datalake-file-large")
 	if err != nil {
