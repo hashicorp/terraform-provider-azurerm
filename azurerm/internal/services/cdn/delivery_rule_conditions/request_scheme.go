@@ -72,8 +72,8 @@ func FlattenArmCdnEndpointConditionRequestScheme(condition *cdn.DeliveryRuleRequ
 			res["negate_condition"] = *params.NegateCondition
 		}
 
-		if params.MatchValues != nil {
-			res["match_values"] = *params.MatchValues
+		if params.MatchValues != nil && len(*params.MatchValues) > 0 {
+			res["match_value"] = (*params.MatchValues)[0]
 		}
 	}
 
