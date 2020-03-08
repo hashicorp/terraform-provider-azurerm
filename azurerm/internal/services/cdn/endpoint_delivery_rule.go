@@ -104,13 +104,13 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 
 	if deliveryRule.Actions != nil {
 		for _, basicDeliveryRuleAction := range *deliveryRule.Actions {
-			if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
-				res["url_redirect_action"] = []interface{}{delivery_rule_actions.FlattenArmCdnEndpointActionUrlRedirect(action)}
+			if action, isCacheExpirationAction := basicDeliveryRuleAction.AsDeliveryRuleCacheExpirationAction(); isCacheExpirationAction {
+				res["cache_expiration_action"] = []interface{}{delivery_rule_actions.FlattenArmCdnEndpointActionCacheExpiration(action)}
 				continue
 			}
 
-			if action, isCacheExpirationAction := basicDeliveryRuleAction.AsDeliveryRuleCacheExpirationAction(); isCacheExpirationAction {
-				res["cache_expiration_action"] = []interface{}{delivery_rule_actions.FlattenArmCdnEndpointActionCacheExpiration(action)}
+			if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
+				res["url_redirect_action"] = []interface{}{delivery_rule_actions.FlattenArmCdnEndpointActionUrlRedirect(action)}
 				continue
 			}
 		}
