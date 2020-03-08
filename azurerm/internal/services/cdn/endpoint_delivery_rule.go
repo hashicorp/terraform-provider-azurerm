@@ -38,6 +38,13 @@ func EndpointDeliveryRule() *schema.Resource {
 				MaxItems: 1,
 				Elem:     delivery_rule_actions.URLRedirect(),
 			},
+
+			"cache_expiration_action": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem:     delivery_rule_actions.CacheExpiration(),
+			},
 		},
 	}
 }
@@ -60,6 +67,10 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) cdn.DeliveryR
 
 	if ura := rule["url_redirect_action"]; len(ura.([]interface{})) > 0 {
 		actions = append(actions, *delivery_rule_actions.ExpandArmCdnEndpointActionUrlRedirect(ura.([]interface{})[0].(map[string]interface{})))
+	}
+
+	if cea := rule["cache_expiration_action"]; len(cea.([]interface{})) > 0 {
+		actions = append(actions, *delivery_rule_actions.ExpandArmCdnEndpointActionCacheExpiration(cea.([]interface{})[0].(map[string]interface{})))
 	}
 
 	deliveryRule.Actions = &actions
@@ -95,6 +106,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 		for _, basicDeliveryRuleAction := range *deliveryRule.Actions {
 			if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
 				res["url_redirect_action"] = []interface{}{delivery_rule_actions.FlattenArmCdnEndpointActionUrlRedirect(action)}
+				continue
+			}
+
+			if action, isCacheExpirationAction := basicDeliveryRuleAction.AsDeliveryRuleCacheExpirationAction(); isCacheExpirationAction {
+				res["cache_expiration_action"] = []interface{}{delivery_rule_actions.FlattenArmCdnEndpointActionCacheExpiration(action)}
 				continue
 			}
 		}

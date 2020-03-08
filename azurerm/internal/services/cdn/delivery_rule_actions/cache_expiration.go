@@ -47,7 +47,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(cea map[string]interface{}) *cdn.
 	return &cacheExpirationAction
 }
 
-func FlattenArmCdnEndpointActionCacheExpiry(cea *cdn.DeliveryRuleCacheExpirationAction) map[string]interface{} {
+func FlattenArmCdnEndpointActionCacheExpiration(cea *cdn.DeliveryRuleCacheExpirationAction) map[string]interface{} {
 	res := make(map[string]interface{}, 1)
 
 	if params := cea.Parameters; params != nil {
