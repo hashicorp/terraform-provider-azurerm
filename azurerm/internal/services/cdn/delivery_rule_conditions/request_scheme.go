@@ -25,11 +25,9 @@ func RuleConditionRequestScheme() *schema.Resource {
 				Default:  false,
 			},
 
-			"match_values": {
-				Type:     schema.TypeList,
+			"match_value": {
+				Type:     schema.TypeString,
 				Required: true,
-				MinItems: 1,
-				MaxItems: 1,
 				ValidateFunc: validation.StringInSlice([]string{
 					"HTTP",
 					"HTTPS",
@@ -44,7 +42,7 @@ func ExpandArmCdnEndpointConditionRequestScheme(rsc map[string]interface{}) *cdn
 		Name: cdn.NameRequestScheme,
 	}
 
-	matchValues := rsc["match_values"].([]string)
+	matchValues := []string{rsc["match_value"].(string)}
 	params := cdn.RequestSchemeMatchConditionParameters{
 		MatchValues: &matchValues,
 	}

@@ -24,7 +24,7 @@ func RuleActionUrlRedirect() *schema.Resource {
 
 			"protocol": {
 				Type:     schema.TypeString,
-				Required: false,
+				Optional: true,
 				Default:  string(cdn.MatchRequest),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(cdn.MatchRequest),
@@ -35,24 +35,24 @@ func RuleActionUrlRedirect() *schema.Resource {
 
 			"hostname": {
 				Type:     schema.TypeString,
-				Required: false,
+				Optional: true,
 			},
 
 			"path": {
 				Type:         schema.TypeString,
-				Required:     false,
+				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectPath(),
 			},
 
 			"query_string": {
 				Type:         schema.TypeString,
-				Required:     false,
+				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectPath(),
 			},
 
 			"fragment": {
 				Type:         schema.TypeString,
-				Required:     false,
+				Optional:     true,
 				ValidateFunc: validate.RuleActionUrlRedirectFragment(),
 			},
 		},

@@ -9,13 +9,13 @@ import (
 func EndpointDeliveryPolicy() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: false,
+		Optional: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"description": {
 					Type:     schema.TypeString,
-					Required: false,
+					Optional: true,
 				},
 
 				"rule": {
