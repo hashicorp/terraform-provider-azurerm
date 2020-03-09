@@ -2,25 +2,25 @@ package mssql
 
 import (
 	"fmt"
-	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"log"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -58,63 +58,88 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				ValidateFunc: ValidateMsSqlServerID,
 			},
 
+			"business_critical": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"capacity": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntInSlice([]int{2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40, 80}),
+						},
+
+						"family": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Gen4",
+								"Gen5",
+							}, false),
+						},
+
+						"max_size_gb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(1, 1024),
+						},
+
+						"read_scale": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Enabled",
+								"Disabled",
+							}, false),
+						},
+
+						"zone_redundant": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+				ConflictsWith: []string{"hyper_scale", "general_purpose"},
+			},
+
 			"collation": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
-				ValidateFunc:validation.StringMatch(
-					regexp.MustCompile(`^[\da-zA-Z-]$`),
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9_]+$`),
 					`This collation is not valid.`,
 				),
 			},
 
-			"elastic_pool_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc:ValidateMsSqlElasticPoolID,
-			},
-
-			"license_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"BasePrice",
-					"LicenseIncluded",
-				}, false),
-			},
-
-			"sample_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"AdventureWorksLT",
-				}, false),
-
-			},
-
+			// source_database_id will not be returned
 			"create_copy_mode": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"source_database_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: ValidateMsSqlDatabaseID,
 						},
 					},
 				},
-				ConflictsWith:[]string{"create_pitr_mode","create_secondary_mode"},
+				ConflictsWith: []string{"create_pitr_mode", "create_secondary_mode"},
 			},
 
+			//source_database_id and restore_point_in_time will not be returned
 			"create_pitr_mode": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -131,50 +156,14 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith:[]string{"create_copy_mode","create_secondary_mode"},
+				ConflictsWith: []string{"create_copy_mode", "create_secondary_mode"},
 			},
 
-			//"create_recovery_mode": {
-			//	Type:     schema.TypeList,
-			//	Optional: true,
-			//	MaxItems: 1,
-			//	Elem: &schema.Resource{
-			//		Schema: map[string]*schema.Schema{
-			//			"restorable_dropped_database_id": {
-			//				Type:         schema.TypeString,
-			//				Required:     true,
-			//				ValidateFunc: azure.ValidateResourceID,
-			//			},
-			//		},
-			//	},
-			//},
-			//
-			//"create_restore_mode": {
-			//	Type:     schema.TypeList,
-			//	Optional: true,
-			//	MaxItems: 1,
-			//	Elem: &schema.Resource{
-			//		Schema: map[string]*schema.Schema{
-			//			"source_database_id": {
-			//				Type:         schema.TypeString,
-			//				Required:     true,
-			//				ValidateFunc: azure.ValidateResourceID,
-			//			},
-			//
-			//			"source_database_deletion_date": {
-			//				Type:             schema.TypeString,
-			//				Optional:         true,
-			//				Computed:         true,
-			//				DiffSuppressFunc: suppress.RFC3339Time,
-			//				ValidateFunc:     validate.RFC3339Time,
-			//			},
-			//		},
-			//	},
-			//},
-
+			//source_database_id will not be returned
 			"create_secondary_mode": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -185,14 +174,22 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith:[]string{"create_copy_mode","create_pitr_mode","create_secondary_mode"},
+				ConflictsWith: []string{"create_copy_mode", "create_pitr_mode"},
 			},
 
+			"elastic_pool_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: ValidateMsSqlElasticPoolID,
+			},
+
+			// By default, the db sku is general_purpose. If no sku is specified, gp will be set.
 			"general_purpose": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"capacity": {
@@ -217,9 +214,10 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith:[]string{"hyper_scale","business_critical"},
+				ConflictsWith: []string{"hyper_scale", "business_critical"},
 			},
 
+			// hyper_scale could not be changed to the other skus
 			"hyper_scale": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -249,53 +247,27 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith:[]string{"business_critical","general_purpose"},
+				ConflictsWith: []string{"business_critical", "general_purpose"},
 			},
 
-			"business_critical": {
-				Type:     schema.TypeList,
+			"license_type": {
+				Type:     schema.TypeString,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"capacity": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntInSlice([]int{2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40, 80}),
-						},
-						"family": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Gen4",
-								"Gen5",
-							}, false),
-						},
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"BasePrice",
+					"LicenseIncluded",
+				}, false),
+			},
 
-						"max_size_gb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 1024),
-						},
-
-						"read_scale": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Enabled",
-								"Disabled",
-							}, false),
-						},
-
-						"zone_redundant": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-				ConflictsWith:[]string{"hyper_scale","general_purpose"},
+			//sample_name doesn't return back
+			"sample_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed:true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"AdventureWorksLT",
+				}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -330,12 +302,12 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	serverResp, err := serverClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
-		return fmt.Errorf("Error getting existing Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on MsSql Server  %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	location := *serverResp.Location
 	if location == "" {
-		return fmt.Errorf("Error reading location of MsSql Server %q", serverId.Name)
+		return fmt.Errorf("Error location is empty from making Read request on MsSql Server %q", serverId.Name)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -354,8 +326,6 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	expandAzureRmMsSqlDatabaseCreateCopyMode(d, &params)
 	expandAzureRmMsSqlDatabaseCreatePITRMode(d, &params)
-	//expandAzureRmMsSqlDatabaseCreateRecoveryMode(d, &params)
-	//expandAzureRmMsSqlDatabaseCreateRestoreMode(d, &params)
 	expandAzureRmMsSqlDatabaseCreateSecondaryMode(d, &params)
 
 	if v, ok := d.GetOkExists("collation"); ok {
@@ -376,20 +346,20 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, params)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating MsSql Database %q (Sql Server %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for creation of MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MsSql Database %q (resource group %q) ID", name, serverId.ResourceGroup)
+		return fmt.Errorf("Cannot read MsSql Database %q (MsSql Server Name %q / Resource Group %q) ID", name, serverId.Name, serverId.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -413,7 +383,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on MsSql Database %s: %s", databaseId.Name, err)
+		return fmt.Errorf("Error reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", databaseId.Name, databaseId.MsSqlServer, databaseId.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -422,15 +392,18 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 
 	serverResp, err := serverClient.Get(ctx, databaseId.ResourceGroup, databaseId.MsSqlServer)
 	if err != nil || *serverResp.ID == "" {
-		return fmt.Errorf("Error getting existing Server %q (Resource Group %q): %s", databaseId.MsSqlServer, databaseId.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on MsSql Server  %q (Resource Group %q): %s", databaseId.MsSqlServer, databaseId.ResourceGroup, err)
 	}
 	d.Set("mssql_server_id", serverResp.ID)
+
+	flattenedBC := flattenAzureRmMsSqlDatabaseBC(&resp)
+	if err := d.Set("business_critical", flattenedBC); err != nil {
+		return fmt.Errorf("Error setting `business_critical`: %+v", err)
+	}
 
 	d.Set("collation", resp.Collation)
 
 	d.Set("elastic_pool_id", resp.ElasticPoolID)
-
-	d.Set("license_type", resp.LicenseType)
 
 	flattenedGP := flattenAzureRmMsSqlDatabaseGP(&resp)
 	if err := d.Set("general_purpose", flattenedGP); err != nil {
@@ -442,25 +415,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error setting `hyper_scale`: %+v", err)
 	}
 
-	flattenedBC := flattenAzureRmMsSqlDatabaseBC(&resp)
-	if err := d.Set("business_critical", flattenedBC); err != nil {
-		return fmt.Errorf("Error setting `business_critical`: %+v", err)
-	}
-
-	//flattenedCreateRecoveryMode := flattenAzureRmMsSqlDatabaseCreateRecoveryMode(&resp)
-	//if err := d.Set("create_recovery_mode", flattenedCreateRecoveryMode); err != nil {
-	//	return fmt.Errorf("Error setting `create_recovery_mode`: %+v", err)
-	//}
-
-	//flattenedCreateRestoreMode := flattenAzureRmMsSqlDatabaseCreateRestoreMode(&resp)
-	//if err := d.Set("create_restore_mode", flattenedCreateRestoreMode); err != nil {
-	//	return fmt.Errorf("Error setting `create_restore_mode`: %+v", err)
-	//}
-
-	//flattenedCreateSecondaryMode := flattenAzureRmMsSqlDatabaseCreateSecondaryMode(&resp)
-	//if err := d.Set("create_secondary_mode", flattenedCreateSecondaryMode); err != nil {
-	//	return fmt.Errorf("Error setting `create_secondary_mode`: %+v", err)
-	//}
+	d.Set("license_type", resp.LicenseType)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -547,6 +502,7 @@ func expandAzureRmMsSqlDatabaseHS(d *schema.ResourceData, params *sql.Database) 
 	params.Sku = &sql.Sku{
 		Name: utils.String("HS" + "_" + hs["family"].(string) + "_" + strconv.Itoa(hs["capacity"].(int))),
 	}
+
 	if readReplica, ok := hs["read_replica_count"]; ok {
 		params.DatabaseProperties.ReadReplicaCount = utils.Int32(int32(readReplica.(int)))
 	}
@@ -761,7 +717,7 @@ func ValidateMsSqlElasticPoolID(i interface{}, k string) (warnings []string, err
 		return
 	}
 
-	if _,_,_, err := parseArmMSSqlElasticPoolId(v); err != nil {
+	if _, _, _, err := parseArmMSSqlElasticPoolId(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Elastic Pool resource id: %v", k, err))
 	}
 
@@ -781,6 +737,3 @@ func ValidateMsSqlDatabaseID(i interface{}, k string) (warnings []string, errors
 
 	return warnings, errors
 }
-
-
-

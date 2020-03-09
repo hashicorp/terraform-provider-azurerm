@@ -2,15 +2,16 @@ package tests
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: add import tests
@@ -66,13 +67,6 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMsSqlDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
 				Config: testAccAzureRMMsSqlDatabase_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
@@ -80,7 +74,7 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("sample_name"),
 			{
 				Config: testAccAzureRMMsSqlDatabase_update(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -88,7 +82,7 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("sample_name"),
 		},
 	})
 }
@@ -143,6 +137,18 @@ func TestAccAzureRMMsSqlDatabase_GP(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMsSqlDatabase_BC(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -167,6 +173,18 @@ func TestAccAzureRMMsSqlDatabase_GP(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMsSqlDatabase_HS(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -193,33 +211,6 @@ func TestAccAzureRMMsSqlDatabase_GP(t *testing.T) {
 	})
 }
 
-//
-//func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-//
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { acceptance.PreCheck(t) },
-//		Providers:    acceptance.SupportedProviders,
-//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-//		Steps: []resource.TestStep{
-//
-//		},
-//	})
-//}
-//
-//func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-//
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { acceptance.PreCheck(t) },
-//		Providers:    acceptance.SupportedProviders,
-//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-//		Steps: []resource.TestStep{
-//
-//		},
-//	})
-//}
-
 func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "copy")
 
@@ -241,28 +232,7 @@ func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMsSqlDatabase_createRecoveryMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "recovery")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlDatabase_createRecoveryMode(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
-					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
+func TestAccAzureRMMsSqlDatabase_createPITRMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -271,17 +241,67 @@ func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMsSqlDatabase_createRestoreMode(data),
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "create_restore_mode.0.source_database_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "create_restore_mode.0.source_database_deletion_date", "2020-07-14T06:41:06.613Z"),
 				),
 			},
 			data.ImportStep(),
+
+			{
+				PreConfig: func() { time.Sleep(7 * time.Minute) },
+				Config:    testAccAzureRMMsSqlDatabase_createPITRMode(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists("azurerm_mssql_database.pitr"),
+				),
+			},
+
+			data.ImportStep("create_pitr_mode.#", "create_pitr_mode.0.source_database_id", "create_pitr_mode.0.restore_point_in_time"),
 		},
 	})
 }
+
+//func TestAccAzureRMMsSqlDatabase_createRecoveryMode(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "recovery")
+//
+//	resource.ParallelTest(t, resource.TestCase{
+//		PreCheck:     func() { acceptance.PreCheck(t) },
+//		Providers:    acceptance.SupportedProviders,
+//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+//		Steps: []resource.TestStep{
+//			{
+//				Config: testAccAzureRMMsSqlDatabase_createRecoveryMode(data),
+//				Check: resource.ComposeTestCheckFunc(
+//					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+//					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
+//					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
+//				),
+//			},
+//			data.ImportStep(),
+//		},
+//	})
+//}
+//
+//func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+//
+//	resource.ParallelTest(t, resource.TestCase{
+//		PreCheck:     func() { acceptance.PreCheck(t) },
+//		Providers:    acceptance.SupportedProviders,
+//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+//		Steps: []resource.TestStep{
+//			{
+//				Config: testAccAzureRMMsSqlDatabase_createRestoreMode(data),
+//				Check: resource.ComposeTestCheckFunc(
+//					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+//					resource.TestCheckResourceAttrSet(data.ResourceName, "create_restore_mode.0.source_database_id"),
+//					resource.TestCheckResourceAttr(data.ResourceName, "create_restore_mode.0.source_database_deletion_date", "2020-07-14T06:41:06.613Z"),
+//				),
+//			},
+//			data.ImportStep(),
+//		},
+//	})
+//}
 
 func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
@@ -295,10 +315,11 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 				Config: testAccAzureRMMsSqlDatabase_createSecondaryMode(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "create_secondary_mode.0.source_database_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("create_secondary_mode.#", "create_secondary_mode.0.source_database_id","sample_name"),
 		},
 	})
 }
@@ -358,6 +379,10 @@ func testCheckAzureRMMsSqlDatabaseDestroy(s *terraform.State) error {
 
 func testAccAzureRMMsSqlDatabase_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssqldb-%[1]d"
   location = "%[2]s"
@@ -408,6 +433,7 @@ resource "azurerm_mssql_database" "test" {
   mssql_server_id = azurerm_sql_server.test.id
   collation       = "SQL_AltDiction_CP850_CI_AI"
   license_type    = "BasePrice"
+  sample_name     = "AdventureWorksLT"
 }
 `, template, data.RandomInteger)
 }
@@ -579,51 +605,48 @@ resource "azurerm_mssql_database" "copy" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMMsSqlDatabase_createRecoveryMode(data acceptance.TestData) string {
+func testAccAzureRMMsSqlDatabase_createPITRMode(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "pitr" {
+  name            = "acctest-dbp-%d"
+  mssql_server_id = azurerm_sql_server.test.id
+  create_pitr_mode {
+    source_database_id    = azurerm_mssql_database.test.id
+    restore_point_in_time = "%s"
+  }
+}
+`, template, data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
+}
+
+func testAccAzureRMMsSqlDatabase_createSecondaryMode(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlDatabase_complete(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mssql_database" "recovery" {
-  name            = "acctest-dbc-%d"
-  mssql_server_id = azurerm_sql_server.test.id
-  create_recovery_mode {
-    restorable_dropped_database_id = azurerm_mssql_database.test.id
-  }
-
-}
-`, template, data.RandomInteger)
+resource "azurerm_resource_group" "second" {
+  name     = "acctestRG-mssqldb2-%[2]d"
+  location = "%[3]s"
 }
 
-func testAccAzureRMMsSqlDatabase_createRestoreMode(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlDatabase_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_database" "restore" {
-  name            = "acctest-dbc-%d"
-  mssql_server_id = azurerm_sql_server.test.id
-  create_restore_mode {
-    source_database_id            = azurerm_mssql_database.test.id
-    source_database_deletion_date = "2020-07-14T06:41:06.613Z"
-  }
-
+resource "azurerm_sql_server" "second" {
+  name                         = "acctest-sqlserver2-%[2]d"
+  resource_group_name          = azurerm_resource_group.second.name
+  location                     = azurerm_resource_group.second.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMMsSqlDatabase_createSecondaryMode(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlDatabase_basic(data)
-	return fmt.Sprintf(`
-%s
 
 resource "azurerm_mssql_database" "secondary" {
-  name            = "acctest-dbc-%d"
-  mssql_server_id = azurerm_sql_server.test.id
+  name            = "acctest-dbs-%[2]d"
+  mssql_server_id = azurerm_sql_server.second.id
   create_secondary_mode {
     source_database_id = azurerm_mssql_database.test.id
   }
 
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
