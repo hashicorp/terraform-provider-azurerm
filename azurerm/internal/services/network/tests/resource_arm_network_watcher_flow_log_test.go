@@ -243,7 +243,7 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval", "60"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval_in_minutes", "60"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_region"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_resource_id"),
@@ -264,7 +264,7 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_analytics.0.interval_in_minutes", "10"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_region"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "traffic_analytics.0.workspace_resource_id"),
@@ -540,7 +540,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
     workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
     workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
     workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-    interval              = 10
+    interval_in_minutes   = 10
   }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
