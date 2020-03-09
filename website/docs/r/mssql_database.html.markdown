@@ -28,11 +28,6 @@ resource "azurerm_sql_server" "example" {
 }
 
 resource "azurerm_mssql_database" "example" {
-  name            = "example-sqldb"
-  mssql_server_id = azurerm_sql_server.example.id
-}
-
-resource "azurerm_mssql_database" "example" {
   name            = "example-mssql-db"
   mssql_server_id = azurerm_sql_server.example.id
   collation       = "SQL_Latin1_General_CP1_CI_AS"
@@ -90,7 +85,7 @@ The following arguments are supported:
 
 * `max_size_gb` - (Optional) The max size of the database in gigabytes.
 
-* `read_scale` - (Optional) If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. Possible values are 'Enabled' and 'Disabled'.
+* `read_scale` - (Optional) If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. Possible values are `Enabled` and `Disabled`.
 
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 

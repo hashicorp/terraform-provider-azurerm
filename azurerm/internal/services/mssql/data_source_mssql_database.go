@@ -48,17 +48,6 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	serverClient := meta.(*clients.Client).MSSQL.ServersClient
-	serverResp, err := serverClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
-	if err != nil {
-		return fmt.Errorf("Error making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
-	}
-
-	location := *serverResp.Location
-	if location == "" {
-		return fmt.Errorf("Error location is empty from making Read request on MsSql Server %q", serverId.Name)
-	}
-
 	resp, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
