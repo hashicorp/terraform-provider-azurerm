@@ -143,7 +143,7 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
-						"interval": {
+						"interval_in_ minutes": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtMost(math.MaxInt32),
