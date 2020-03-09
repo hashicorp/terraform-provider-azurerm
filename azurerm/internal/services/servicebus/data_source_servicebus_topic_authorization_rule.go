@@ -38,7 +38,7 @@ func dataSourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"listen": {
 				Type:     schema.TypeBool,

@@ -20,6 +20,7 @@ func TestAccDataSourceAzureRMServiceBusTopicAuthorizationRule_basic(t *testing.T
 				Config: testAccDataSourceAzureRMServiceBusTopicAuthorizationRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
