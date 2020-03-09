@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// TODO: add import tests
 func TestAccAzureRMMsSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
@@ -72,6 +71,12 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.capacity", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.max_size_gb", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
 				),
 			},
 			data.ImportStep("sample_name"),
@@ -80,6 +85,12 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.capacity", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.max_size_gb", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
 				),
 			},
 			data.ImportStep("sample_name"),
@@ -261,50 +272,8 @@ func TestAccAzureRMMsSqlDatabase_createPITRMode(t *testing.T) {
 	})
 }
 
-//func TestAccAzureRMMsSqlDatabase_createRecoveryMode(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "recovery")
-//
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { acceptance.PreCheck(t) },
-//		Providers:    acceptance.SupportedProviders,
-//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccAzureRMMsSqlDatabase_createRecoveryMode(data),
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-//					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
-//					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
-//				),
-//			},
-//			data.ImportStep(),
-//		},
-//	})
-//}
-//
-//func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-//
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { acceptance.PreCheck(t) },
-//		Providers:    acceptance.SupportedProviders,
-//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccAzureRMMsSqlDatabase_createRestoreMode(data),
-//				Check: resource.ComposeTestCheckFunc(
-//					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-//					resource.TestCheckResourceAttrSet(data.ResourceName, "create_restore_mode.0.source_database_id"),
-//					resource.TestCheckResourceAttr(data.ResourceName, "create_restore_mode.0.source_database_deletion_date", "2020-07-14T06:41:06.613Z"),
-//				),
-//			},
-//			data.ImportStep(),
-//		},
-//	})
-//}
-
 func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -319,7 +288,7 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 				),
 			},
-			data.ImportStep("create_secondary_mode.#", "create_secondary_mode.0.source_database_id","sample_name"),
+			data.ImportStep("create_secondary_mode.#", "create_secondary_mode.0.source_database_id", "sample_name"),
 		},
 	})
 }
@@ -434,6 +403,16 @@ resource "azurerm_mssql_database" "test" {
   collation       = "SQL_AltDiction_CP850_CI_AI"
   license_type    = "BasePrice"
   sample_name     = "AdventureWorksLT"
+
+  general_purpose {
+    capacity    = 2
+    family      = "Gen4"
+    max_size_gb = 2
+  }
+
+  tags = {
+    environment = "Test"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -448,6 +427,16 @@ resource "azurerm_mssql_database" "test" {
   mssql_server_id = azurerm_sql_server.test.id
   collation       = "SQL_AltDiction_CP850_CI_AI"
   license_type    = "LicenseIncluded"
+
+  business_critical {
+    capacity    = 4
+    family      = "Gen5"
+    max_size_gb = 4
+  }
+
+  tags = {
+    environment = "Staging"
+  }
 }
 `, template, data.RandomInteger)
 }

@@ -51,7 +51,7 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	serverResp, err := serverClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on MsSql Server  %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	location := *serverResp.Location

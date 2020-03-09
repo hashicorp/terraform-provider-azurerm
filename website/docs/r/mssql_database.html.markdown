@@ -31,6 +31,24 @@ resource "azurerm_mssql_database" "example" {
   name            = "example-sqldb"
   mssql_server_id = azurerm_sql_server.example.id
 }
+
+resource "azurerm_mssql_database" "example" {
+  name            = "example-mssql-db"
+  mssql_server_id = azurerm_sql_server.example.id
+  collation       = "SQL_Latin1_General_CP1_CI_AS"
+  license_type    = "LicenseIncluded"
+  sample_name     = "AdventureWorksLT"
+
+  general_purpose {
+    capacity    = 2
+    family      = "Gen4"
+    max_size_gb = 4
+  }
+
+  tags = {
+    foo = "bar"
+  }
+}
 ```
 
 ## Argument Reference
@@ -57,9 +75,9 @@ The following arguments are supported:
 
 * `hyper_scale` - (Optional) A `hyper_scale` block as defined below. Changing this forces a new resource to be created. Conflicts with `business_critical` and `general_purpose`.
 
-* `license_type` - (Optional) Specifies the license type to apply for this database. Possible values are 'LicenseIncluded' and 'BasePrice'.
+* `license_type` - (Optional) Specifies the license type to apply for this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
-* `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is 'AdventureWorksLT'.
+* `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is `AdventureWorksLT`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -81,9 +99,7 @@ The following arguments are supported:
 
 * `source_database_id` - (Required) The id of the source database to be copied to create the new database.
 
-
 ---
-
 `create_pitr_mode` supports the following:
 
 * `source_database_id` - (Required) The id of the source database to be restored to create the new database.
@@ -91,13 +107,11 @@ The following arguments are supported:
 * `restore_point_in_time` - (Required) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database.
 
 ---
-
 `create_secondary_mode` supports the following:
 
 * `source_database_id` - (Required) The id of the source database to be copied to create the new database in another location.
 
 ---
-
 `general_purpose` supports the following:
 
 * `capacity` - (Required) The scale up/out capacity, representing server's compute units. For more information see the documentation for your Database configuration: [vCore-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-service-tiers-vcore).
@@ -107,7 +121,6 @@ The following arguments are supported:
 * `max_size_gb` - (Optional) The max size of the database in gigabytes.
 
 ---
-
 `hyper_scale` supports the following:
 
 * `capacity` - (Required) The scale up/out capacity, representing server's compute units. For more information see the documentation for your Database configuration: [vCore-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-service-tiers-vcore).
@@ -127,10 +140,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the MS SQL Database.
-* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Database.
+* `create` - (Defaults to 45 minutes) Used when creating the MS SQL Database.
+* `update` - (Defaults to 45 minutes) Used when updating the MS SQL Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Database.
-* `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Database.
+* `delete` - (Defaults to 45 minutes) Used when deleting the MS SQL Database.
 
 ## Import
 

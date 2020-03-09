@@ -36,10 +36,10 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(45 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(45 * time.Minute),
+			Delete: schema.DefaultTimeout(45 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -263,7 +263,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"sample_name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed:true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"AdventureWorksLT",
 				}, false),
@@ -626,60 +626,6 @@ func expandAzureRmMsSqlDatabaseCreatePITRMode(d *schema.ResourceData, params *sq
 	params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
 
 	return
-}
-
-func expandAzureRmMsSqlDatabaseCreateRecoveryMode(d *schema.ResourceData, params *sql.Database) {
-	recoveryModes := d.Get("create_recovery_mode").([]interface{})
-	if len(recoveryModes) == 0 {
-		return
-	}
-
-	recoveryMode := recoveryModes[0].(map[string]interface{})
-
-	params.DatabaseProperties.CreateMode = sql.CreateModeRecovery
-	params.DatabaseProperties.RestorableDroppedDatabaseID = utils.String(recoveryMode["restorable_dropped_database_id"].(string))
-
-	return
-}
-
-func expandAzureRmMsSqlDatabaseCreateRestoreMode(d *schema.ResourceData, params *sql.Database) {
-	restoreModes := d.Get("create_restore_mode").([]interface{})
-	if len(restoreModes) == 0 {
-		return
-	}
-	restoreMode := restoreModes[0].(map[string]interface{})
-
-	params.DatabaseProperties.CreateMode = sql.CreateModeRestore
-	params.DatabaseProperties.SourceDatabaseID = utils.String(restoreMode["source_database_id"].(string))
-
-	if v, ok := restoreMode["source_database_deletion_date"]; ok {
-		sourceDatabaseDeletionDate, _ := time.Parse(time.RFC3339, v.(string))
-		params.DatabaseProperties.SourceDatabaseDeletionDate = &date.Time{Time: sourceDatabaseDeletionDate}
-	}
-
-	return
-}
-
-func flattenAzureRmMsSqlDatabaseCreateRestoreMode(input *sql.Database) []interface{} {
-	if input.CreateMode != sql.CreateModeRestore {
-		return []interface{}{}
-	}
-	var sourceDatabaseID, sourceDatabaseDeletionDate string
-
-	if input.SourceDatabaseID != nil {
-		sourceDatabaseID = *input.SourceDatabaseID
-	}
-
-	if input.SourceDatabaseDeletionDate != nil && !input.SourceDatabaseDeletionDate.IsZero() {
-		sourceDatabaseDeletionDate = input.SourceDatabaseDeletionDate.Format(time.RFC3339)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"source_database_id":            sourceDatabaseID,
-			"source_database_deletion_date": sourceDatabaseDeletionDate,
-		},
-	}
 }
 
 func expandAzureRmMsSqlDatabaseCreateSecondaryMode(d *schema.ResourceData, params *sql.Database) {
