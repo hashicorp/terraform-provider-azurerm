@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_database_migration_project` [GH-5993]
 * **New Data Source:** `azurerm_database_migration_service` [GH-5258]
 * **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
+* **New Data Source:** `azurerm_servicebus_topic_authorization_rule` [GH-6017]
 * **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
 * **New Resource:** `azurerm_database_migration_project` [GH-5993]
 * **New Resource:** `azurerm_database_migration_service` [GH-5258]
