@@ -636,7 +636,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
-			accessTier = storage.Hot
+			accessTier = string(storage.Hot)
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
