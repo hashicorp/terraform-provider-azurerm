@@ -231,6 +231,8 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 -> **NOTE:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
+* `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
+
 ---
 
 A `http_application_routing` block supports the following:

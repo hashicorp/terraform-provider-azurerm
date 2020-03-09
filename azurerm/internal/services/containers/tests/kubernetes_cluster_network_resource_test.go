@@ -1188,10 +1188,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
+    name                 = "default"
+    node_count           = 2
+    vm_size              = "Standard_DS2_v2"
+    vnet_subnet_id       = azurerm_subnet.test.id
+    orchestrator_version = "%s"
   }
 
   identity {
@@ -1203,7 +1204,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "Standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
@@ -1265,10 +1266,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
+    name                 = "default"
+    node_count           = 2
+    vm_size              = "Standard_DS2_v2"
+    vnet_subnet_id       = azurerm_subnet.test.id
+    orchestrator_version = "%s"
   }
 
   identity {
@@ -1283,7 +1285,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku  = "Standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -1327,10 +1329,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
+    name                 = "default"
+    node_count           = 2
+    vm_size              = "Standard_DS2_v2"
+    vnet_subnet_id       = azurerm_subnet.test.id
+    orchestrator_version = "%s"
   }
 
   identity {
@@ -1345,7 +1348,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
@@ -1509,10 +1512,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
+    name                 = "default"
+    node_count           = 2
+    vm_size              = "Standard_DS2_v2"
+    vnet_subnet_id       = azurerm_subnet.test.id
+    orchestrator_version = "%s"
   }
 
   identity {
@@ -1527,7 +1531,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
 }
 
 func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -1578,10 +1582,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
+    name                 = "default"
+    node_count           = 2
+    vm_size              = "Standard_DS2_v2"
+    vnet_subnet_id       = azurerm_subnet.test.id
+    orchestrator_version = "%s"
   }
 
   identity {
@@ -1596,7 +1601,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
 }
 
 func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {

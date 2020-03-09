@@ -124,6 +124,8 @@ A `agent_pool_profile` block exports the following:
 
 * `tags` - A mapping of tags to assign to the resource.
 
+* `orchestrator_version` - Kubernetes version used for the Agents.
+
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.

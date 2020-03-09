@@ -186,6 +186,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"orchestrator_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"max_pods": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -860,6 +865,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.OsType != "" {
 			agentPoolProfile["os_type"] = string(profile.OsType)
+		}
+
+		if *profile.OrchestratorVersion != "" {
+			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
 		}
 
 		if profile.MaxPods != nil {

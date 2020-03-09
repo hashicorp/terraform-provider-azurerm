@@ -869,27 +869,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	}
 
-	// update the node pool using the separate API
-	if d.HasChange("default_node_pool") {
-		log.Printf("[DEBUG] Updating of Default Node Pool..")
-
-		agentProfiles, err := ExpandDefaultNodePool(d)
-		if err != nil {
-			return fmt.Errorf("expanding `default_node_pool`: %+v", err)
-		}
-
-		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *agentProfile.Name, agentProfile)
-		if err != nil {
-			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
-
-		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
-		log.Printf("[DEBUG] Updated Default Node Pool.")
-	}
-
 	// then roll the version of Kubernetes if necessary
 	if d.HasChange("kubernetes_version") {
 		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -914,6 +893,27 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
+	}
+
+	// update the node pool using the separate API
+	if d.HasChange("default_node_pool") {
+		log.Printf("[DEBUG] Updating of Default Node Pool..")
+
+		agentProfiles, err := ExpandDefaultNodePool(d)
+		if err != nil {
+			return fmt.Errorf("expanding `default_node_pool`: %+v", err)
+		}
+
+		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
+		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *agentProfile.Name, agentProfile)
+		if err != nil {
+			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
+			return fmt.Errorf("waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
 
 	d.Partial(false)
