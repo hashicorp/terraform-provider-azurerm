@@ -799,7 +799,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   tags = {
-    environment = "Staging"
+    Environment = "Staging"
   }
 }
 `, template)
@@ -1004,7 +1004,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   os_type               = "Windows"
 
   tags = {
-    os = "Windows"
+    Os = "Windows"
   }
 }
 `, template)
