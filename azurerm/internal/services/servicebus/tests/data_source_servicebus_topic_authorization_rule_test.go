@@ -20,6 +20,8 @@ func TestAccDataSourceAzureRMServiceBusTopicAuthorizationRule_basic(t *testing.T
 				Config: testAccDataSourceAzureRMServiceBusTopicAuthorizationRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
@@ -38,8 +40,8 @@ func testAccDataSourceAzureRMServiceBusTopicAuthorizationRule_basic(data accepta
 data "azurerm_servicebus_topic_authorization_rule" "test" {
   name                = "${azurerm_servicebus_topic_authorization_rule.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  topic_name          = "${azurerm_servicebus_topic.test.name}"
 }
 `, template)
 }
