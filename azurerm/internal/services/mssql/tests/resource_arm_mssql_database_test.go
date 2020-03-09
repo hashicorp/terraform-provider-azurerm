@@ -93,6 +93,26 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlDatabase_elasticPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_elasticPool(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "elastic_pool_id"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMMsSqlDatabase_GP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
@@ -123,18 +143,30 @@ func TestAccAzureRMMsSqlDatabase_GP(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_BC(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.capacity", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.family", "Gen4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.max_size_gb", "1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_BCUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.capacity", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.max_size_gb", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.read_scale", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.zone_redundant", "true"),
+				),
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMMsSqlDatabase_HS(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -161,41 +193,32 @@ func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlDatabase_BC(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.capacity", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.family", "Gen4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.max_size_gb", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMsSqlDatabase_BCUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.capacity", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.family", "Gen5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.max_size_gb", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.read_scale", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.zone_redundant", "true"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
+//
+//func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+//
+//	resource.ParallelTest(t, resource.TestCase{
+//		PreCheck:     func() { acceptance.PreCheck(t) },
+//		Providers:    acceptance.SupportedProviders,
+//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+//		Steps: []resource.TestStep{
+//
+//		},
+//	})
+//}
+//
+//func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+//
+//	resource.ParallelTest(t, resource.TestCase{
+//		PreCheck:     func() { acceptance.PreCheck(t) },
+//		Providers:    acceptance.SupportedProviders,
+//		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+//		Steps: []resource.TestStep{
+//
+//		},
+//	})
+//}
 
 func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "copy")
@@ -213,7 +236,7 @@ func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 				),
 			},
-			data.ImportStep("create_copy_mode.#","create_copy_mode.0.source_database_id"),
+			data.ImportStep("create_copy_mode.#", "create_copy_mode.0.source_database_id"),
 		},
 	})
 }
@@ -230,6 +253,8 @@ func TestAccAzureRMMsSqlDatabase_createRecoveryMode(t *testing.T) {
 				Config: testAccAzureRMMsSqlDatabase_createRecoveryMode(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 				),
 			},
 			data.ImportStep(),
@@ -401,6 +426,39 @@ resource "azurerm_mssql_database" "test" {
 `, template, data.RandomInteger)
 }
 
+func testAccAzureRMMsSqlDatabase_elasticPool(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
+  max_size_gb         = 4.8828125
+  zone_redundant      = false
+
+  sku {
+    name     = "BasicPool"
+    tier     = "Basic"
+    capacity = 50
+  }
+
+  per_database_settings {
+    min_capacity = 0
+    max_capacity = 5
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%[2]d"
+  mssql_server_id = azurerm_sql_server.test.id
+  elastic_pool_id = azurerm_mssql_elasticpool.test.id
+}
+`, template, data.RandomInteger)
+}
+
 func testAccAzureRMMsSqlDatabase_GP(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlDatabase_template(data)
 	return fmt.Sprintf(`
@@ -522,7 +580,7 @@ resource "azurerm_mssql_database" "copy" {
 }
 
 func testAccAzureRMMsSqlDatabase_createRecoveryMode(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlDatabase_basic(data)
+	template := testAccAzureRMMsSqlDatabase_complete(data)
 	return fmt.Sprintf(`
 %s
 
