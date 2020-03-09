@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
@@ -152,7 +151,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.RFC3339Time,
-							ValidateFunc:     validate.RFC3339Time,
+							ValidateFunc:     validation.IsRFC3339Time,
 						},
 					},
 				},
@@ -295,7 +294,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_database ", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_mssql_database", *existing.ID)
 		}
 	}
 
