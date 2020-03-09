@@ -44,9 +44,9 @@ The following arguments are supported:
 
 ---
 
-* `partition_count` - (Optional) The number of partitions which should be created. Possible values are `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`. Changing this forces a new Search Service to be created.
+* `partition_count` - (Optional) The number of partitions which should be created.
 
-* `replica_count` - (Optional) The number of replica's which should be created. Changing this forces a new Search Service to be created.
+* `replica_count` - (Optional) The number of replica's which should be created.
 
 -> **Note:** `partition_count` and `replica_count` can only be configured when using a `standard` sku.
 
