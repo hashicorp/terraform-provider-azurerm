@@ -10,40 +10,44 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func EndpointDeliveryRule() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.CdnEndpointDeliveryPolicyRuleName(),
-			},
+func EndpointDeliveryRule() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.CdnEndpointDeliveryPolicyRuleName(),
+				},
 
-			"order": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
+				"order": {
+					Type:         schema.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+				},
 
-			"request_scheme_condition": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     delivery_rule_conditions.RequestScheme(),
-			},
+				"request_scheme_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     delivery_rule_conditions.RequestScheme(),
+				},
 
-			"url_redirect_action": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     delivery_rule_actions.URLRedirect(),
-			},
+				"url_redirect_action": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     delivery_rule_actions.URLRedirect(),
+				},
 
-			"cache_expiration_action": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem:     delivery_rule_actions.CacheExpiration(),
+				"cache_expiration_action": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     delivery_rule_actions.CacheExpiration(),
+				},
 			},
 		},
 	}
@@ -65,16 +69,16 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 
 	actions := make([]cdn.BasicDeliveryRuleAction, 0)
 
-	if ura := rule["url_redirect_action"]; len(ura.([]interface{})) > 0 {
-		actions = append(actions, *delivery_rule_actions.ExpandArmCdnEndpointActionUrlRedirect(ura.([]interface{})[0].(map[string]interface{})))
-	}
-
 	if cea := rule["cache_expiration_action"]; len(cea.([]interface{})) > 0 {
 		action, err := delivery_rule_actions.ExpandArmCdnEndpointActionCacheExpiration(cea.([]interface{})[0].(map[string]interface{}))
 		if err != nil {
 			return nil, err
 		}
 		actions = append(actions, *action)
+	}
+
+	if ura := rule["url_redirect_action"]; len(ura.([]interface{})) > 0 {
+		actions = append(actions, *delivery_rule_actions.ExpandArmCdnEndpointActionUrlRedirect(ura.([]interface{})[0].(map[string]interface{})))
 	}
 
 	deliveryRule.Actions = &actions
