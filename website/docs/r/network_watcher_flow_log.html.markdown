@@ -107,7 +107,7 @@ The following arguments are supported:
 * `workspace_id` - (Required) The resource guid of the attached workspace.
 * `workspace_region` - (Required) The location of the attached workspace.
 * `workspace_resource_id` - (Required) The resource ID of the attached workspace.
-* `interval` - (Optional) The interval in minutes which would decide how frequently service should do flow analytics.
+* `interval` - (Optional) How frequently service should do flow analytics in minutes.
 
 ## Attributes Reference
 
