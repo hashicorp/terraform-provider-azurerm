@@ -56,5 +56,5 @@ data "azurerm_mssql_database" "test" {
   mssql_server_id = azurerm_sql_server.test.id
 }
 
-`, data.RandomInteger,data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
