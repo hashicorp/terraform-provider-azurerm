@@ -71,7 +71,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				Type:       schema.TypeString,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "per resource provider change, 'location' is no longer valid and will always be set to 'Global', however if the Front Door service was created prior to the v2.1.0 release of the provider it may continue to exist in its current location",
+				Deprecated: "Due to the service's API changing 'location' must now always be set to 'Global' for new resources, however if the Front Door service was created prior 2020/03/10 it may continue to exist in a specific current location",
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
