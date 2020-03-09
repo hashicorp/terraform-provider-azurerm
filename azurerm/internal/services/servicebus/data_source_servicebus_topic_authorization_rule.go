@@ -38,7 +38,7 @@ func dataSourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"listen": {
 				Type:     schema.TypeBool,
@@ -88,14 +88,14 @@ func dataSourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, m
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	topicName := d.Get("topic_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, topicName, name)
+	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("ServiceBus Topic Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resGroup, namespaceName)
+			return fmt.Errorf("ServiceBus Topic Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
 		}
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic Authorization Rule %s: %+v", name, err)
 	}
@@ -103,7 +103,7 @@ func dataSourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, m
 	d.Set("name", name)
 	d.Set("topic_name", topicName)
 	d.Set("namespace_name", namespaceName)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := azure.FlattenServiceBusAuthorizationRuleRights(properties.Rights)
@@ -112,7 +112,7 @@ func dataSourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, m
 		d.Set("manage", manage)
 	}
 
-	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, topicName, name)
+	keysResp, err := client.ListKeys(ctx, resourceGroup, namespaceName, topicName, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic Authorization Rule List Keys %s: %+v", name, err)
 	}
