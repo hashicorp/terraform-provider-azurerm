@@ -616,7 +616,7 @@ func testAccDataSourceAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
 				Config: testAccDataSourceAzureRMKubernetesCluster_nodeLabelsConfig(data, clientId, clientSecret, labels),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "agent_pool_profile.1.node_labels.key", "value"),
+					resource.TestCheckResourceAttr(data.ResourceName, "agent_pool_profile.0.node_labels.key", "value"),
 				),
 			},
 		},
