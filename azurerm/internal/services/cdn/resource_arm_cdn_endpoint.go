@@ -197,7 +197,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
-			"delivery_policy": EndpointDeliveryPolicy(),
+			"delivery_rule": EndpointDeliveryRule(),
 
 			"tags": tags.Schema(),
 		},
@@ -330,7 +330,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `delivery_policy`: %s", err)
+		return fmt.Errorf("Error expanding `delivery_rule`: %s", err)
 	}
 
 	endpoint := cdn.EndpointUpdateParameters{
@@ -425,9 +425,9 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("Error setting `origin`: %+v", err)
 		}
 
-		deliveryPolicy := flattenArmCdnEndpointDeliveryPolicy(props.DeliveryPolicy)
-		if err := d.Set("delivery_policy", deliveryPolicy); err != nil {
-			return fmt.Errorf("Error setting `delivery_policy`: %+v", err)
+		deliveryRules := flattenArmCdnEndpointDeliveryPolicy(props.DeliveryPolicy)
+		if err := d.Set("delivery_rule", deliveryRules); err != nil {
+			return fmt.Errorf("Error setting `delivery_rule`: %+v", err)
 		}
 	}
 
@@ -602,4 +602,40 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 	}
 
 	return results
+}
+
+func expandArmCdnEndpointDeliveryPolicy(d *schema.ResourceData) (*cdn.EndpointPropertiesUpdateParametersDeliveryPolicy, error) {
+	deliveryRules := make([]cdn.DeliveryRule, 0)
+	deliveryPolicy := cdn.EndpointPropertiesUpdateParametersDeliveryPolicy{
+		Description: utils.String(""),
+		Rules:       &deliveryRules,
+	}
+
+	rules := d.Get("delivery_rule").([]interface{})
+	if len(rules) == 0 {
+		return &deliveryPolicy, nil
+	}
+
+	for _, rule := range rules {
+		delRule, err := expandArmCdnEndpointDeliveryRule(rule.(map[string]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		deliveryRules = append(deliveryRules, *delRule)
+	}
+
+	return &deliveryPolicy, nil
+}
+
+func flattenArmCdnEndpointDeliveryPolicy(deliveryPolicy *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy) []interface{} {
+	if deliveryPolicy == nil {
+		return nil
+	}
+
+	deliveryRules := make([]interface{}, len(*deliveryPolicy.Rules))
+	for i, rule := range *deliveryPolicy.Rules {
+		deliveryRules[i] = flattenArmCdnEndpointDeliveryRule(&rule)
+	}
+
+	return deliveryRules
 }
