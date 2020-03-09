@@ -109,7 +109,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 
 func resourceArmHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.StorageTargetsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure HPC Cache NFS Target creation.")
