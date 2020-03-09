@@ -112,6 +112,11 @@ func dataSourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, m
 		d.Set("manage", manage)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returned a nil/empty id for ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	d.SetId(*resp.ID)
+
 	keysResp, err := client.ListKeys(ctx, resourceGroup, namespaceName, topicName, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic Authorization Rule List Keys %s: %+v", name, err)
