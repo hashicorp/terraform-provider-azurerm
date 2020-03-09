@@ -136,7 +136,7 @@ func TestMsSqlServerID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MsSqlDatabaseID(v.Input)
+		actual, err := MsSqlServerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
