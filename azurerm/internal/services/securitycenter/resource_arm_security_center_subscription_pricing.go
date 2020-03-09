@@ -13,8 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-//NOTE: seems default is the only valid pricing name:
-//Code="InvalidInputJson" Message="Pricing name 'kt's price' is not allowed. Expected 'default' for this scope."
+// NOTE: seems default is the only valid pricing name:
+// Code="InvalidInputJson" Message="Pricing name 'kt's price' is not allowed. Expected 'default' for this scope."
 const securityCenterSubscriptionPricingName = "default"
 
 func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
@@ -106,5 +106,5 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 
 func resourceArmSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
-	return nil //cannot be deleted.
+	return nil // cannot be deleted.
 }

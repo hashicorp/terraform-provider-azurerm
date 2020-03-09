@@ -184,6 +184,10 @@ func testCheckAzureRMMarketplaceAgreementDestroy(s *terraform.State) error {
 
 func testAccAzureRMMarketplaceAgreement_basicConfig() string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "barracudanetworks"
   offer     = "waf"

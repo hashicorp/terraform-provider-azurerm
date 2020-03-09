@@ -7,10 +7,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -90,15 +88,13 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
+	// NOTE: this resource intentionally doesn't support Requires Import
+	//       since a fallback route is created by default
+
 	routing := iothub.Properties.Routing
 
 	if routing == nil {
 		routing = &devices.RoutingProperties{}
-	}
-
-	resourceId := fmt.Sprintf("%s/FallbackRoute/defined", *iothub.ID)
-	if d.IsNewResource() && routing.FallbackRoute != nil && features.ShouldResourcesBeImported() {
-		return tf.ImportAsExistsError("azurerm_iothub_fallback_route", resourceId)
 	}
 
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
@@ -117,6 +113,7 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
+	resourceId := fmt.Sprintf("%s/FallbackRoute/defined", *iothub.ID)
 	d.SetId(resourceId)
 
 	return resourceArmIotHubFallbackRouteRead(d, meta)

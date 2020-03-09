@@ -81,7 +81,7 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
+func TestAccAzureRMSearchService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -90,7 +90,7 @@ func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_withCustomTagValue(data, "staging"),
+				Config: testAccAzureRMSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -98,11 +98,11 @@ func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMSearchService_withCustomTagValue(data, "production"),
+				Config: testAccAzureRMSearchService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
 				),
 			},
 		},
@@ -166,8 +166,12 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSearchService_withCustomTagValue(data acceptance.TestData, tagValue string) string {
+func testAccAzureRMSearchService_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -175,19 +179,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "standard"
 
   tags = {
-    environment = "%s"
+    environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tagValue)
-}
-
-func testAccAzureRMSearchService_basic(data acceptance.TestData) string {
-	return testAccAzureRMSearchService_withCustomTagValue(data, "staging")
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMSearchService_requiresImport(data acceptance.TestData) string {
@@ -195,10 +195,10 @@ func testAccAzureRMSearchService_requiresImport(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 resource "azurerm_search_service" "import" {
-  name                = "${azurerm_search_service.test.name}"
-  resource_group_name = "${azurerm_search_service.test.resource_group_name}"
-  location            = "${azurerm_search_service.test.location}"
-  sku                 = "${azurerm_search_service.test.sku}"
+  name                = azurerm_search_service.test.name
+  resource_group_name = azurerm_search_service.test.resource_group_name
+  location            = azurerm_search_service.test.location
+  sku                 = azurerm_search_service.test.sku
 
   tags = {
     environment = "staging"
@@ -209,6 +209,10 @@ resource "azurerm_search_service" "import" {
 
 func testAccAzureRMSearchService_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -216,13 +220,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "standard"
   replica_count       = 2
+  partition_count     = 3
 
   tags = {
-    environment = "production"
+    environment = "Production"
+    residential = "Area"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

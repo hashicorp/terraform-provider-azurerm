@@ -32,6 +32,10 @@ func TestAccAzureRMSiteRecoveryReplicationPolicy_basic(t *testing.T) {
 
 func testAccAzureRMSiteRecoveryReplicationPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery-%d"
   location = "%s"
@@ -39,19 +43,19 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-vault-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
   soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_replication_policy" "test" {
-  resource_group_name                                  = "${azurerm_resource_group.test.name}"
-  recovery_vault_name                                  = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name                                  = azurerm_resource_group.test.name
+  recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
   name                                                 = "acctest-policy-%d"
-  recovery_point_retention_in_minutes                  = "${24 * 60}"
-  application_consistent_snapshot_frequency_in_minutes = "${4 * 60}"
+  recovery_point_retention_in_minutes                  = 24 * 60
+  application_consistent_snapshot_frequency_in_minutes = 4 * 60
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

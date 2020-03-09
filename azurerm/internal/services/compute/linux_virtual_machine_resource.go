@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -64,7 +63,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_interface_ids": {
@@ -82,7 +81,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"size": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Optional
@@ -892,7 +891,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := ParseVirtualMachineID(d.Id())

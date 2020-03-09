@@ -139,6 +139,10 @@ func testCheckAzureRMEventGridDomainExists(resourceName string) resource.TestChe
 
 func testAccAzureRMEventGridDomain_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -146,14 +150,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMEventGridDomain_mapping(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -161,8 +169,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   input_schema = "CustomEventSchema"
 
@@ -181,6 +189,10 @@ resource "azurerm_eventgrid_domain" "test" {
 
 func testAccAzureRMEventGridDomain_basicWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -188,8 +200,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     "foo" = "bar"

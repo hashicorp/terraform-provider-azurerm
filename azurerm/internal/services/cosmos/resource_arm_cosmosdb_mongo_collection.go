@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -83,30 +82,6 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
-
-			"indexes": {
-				Type:       schema.TypeSet,
-				Optional:   true,
-				Deprecated: "Indexes are ignored unless they are the shared key so have been deprecated.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key": {
-							Type:         schema.TypeString, // this is a list in the SDK/API, however any more then a single value causes a 404
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"unique": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true, // portal defaults to true
-						},
-
-						// expire_after_seconds is only allowed on `_ts`:
-						// Unable to parse request payload due to the following reason: 'The 'expireAfterSeconds' option is supported on '_ts' field only.
-					},
-				},
-			},
 		},
 	}
 }
@@ -146,7 +121,7 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &name,
-				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
+				Indexes: expandCosmosMongoCollectionIndexes(ttl),
 			},
 			Options: map[string]*string{},
 		},
@@ -206,7 +181,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &id.Collection,
-				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
+				Indexes: expandCosmosMongoCollectionIndexes(ttl),
 			},
 			Options: map[string]*string{},
 		},
@@ -289,11 +264,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 
 		if props.Indexes != nil {
-			indexes, ttl := flattenCosmosMongoCollectionIndexes(props.Indexes)
-			d.Set("default_ttl_seconds", ttl)
-			if err := d.Set("indexes", indexes); err != nil {
-				return fmt.Errorf("Error setting `indexes`: %+v", err)
-			}
+			d.Set("default_ttl_seconds", flattenCosmosMongoCollectionIndexes(props.Indexes))
 		}
 	}
 
@@ -336,20 +307,8 @@ func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandCosmosMongoCollectionIndexes(input interface{}, defaultTtl *int) *[]documentdb.MongoIndex {
+func expandCosmosMongoCollectionIndexes(defaultTtl *int) *[]documentdb.MongoIndex {
 	outputs := make([]documentdb.MongoIndex, 0)
-
-	for _, i := range input.(*schema.Set).List() {
-		b := i.(map[string]interface{})
-		outputs = append(outputs, documentdb.MongoIndex{
-			Key: &documentdb.MongoIndexKeys{
-				Keys: &[]string{b["key"].(string)},
-			},
-			Options: &documentdb.MongoIndexOptions{
-				Unique: utils.Bool(b["unique"].(bool)),
-			},
-		})
-	}
 
 	if defaultTtl != nil {
 		outputs = append(outputs, documentdb.MongoIndex{
@@ -365,36 +324,14 @@ func expandCosmosMongoCollectionIndexes(input interface{}, defaultTtl *int) *[]d
 	return &outputs
 }
 
-func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) (*[]map[string]interface{}, *int) {
-	slice := make([]map[string]interface{}, 0)
-
+func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *int {
 	var ttl int
 	for _, i := range *indexes {
 		if key := i.Key; key != nil {
-			m := map[string]interface{}{}
 			var ttlInner int32
-
-			if options := i.Options; options != nil {
-				if v := options.Unique; v != nil {
-					m["unique"] = *v
-				} else {
-					m["unique"] = false // todo required? API sends back nothing for false
-				}
-
-				if v := options.ExpireAfterSeconds; v != nil {
-					ttlInner = *v
-				}
-			}
 
 			if keys := key.Keys; keys != nil && len(*keys) > 0 {
 				k := (*keys)[0]
-
-				if !strings.HasPrefix(k, "_") && k != "DocumentDBDefaultIndex" { // lets ignore system properties?
-					m["key"] = k
-
-					// only append indexes with a non system key
-					slice = append(slice, m)
-				}
 
 				if k == "_ts" {
 					ttl = int(ttlInner)
@@ -403,5 +340,5 @@ func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) (*[]m
 		}
 	}
 
-	return &slice, &ttl
+	return &ttl
 }

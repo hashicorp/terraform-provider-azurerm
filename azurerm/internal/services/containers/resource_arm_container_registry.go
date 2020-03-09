@@ -88,27 +88,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Optional: true,
 			},
 
-			"storage_account": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Deprecated: "`storage_account` has been replaced by `storage_account_id`.",
-				MaxItems:   1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"access_key": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
 			"login_server": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -663,7 +642,7 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 		value := make(map[string]interface{})
 		value["action"] = string(ipRule.Action)
 
-		//When a /32 CIDR is passed as an ip rule, Azure will drop the /32 leading to the resource wanting to be re-created next run
+		// When a /32 CIDR is passed as an ip rule, Azure will drop the /32 leading to the resource wanting to be re-created next run
 		if !strings.Contains(*ipRule.IPAddressOrRange, "/") {
 			*ipRule.IPAddressOrRange += "/32"
 		}

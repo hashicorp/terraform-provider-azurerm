@@ -73,19 +73,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 								string(devices.S1),
 								string(devices.S2),
 								string(devices.S3),
-							}, true), // todo 2.0 make this case sensitive
-						},
-
-						"tier": {
-							Type:       schema.TypeString,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "This property is no longer required and will be removed in version 2.0 of the provider",
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Basic),
-								string(devices.Free),
-								string(devices.Standard),
-							}, true),
+							}, false),
 						},
 
 						"capacity": {
@@ -354,7 +342,6 @@ func flattenIoTHubDPSSku(input *iothub.IotDpsSkuInfo) []interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = string(input.Name)
-	output["tier"] = input.Tier
 	if capacity := input.Capacity; capacity != nil {
 		output["capacity"] = int(*capacity)
 	}

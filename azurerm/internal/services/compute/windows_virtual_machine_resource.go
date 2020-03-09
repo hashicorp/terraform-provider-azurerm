@@ -72,7 +72,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_interface_ids": {
@@ -90,7 +90,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"size": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Optional
@@ -917,7 +917,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := ParseVirtualMachineID(d.Id())

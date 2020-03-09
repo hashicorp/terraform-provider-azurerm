@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -28,43 +27,6 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagement_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMApiManagement_basicNotDefined(data),
-				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
-			},
 		},
 	})
 }
@@ -265,6 +227,10 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 
 func testAccAzureRMApiManagement_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -272,8 +238,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -282,49 +248,12 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-// Remove in 2.0
-func testAccAzureRMApiManagement_basicClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMApiManagement_basicNotDefined(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func testAccAzureRMApiManagement_policyXmlContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -332,8 +261,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -347,6 +276,7 @@ resource "azurerm_api_management" "test" {
   </inbound>
 </policies>
 XML
+
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -354,6 +284,10 @@ XML
 
 func testAccAzureRMApiManagement_policyXmlLink(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -361,8 +295,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -377,6 +311,10 @@ resource "azurerm_api_management" "test" {
 
 func testAccAzureRMApiManagement_policyRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -384,8 +322,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -402,11 +340,11 @@ func testAccAzureRMApiManagement_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_api_management" "import" {
-  name                = "${azurerm_api_management.test.name}"
-  location            = "${azurerm_api_management.test.location}"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  publisher_name      = "${azurerm_api_management.test.publisher_name}"
-  publisher_email     = "${azurerm_api_management.test.publisher_email}"
+  name                = azurerm_api_management.test.name
+  location            = azurerm_api_management.test.location
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  publisher_name      = azurerm_api_management.test.publisher_name
+  publisher_email     = azurerm_api_management.test.publisher_email
 
   sku_name = "Developer_1"
 }
@@ -415,6 +353,10 @@ resource "azurerm_api_management" "import" {
 
 func testAccAzureRMApiManagement_customProps(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -422,8 +364,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -439,6 +381,10 @@ resource "azurerm_api_management" "test" {
 
 func testAccAzureRMApiManagement_signInSignUpSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -446,8 +392,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -472,6 +418,10 @@ resource "azurerm_api_management" "test" {
 
 func testAccAzureRMApiManagement_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-api1-%d"
   location = "%s"
@@ -494,21 +444,21 @@ resource "azurerm_api_management" "test" {
   notification_sender_email = "notification@email.com"
 
   additional_location {
-    location = "${azurerm_resource_group.test2.location}"
+    location = azurerm_resource_group.test2.location
   }
 
   additional_location {
-    location = "${azurerm_resource_group.test3.location}"
+    location = azurerm_resource_group.test3.location
   }
 
   certificate {
-    encoded_certificate  = "${filebase64("testdata/api_management_api_test.pfx")}"
+    encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "CertificateAuthority"
   }
 
   certificate {
-    encoded_certificate  = "${filebase64("testdata/api_management_api_test.pfx")}"
+    encoded_certificate  = filebase64("testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "Root"
   }
@@ -530,7 +480,7 @@ resource "azurerm_api_management" "test" {
   hostname_configuration {
     proxy {
       host_name                    = "api.terraform.io"
-      certificate                  = "${filebase64("testdata/api_management_api_test.pfx")}"
+      certificate                  = filebase64("testdata/api_management_api_test.pfx")
       certificate_password         = "terraform"
       default_ssl_binding          = true
       negotiate_client_certificate = false
@@ -538,14 +488,14 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api2.terraform.io"
-      certificate                  = "${filebase64("testdata/api_management_api2_test.pfx")}"
+      certificate                  = filebase64("testdata/api_management_api2_test.pfx")
       certificate_password         = "terraform"
       negotiate_client_certificate = true
     }
 
     portal {
       host_name            = "portal.terraform.io"
-      certificate          = "${filebase64("testdata/api_management_portal_test.pfx")}"
+      certificate          = filebase64("testdata/api_management_portal_test.pfx")
       certificate_password = "terraform"
     }
   }
@@ -556,8 +506,8 @@ resource "azurerm_api_management" "test" {
     "Acceptance" = "Test"
   }
 
-  location            = "${azurerm_resource_group.test1.location}"
-  resource_group_name = "${azurerm_resource_group.test1.name}"
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
 }

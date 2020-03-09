@@ -91,43 +91,11 @@ func resourceArmCognitiveAccount() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:          schema.TypeString,
-				Optional:      true, // required in 2.0
-				Computed:      true, // remove in 2.0
-				ConflictsWith: []string{"sku"},
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"F0", "F1", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
 				}, false),
-			},
-
-			"sku": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"sku_name"},
-				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"F0", "F1", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
-							}, false),
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservices.Free),
-								string(cognitiveservices.Standard),
-								string(cognitiveservices.Premium),
-							}, false),
-						},
-					},
-				},
 			},
 
 			"tags": tags.Schema(),
@@ -173,17 +141,9 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	var sku *cognitiveservices.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandAccountSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandCognitiveAccountSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for Cognitive Account %q (Resource Group %q)", name, resourceGroup)
+	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	properties := cognitiveservices.Account{
@@ -218,17 +178,9 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	var sku *cognitiveservices.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandAccountSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandCognitiveAccountSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for Cognitive Account %q (Resource Group %q)", id.Name, id.ResourceGroup)
+	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	properties := cognitiveservices.Account{
@@ -274,10 +226,6 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
-	}
-
-	if err = d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if props := resp.Properties; props != nil {
@@ -338,30 +286,4 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 		Name: utils.String(skuName),
 		Tier: tier,
 	}, nil
-}
-
-func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
-
-	return &cognitiveservices.Sku{
-		Name: utils.String(sku["name"].(string)),
-		Tier: cognitiveservices.SkuTier(sku["tier"].(string)),
-	}
-}
-
-func flattenCognitiveAccountSku(input *cognitiveservices.Sku) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	m := map[string]interface{}{
-		"tier": string(input.Tier),
-	}
-
-	if v := input.Name; v != nil {
-		m["name"] = *v
-	}
-
-	return []interface{}{m}
 }

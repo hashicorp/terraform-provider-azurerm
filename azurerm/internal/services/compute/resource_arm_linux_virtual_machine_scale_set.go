@@ -196,9 +196,13 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"source_image_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: computeValidate.ImageID,
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.Any(
+					computeValidate.ImageID,
+					computeValidate.SharedImageID,
+					computeValidate.SharedImageVersionID,
+				),
 			},
 
 			"source_image_reference": sourceImageReferenceSchema(false),

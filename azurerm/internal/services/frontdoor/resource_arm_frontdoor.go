@@ -3,6 +3,7 @@ package frontdoor
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
@@ -175,7 +176,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Default:  false,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
@@ -185,26 +186,25 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(frontdoor.StripAll),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
 										}, false),
-										Default: string(frontdoor.StripNone),
 									},
 									"custom_forwarding_path": {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									// TODO: In 2.0 Switch default value from MatchRequest to HTTPSOnly #4627
 									"forwarding_protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(frontdoor.HTTPSOnly),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.HTTPOnly),
 											string(frontdoor.HTTPSOnly),
 											string(frontdoor.MatchRequest),
 										}, false),
-										Default: string(frontdoor.MatchRequest),
 									},
 								},
 							},
@@ -262,6 +262,11 @@ func resourceArmFrontDoor() *schema.Resource {
 							Required:     true,
 							ValidateFunc: ValidateBackendPoolRoutingRuleName,
 						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 						"path": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -270,11 +275,20 @@ func resourceArmFrontDoor() *schema.Resource {
 						"protocol": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  string(frontdoor.HTTP),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(frontdoor.HTTP),
 								string(frontdoor.HTTPS),
 							}, false),
-							Default: string(frontdoor.HTTP),
+						},
+						"probe_method": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(frontdoor.GET),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(frontdoor.GET),
+								string(frontdoor.HEAD),
+							}, false),
 						},
 						"interval_in_seconds": {
 							Type:     schema.TypeInt,
@@ -319,14 +333,14 @@ func resourceArmFrontDoor() *schema.Resource {
 									"weight": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 1000),
 										Default:      50,
+										ValidateFunc: validation.IntBetween(1, 1000),
 									},
 									"priority": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 5),
 										Default:      1,
+										ValidateFunc: validation.IntBetween(1, 5),
 									},
 									"host_header": {
 										Type:     schema.TypeString,
@@ -402,11 +416,11 @@ func resourceArmFrontDoor() *schema.Resource {
 									"certificate_source": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(frontdoor.CertificateSourceFrontDoor),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.CertificateSourceAzureKeyVault),
 											string(frontdoor.CertificateSourceFrontDoor),
 										}, false),
-										Default: string(frontdoor.CertificateSourceFrontDoor),
 									},
 									"minimum_tls_version": {
 										Type:     schema.TypeString,
@@ -485,6 +499,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
 	enabledState := d.Get("load_balancer_enabled").(bool)
+
 	t := d.Get("tags").(map[string]interface{})
 
 	frontDoorParameters := frontdoor.FrontDoor{
@@ -863,6 +878,12 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 		protocol := v["protocol"].(string)
 		intervalInSeconds := int32(v["interval_in_seconds"].(int))
 		name := v["name"].(string)
+		enabled := v["enabled"].(bool)
+
+		healthProbeEnabled := frontdoor.HealthProbeEnabledEnabled
+		if !enabled {
+			healthProbeEnabled = frontdoor.HealthProbeEnabledDisabled
+		}
 
 		result := frontdoor.HealthProbeSettingsModel{
 			ID:   utils.String(frontDoorPath + "/HealthProbeSettings/" + name),
@@ -871,6 +892,8 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPa
 				IntervalInSeconds: utils.Int32(intervalInSeconds),
 				Path:              utils.String(path),
 				Protocol:          frontdoor.Protocol(protocol),
+				HealthProbeMethod: frontdoor.HealthProbeMethod(v["probe_method"].(string)),
+				EnabledState:      healthProbeEnabled,
 			},
 		}
 
@@ -1077,7 +1100,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 
 		if cacheQueryParameterStripDirective == "" {
 			// Set Default Value for strip directive is not in the key slice and cache is enabled
-			cacheQueryParameterStripDirective = string(frontdoor.StripNone)
+			cacheQueryParameterStripDirective = string(frontdoor.StripAll)
 		}
 
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
@@ -1277,12 +1300,13 @@ func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *[]frontd
 }
 
 func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return make([]interface{}, 0)
+		return results
 	}
-	result := make(map[string]interface{})
 
 	for _, v := range *input {
+		result := make(map[string]interface{})
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
@@ -1296,21 +1320,31 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 			if path := properties.Path; path != nil {
 				result["path"] = *path
 			}
+			if healthProbeMethod := properties.HealthProbeMethod; healthProbeMethod != "" {
+				// I have to upper this as the frontdoor.GET and frondoor.HEAD types are uppercased
+				// but Azure stores them in the resource as pascal cased (e.g. "Get" and "Head")
+				result["probe_method"] = strings.ToUpper(string(healthProbeMethod))
+			}
+			if enabled := properties.EnabledState; enabled != "" {
+				result["enabled"] = (enabled == frontdoor.HealthProbeEnabledEnabled)
+			}
 			result["protocol"] = string(properties.Protocol)
 		}
+
+		results = append(results, result)
 	}
 
-	return []interface{}{result}
+	return results
 }
 
 func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return make([]interface{}, 0)
+		return results
 	}
 
-	result := make(map[string]interface{})
-
 	for _, v := range *input {
+		result := make(map[string]interface{})
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
@@ -1328,8 +1362,11 @@ func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalanc
 				result["successful_samples_required"] = *successfulSamplesRequired
 			}
 		}
+
+		results = append(results, result)
 	}
-	return []interface{}{result}
+
+	return results
 }
 
 func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}) []interface{} {
@@ -1388,22 +1425,24 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 						if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
 							c["cache_query_parameter_strip_directive"] = string(stripDirective)
 						} else {
-							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
+							// Default value if not set
+							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripAll)
 						}
 
 						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
 							c["cache_use_dynamic_compression"] = bool(string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled))
 						}
 					} else {
+						// if the cache is disabled, set the default values or revert to what they were in the previous plan
 						c["cache_enabled"] = false
+						c["cache_query_parameter_strip_directive"] = string(frontdoor.StripAll)
 
 						if name != nil {
-							//get `forwarding_configuration`
+							// get `forwarding_configuration`
 							if o, ok := oldByName[*name]; ok {
 								ofcs := o["forwarding_configuration"].([]interface{})
 								if len(ofcs) > 0 {
 									ofc := ofcs[0].(map[string]interface{})
-
 									c["cache_query_parameter_strip_directive"] = ofc["cache_query_parameter_strip_directive"]
 									c["cache_use_dynamic_compression"] = ofc["cache_use_dynamic_compression"]
 								}

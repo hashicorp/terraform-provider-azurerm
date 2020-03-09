@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `Storage`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `StorageV2`.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
@@ -92,22 +92,12 @@ The following arguments are supported:
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
-* `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
-
-* `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
-
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
-    for more information.
+    for more information. Defaults to `true`.
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
-* `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
-
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
-
-* `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
-
-~> **Note:** `enable_advanced_threat_protection` is not supported in all regions.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
@@ -117,6 +107,10 @@ The following arguments are supported:
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
 
+* `static_website` - (Optional) A `static_website` block as defined below.
+
+~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2`
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -124,6 +118,8 @@ The following arguments are supported:
 ---
 
 A `blob_properties` block supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
@@ -221,13 +217,21 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 A `queue_properties` block supports the following:
 
-* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+* `cors_rule` - (Optional) A `cors_rule` block as defined above.
 
 * `logging` - (Optional) A `logging` block as defined below.
 
 * `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
+
+---
+
+A `static_website` block supports the following:
+
+* `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
+
+* `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
 
 ## Attributes Reference
 

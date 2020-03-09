@@ -11,66 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func TestAccAzureRMKeyVault_name(t *testing.T) {
-	cases := []struct {
-		Input       string
-		ExpectError bool
-	}{
-		{
-			Input:       "",
-			ExpectError: true,
-		},
-		{
-			Input:       "hi",
-			ExpectError: true,
-		},
-		{
-			Input:       "hello",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello-world",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello-world-21",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello_world_21",
-			ExpectError: true,
-		},
-		{
-			Input:       "Hello-World",
-			ExpectError: false,
-		},
-		{
-			Input:       "20202020",
-			ExpectError: false,
-		},
-		{
-			Input:       "ABC123!@£",
-			ExpectError: true,
-		},
-		{
-			Input:       "abcdefghijklmnopqrstuvwxyz",
-			ExpectError: true,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := keyvault.ValidateKeyVaultName(tc.Input, "")
-
-		hasError := len(errors) > 0
-		if tc.ExpectError && !hasError {
-			t.Fatalf("Expected the Key Vault Name to trigger a validation error for '%s'", tc.Input)
-		}
-	}
-}
 
 func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
@@ -85,44 +27,6 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "premium"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMKeyVault_basicNotDefined(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMKeyVault_basicNotDefined(data),
-				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
-			},
-		},
-	})
-}
-
-// Remove in 2.0
-func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKeyVault_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "premium"),
 				),
 			},
 			data.ImportStep(),
@@ -331,6 +235,246 @@ func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_softDeleteEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteViaUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_softDelete(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteAttemptToDisable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config:      testAccAzureRMKeyVault_softDelete(data, false),
+				ExpectError: regexp.MustCompile("once Soft Delete has been Enabled it's not possible to disable it"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				// create it regularly
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				// delete the key vault
+				Config: testAccAzureRMKeyVault_softDeleteAbsent(data),
+			},
+			{
+				// attempting to re-create it requires recovery, which is enabled by default
+				Config: testAccAzureRMKeyVault_softDelete(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				// create it regularly
+				Config: testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				// delete the key vault
+				Config: testAccAzureRMKeyVault_softDeleteAbsent(data),
+			},
+			{
+				// attempting to re-create it requires recovery, which is enabled by default
+				Config:      testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data),
+				ExpectError: regexp.MustCompile("An existing soft-deleted Key Vault exists with the Name"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionAndSoftDeleteEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtectionAndSoftDelete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionViaUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_purgeProtection(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config:      testAccAzureRMKeyVault_purgeProtection(data, false),
+				ExpectError: regexp.MustCompile("once Purge Protection has been Enabled it's not possible to disable it"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -419,7 +563,12 @@ func testCheckAzureRMKeyVaultDisappears(resourceName string) resource.TestCheckF
 
 func testAccAzureRMKeyVault_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -428,81 +577,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMKeyVault_basicNotDefined(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMKeyVault_basicClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "premium"
-  }
-
-  access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.client_id
 
     key_permissions = [
       "create",
@@ -522,16 +605,16 @@ func testAccAzureRMKeyVault_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault" "import" {
-  name                = "${azurerm_key_vault.test.name}"
-  location            = "${azurerm_key_vault.test.location}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
-  tenant_id           = "${azurerm_key_vault.test.tenant_id}"
+  name                = azurerm_key_vault.test.name
+  location            = azurerm_key_vault.test.location
+  resource_group_name = azurerm_key_vault.test.resource_group_name
+  tenant_id           = azurerm_key_vault.test.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.client_id
 
     key_permissions = [
       "create",
@@ -547,7 +630,12 @@ resource "azurerm_key_vault" "import" {
 
 func testAccAzureRMKeyVault_networkAclsTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -557,22 +645,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test_a" {
   name                 = "acctestsubneta%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.KeyVault"]
 }
 
 resource "azurerm_subnet" "test_b" {
   name                 = "acctestsubnetb%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.4.0/24"
   service_endpoints    = ["Microsoft.KeyVault"]
 }
@@ -586,15 +674,15 @@ func testAccAzureRMKeyVault_networkAcls(data acceptance.TestData) string {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.client_id
 
     key_permissions = [
       "create",
@@ -608,7 +696,7 @@ resource "azurerm_key_vault" "test" {
   network_acls {
     default_action             = "Deny"
     bypass                     = "None"
-    virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}", "${azurerm_subnet.test_b.id}"]
+    virtual_network_subnet_ids = [azurerm_subnet.test_a.id, azurerm_subnet.test_b.id]
   }
 }
 `, template, data.RandomInteger)
@@ -621,15 +709,15 @@ func testAccAzureRMKeyVault_networkAclsUpdated(data acceptance.TestData) string 
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.client_id
 
     key_permissions = [
       "create",
@@ -644,7 +732,7 @@ resource "azurerm_key_vault" "test" {
     default_action             = "Allow"
     bypass                     = "AzureServices"
     ip_rules                   = ["123.0.0.102/32"]
-    virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}"]
+    virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
   }
 }
 `, template, data.RandomInteger)
@@ -657,15 +745,15 @@ func testAccAzureRMKeyVault_networkAclsAllowed(data acceptance.TestData) string 
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.client_id
 
     key_permissions = [
       "create",
@@ -686,7 +774,12 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -695,15 +788,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.client_id
 
     key_permissions = [
       "get",
@@ -727,7 +820,12 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_noAccessPolicyBlocks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -736,13 +834,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
@@ -757,7 +853,12 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_accessPolicyExplicitZero(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -766,13 +867,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy = []
 
@@ -789,7 +888,12 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -798,16 +902,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
-    object_id      = "${data.azurerm_client_config.current.client_id}"
-    application_id = "${data.azurerm_client_config.current.service_principal_application_id}"
+    tenant_id      = data.azurerm_client_config.current.tenant_id
+    object_id      = data.azurerm_client_config.current.client_id
+    application_id = data.azurerm_client_config.current.client_id
 
     certificate_permissions = [
       "get",
@@ -831,7 +935,12 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_justCert(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -840,15 +949,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.client_id
 
     certificate_permissions = [
       "get",
@@ -868,7 +977,12 @@ func testAccAzureRMKeyVault_accessPolicyUpperLimit(data acceptance.TestData) str
 	}
 
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -877,25 +991,28 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "vault%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
   %s
 }
 
 %s
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessPoliciesConfigs, storageAccountConfigs)
 }
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_storage_account" "test%d" {
   name                     = "testsa%s%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -922,11 +1039,133 @@ func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
 
 	return fmt.Sprintf(`
 access_policy {
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = "%s"
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
 `, oid)
+}
+
+func testAccAzureRMKeyVault_purgeProtection(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "vault%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "premium"
+  purge_protection_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMKeyVault_softDelete(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+  soft_delete_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMKeyVault_softDeleteAbsent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+  soft_delete_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMKeyVault_purgeProtectionAndSoftDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "vault%d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "premium"
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

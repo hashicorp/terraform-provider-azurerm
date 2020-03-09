@@ -35,7 +35,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.1.0/24"
 
-  disable_private_link_service_network_policy_enforcement = true
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -44,7 +44,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 
-  disable_private_link_endpoint_network_policy_enforcement = true
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_public_ip" "example" {
@@ -88,6 +88,12 @@ resource "azurerm_private_endpoint" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = "example-privateserviceconnection"
+    private_connection_resource_id = azurerm_private_link_service.example.id
+    is_manual_connection           = false
+  }
 }
 ```
 
@@ -134,6 +140,8 @@ A `private_service_connection` supports the following:
 See the product [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration) for more information.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
+
+* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
 ## Attributes Reference
 

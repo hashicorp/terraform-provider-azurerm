@@ -32,9 +32,9 @@ func testAccDataSourceAzureRMNotificationHubBasic(data acceptance.TestData) stri
 %s
 
 data "azurerm_notification_hub" "test" {
-  name                = "${azurerm_notification_hub.test.name}"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
-  resource_group_name = "${azurerm_notification_hub_namespace.test.resource_group_name}"
+  name                = azurerm_notification_hub.test.name
+  namespace_name      = azurerm_notification_hub_namespace.test.name
+  resource_group_name = azurerm_notification_hub_namespace.test.resource_group_name
 }
 `, template)
 }

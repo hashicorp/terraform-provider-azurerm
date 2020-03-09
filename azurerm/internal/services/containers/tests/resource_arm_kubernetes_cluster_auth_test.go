@@ -246,6 +246,10 @@ func testAccAzureRMKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T
 
 func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRangesConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -299,6 +303,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_enablePodSecurityPolicyConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -331,6 +339,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipalConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -363,6 +375,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControlConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -370,8 +386,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {

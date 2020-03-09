@@ -41,7 +41,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: ValidateFrontDoorWAFName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),

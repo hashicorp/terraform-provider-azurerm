@@ -73,6 +73,9 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 		},
 	}
 
+	// NOTE: this resource intentionally doesn't support Requires Import
+	//       since a fallback route is created by default
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
