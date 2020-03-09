@@ -1521,16 +1521,22 @@ func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceP
 		return properties
 	}
 
-	attr := input[0].(map[string]interface{})
-
 	properties.StaticWebsite.Enabled = true
 
-	if v, ok := attr["index_document"]; ok {
-		properties.StaticWebsite.IndexDocument = v.(string)
-	}
+	// @tombuildsstuff: this looks weird, doesn't it?
+	// Since the presence of this block signifies the website's enabled however all fields within it are optional
+	// TF Core returns a nil object when there's no keys defined within the block, rather than an empty map. As
+	// such this hack allows us to have a Static Website block with only Enabled configured, without the optional
+	// inner properties.
+	if val := input[0]; val != nil {
+		attr := val.(map[string]interface{})
+		if v, ok := attr["index_document"]; ok {
+			properties.StaticWebsite.IndexDocument = v.(string)
+		}
 
-	if v, ok := attr["error_404_document"]; ok {
-		properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		if v, ok := attr["error_404_document"]; ok {
+			properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		}
 	}
 
 	return properties
