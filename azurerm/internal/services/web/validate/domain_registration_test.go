@@ -53,27 +53,27 @@ func TestValidateDomainRegistrationName(t *testing.T) {
 			Valid: false,
 		},
 		{
-			Name:  "-testDomain",
+			Name:  "-testDomain.com",
 			Valid: false,
 		},
 		{
-			Name:  "testDomain-",
+			Name:  "testDomain-.co.in",
 			Valid: false,
 		},
 		{
-			Name:  "testDomain.",
-			Valid: false,
-		},
-		{
-			Name:  "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz12",
-			Valid: false,
-		},
-		{
-			Name:  "1testDomain",
+			Name:  "testDomain.co.uk",
 			Valid: true,
 		},
 		{
-			Name:  "testdomain1",
+			Name:  "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz12.com",
+			Valid: false,
+		},
+		{
+			Name:  "1testDomain.com",
+			Valid: true,
+		},
+		{
+			Name:  "testdomain1.com",
 			Valid: true,
 		},
 	}
