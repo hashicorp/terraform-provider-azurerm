@@ -3,7 +3,6 @@ package network
 import (
 	"fmt"
 	"log"
-	"math"
 	"strings"
 	"time"
 
@@ -143,10 +142,10 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
-						"interval_in_ minutes": {
+						"interval_in_minutes": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtMost(math.MaxInt32),
+							ValidateFunc: validation.IntInSlice([]int{10, 60}),
 							Default:      60,
 						},
 					},
@@ -395,7 +394,7 @@ func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficA
 			result["workspace_resource_id"] = *cfg.WorkspaceResourceID
 		}
 		if cfg.TrafficAnalyticsInterval != nil {
-			result["interval"] = int(*cfg.TrafficAnalyticsInterval)
+			result["interval_in_minutes"] = int(*cfg.TrafficAnalyticsInterval)
 		}
 	}
 
@@ -410,7 +409,7 @@ func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *schema.ResourceData) 
 	workspaceID := v["workspace_id"].(string)
 	workspaceRegion := v["workspace_region"].(string)
 	workspaceResourceID := v["workspace_resource_id"].(string)
-	interval := v["interval"].(int)
+	interval := v["interval_in_minutes"].(int)
 
 	return &network.TrafficAnalyticsProperties{
 		NetworkWatcherFlowAnalyticsConfiguration: &network.TrafficAnalyticsConfigurationProperties{
