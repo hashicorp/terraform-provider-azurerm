@@ -25,6 +25,27 @@ func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.2676449260", "NFSv3"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetAppVolume_nfsv41(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.3098200649", "NFSv4.1"),
 				),
 			},
 			data.ImportStep(),
@@ -71,9 +92,11 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -95,6 +118,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -103,7 +127,9 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -113,6 +139,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -170,7 +197,7 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
 			},
 			data.ImportStep(),
@@ -245,14 +272,42 @@ func testAccAzureRMNetAppVolume_basic(data acceptance.TestData) string {
 
 resource "azurerm_netapp_volume" "test" {
   name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMNetAppVolume_nfsv41(data acceptance.TestData) string {
+	template := testAccAzureRMNetAppVolume_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
   volume_path         = "my-unique-file-path-%d"
-  service_level       = "Premium"
+  service_level       = "Standard"
   subnet_id           = "${azurerm_subnet.test.id}"
+  protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv4.1"]
+    unix_read_only    = false
+    unix_read_write   = true
+  }
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -262,9 +317,15 @@ func testAccAzureRMNetAppVolume_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_netapp_volume" "import" {
-  name                = "${azurerm_netapp_volume.test.name}"
-  location            = "${azurerm_netapp_volume.test.location}"
-  resource_group_name = "${azurerm_netapp_volume.test.resource_group_name}"
+  name                = azurerm_netapp_volume.test.name
+  location            = azurerm_netapp_volume.test.location
+  resource_group_name = azurerm_netapp_volume.test.resource_group_name
+  account_name        = azurerm_netapp_volume.test.account_name
+  pool_name           = azurerm_netapp_volume.test.pool_name
+  volume_path         = azurerm_netapp_volume.test.volume_path
+  service_level       = azurerm_netapp_volume.test.service_level
+  subnet_id           = azurerm_netapp_volume.test.subnet_id
+  storage_quota_in_gb = azurerm_netapp_volume.test.storage_quota_in_gb
 }
 `, testAccAzureRMNetAppVolume_basic(data))
 }
@@ -276,33 +337,44 @@ func testAccAzureRMNetAppVolume_complete(data acceptance.TestData) string {
 
 resource "azurerm_netapp_volume" "test" {
   name                = "acctest-NetAppVolume-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  pool_name           = "${azurerm_netapp_pool.test.name}"
-  service_level       = "Premium"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  service_level       = "Standard"
   volume_path         = "my-unique-file-path-%d"
-  subnet_id           = "${azurerm_subnet.test.id}"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
 
   export_policy_rule {
-    rule_index      = 1
-    allowed_clients = ["1.2.3.0/24"]
-    cifs_enabled    = false
-    nfsv3_enabled   = true
-    nfsv4_enabled   = false
-    unix_read_only  = false
-    unix_read_write = true
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
   }
 
   export_policy_rule {
-    rule_index      = 2
-    allowed_clients = ["1.2.5.0"]
+    rule_index        = 2
+    allowed_clients   = ["1.2.5.0"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = true
+    unix_read_write   = false
+  }
+
+  export_policy_rule {
+    rule_index      = 3
+    allowed_clients = ["1.2.6.0/24"]
     cifs_enabled    = false
     nfsv3_enabled   = true
     nfsv4_enabled   = false
     unix_read_only  = true
     unix_read_write = false
+  }
+
+  tags = {
+    "FoO" = "BaR"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -315,15 +387,15 @@ func testAccAzureRMNetAppVolume_updateSubnet(data acceptance.TestData) string {
 
 resource "azurerm_virtual_network" "updated" {
   name                = "acctest-updated-VirtualNetwork-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "updated" {
   name                 = "acctest-updated-Subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.updated.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.updated.name
   address_prefix       = "10.1.3.0/24"
 
   delegation {
@@ -338,13 +410,14 @@ resource "azurerm_subnet" "updated" {
 
 resource "azurerm_netapp_volume" "test" {
   name                = "acctest-updated-NetAppVolume-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  pool_name           = "${azurerm_netapp_pool.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
   volume_path         = "my-updated-unique-file-path-%d"
-  service_level       = "Premium"
-  subnet_id           = "${azurerm_subnet.updated.id}"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.updated.id
+  protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -357,23 +430,26 @@ func testAccAzureRMNetAppVolume_updateExportPolicyRule(data acceptance.TestData)
 
 resource "azurerm_netapp_volume" "test" {
   name                = "acctest-NetAppVolume-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  pool_name           = "${azurerm_netapp_pool.test.name}"
-  service_level       = "Premium"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  service_level       = "Standard"
   volume_path         = "my-unique-file-path-%d"
-  subnet_id           = "${azurerm_subnet.test.id}"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
 
   export_policy_rule {
-    rule_index      = 1
-    allowed_clients = ["1.2.4.0/24", "1.3.4.0"]
-    cifs_enabled    = false
-    nfsv3_enabled   = true
-    nfsv4_enabled   = false
-    unix_read_only  = false
-    unix_read_write = true
+    rule_index        = 1
+    allowed_clients   = ["1.2.4.0/24", "1.3.4.0"]
+    protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
+  }
+
+  tags = {
+    "FoO" = "BaR"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -381,6 +457,10 @@ resource "azurerm_netapp_volume" "test" {
 
 func testAccAzureRMNetAppVolume_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
   location = "%s"
@@ -388,15 +468,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctest-Subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 
   delegation {
@@ -411,16 +491,16 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_netapp_account" "test" {
   name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_netapp_pool" "test" {
   name                = "acctest-NetAppPool-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  service_level       = "Premium"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
   size_in_tb          = 4
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

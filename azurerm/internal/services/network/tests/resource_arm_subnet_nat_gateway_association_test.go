@@ -287,6 +287,10 @@ resource "azurerm_subnet_nat_gateway_association" "test" {
 
 func testAccAzureRMSubnetNatGatewayAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-%d"
   location = "%s"

@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 )
 
-//validation
+// validation
 func ValidateServiceBusNamespaceName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
@@ -66,7 +66,7 @@ func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]serviceb
 }
 
 func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, send, manage bool) {
-	//zero (initial) value for a bool in go is false
+	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
 		for _, right := range *rights {
@@ -86,7 +86,7 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 	return listen, send, manage
 }
 
-//shared schema
+// shared schema
 func MergeSchema(a map[string]*schema.Schema, b map[string]*schema.Schema) map[string]*schema.Schema {
 	s := map[string]*schema.Schema{}
 

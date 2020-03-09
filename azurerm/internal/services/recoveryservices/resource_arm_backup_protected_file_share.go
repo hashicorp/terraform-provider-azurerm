@@ -84,7 +84,7 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 	fileShareName := d.Get("source_file_share_name").(string)
 	policyID := d.Get("backup_policy_id").(string)
 
-	//get storage account name from id
+	// get storage account name from id
 	parsedStorageAccountID, err := azure.ParseAzureResourceID(storageAccountID)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageAccountID, err)

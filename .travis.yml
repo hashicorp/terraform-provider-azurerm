@@ -34,16 +34,12 @@ matrix:
     #- name: "make lintunused"
     #  script: GOGC=5 make lintunused
     - name: "make tflint"
-      script:
-      - GO111MODULE=off go get -u github.com/hashicorp/terraform
-      - make tflint
+      script: make tflint
     - name: "make test"
       script: make test
     - name: "make depscheck"
       script: make depscheck
     - name: "make website-lint"
-      script:
-      - GO111MODULE=off go get -u github.com/hashicorp/terraform
-      - make website-lint
+      script: make website-lint
     - name: "make website-test"
       script: make website-test

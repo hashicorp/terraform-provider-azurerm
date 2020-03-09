@@ -298,6 +298,10 @@ func testCheckAzureRMMariaDbServerDestroy(s *terraform.State) error {
 
 func testAccAzureRMMariaDbServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -305,8 +309,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "B_Gen5_2"
 
@@ -330,9 +334,9 @@ func testAccAzureRMMariaDbServer_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_mariadb_server" "import" {
-  name                = "${azurerm_mariadb_server.test.name}"
-  location            = "${azurerm_mariadb_server.test.location}"
-  resource_group_name = "${azurerm_mariadb_server.test.resource_group_name}"
+  name                = azurerm_mariadb_server.test.name
+  location            = azurerm_mariadb_server.test.location
+  resource_group_name = azurerm_mariadb_server.test.resource_group_name
 
   sku_name = "B_Gen5_2"
 
@@ -352,6 +356,10 @@ resource "azurerm_mariadb_server" "import" {
 
 func testAccAzureRMMariaDbServer_basicUpdatedPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -359,8 +367,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "B_Gen5_2"
 
@@ -380,6 +388,10 @@ resource "azurerm_mariadb_server" "test" {
 
 func testAccAzureRMMariaDbServer_basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -387,8 +399,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "B_Gen5_1"
 
@@ -408,6 +420,10 @@ resource "azurerm_mariadb_server" "test" {
 
 func testAccAzureRMMariaDbServer_basicMaxStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -415,8 +431,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "B_Gen5_2"
 
@@ -436,6 +452,10 @@ resource "azurerm_mariadb_server" "test" {
 
 func testAccAzureRMMariaDbServer_generalPurpose(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -443,8 +463,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_32"
 
@@ -464,6 +484,10 @@ resource "azurerm_mariadb_server" "test" {
 
 func testAccAzureRMMariaDbServer_memoryOptimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -471,8 +495,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "MO_Gen5_16"
 
@@ -492,6 +516,10 @@ resource "azurerm_mariadb_server" "test" {
 
 func testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -499,8 +527,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "MO_Gen5_16"
 
@@ -520,6 +548,10 @@ resource "azurerm_mariadb_server" "test" {
 
 func testAccAzureRMMariaDbServer_storageAutogrowUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -527,8 +559,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mariadb_server" "test" {
   name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "B_Gen5_2"
 

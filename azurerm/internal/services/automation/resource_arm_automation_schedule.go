@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -69,11 +68,11 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				}, true),
 			},
 
-			//ignored when frequency is `OneTime`
+			// ignored when frequency is `OneTime`
 			"interval": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Computed:     true, //defaults to 1 if frequency is not OneTime
+				Computed:     true, // defaults to 1 if frequency is not OneTime
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
@@ -82,16 +81,16 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validate.RFC3339DateInFutureBy(time.Duration(5) * time.Minute),
-				//defaults to now + 7 minutes in create function if not set
+				ValidateFunc:     validation.IsRFC3339Time,
+				// defaults to now + 7 minutes in create function if not set
 			},
 
 			"expiry_time": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true, //same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
+				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			"description": {
@@ -103,7 +102,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "UTC",
-				//todo figure out how to validate this properly
+				// todo figure out how to validate this properly
 			},
 
 			"week_days": {
@@ -237,20 +236,24 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	}
 	properties := parameters.ScheduleCreateOrUpdateProperties
 
-	//start time can default to now + 7 (5 could be invalid by the time the API is called)
+	// start time can default to now + 7 (5 could be invalid by the time the API is called)
 	if v, ok := d.GetOk("start_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) //should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
+		duration := time.Duration(5) * time.Minute
+		if time.Until(t) < duration {
+			return fmt.Errorf("start_time is %q and should be at least %q in the future", t, duration)
+		}
 		properties.StartTime = &date.Time{Time: t}
 	} else {
 		properties.StartTime = &date.Time{Time: time.Now().Add(time.Duration(7) * time.Minute)}
 	}
 
 	if v, ok := d.GetOk("expiry_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) //should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		properties.ExpiryTime = &date.Time{Time: t}
 	}
 
-	//only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
+	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
 	if properties.Frequency != automation.OneTime {
 		if v, ok := d.GetOk("interval"); ok {
 			properties.Interval = utils.Int32(int32(v.(int)))
@@ -259,7 +262,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	//only pay attention to the advanced schedule fields if frequency is either Week or Month
+	// only pay attention to the advanced schedule fields if frequency is either Week or Month
 	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
 		advancedRef, err := expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 		if err != nil {
@@ -322,7 +325,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 		d.Set("expiry_time", v.Format(time.RFC3339))
 	}
 	if v := resp.Interval; v != nil {
-		//seems to me missing its type in swagger, leading to it being a interface{} float64
+		// seems to me missing its type in swagger, leading to it being a interface{} float64
 		d.Set("interval", int(v.(float64)))
 	}
 	if v := resp.Description; v != nil {

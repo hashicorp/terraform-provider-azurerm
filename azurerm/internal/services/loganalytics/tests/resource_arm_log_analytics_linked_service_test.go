@@ -152,9 +152,9 @@ func testAccAzureRMLogAnalyticsLinkedService_basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-  resource_id         = "${azurerm_automation_account.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+  resource_id         = azurerm_automation_account.test.id
 }
 `, template)
 }
@@ -165,9 +165,9 @@ func testAccAzureRMLogAnalyticsLinkedService_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_log_analytics_linked_service" "import" {
-  resource_group_name = "${azurerm_log_analytics_linked_service.test.resource_group_name}"
-  workspace_name      = "${azurerm_log_analytics_linked_service.test.workspace_name}"
-  resource_id         = "${azurerm_log_analytics_linked_service.test.resource_id}"
+  resource_group_name = azurerm_log_analytics_linked_service.test.resource_group_name
+  workspace_name      = azurerm_log_analytics_linked_service.test.workspace_name
+  resource_id         = azurerm_log_analytics_linked_service.test.resource_id
 }
 `, template)
 }
@@ -178,16 +178,20 @@ func testAccAzureRMLogAnalyticsLinkedService_complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
   linked_service_name = "automation"
-  resource_id         = "${azurerm_automation_account.test.id}"
+  resource_id         = azurerm_automation_account.test.id
 }
 `, template)
 }
 
 func testAccAzureRMLogAnalyticsLinkedService_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -195,8 +199,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctestAutomation-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Basic"
 
@@ -207,8 +211,8 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }

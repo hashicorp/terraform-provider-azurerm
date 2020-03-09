@@ -178,6 +178,10 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
 
 func testAccAzureRMStorageDataLakeGen2FileSystem_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -185,8 +189,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"

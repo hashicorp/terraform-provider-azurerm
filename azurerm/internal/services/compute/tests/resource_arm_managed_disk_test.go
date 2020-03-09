@@ -92,7 +92,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then delete it so we can use the vhd to test import
+				// need to create a vm and then delete it so we can use the vhd to test import
 				Config:             testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Destroy:            false,
 				ExpectNonEmptyPlan: true,
@@ -455,6 +455,10 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 
 func testAccAzureRMManagedDisk_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -462,8 +466,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -482,9 +486,9 @@ func testAccAzureRMManagedDisk_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_managed_disk" "import" {
-  name                 = "${azurerm_managed_disk.test.name}"
-  location             = "${azurerm_managed_disk.test.location}"
-  resource_group_name  = "${azurerm_managed_disk.test.resource_group_name}"
+  name                 = azurerm_managed_disk.test.name
+  location             = azurerm_managed_disk.test.location
+  resource_group_name  = azurerm_managed_disk.test.resource_group_name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -499,6 +503,10 @@ resource "azurerm_managed_disk" "import" {
 
 func testAccAzureRMManagedDisk_empty_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -506,8 +514,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -523,6 +531,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_import(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -565,6 +577,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_copy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -572,8 +588,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "source" {
   name                 = "acctestd1-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -586,11 +602,11 @@ resource "azurerm_managed_disk" "source" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd2-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Copy"
-  source_resource_id   = "${azurerm_managed_disk.source.id}"
+  source_resource_id   = azurerm_managed_disk.source.id
   disk_size_gb         = "1"
 
   tags = {
@@ -603,6 +619,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_empty_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -610,8 +630,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "2"
@@ -625,6 +645,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_platformImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
@@ -639,11 +663,11 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   os_type              = "Linux"
   create_option        = "FromImage"
-  image_reference_id   = "${data.azurerm_platform_image.test.id}"
+  image_reference_id   = data.azurerm_platform_image.test.id
   storage_account_type = "Standard_LRS"
 }
 `, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -651,6 +675,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_zeroGbFromPlatformImage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
@@ -665,12 +693,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   os_type              = "Linux"
   create_option        = "FromImage"
   disk_size_gb         = "0"
-  image_reference_id   = "${data.azurerm_platform_image.test.id}"
+  image_reference_id   = data.azurerm_platform_image.test.id
   storage_account_type = "Standard_LRS"
 }
 `, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -678,6 +706,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -769,6 +801,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_create_withUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -776,8 +812,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "UltraSSD_LRS"
   create_option        = "Empty"
   disk_size_gb         = "4"
@@ -795,6 +831,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_update_withUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -802,8 +842,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "UltraSSD_LRS"
   create_option        = "Empty"
   disk_size_gb         = "4"
@@ -825,9 +865,9 @@ func testAccAzureRMManagedDisk_import_withUltraSSD(data acceptance.TestData) str
 %s
 
 resource "azurerm_managed_disk" "import" {
-  name                 = "${azurerm_managed_disk.test.name}"
-  location             = "${azurerm_managed_disk.test.location}"
-  resource_group_name  = "${azurerm_managed_disk.test.resource_group_name}"
+  name                 = azurerm_managed_disk.test.name
+  location             = azurerm_managed_disk.test.location
+  resource_group_name  = azurerm_managed_disk.test.resource_group_name
   storage_account_type = "UltraSSD_LRS"
   create_option        = "Empty"
   disk_size_gb         = "4"
@@ -848,6 +888,10 @@ func testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data acceptance.Tes
 	location := "westus2"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -957,6 +1001,10 @@ resource "azurerm_managed_disk" "test" {
 
 func testAccAzureRMManagedDisk_managedDiskAttached(data acceptance.TestData, diskSize int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -965,34 +1013,34 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%[1]d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -1022,16 +1070,16 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "%[1]d-disk1"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = %[3]d
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = "${azurerm_managed_disk.test.id}"
-  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
   caching            = "None"
 }

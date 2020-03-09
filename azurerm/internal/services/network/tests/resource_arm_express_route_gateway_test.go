@@ -191,6 +191,10 @@ resource "azurerm_express_route_gateway" "import" {
 
 func testAccAzureRMExpressRouteGateway_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-express-%d"
   location = "%s"

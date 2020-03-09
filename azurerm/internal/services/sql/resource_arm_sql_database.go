@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -141,7 +140,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.RFC3339Time,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"edition": {
@@ -181,6 +180,12 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Computed: true,
 			},
 
+			"max_size_gb": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"requested_service_objective_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -202,7 +207,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.RFC3339Time,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"elastic_pool_name": {

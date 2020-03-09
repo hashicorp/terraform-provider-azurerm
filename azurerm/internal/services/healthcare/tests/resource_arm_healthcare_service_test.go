@@ -135,7 +135,12 @@ func testAccAzureRMHealthCareService_basic(data acceptance.TestData) string {
 	location := "westus2"
 
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-health-%d"
@@ -144,14 +149,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_healthcare_service" "test" {
   name                = "testacc%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   access_policy_object_ids = [
-    "${data.azurerm_client_config.current.object_id}",
+    data.azurerm_client_config.current.object_id,
   ]
 }
-`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }
 
 func testAccAzureRMHealthCareService_requiresImport(data acceptance.TestData) string {
@@ -176,7 +181,12 @@ func testAccAzureRMHealthCareService_complete(data acceptance.TestData) string {
 	location := "westus2"
 
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-health-%d"
@@ -185,8 +195,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_healthcare_service" "test" {
   name                = "testacc%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "production"
@@ -194,7 +204,7 @@ resource "azurerm_healthcare_service" "test" {
   }
 
   access_policy_object_ids = [
-    "${data.azurerm_client_config.current.object_id}",
+    data.azurerm_client_config.current.object_id,
   ]
 
   authentication_configuration {
@@ -211,5 +221,5 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 }
-`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }

@@ -51,8 +51,8 @@ func testAccDataSourceKeyVaultSecret_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_key_vault_secret" "test" {
-  name         = "${azurerm_key_vault_secret.test.name}"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  name         = azurerm_key_vault_secret.test.name
+  key_vault_id = azurerm_key_vault.test.id
 }
 `, r)
 }
@@ -63,8 +63,8 @@ func testAccDataSourceKeyVaultSecret_complete(data acceptance.TestData) string {
 %s
 
 data "azurerm_key_vault_secret" "test" {
-  name         = "${azurerm_key_vault_secret.test.name}"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  name         = azurerm_key_vault_secret.test.name
+  key_vault_id = azurerm_key_vault.test.id
 }
 `, r)
 }

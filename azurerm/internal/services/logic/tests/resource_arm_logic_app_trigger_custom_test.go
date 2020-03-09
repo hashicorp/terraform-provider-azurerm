@@ -62,7 +62,7 @@ func testAccAzureRMLogicAppTriggerCustom_basic(data acceptance.TestData) string 
 
 resource "azurerm_logic_app_trigger_custom" "test" {
   name         = "recurrence-%d"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
 
   body = <<BODY
 {
@@ -73,6 +73,7 @@ resource "azurerm_logic_app_trigger_custom" "test" {
   "type": "Recurrence"
 }
 BODY
+
 }
 `, template, data.RandomInteger)
 }
@@ -83,15 +84,19 @@ func testAccAzureRMLogicAppTriggerCustom_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_logic_app_trigger_custom" "import" {
-  name         = "${azurerm_logic_app_trigger_custom.test.name}"
-  logic_app_id = "${azurerm_logic_app_trigger_custom.test.logic_app_id}"
-  body         = "${azurerm_logic_app_trigger_custom.test.body}"
+  name         = azurerm_logic_app_trigger_custom.test.name
+  logic_app_id = azurerm_logic_app_trigger_custom.test.logic_app_id
+  body         = azurerm_logic_app_trigger_custom.test.body
 }
 `, template)
 }
 
 func testAccAzureRMLogicAppTriggerCustom_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -99,8 +104,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

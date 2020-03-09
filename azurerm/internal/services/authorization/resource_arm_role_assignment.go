@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -41,7 +41,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.GUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"scope": {
@@ -194,7 +194,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("principal_id", props.PrincipalID)
 		d.Set("principal_type", props.PrincipalType)
 
-		//allows for import when role name is used (also if the role name changes a plan will show a diff)
+		// allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleId := props.RoleDefinitionID; roleId != nil {
 			roleResp, err := roleDefinitionsClient.GetByID(ctx, *roleId)
 			if err != nil {

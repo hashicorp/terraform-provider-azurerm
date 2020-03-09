@@ -31,11 +31,11 @@ func testAccDataSourceNetAppSnapshot_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_netapp_snapshot" "test" {
-  resource_group_name = "${azurerm_netapp_snapshot.test.resource_group_name}"
-  account_name        = "${azurerm_netapp_snapshot.test.account_name}"
-  pool_name           = "${azurerm_netapp_snapshot.test.pool_name}"
-  volume_name         = "${azurerm_netapp_snapshot.test.volume_name}"
-  name                = "${azurerm_netapp_snapshot.test.name}"
+  resource_group_name = azurerm_netapp_snapshot.test.resource_group_name
+  account_name        = azurerm_netapp_snapshot.test.account_name
+  pool_name           = azurerm_netapp_snapshot.test.pool_name
+  volume_name         = azurerm_netapp_snapshot.test.volume_name
+  name                = azurerm_netapp_snapshot.test.name
 }
 `, config)
 }

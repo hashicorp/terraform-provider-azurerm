@@ -116,6 +116,10 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateEndpointTemplate_template(data acceptance.TestData, seviceCfg string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -173,6 +177,10 @@ resource "azurerm_lb" "test" {
 
 func testAccAzureRMPrivateEndpoint_serviceAutoApprove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
@@ -195,6 +203,10 @@ resource "azurerm_private_link_service" "test" {
 
 func testAccAzureRMPrivateEndpoint_serviceManualApprove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_private_link_service" "test" {
   name                = "acctestPLS-%d"
   location            = azurerm_resource_group.test.location

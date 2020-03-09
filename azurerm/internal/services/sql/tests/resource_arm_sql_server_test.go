@@ -253,6 +253,10 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 
 func testAccAzureRMSqlServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -260,8 +264,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -274,18 +278,22 @@ func testAccAzureRMSqlServer_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_sql_server" "import" {
-  name                         = "${azurerm_sql_server.test.name}"
-  resource_group_name          = "${azurerm_sql_server.test.resource_group_name}"
-  location                     = "${azurerm_sql_server.test.location}"
-  version                      = "${azurerm_sql_server.test.version}"
-  administrator_login          = "${azurerm_sql_server.test.administrator_login}"
-  administrator_login_password = "${azurerm_sql_server.test.administrator_login_password}"
+  name                         = azurerm_sql_server.test.name
+  resource_group_name          = azurerm_sql_server.test.resource_group_name
+  location                     = azurerm_sql_server.test.location
+  version                      = azurerm_sql_server.test.version
+  administrator_login          = azurerm_sql_server.test.administrator_login
+  administrator_login_password = azurerm_sql_server.test.administrator_login_password
 }
 `, testAccAzureRMSqlServer_basic(data))
 }
 
 func testAccAzureRMSqlServer_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -293,8 +301,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -309,6 +317,10 @@ resource "azurerm_sql_server" "test" {
 
 func testAccAzureRMSqlServer_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -316,8 +328,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -331,6 +343,10 @@ resource "azurerm_sql_server" "test" {
 
 func testAccAzureRMSqlServer_withIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -338,8 +354,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"

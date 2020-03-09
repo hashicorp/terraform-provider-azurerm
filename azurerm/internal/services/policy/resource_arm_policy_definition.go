@@ -334,7 +334,7 @@ func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{})
 		return []*schema.ResourceData{d}, nil
 	}
 
-	//import a subscription based policy as before
+	// import a subscription based policy as before
 	return schema.ImportStatePassthrough(d, meta)
 }
 
