@@ -30,6 +30,7 @@ IMPROVEMENTS:
 * `azurerm_netapp_volume` - support for the `tags` property [GH-5995]
 * `azurerm_netapp_volume` - support for the `protocol_types` property [GH-5485]
 * `azurerm_netapp_volume` - deprecated the `cifs_enabled`, `nfsv3_enabled`, and `nfsv4_enabled` properties in favour of `protocols_enabled` [GH-5485]
+* `azurerm_network_watcher_flow_log` - support for the traffic analysis `interval_in_minutes` property [GH-5851]
 * `azurerm_private_dns_a_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_dns_aaaa_record` - export the `fqdn` property [GH-5949]
 * `azurerm_private_dns_cname_record` - export the `fqdn` property [GH-5949]
