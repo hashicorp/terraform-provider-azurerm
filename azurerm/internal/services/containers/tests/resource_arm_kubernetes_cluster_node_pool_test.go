@@ -44,7 +44,7 @@ func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Staging"),
 				),
 			},
 			data.ImportStep(),
@@ -558,7 +558,7 @@ func testAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 				Config: testAccAzureRMKubernetesClusterNodePool_windowsConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.os", "Windows"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Os", "Windows"),
 				),
 			},
 			data.ImportStep(),
