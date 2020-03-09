@@ -207,19 +207,19 @@ func expandDomainRegistrationContact(input []interface{}) *web.Contact {
 		Phone:          utils.String(contactRaw["phone_number"].(string)),
 	}
 
-	if contactRaw["fax"] != nil {
+	if contactRaw["fax"] != nil && contactRaw["fax"] != "" {
 		contact.Fax = utils.String(contactRaw["fax"].(string))
 	}
 
-	if contactRaw["job_title"] != nil {
+	if contactRaw["job_title"] != nil && contactRaw["job_title"] != "" {
 		contact.JobTitle = utils.String(contactRaw["job_title"].(string))
 	}
 
-	if contactRaw["organisation"] != nil {
+	if contactRaw["organisation"] != nil && contactRaw["organisation"] != "" {
 		contact.Organization = utils.String(contactRaw["organisation"].(string))
 	}
 
-	if contactRaw["middle_name"] != nil {
+	if contactRaw["middle_name"] != nil && contactRaw["middle_name"] != "" {
 		contact.NameMiddle = utils.String(contactRaw["middle_name"].(string))
 	}
 
@@ -237,7 +237,7 @@ func expandDomainRegistrationContactMailingAddress(input []interface{}) *web.Add
 		State:      utils.String(address["state"].(string)),
 	}
 
-	if address["address_2"] != nil {
+	if address["address_2"] != nil && address["address_2"] != "" {
 		contactAddress.Address2 = utils.String(address["address_2"].(string))
 	}
 

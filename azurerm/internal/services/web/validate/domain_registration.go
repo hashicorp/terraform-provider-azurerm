@@ -27,6 +27,9 @@ func DomainRegistrationName(v interface{}, k string) (warnings []string, errors 
 	value := v.(string)
 
 	// TODO - list of supported TLDs to check against
+	// https://docs.microsoft.com/en-us/azure/app-service/manage-custom-dns-buy-domain
+	// Note
+	// The following top-level domains are supported by App Service domains: com, net, co.uk, org, nl, in, biz, org.uk, and co.in
 
 	parts := strings.Split(value, ".")
 

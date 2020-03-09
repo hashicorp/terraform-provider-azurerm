@@ -40,8 +40,13 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_domain_registration" "test" {
+resource "azurerm_dns_zone" "test" {
   name                = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_domain_registration" "test" {
+  name                = azurerm_dns_zone.test.name
   resource_group_name = azurerm_resource_group.test.name
 
   admin_contact {
@@ -108,6 +113,10 @@ resource "azurerm_domain_registration" "test" {
       state       = "CA"
     }
   }
+
+  dns_zone_id = azurerm_dns_zone.test.id
+  privacy     = true
+
 }
 `, data.RandomInteger, data.Locations.Primary, accTestDomainRegistrationName)
 }

@@ -34,11 +34,10 @@ func resourceArmDomainRegistration() *schema.Resource {
 		}),
 		// todo - find sensible values
 		Timeouts: &schema.ResourceTimeout{
-			Create:  schema.DefaultTimeout(3 * time.Hour),
-			Read:    schema.DefaultTimeout(30 * time.Minute),
-			Update:  schema.DefaultTimeout(30 * time.Minute),
-			Delete:  schema.DefaultTimeout(30 * time.Minute),
-			Default: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(3 * time.Hour),
+			Read:   schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -188,15 +187,15 @@ func resourceArmDomainRegistrationCreate(d *schema.ResourceData, meta interface{
 		Location: &location,
 		//Kind:             nil,  // TODO - Find documentation on this
 		DomainProperties: &web.DomainProperties{
-			ContactAdmin:              adminContact,
-			ContactBilling:            billingContact,
-			ContactRegistrant:         registrantContact,
-			ContactTech:               techContact,
-			Privacy:                   utils.Bool(d.Get("privacy").(bool)),
-			AutoRenew:                 &autoRenew,
-			Consent:                   consent,
-			DomainNotRenewableReasons: nil,
-			DNSType:                   web.DNSType(dnsType),
+			ContactAdmin:      adminContact,
+			ContactBilling:    billingContact,
+			ContactRegistrant: registrantContact,
+			ContactTech:       techContact,
+			Privacy:           utils.Bool(d.Get("privacy").(bool)),
+			AutoRenew:         &autoRenew,
+			Consent:           consent,
+			//DomainNotRenewableReasons: nil,
+			DNSType: web.DNSType(dnsType),
 			//AuthCode:                    nil, // TODO - Find documentation on this
 		},
 		Tags: expandedTags,
