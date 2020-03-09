@@ -4,13 +4,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_virtual_network_connection_gateway"
 sidebar_current: "docs-azurerm-resource-app-service-virtual-network-connection-gateway"
 description: |-
-  Get Gateway Required Virtual Network Connection (Integrate with an App Service).
-
+  Get an existing App Service Virtual Network Connection Gateway.
 ---
 
 # Data Source: azurerm_app_service_virtual_network_connection_gateway
 
-Use this data source to access information about an existing App Service integrated Gateway Required Virtual Network Connection.
+Use this data source to access information about an existing App Service Virtual Network Connection Gateway.
 
 ## Example Usage
 
@@ -60,7 +59,13 @@ The following attributes are exported:
 
 A `route` block supports the following:
 * `name` - Resource Name.
-* `route_type` - The type of route this is: DEFAULT - By default, every app has routes to the local address ranges specified by RFC1918 INHERITED - Routes inherited from the real Virtual Network routes STATIC - Static route set on the app only. Valid values are `DEFAULT`, `INHERITED`, `STATIC`
-* `start_address` The starting address for this route. This may also include a CIDR notation, in which case the end address must not be specified.
-* `end_address` - The ending address for this route. If the start address is specified in CIDR notation, this must be omitted.
+* `route_type` - The type of route
+* `start_address` The starting address for this route.
+* `end_address` - The ending address for this route.
 ---
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 10 minutes) Used when retrieving the App Service Virtual Network Connection Gateway.

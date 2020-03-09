@@ -4,17 +4,21 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_virtual_network_connection_gateway"
 sidebar_current: "docs-azurerm-resource-app-service-virtual-network-connection-gateway"
 description: |-
-  Manages an Gateway Required App Service Virtual Network Connection
+  Manages an App Service Virtual Network Connection Gateway.
 
 ---
 
 # azurerm_app_service_virtual_network_connection_gateway
 
-Manages Gateway Required Virtual Network Connection (Integrate with an App Service).
+Manages an App Service Virtual Network Connection Gateway.
 
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example"
   location = "West Europe"
@@ -126,7 +130,7 @@ The following attributes are exported:
 
 * `dns_servers` - DNS servers to be used by this Virtual Network. It is a list of IP addresses.
 
-* `resync_required` - is resync required
+* `resync_required` - Is resync required?
 
 * `routes` - (Array) One or more `route` block defined below.
   
@@ -139,10 +143,19 @@ A `route` block supports the following:
 * `end_address` - The ending address for the route.
 ---
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the App Services Virtual Network Connection Gateway.
+* `update` - (Defaults to 60 minutes) Used when updating the App Services Virtual Network Connection Gateway.
+* `read` - (Defaults to 10 minutes) Used when retrieving the App Services Virtual Network Connection Gateway.
+* `delete` - (Defaults to 60 minutes) Used when deleting the App Services Virtual Network Connection Gateway.
+
 ## Import
 
-App Services Virtual Network Connection can be imported using the `resource id`, e.g.
+App Services Virtual Network Connection Gateway can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_virtual_network_connection_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.Web/sites/example/virtualNetworkConnections/example-virtual-network"
+terraform import azurerm_app_service_virtual_network_connection_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.Web/sites/example/virtualNetworkConnections/example-virtual-network
 ```

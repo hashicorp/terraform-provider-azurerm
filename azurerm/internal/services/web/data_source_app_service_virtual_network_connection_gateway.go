@@ -120,7 +120,9 @@ func dataSourceAppServiceVirtualNetworkConnectionGatewayRead(d *schema.ResourceD
 		return fmt.Errorf("Error making Read request on App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", appServiceName, vnetName, resGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	if id := resp.ID; id != nil {
+		d.SetId(*resp.ID)
+	}
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("app_service_name", appServiceName)

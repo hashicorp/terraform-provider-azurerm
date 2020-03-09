@@ -166,6 +166,8 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate(d *schema.
 		return fmt.Errorf("this gateways %q under vnet %q (Resource Group %q) does not have a Point-to-site Address Range. Please specify one in CIDR notation, e.g. 10.0.0.0/8", gatewayName, vnetName, vnetResGroup)
 	}
 
+	// there are two parameters in the schema: virtual_network_id and virtual_network_gateway_id
+	// we should check the virtual network gateway is within the virtual network
 	isRelated, err := checkGatewayInVirtualNetwork(virtualNetworkGateway, vnetId)
 	if err != nil {
 		return fmt.Errorf("the virtual network gateway %q is not related with vnet %q: %+v", virtualNetworkGatewayId, vnetName, err)
@@ -173,6 +175,12 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate(d *schema.
 	if !isRelated {
 		return fmt.Errorf("the virtual network gateway %q is not related with vnet %q", virtualNetworkGatewayId, vnetName)
 	}
+
+	// the create functions contains four steps:
+	// 1. CreateOrUpdateVnetConnection
+	// 2. result of step 1 contains cert infomation, we should set the cert to virtual network gateway (check duplicate)
+	// 3. generate vpn package uri
+	// 4. CreateOrUpdateVnetConnectionGateway using step 3's result
 
 	connectionEnvelope := web.VnetInfo{
 		VnetInfoProperties: &web.VnetInfoProperties{
