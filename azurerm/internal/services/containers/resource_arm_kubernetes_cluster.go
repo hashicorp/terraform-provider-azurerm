@@ -653,8 +653,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	d.Partial(true)
-
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
@@ -837,8 +835,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
 	}
-
-	d.Partial(false)
 
 	return resourceArmKubernetesClusterRead(d, meta)
 }

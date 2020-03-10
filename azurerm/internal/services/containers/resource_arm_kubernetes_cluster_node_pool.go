@@ -311,8 +311,6 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		return err
 	}
 
-	d.Partial(true)
-
 	log.Printf("[DEBUG] Retrieving existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
@@ -409,8 +407,6 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
-
-	d.Partial(false)
 
 	return resourceArmKubernetesClusterNodePoolRead(d, meta)
 }

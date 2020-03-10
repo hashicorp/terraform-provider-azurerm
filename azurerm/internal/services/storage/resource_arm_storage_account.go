@@ -763,8 +763,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	d.Partial(true)
-
 	if d.HasChange("account_replication_type") {
 		sku := storage.Sku{
 			Name: storage.SkuName(storageType),
@@ -777,8 +775,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account type %q: %+v", storageAccountName, err)
 		}
-
-		d.SetPartial("account_replication_type")
 	}
 
 	if d.HasChange("access_tier") {
@@ -793,8 +789,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
 		}
-
-		d.SetPartial("access_tier")
 	}
 
 	if d.HasChange("tags") {
@@ -807,8 +801,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account tags %q: %+v", storageAccountName, err)
 		}
-
-		d.SetPartial("tags")
 	}
 
 	if d.HasChange("custom_domain") {
@@ -835,8 +827,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %+v", storageAccountName, err)
 		}
-
-		d.SetPartial("enable_https_traffic_only")
 	}
 
 	if d.HasChange("identity") {
@@ -859,8 +849,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
 		}
-
-		d.SetPartial("network_rules")
 	}
 
 	if d.HasChange("blob_properties") {
@@ -872,8 +860,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
-
-			d.SetPartial("blob_properties")
 		} else {
 			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
 		}
@@ -902,8 +888,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
 		}
-
-		d.SetPartial("queue_properties")
 	}
 
 	if d.HasChange("static_website") {
@@ -918,11 +902,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
 		}
-
-		d.SetPartial("static_website")
 	}
 
-	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
 

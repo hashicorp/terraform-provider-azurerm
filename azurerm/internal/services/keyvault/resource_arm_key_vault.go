@@ -348,8 +348,6 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(name, keyVaultResourceName)
 	defer locks.UnlockByName(name, keyVaultResourceName)
 
-	d.Partial(true)
-
 	// first pull the existing key vault since we need to lock on several bits of it's information
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -498,8 +496,6 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	if _, err := client.Update(ctx, resourceGroup, name, update); err != nil {
 		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	d.Partial(false)
 
 	return resourceArmKeyVaultRead(d, meta)
 }
