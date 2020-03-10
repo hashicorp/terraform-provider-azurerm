@@ -1,6 +1,7 @@
 ## 2.1.0 (Unreleased)
 
 NOTES:
+
 The `azurerm_frontdoor` resource has introduced a breaking change due to the underlying service API which enforces `location` attributes must be set to 'Global' on all newly deployed Front Door services.
 
 FEATURES:
