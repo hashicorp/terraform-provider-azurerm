@@ -19,7 +19,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -219,7 +218,7 @@ func resourceArmRedisCache() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.DayOfTheWeek(true),
+							ValidateFunc:     validation.IsDayOfTheWeek(true),
 						},
 						"start_hour_utc": {
 							Type:         schema.TypeInt,

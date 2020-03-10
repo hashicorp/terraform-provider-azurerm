@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-//seems you can only set one contact:
+// seems you can only set one contact:
 // Invalid security contact name was provided - only 'defaultX' is allowed where X is an index
 // Invalid security contact name 'default0' was provided. Expected 'default1'
 // Message="Invalid security contact name 'default2' was provided. Expected 'default1'"

@@ -34,7 +34,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
@@ -67,7 +67,7 @@ func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
@@ -100,7 +100,7 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "ZRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
@@ -139,7 +139,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImage_standaloneImage_setup(data, userName, password, hostName, "LRS"),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
@@ -176,7 +176,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImage_customImage_fromVHD_setup(data, userName, password, hostName, data.Locations.Primary),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
@@ -209,7 +209,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImage_customImage_fromVM_sourceVM(data, userName, password, hostName, data.Locations.Primary),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
@@ -242,7 +242,7 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				//need to create a vm and then reference it in the image creation
+				// need to create a vm and then reference it in the image creation
 				Config:  testAccAzureRMImageVMSS_customImage_fromVHD_setup(data, userName, password, hostName, data.Locations.Primary),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
@@ -334,7 +334,7 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 }
 
 func deprovisionVM(userName string, password string, hostName string, port string) error {
-	//SSH into the machine and execute a waagent deprovisioning command
+	// SSH into the machine and execute a waagent deprovisioning command
 	var b bytes.Buffer
 	cmd := "sudo waagent -verbose -deprovision+user -force"
 

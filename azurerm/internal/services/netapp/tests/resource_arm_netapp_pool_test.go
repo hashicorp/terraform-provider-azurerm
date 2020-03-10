@@ -72,6 +72,8 @@ func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 					testCheckAzureRMNetAppPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -93,6 +95,7 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 					testCheckAzureRMNetAppPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -102,6 +105,8 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 					testCheckAzureRMNetAppPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -225,6 +230,10 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_level       = "Standard"
   size_in_tb          = 15
+
+  tags = {
+    "FoO" = "BaR"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
