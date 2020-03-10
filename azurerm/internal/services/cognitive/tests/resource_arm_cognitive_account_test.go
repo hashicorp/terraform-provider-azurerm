@@ -157,9 +157,8 @@ func TestAccAzureRMCognitiveAccount_accountApiProperties(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
@@ -183,22 +182,21 @@ func TestAccAzureRMCognitiveAccount_updateAccountApiProperties(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpointUpdatedUrl(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:9000/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.0.qna_runtime_endpoint", "https://localhost:9000/"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
@@ -267,6 +265,10 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 
 func testAccAzureRMCognitiveAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -274,8 +276,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Face"
 
   sku_name = "S0"
@@ -285,6 +287,10 @@ resource "azurerm_cognitive_account" "test" {
 
 func testAccAzureRMCognitiveAccount_speechServices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -292,8 +298,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "SpeechServices"
 
   sku_name = "S0"
@@ -307,10 +313,10 @@ func testAccAzureRMCognitiveAccount_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_cognitive_account" "import" {
-  name                = "${azurerm_cognitive_account.test.name}"
-  location            = "${azurerm_cognitive_account.test.location}"
-  resource_group_name = "${azurerm_cognitive_account.test.resource_group_name}"
-  kind                = "${azurerm_cognitive_account.test.kind}"
+  name                = azurerm_cognitive_account.test.name
+  location            = azurerm_cognitive_account.test.location
+  resource_group_name = azurerm_cognitive_account.test.resource_group_name
+  kind                = azurerm_cognitive_account.test.kind
 
   sku_name = "S0"
 }
@@ -319,6 +325,10 @@ resource "azurerm_cognitive_account" "import" {
 
 func testAccAzureRMCognitiveAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -326,8 +336,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Face"
 
   sku_name = "S0"
@@ -352,10 +362,8 @@ resource "azurerm_cognitive_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "QnAMaker"
 
-  properties {
-    api_properties {
-      qna_runtime_endpoint = "https://localhost:8080/"
-    }
+  api_properties {
+    qna_runtime_endpoint = "https://localhost:8080/"
   }
 
   sku_name = "S0"
@@ -376,10 +384,8 @@ resource "azurerm_cognitive_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "QnAMaker"
 
-  properties {
-    api_properties {
-      qna_runtime_endpoint = "https://localhost:9000/"
-    }
+  api_properties {
+    qna_runtime_endpoint = "https://localhost:9000/"
   }
 
   sku_name = "S0"
