@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +19,7 @@ func dataSourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 		Read: dataSourceAppServiceVirtualNetworkConnectionGatewayRead,
 
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(10 * time.Minute),
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -34,7 +34,7 @@ func dataSourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 			"virtual_network_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"certificate_blob": {
@@ -65,34 +65,6 @@ func dataSourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"routes": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"start_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"end_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"route_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"virtual_network_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -120,7 +92,7 @@ func dataSourceAppServiceVirtualNetworkConnectionGatewayRead(d *schema.ResourceD
 		return fmt.Errorf("Error making Read request on App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", appServiceName, vnetName, resGroup, err)
 	}
 
-	if id := resp.ID; id != nil {
+	if resp.ID != nil || *resp.ID != "" {
 		d.SetId(*resp.ID)
 	}
 	d.Set("name", resp.Name)
@@ -135,9 +107,6 @@ func dataSourceAppServiceVirtualNetworkConnectionGatewayRead(d *schema.ResourceD
 			d.Set("dns_servers", strings.Split(*props.DNSServers, ","))
 		} else {
 			d.Set("dns_servers", []string{})
-		}
-		if err := d.Set("routes", flattenAppServiceVirtualNetworkConnectionPropertiesRoutes(props.Routes)); err != nil {
-			return fmt.Errorf("Error setting `routes`: %+v", err)
 		}
 	}
 

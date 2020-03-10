@@ -86,7 +86,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
   type                = "Vpn"
   vpn_type            = "RouteBased"
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"
@@ -98,12 +98,6 @@ resource "azurerm_virtual_network_gateway" "test" {
   vpn_client_configuration {
     address_space        = ["10.2.0.0/24"]
     vpn_client_protocols = ["SSTP"]
-  }
-
-  lifecycle {
-    ignore_changes = [
-      vpn_client_configuration.0.root_certificate,
-    ]
   }
 }
 

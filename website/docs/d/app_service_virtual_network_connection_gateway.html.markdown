@@ -53,19 +53,8 @@ The following attributes are exported:
 
 * `virtual_network_id` - The Virtual Network's resource ID.
 
-* `routes` - (Array) One or more `route` block defined below.
-  
----
-
-A `route` block supports the following:
-* `name` - Resource Name.
-* `route_type` - The type of route
-* `start_address` The starting address for this route.
-* `end_address` - The ending address for this route.
----
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 10 minutes) Used when retrieving the App Service Virtual Network Connection Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Virtual Network Connection Gateway.

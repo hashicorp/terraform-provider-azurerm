@@ -71,7 +71,7 @@ resource "azurerm_virtual_network_gateway" "example" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "Basic"
+  sku      = "Standard"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"
@@ -83,12 +83,6 @@ resource "azurerm_virtual_network_gateway" "example" {
   vpn_client_configuration {
     address_space = ["10.2.0.0/24"]
     vpn_client_protocols = ["SSTP"]
-  }
-
-  lifecycle {
-      ignore_changes = [
-        vpn_client_configuration.0.root_certificate,
-      ]
   }
 }
 
@@ -104,13 +98,13 @@ resource "azurerm_app_service_virtual_network_connection_gateway" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the resource group which the app service belongs to.
+* `resource_group_name` - (Required) The name of the resource group which the app service belongs to. Changing this forces a new resource to be created.
 
-* `app_service_name` - (Required) Specifies the name of the App Service.
+* `app_service_name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `virtual_network_id` - (Required) The Virtual Network's resource ID.
+* `virtual_network_id` - (Required) The Virtual Network's resource ID. Changing this forces a new resource to be created.
 
-* `virtual_network_gateway_id` - (Required) The Virtual Network Gateway's resource ID, which should connect to the ***GatewaySubnet*** subnet of virtual network argument
+* `virtual_network_gateway_id` - (Required) The Virtual Network Gateway's resource ID, which should connect to the *GatewaySubnet* subnet of virtual network argument. Changing this forces a new resource to be created.
 
 ---
 
@@ -132,25 +126,14 @@ The following attributes are exported:
 
 * `resync_required` - Is resync required?
 
-* `routes` - (Array) One or more `route` block defined below.
-  
----
-
-A `route` block supports the following:
-* `name` - Resource Name.
-* `route_type` - The type of route this is: DEFAULT - By default, every app has routes to the local address ranges specified by RFC1918 INHERITED - Routes inherited from the real Virtual Network routes STATIC - Static route set on the app only. Valid values are `DEFAULT`, `INHERITED`, `STATIC`
-* `start_address` The starting address for the route.
-* `end_address` - The ending address for the route.
----
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the App Services Virtual Network Connection Gateway.
-* `update` - (Defaults to 60 minutes) Used when updating the App Services Virtual Network Connection Gateway.
-* `read` - (Defaults to 10 minutes) Used when retrieving the App Services Virtual Network Connection Gateway.
-* `delete` - (Defaults to 60 minutes) Used when deleting the App Services Virtual Network Connection Gateway.
+* `create` - (Defaults to 30 minutes) Used when creating the App Services Virtual Network Connection Gateway.
+* `update` - (Defaults to 30 minutes) Used when updating the App Services Virtual Network Connection Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Services Virtual Network Connection Gateway.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Services Virtual Network Connection Gateway.
 
 ## Import
 

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -17,6 +17,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,21 +31,23 @@ func resourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 		Update: resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate,
 		Delete: resourceArmAppServiceVirtualNetworkConnectionGatewayDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.AppServiceVirtualNetworkConnectionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Read:   schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
 			"app_service_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateAppServiceName,
 			},
 
@@ -51,12 +56,14 @@ func resourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 			"virtual_network_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"virtual_network_gateway_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -87,34 +94,6 @@ func resourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-
-			"routes": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"start_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"end_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"route_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -131,18 +110,16 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate(d *schema.
 	appServiceName := d.Get("app_service_name").(string)
 	vnetId := d.Get("virtual_network_id").(string)
 
-	id, err := azure.ParseAzureResourceID(vnetId)
+	virtualNetworkId, err := networkParse.VirtualNetworkID(vnetId)
 	if err != nil {
 		return err
 	}
-	vnetResGroup := id.ResourceGroup
-	vnetName := id.Path["virtualNetworks"]
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.GetVnetConnection(ctx, resGroup, appServiceName, vnetName)
+		existing, err := client.GetVnetConnection(ctx, resGroup, appServiceName, virtualNetworkId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("error checking for presence of existing App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %s", appServiceName, vnetName, resGroup, err)
+				return fmt.Errorf("error checking for presence of existing App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %s", appServiceName, virtualNetworkId.Name, resGroup, err)
 			}
 		}
 
@@ -163,17 +140,17 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate(d *schema.
 		return fmt.Errorf("error making Read request on AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", gatewayName, gatewayResGroup, err)
 	}
 	if virtualNetworkGateway.VpnClientConfiguration == nil || virtualNetworkGateway.VpnClientConfiguration.VpnClientAddressPool == nil {
-		return fmt.Errorf("this gateways %q under vnet %q (Resource Group %q) does not have a Point-to-site Address Range. Please specify one in CIDR notation, e.g. 10.0.0.0/8", gatewayName, vnetName, vnetResGroup)
+		return fmt.Errorf("this gateways %q under vnet %q (Resource Group %q) does not have a Point-to-site Address Range. Please specify one in CIDR notation, e.g. 10.0.0.0/8", gatewayName, virtualNetworkId.Name, virtualNetworkId.ResourceGroup)
 	}
 
 	// there are two parameters in the schema: virtual_network_id and virtual_network_gateway_id
 	// we should check the virtual network gateway is within the virtual network
 	isRelated, err := checkGatewayInVirtualNetwork(virtualNetworkGateway, vnetId)
 	if err != nil {
-		return fmt.Errorf("the virtual network gateway %q is not related with vnet %q: %+v", virtualNetworkGatewayId, vnetName, err)
+		return fmt.Errorf("the virtual network gateway %q is not related with vnet %q: %+v", virtualNetworkGatewayId, virtualNetworkId.Name, err)
 	}
 	if !isRelated {
-		return fmt.Errorf("the virtual network gateway %q is not related with vnet %q", virtualNetworkGatewayId, vnetName)
+		return fmt.Errorf("the virtual network gateway %q is not related with vnet %q", virtualNetworkGatewayId, virtualNetworkId.Name)
 	}
 
 	// the create functions contains four steps:
@@ -187,30 +164,30 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate(d *schema.
 			VnetResourceID: &vnetId,
 		},
 	}
-	vnetInfo, err := client.CreateOrUpdateVnetConnection(ctx, resGroup, appServiceName, vnetName, connectionEnvelope)
+	vnetInfo, err := client.CreateOrUpdateVnetConnection(ctx, resGroup, appServiceName, virtualNetworkId.Name, connectionEnvelope)
 	if err != nil {
-		return fmt.Errorf("error creating/updating App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", appServiceName, vnetName, resGroup, err)
+		return fmt.Errorf("error creating/updating App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", appServiceName, virtualNetworkId.Name, resGroup, err)
 	}
 
 	// add certificate if not exists in the gateway
-	if err := addCertificateIfNotExistsInGateway(vnetGatewayClient, ctx, &virtualNetworkGateway, &vnetInfo, &vnetResGroup, &gatewayName); err != nil {
+	if err := addCertificateIfNotExistsInGateway(vnetGatewayClient, ctx, &virtualNetworkGateway, &vnetInfo, &virtualNetworkId.ResourceGroup, &gatewayName); err != nil {
 		return fmt.Errorf("error add certificate for gateway %q: %+v", gatewayName, err)
 	}
 
 	// generate vpn package uri
-	packageUri, err := retrieveVPNPackageUri(vnetGatewayClient, ctx, &vnetResGroup, &gatewayName)
+	packageUri, err := retrieveVPNPackageUri(vnetGatewayClient, ctx, &virtualNetworkId.ResourceGroup, &gatewayName)
 	if err != nil {
 		return fmt.Errorf("error get vpn package uri of gateway %q: %+v", gatewayName, err)
 	}
 
 	vnetGateway := web.VnetGateway{
 		VnetGatewayProperties: &web.VnetGatewayProperties{
-			VnetName:      &vnetName,
+			VnetName:      &virtualNetworkId.Name,
 			VpnPackageURI: &packageUri,
 		},
 	}
-	if _, err := client.CreateOrUpdateVnetConnectionGateway(ctx, resGroup, appServiceName, vnetName, "primary", vnetGateway); err != nil {
-		return fmt.Errorf("error creating/updating App Service Virtual Network Connection gateway for app %q vnet %q (Resource Group %q): %+v", appServiceName, vnetName, resGroup, err)
+	if _, err := client.CreateOrUpdateVnetConnectionGateway(ctx, resGroup, appServiceName, virtualNetworkId.Name, "primary", vnetGateway); err != nil {
+		return fmt.Errorf("error creating/updating App Service Virtual Network Connection gateway for app %q vnet %q (Resource Group %q): %+v", appServiceName, virtualNetworkId.Name, resGroup, err)
 	}
 
 	d.SetId(*vnetInfo.ID)
@@ -223,29 +200,25 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayRead(d *schema.Resource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AppServiceVirtualNetworkConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
+	log.Printf("[DEBUG] Reading Azure App Service Virtual Network Connection gateway %s", id)
 
-	log.Printf("[DEBUG] Reading Azure App Service Virtual Network Connection %s", id)
-
-	resourceGroup := id.ResourceGroup
-	appServiceName := id.Path["sites"]
-	vnetName := id.Path["virtualNetworkConnections"]
-	resp, err := client.GetVnetConnection(ctx, resourceGroup, appServiceName, vnetName)
+	resp, err := client.GetVnetConnection(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Virtual Network Connection for app %q vnet %q was not found in Resource Group %q - removnig from state!", appServiceName, vnetName, resourceGroup)
+			log.Printf("[DEBUG] App Service Virtual Network Connection for app %q vnet %q was not found in Resource Group %q - removing from state!", id.AppServiceName, id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error making Read request on App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", appServiceName, vnetName, resourceGroup, err)
+		return fmt.Errorf("error making Read request on App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", id.AppServiceName, id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("name", resp.Name)
-	d.Set("app_service_name", appServiceName)
+	d.Set("app_service_name", id.AppServiceName)
 	if props := resp.VnetInfoProperties; props != nil {
 		d.Set("virtual_network_id", props.VnetResourceID)
 		d.Set("certificate_thumbprint", props.CertThumbprint)
@@ -255,9 +228,6 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayRead(d *schema.Resource
 			d.Set("dns_servers", strings.Split(*props.DNSServers, ","))
 		} else {
 			d.Set("dns_servers", []string{})
-		}
-		if err := d.Set("routes", flattenAppServiceVirtualNetworkConnectionPropertiesRoutes(props.Routes)); err != nil {
-			return fmt.Errorf("Error setting `routes`: %+v", err)
 		}
 	}
 
@@ -269,20 +239,16 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayDelete(d *schema.Resour
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AppServiceVirtualNetworkConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	appServiceName := id.Path["sites"]
-	vnetName := id.Path["virtualNetworkConnections"]
 
-	log.Printf("[DEBUG] Deleting App Service Virtual Network Connection for app %q vnet %q (Resource Group %q)", appServiceName, vnetName, resourceGroup)
-
-	resp, err := client.DeleteVnetConnection(ctx, resourceGroup, appServiceName, vnetName)
+	log.Printf("[DEBUG] Deleting App Service Virtual Network Connection for app %q vnet %q (Resource Group %q)", id.AppServiceName, id.Name, id.ResourceGroup)
+	resp, err := client.DeleteVnetConnection(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("error deleting App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", appServiceName, vnetName, resourceGroup, err)
+			return fmt.Errorf("error deleting App Service Virtual Network Connection for app %q vnet %q (Resource Group %q): %+v", id.AppServiceName, id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -384,30 +350,4 @@ func generatevpnclientpackageResponder(client network.VirtualNetworkGatewaysClie
 		autorest.ByClosing())
 	result = string(byteArr)
 	return
-}
-
-func flattenAppServiceVirtualNetworkConnectionPropertiesRoutes(input *[]web.VnetRoute) []interface{} {
-	if input == nil {
-		return nil
-	}
-
-	routes := make([]interface{}, 0)
-	for _, route := range *input {
-		attr := make(map[string]interface{})
-		if route.Name != nil {
-			attr["name"] = *route.Name
-		}
-		if props := route.VnetRouteProperties; props != nil {
-			if props.StartAddress != nil {
-				attr["start_address"] = *props.StartAddress
-			}
-			if props.EndAddress != nil {
-				attr["end_address"] = *props.EndAddress
-			}
-			attr["route_type"] = string(props.RouteType)
-		}
-
-		routes = append(routes, attr)
-	}
-	return routes
 }
