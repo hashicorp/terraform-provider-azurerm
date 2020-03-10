@@ -86,22 +86,28 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-
 	locks.ByName(id.Name, virtualHubResourceName)
 	defer locks.UnlockByName(id.Name, virtualHubResourceName)
 
-	virtualHub, err := client.Get(ctx, resourceGroup, id.Name)
+	virtualHub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualHub.Response) {
-			return fmt.Errorf("Virtual Hub %q was not found in Resource Group %q", id.Name, resourceGroup)
+			return fmt.Errorf("Virtual Hub %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", id.Name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if virtualHub.VirtualHubProperties == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties` was nil", id.Name, resourceGroup)
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+	}
+
+	name := d.Get("name").(string)
+
+	if features.ShouldResourcesBeImported() {
+		if connection, _ := findVirtualHubConnection(name, virtualHub); connection != nil {
+			return tf.ImportAsExistsError("azurerm_virtual_hub_connection", *connection.ID)
+		}
 	}
 
 	props := *virtualHub.VirtualHubProperties
@@ -109,14 +115,6 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 	var connections []network.HubVirtualNetworkConnection
 	if props.VirtualNetworkConnections != nil {
 		connections = *props.VirtualNetworkConnections
-	}
-
-	name := d.Get("name").(string)
-
-	if features.ShouldResourcesBeImported() {
-		if connection, _ := findVirtualHubConnection(name, connections); connection != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_connection", *connection.ID)
-		}
 	}
 
 	connection := network.HubVirtualNetworkConnection{
@@ -133,33 +131,29 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 	connections = append(connections, connection)
 	virtualHub.VirtualHubProperties.VirtualNetworkConnections = &connections
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, id.Name, virtualHub)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, virtualHub)
 	if err != nil {
-		return fmt.Errorf("Error adding Connection %q to Virtual Hub %q (Resource Group %q): %+v", name, id.Name, resourceGroup, err)
+		return fmt.Errorf("Error adding Connection %q to Virtual Hub %q (Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for addition of Connection %q to Virtual Hub %q (Resource Group %q): %+v", name, id.Name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for addition of Connection %q to Virtual Hub %q (Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 
-	virtualHub, err = client.Get(ctx, resourceGroup, id.Name)
+	virtualHub, err = client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", id.Name, resourceGroup, err)
-	}
-	if virtualHub.VirtualHubProperties == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties` was nil", id.Name, resourceGroup)
-	}
-	if virtualHub.VirtualHubProperties.VirtualNetworkConnections == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties.VirtualNetworkConnections` was nil", id.Name, resourceGroup)
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	connections = *virtualHub.VirtualHubProperties.VirtualNetworkConnections
-	newConnection, _ := findVirtualHubConnection(name, connections)
+	newConnection, err := findVirtualHubConnection(name, virtualHub)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
 	if newConnection == nil {
-		return fmt.Errorf("Connection %q was not found in Virtual Hub %q / Resource Group %q", name, id.Name, resourceGroup)
+		return fmt.Errorf("Connection %q was not found in Virtual Hub %q / Resource Group %q", name, id.Name, id.ResourceGroup)
 	}
 	if newConnection.ID == nil && *newConnection.ID == "" {
-		return fmt.Errorf("Error retrieving Connection %q (Virtual Hub %q / Resource Group %q): `id` was nil or empty", name, id.Name, resourceGroup)
+		return fmt.Errorf("Error retrieving Connection %q (Virtual Hub %q / Resource Group %q): `id` was nil or empty", name, id.Name, id.ResourceGroup)
 	}
 
 	d.SetId(*newConnection.ID)
@@ -176,51 +170,43 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	virtualHubName := id.VirtualHubName
-
-	virtualHub, err := client.Get(ctx, resourceGroup, virtualHubName)
+	virtualHub, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualHub.Response) {
-			log.Printf("[DEBUG] Virtual Hub %q was not found in Resource Group %q - so Connection %q can't exist - removing from state", id.Name, virtualHubName, resourceGroup)
+			log.Printf("[DEBUG] Virtual Hub %q was not found in Resource Group %q - so Connection %q can't exist - removing from state", id.Name, id.VirtualHubName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", virtualHubName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", id.VirtualHubName, id.ResourceGroup, err)
 	}
 
-	if virtualHub.VirtualHubProperties == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties` was nil", virtualHubName, resourceGroup)
+	connection, err := findVirtualHubConnection(id.Name, virtualHub)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Connection %q (Virtual Hub %q / Resource Group %q): %+v`", id.Name, id.VirtualHubName, id.ResourceGroup, err)
 	}
-
-	if virtualHub.VirtualHubProperties.VirtualNetworkConnections == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties.VirtualNetworkConnections` was nil", virtualHubName, resourceGroup)
-	}
-	connections := *virtualHub.VirtualHubProperties.VirtualNetworkConnections
-
-	connection, _ := findVirtualHubConnection(id.Name, connections)
 	if connection == nil {
-		log.Printf("[DEBUG] Connection %q was not found within Virtual Hub %q (Resource Group %q) - removing from state", id.Name, virtualHubName, resourceGroup)
+		log.Printf("[DEBUG] Connection %q was not found within Virtual Hub %q (Resource Group %q) - removing from state", id.Name, id.VirtualHubName, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 	if connection.HubVirtualNetworkConnectionProperties == nil {
-		return fmt.Errorf("Error retrieving Connection %q (Virtual Hub %q / Resource Group %q): `properties` was nil`", id.Name, virtualHubName, resourceGroup)
+		return fmt.Errorf("Error retrieving Connection %q (Virtual Hub %q / Resource Group %q): `properties` was nil`", id.Name, id.VirtualHubName, id.ResourceGroup)
 	}
-	props := *connection.HubVirtualNetworkConnectionProperties
 
 	d.Set("name", id.Name)
 	d.Set("virtual_hub_id", virtualHub.ID)
-	d.Set("hub_to_vitual_network_traffic_allowed", props.AllowHubToRemoteVnetTransit)
-	d.Set("vitual_network_to_hub_gateways_traffic_allowed", props.AllowRemoteVnetToUseHubVnetGateways)
-	d.Set("internet_security_enabled", props.EnableInternetSecurity)
 
-	remoteVirtualNetworkId := ""
-	if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {
-		remoteVirtualNetworkId = *props.RemoteVirtualNetwork.ID
+	if props := connection.HubVirtualNetworkConnectionProperties; props != nil {
+		d.Set("hub_to_vitual_network_traffic_allowed", props.AllowHubToRemoteVnetTransit)
+		d.Set("vitual_network_to_hub_gateways_traffic_allowed", props.AllowRemoteVnetToUseHubVnetGateways)
+		d.Set("internet_security_enabled", props.EnableInternetSecurity)
+		remoteVirtualNetworkId := ""
+		if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {
+			remoteVirtualNetworkId = *props.RemoteVirtualNetwork.ID
+		}
+		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 	}
-	d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 
 	return nil
 }
@@ -235,27 +221,24 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	virtualHubName := id.VirtualHubName
+	locks.ByName(id.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
 
-	locks.ByName(virtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtualHubName, virtualHubResourceName)
-
-	virtualHub, err := client.Get(ctx, resourceGroup, virtualHubName)
+	virtualHub, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualHub.Response) {
-			return fmt.Errorf("Virtual Hub %q was not found in Resource Group %q", virtualHubName, resourceGroup)
+			return fmt.Errorf("Virtual Hub %q was not found in Resource Group %q", id.VirtualHubName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", virtualHubName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", id.VirtualHubName, id.ResourceGroup, err)
 	}
 
 	if virtualHub.VirtualHubProperties == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties` was nil", virtualHubName, resourceGroup)
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties` was nil", id.VirtualHubName, id.ResourceGroup)
 	}
 
 	if virtualHub.VirtualHubProperties.VirtualNetworkConnections == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties.VirtualNetworkConnections` was nil", virtualHubName, resourceGroup)
+		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties.VirtualNetworkConnections` was nil", id.VirtualHubName, id.ResourceGroup)
 	}
 
 	var newConnections []network.HubVirtualNetworkConnection
@@ -272,30 +255,37 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 	}
 	virtualHub.VirtualHubProperties.VirtualNetworkConnections = &newConnections
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualHubName, virtualHub)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, virtualHub)
 	if err != nil {
-		return fmt.Errorf("Error removing Connection %q to Virtual Hub %q (Resource Group %q): %+v", id.Name, virtualHubName, resourceGroup, err)
+		return fmt.Errorf("Error removing Connection %q to Virtual Hub %q (Resource Group %q): %+v", id.Name, id.VirtualHubName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for removal of Connection %q to Virtual Hub %q (Resource Group %q): %+v", id.Name, virtualHubName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for removal of Connection %q to Virtual Hub %q (Resource Group %q): %+v", id.Name, id.VirtualHubName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func findVirtualHubConnection(name string, connections []network.HubVirtualNetworkConnection) (conn *network.HubVirtualNetworkConnection, index int) {
-	for i, connection := range connections {
+func findVirtualHubConnection(name string, virtualHub network.VirtualHub) (*network.HubVirtualNetworkConnection, error) {
+	if virtualHub.VirtualHubProperties == nil {
+		return nil, fmt.Errorf("`properties` was nil")
+	}
+	if virtualHub.VirtualHubProperties.VirtualNetworkConnections == nil {
+		return nil, fmt.Errorf("`properties.VirtualNetworkConnections` was nil")
+	}
+
+	connections := *virtualHub.VirtualHubProperties.VirtualNetworkConnections
+
+	for _, connection := range connections {
 		if connection.Name == nil || connection.ID == nil {
 			continue
 		}
 
 		if *connection.Name == name {
-			conn = &connection
-			index = i
-			return
+			return &connection, nil
 		}
 	}
 
-	return
+	return nil, nil
 }

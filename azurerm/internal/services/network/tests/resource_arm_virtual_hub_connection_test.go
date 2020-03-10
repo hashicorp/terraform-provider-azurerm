@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -121,15 +121,12 @@ func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.Te
 			return fmt.Errorf("Virtual Hub Connection not found: %s", resourceName)
 		}
 
-		virtualHubId := rs.Primary.Attributes["virtual_hub_id"]
-		id, err := networkSvc.ParseVirtualHubID(virtualHubId)
+		id, err := parse.ParseVirtualHubConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resourceGroup := id.ResourceGroup
-		name := rs.Primary.Attributes["name"]
-		resp, err := client.Get(ctx, resourceGroup, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on network.VirtualHubClient: %+v", err)
 		}
@@ -147,14 +144,14 @@ func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.Te
 
 		found := false
 		for _, conn := range conns {
-			if conn.Name != nil && *conn.Name == name {
+			if conn.Name != nil && *conn.Name == id.Name {
 				found = true
 				break
 			}
 		}
 
 		if !found {
-			return fmt.Errorf("Connection %q was not found", name)
+			return fmt.Errorf("Connection %q was not found", id.Name)
 		}
 
 		return nil
@@ -170,16 +167,12 @@ func testCheckAzureRMVirtualHubConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		virtualHubId := rs.Primary.Attributes["virtual_hub_id"]
-		id, err := networkSvc.ParseVirtualHubID(virtualHubId)
+		id, err := parse.ParseVirtualHubConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resourceGroup := id.ResourceGroup
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on network.VirtualHubClient: %+v", err)
@@ -197,8 +190,8 @@ func testCheckAzureRMVirtualHubConnectionDestroy(s *terraform.State) error {
 
 		conns := *props.VirtualNetworkConnections
 		for _, conn := range conns {
-			if conn.Name != nil && *conn.Name == name {
-				return fmt.Errorf("Connection %q still exists", name)
+			if conn.Name != nil && *conn.Name == id.Name {
+				return fmt.Errorf("Connection %q still exists", id.Name)
 			}
 		}
 
