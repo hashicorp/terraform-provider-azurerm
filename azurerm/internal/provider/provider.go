@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -35,6 +36,9 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 
 		log.Printf(f, v...)
 	}
+
+	// opt into old autorest 429 behaviour
+	autorest.Count429AsRetry = false
 
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
