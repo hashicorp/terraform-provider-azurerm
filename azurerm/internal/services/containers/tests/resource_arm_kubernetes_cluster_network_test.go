@@ -512,7 +512,7 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeo
 				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeoutConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.allocated_outbound_port", "8000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ports_allocated", "8000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes", "10"),
 				),
 			},
@@ -1296,7 +1296,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -1331,7 +1331,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "Standard"
     load_balancer_profile {
       managed_outbound_ip_count = 2
-      allocated_outbound_port   = 8000
       idle_timeout_in_minutes   = 10
     }
   }

@@ -295,10 +295,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"allocated_outbound_port": {
+									"outbound_ports_allocated": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										Default:      -1,
 										ValidateFunc: validation.IntBetween(0, 64000),
 									},
 									"idle_timeout_in_minutes": {
@@ -1286,7 +1285,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		if v := lbp.AllocatedOutboundPorts; v != nil {
 			port = *v
 		}
-		lb["allocated_outbound_port"] = port
+		lb["outbound_ports_allocated"] = port
 
 		idleTimeout := int32(-1)
 		if v := lbp.IdleTimeoutInMinutes; v != nil {
