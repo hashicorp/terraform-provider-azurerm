@@ -141,6 +141,13 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
+
+						"interval_in_minutes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntInSlice([]int{10, 60}),
+							Default:      60,
+						},
 					},
 				},
 			},
@@ -386,6 +393,9 @@ func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficA
 		if cfg.WorkspaceResourceID != nil {
 			result["workspace_resource_id"] = *cfg.WorkspaceResourceID
 		}
+		if cfg.TrafficAnalyticsInterval != nil {
+			result["interval_in_minutes"] = int(*cfg.TrafficAnalyticsInterval)
+		}
 	}
 
 	return []interface{}{result}
@@ -399,13 +409,15 @@ func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *schema.ResourceData) 
 	workspaceID := v["workspace_id"].(string)
 	workspaceRegion := v["workspace_region"].(string)
 	workspaceResourceID := v["workspace_resource_id"].(string)
+	interval := v["interval_in_minutes"].(int)
 
 	return &network.TrafficAnalyticsProperties{
 		NetworkWatcherFlowAnalyticsConfiguration: &network.TrafficAnalyticsConfigurationProperties{
-			Enabled:             utils.Bool(enabled),
-			WorkspaceID:         utils.String(workspaceID),
-			WorkspaceRegion:     utils.String(workspaceRegion),
-			WorkspaceResourceID: utils.String(workspaceResourceID),
+			Enabled:                  utils.Bool(enabled),
+			WorkspaceID:              utils.String(workspaceID),
+			WorkspaceRegion:          utils.String(workspaceRegion),
+			WorkspaceResourceID:      utils.String(workspaceResourceID),
+			TrafficAnalyticsInterval: utils.Int32(int32(interval)),
 		},
 	}
 }

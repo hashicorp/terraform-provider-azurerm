@@ -115,7 +115,7 @@ func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, m
 		return err
 	}
 
-	name := id.Path["AuthorizationRules"] //this is different then eventhub where its authorizationRules
+	name := id.Path["AuthorizationRules"] // this is different then eventhub where its authorizationRules
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 
@@ -162,7 +162,7 @@ func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData,
 		return err
 	}
 
-	name := id.Path["AuthorizationRules"] //this is different then eventhub where its authorizationRules
+	name := id.Path["AuthorizationRules"] // this is different then eventhub where its authorizationRules
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 

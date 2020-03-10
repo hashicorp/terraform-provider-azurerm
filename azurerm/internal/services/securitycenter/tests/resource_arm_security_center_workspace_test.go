@@ -32,7 +32,7 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				//reset pricing to free
+				// reset pricing to free
 				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
 			},
 		},
@@ -65,7 +65,7 @@ func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
 				ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
 			},
 			{
-				//reset pricing to free
+				// reset pricing to free
 				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
 			},
 		},
@@ -97,7 +97,7 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				//reset pricing to free
+				// reset pricing to free
 				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
 			},
 		},

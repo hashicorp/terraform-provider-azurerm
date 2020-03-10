@@ -57,7 +57,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 					"1.1",
 					// TODO: support for 1.2 when this is fixed:
 					// https://github.com/Azure/azure-rest-api-specs/issues/5604
-					//"1.2",
+					// "1.2",
 				}, false),
 			},
 

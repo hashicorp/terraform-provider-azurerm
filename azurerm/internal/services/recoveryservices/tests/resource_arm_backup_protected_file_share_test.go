@@ -30,7 +30,7 @@ func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ //vault cannot be deleted unless we unregister all backups
+			{ // vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedFileShare_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
@@ -59,7 +59,7 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedFileShare_requiresImport),
-			{ //vault cannot be deleted unless we unregister all backups
+			{ // vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedFileShare_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
