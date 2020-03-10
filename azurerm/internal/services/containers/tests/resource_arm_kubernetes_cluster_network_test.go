@@ -625,18 +625,7 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "outbound_ip_prefix_ids", "[azurerm_public_ip_prefix.test.id]"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
-				),
-			},
-			data.ImportStep("service_principal.0.client_secret"),
-			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "managed_outbound_ip_count", "1"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
 			},
