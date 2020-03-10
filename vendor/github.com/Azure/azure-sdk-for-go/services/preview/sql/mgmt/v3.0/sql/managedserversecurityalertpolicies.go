@@ -39,7 +39,8 @@ func NewManagedServerSecurityAlertPoliciesClient(subscriptionID string) ManagedS
 }
 
 // NewManagedServerSecurityAlertPoliciesClientWithBaseURI creates an instance of the
-// ManagedServerSecurityAlertPoliciesClient client.
+// ManagedServerSecurityAlertPoliciesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedServerSecurityAlertPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ManagedServerSecurityAlertPoliciesClient {
 	return ManagedServerSecurityAlertPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,9 +104,8 @@ func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdatePreparer(ct
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req *http.Request) (future ManagedServerSecurityAlertPoliciesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -188,8 +188,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) GetPreparer(ctx context.C
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedServerSecurityAlertPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -267,8 +266,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) ListByInstancePreparer(ct
 // ListByInstanceSender sends the ListByInstance request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedServerSecurityAlertPoliciesClient) ListByInstanceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstanceResponder handles the response to the ListByInstance request. The method always

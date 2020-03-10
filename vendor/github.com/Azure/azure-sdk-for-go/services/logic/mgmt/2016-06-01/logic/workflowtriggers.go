@@ -36,7 +36,9 @@ func NewWorkflowTriggersClient(subscriptionID string) WorkflowTriggersClient {
 	return NewWorkflowTriggersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkflowTriggersClientWithBaseURI creates an instance of the WorkflowTriggersClient client.
+// NewWorkflowTriggersClientWithBaseURI creates an instance of the WorkflowTriggersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewWorkflowTriggersClientWithBaseURI(baseURI string, subscriptionID string) WorkflowTriggersClient {
 	return WorkflowTriggersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +105,7 @@ func (client WorkflowTriggersClient) GetPreparer(ctx context.Context, resourceGr
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowTriggersClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -182,8 +183,7 @@ func (client WorkflowTriggersClient) GetSchemaJSONPreparer(ctx context.Context, 
 // GetSchemaJSONSender sends the GetSchemaJSON request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowTriggersClient) GetSchemaJSONSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSchemaJSONResponder handles the response to the GetSchemaJSON request. The method always
@@ -268,8 +268,7 @@ func (client WorkflowTriggersClient) ListPreparer(ctx context.Context, resourceG
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowTriggersClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -384,8 +383,7 @@ func (client WorkflowTriggersClient) ListCallbackURLPreparer(ctx context.Context
 // ListCallbackURLSender sends the ListCallbackURL request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowTriggersClient) ListCallbackURLSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListCallbackURLResponder handles the response to the ListCallbackURL request. The method always
@@ -463,8 +461,7 @@ func (client WorkflowTriggersClient) ResetPreparer(ctx context.Context, resource
 // ResetSender sends the Reset request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowTriggersClient) ResetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ResetResponder handles the response to the Reset request. The method always
@@ -541,8 +538,7 @@ func (client WorkflowTriggersClient) RunPreparer(ctx context.Context, resourceGr
 // RunSender sends the Run request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowTriggersClient) RunSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RunResponder handles the response to the Run request. The method always
@@ -629,8 +625,7 @@ func (client WorkflowTriggersClient) SetStatePreparer(ctx context.Context, resou
 // SetStateSender sends the SetState request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowTriggersClient) SetStateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SetStateResponder handles the response to the SetState request. The method always

@@ -36,7 +36,8 @@ func NewAPIReleaseClient(subscriptionID string) APIReleaseClient {
 	return NewAPIReleaseClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAPIReleaseClientWithBaseURI creates an instance of the APIReleaseClient client.
+// NewAPIReleaseClientWithBaseURI creates an instance of the APIReleaseClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAPIReleaseClientWithBaseURI(baseURI string, subscriptionID string) APIReleaseClient {
 	return APIReleaseClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

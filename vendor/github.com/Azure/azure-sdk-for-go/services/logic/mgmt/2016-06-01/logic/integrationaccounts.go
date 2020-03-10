@@ -36,7 +36,9 @@ func NewIntegrationAccountsClient(subscriptionID string) IntegrationAccountsClie
 	return NewIntegrationAccountsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewIntegrationAccountsClientWithBaseURI creates an instance of the IntegrationAccountsClient client.
+// NewIntegrationAccountsClientWithBaseURI creates an instance of the IntegrationAccountsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewIntegrationAccountsClientWithBaseURI(baseURI string, subscriptionID string) IntegrationAccountsClient {
 	return IntegrationAccountsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -104,8 +106,7 @@ func (client IntegrationAccountsClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -181,8 +182,7 @@ func (client IntegrationAccountsClient) DeletePreparer(ctx context.Context, reso
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -257,8 +257,7 @@ func (client IntegrationAccountsClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -337,8 +336,7 @@ func (client IntegrationAccountsClient) GetCallbackURLPreparer(ctx context.Conte
 // GetCallbackURLSender sends the GetCallbackURL request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) GetCallbackURLSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCallbackURLResponder handles the response to the GetCallbackURL request. The method always
@@ -417,8 +415,7 @@ func (client IntegrationAccountsClient) ListByResourceGroupPreparer(ctx context.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -532,8 +529,7 @@ func (client IntegrationAccountsClient) ListBySubscriptionPreparer(ctx context.C
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -655,8 +651,7 @@ func (client IntegrationAccountsClient) ListKeyVaultKeysPreparer(ctx context.Con
 // ListKeyVaultKeysSender sends the ListKeyVaultKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) ListKeyVaultKeysSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListKeyVaultKeysResponder handles the response to the ListKeyVaultKeys request. The method always
@@ -742,8 +737,7 @@ func (client IntegrationAccountsClient) LogTrackingEventsPreparer(ctx context.Co
 // LogTrackingEventsSender sends the LogTrackingEvents request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) LogTrackingEventsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // LogTrackingEventsResponder handles the response to the LogTrackingEvents request. The method always
@@ -821,8 +815,7 @@ func (client IntegrationAccountsClient) RegenerateAccessKeyPreparer(ctx context.
 // RegenerateAccessKeySender sends the RegenerateAccessKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) RegenerateAccessKeySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateAccessKeyResponder handles the response to the RegenerateAccessKey request. The method always
@@ -901,8 +894,7 @@ func (client IntegrationAccountsClient) UpdatePreparer(ctx context.Context, reso
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationAccountsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
