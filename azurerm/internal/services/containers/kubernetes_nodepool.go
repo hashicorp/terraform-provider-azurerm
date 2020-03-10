@@ -91,6 +91,15 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
+				"node_labels": {
+					Type:     schema.TypeMap,
+					ForceNew: true,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
 				"node_taints": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -138,6 +147,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			EnableNodePublicIP:     defaultCluster.EnableNodePublicIP,
 			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
+			NodeLabels:             defaultCluster.NodeLabels,
 			NodeTaints:             defaultCluster.NodeTaints,
 			Tags:                   defaultCluster.Tags,
 		},
@@ -149,6 +159,8 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 	raw := input[0].(map[string]interface{})
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
+	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
+	nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw)
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
 	t := d.Get("tags").(map[string]interface{})
@@ -157,6 +169,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
+		NodeLabels:         nodeLabels,
 		NodeTaints:         nodeTaints,
 		Tags:               tags.Expand(t),
 		Type:               containerservice.AgentPoolType(raw["type"].(string)),
@@ -287,6 +300,14 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		name = *agentPool.Name
 	}
 
+	var nodeLabels map[string]string
+	if agentPool.NodeLabels != nil {
+		nodeLabels = make(map[string]string)
+		for k, v := range agentPool.NodeLabels {
+			nodeLabels[k] = *v
+		}
+	}
+
 	var nodeTaints []string
 	if agentPool.NodeTaints != nil {
 		nodeTaints = *agentPool.NodeTaints
@@ -312,6 +333,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"min_count":             minCount,
 			"name":                  name,
 			"node_count":            count,
+			"node_labels":           nodeLabels,
 			"node_taints":           nodeTaints,
 			"os_disk_size_gb":       osDiskSizeGB,
 			"type":                  string(agentPool.Type),

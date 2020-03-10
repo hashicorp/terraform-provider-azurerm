@@ -102,6 +102,15 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
+			"node_labels": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"node_taints": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -216,6 +225,11 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if maxPods := int32(d.Get("max_pods").(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
+	}
+
+	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
+	if nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw); len(nodeLabels) > 0 {
+		profile.NodeLabels = nodeLabels
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
@@ -469,6 +483,10 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			count = int(*props.Count)
 		}
 		d.Set("node_count", count)
+
+		if err := d.Set("node_labels", props.NodeLabels); err != nil {
+			return fmt.Errorf("Error setting `node_labels`: %+v", err)
+		}
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("Error setting `node_taints`: %+v", err)

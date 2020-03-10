@@ -171,6 +171,14 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"node_labels": {
+							Type:     schema.TypeMap,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
 						"node_taints": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -743,6 +751,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.MaxPods != nil {
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
+		}
+
+		if profile.NodeLabels != nil {
+			agentPoolProfile["node_labels"] = profile.NodeLabels
 		}
 
 		if profile.NodeTaints != nil {

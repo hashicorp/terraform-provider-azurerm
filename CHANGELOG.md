@@ -1,10 +1,15 @@
 ## 2.1.0 (Unreleased)
 
+NOTES:
+
+The `azurerm_frontdoor` resource has introduced a breaking change due to the underlying service API which enforces `location` attributes must be set to 'Global' on all newly deployed Front Door services.
+
 FEATURES:
 
 * **New Data Source:** `azurerm_database_migration_project` [GH-5993]
 * **New Data Source:** `azurerm_database_migration_service` [GH-5258]
 * **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
+* **New Data Source:** `azurerm_servicebus_topic_authorization_rule` [GH-6017]
 * **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
 * **New Resource:** `azurerm_database_migration_project` [GH-5993]
 * **New Resource:** `azurerm_database_migration_service` [GH-5258]
@@ -23,7 +28,10 @@ IMPROVEMENTS:
 * `azurerm_batch_pool` - support for the `public_ips` property [GH-5967]
 * `azurerm_frontdoor` - exposed new attributes in `backend_pool_health_probe` block `enabled` and `probe_method` [GH-5924]
 * `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
+* `azurerm_kubernetes_cluster`: Support for `node_labels` [GH-5531]
+* `azurerm_kubernetes_cluster_node_pool`: Support for `node_labels` [GH-5531]
 * `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
+* `azurerm_lb` - support for the `private_ip_address_version` property [GH-5590]
 * `azurerm_netapp_account` - support for the `tags` property [GH-5995]
 * `azurerm_netapp_pool` - support for the `tags` property [GH-5995]
 * `azurerm_netapp_snapshot` - support for the `tags` property [GH-5995]
@@ -50,6 +58,7 @@ BUG FIXES:
 * `azurerm_batch_pool` - `frontend_port_range ` is now set correctly. [GH-5941]
 * `azurerm_dns_txt_record` - support records up to `1024` characters in length [GH-5837]
 * `azurerm_frontdoor` - fix the way `backend_pool_load_balancing`/`backend_pool_health_probe` [GH-5924]
+* `azurerm_frontdoor` - all new front door resources to be created in the `Global` location [GH-6015]
 * `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
 * `azurerm_netapp_volume` - support volmes uoto `100TB` in size [GH-5485]
