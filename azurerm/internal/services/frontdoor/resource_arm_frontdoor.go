@@ -67,6 +67,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				Required: true,
 			},
 
+			// remove in 3.0
 			"location": {
 				Type:       schema.TypeString,
 				Optional:   true,
@@ -495,6 +496,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	// remove in 3.0
 	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
 	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
 	location := "Global"
@@ -674,7 +676,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", "")
+	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if properties := resp.Properties; properties != nil {
 		if err := d.Set("backend_pool", flattenArmFrontDoorBackendPools(properties.BackendPools)); err != nil {
