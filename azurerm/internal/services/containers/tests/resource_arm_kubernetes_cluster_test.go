@@ -117,7 +117,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"addOnProfileRouting":                         testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting,
 			"autoscalingNoAvailabilityZones":              testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones,
 			"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
-			"nodeLabels":                                  TestAccDataSourceAzureRMKubernetesCluster_nodeLabels,
+			"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
 			"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
 			"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
 			"privateLink":                                 testAccDataSourceAzureRMKubernetesCluster_privateLink,
