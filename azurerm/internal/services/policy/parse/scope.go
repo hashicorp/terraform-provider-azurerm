@@ -55,7 +55,7 @@ func PolicyScopeID(input string) (PolicyScopeId, error) {
 		id, _ := parseMgmtGroup.ManagementGroupID(input)
 		return ScopeAtManagementGroup{
 			scopeId:           input,
-			ManagementGroupId: id.GroupID,
+			ManagementGroupId: id.GroupId,
 		}, nil
 	}
 	// scope is not a management group ID, should be subscription ID, resource group ID or a resource ID
