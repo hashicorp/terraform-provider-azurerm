@@ -86,7 +86,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"max_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"max_pods": {
@@ -99,7 +99,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"min_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"node_labels": {
