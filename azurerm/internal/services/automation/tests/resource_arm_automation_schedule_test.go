@@ -54,8 +54,8 @@ func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
 func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
-	//the API returns the time in the timezone we pass in
-	//it also seems to strip seconds, hijack the RFC3339 format to have 0s there
+	// the API returns the time in the timezone we pass in
+	// it also seems to strip seconds, hijack the RFC3339 format to have 0s there
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
@@ -76,8 +76,8 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
-	//the API returns the time in the timezone we pass in
-	//it also seems to strip seconds, hijack the RFC3339 format to have 0s there
+	// the API returns the time in the timezone we pass in
+	// it also seems to strip seconds, hijack the RFC3339 format to have 0s there
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
@@ -284,6 +284,10 @@ func testCheckAzureRMAutomationScheduleExists(resourceName string) resource.Test
 
 func testAccAzureRMAutomationSchedule_prerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -291,8 +295,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctestAA-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -304,8 +308,8 @@ func testAccAzureRMAutomationSchedule_oneTime_basic(data acceptance.TestData) st
 
 resource "azurerm_automation_schedule" "test" {
   name                    = "acctestAS-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   frequency               = "OneTime"
 }
 `, testAccAzureRMAutomationSchedule_prerequisites(data), data.RandomInteger)
@@ -317,10 +321,10 @@ func testAccAzureRMAutomationSchedule_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_automation_schedule" "import" {
-  name                    = "${azurerm_automation_schedule.test.name}"
-  resource_group_name     = "${azurerm_automation_schedule.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_schedule.test.automation_account_name}"
-  frequency               = "${azurerm_automation_schedule.test.frequency}"
+  name                    = azurerm_automation_schedule.test.name
+  resource_group_name     = azurerm_automation_schedule.test.resource_group_name
+  automation_account_name = azurerm_automation_schedule.test.automation_account_name
+  frequency               = azurerm_automation_schedule.test.frequency
 }
 `, template)
 }
@@ -343,8 +347,8 @@ func testAccAzureRMAutomationSchedule_oneTime_complete(data acceptance.TestData,
 
 resource "azurerm_automation_schedule" "test" {
   name                    = "acctestAS-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   frequency               = "OneTime"
   start_time              = "%s"
   timezone                = "Central Europe Standard Time"
@@ -372,8 +376,8 @@ func testAccAzureRMAutomationSchedule_recurring_basic(data acceptance.TestData, 
 
 resource "azurerm_automation_schedule" "test" {
   name                    = "acctestAS-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   frequency               = "%s"
   interval                = "%d"
 }
@@ -399,8 +403,8 @@ func testAccAzureRMAutomationSchedule_recurring_advanced_week(data acceptance.Te
 
 resource "azurerm_automation_schedule" "test" {
   name                    = "acctestAS-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   frequency               = "Week"
   interval                = "1"
   week_days               = ["%s"]
@@ -428,8 +432,8 @@ func testAccAzureRMAutomationSchedule_recurring_advanced_month(data acceptance.T
 
 resource "azurerm_automation_schedule" "test" {
   name                    = "acctestAS-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   frequency               = "Month"
   interval                = "1"
   month_days              = [%d]
@@ -457,8 +461,8 @@ func testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(data acc
 
 resource "azurerm_automation_schedule" "test" {
   name                    = "acctestAS-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   frequency               = "Month"
   interval                = "1"
 

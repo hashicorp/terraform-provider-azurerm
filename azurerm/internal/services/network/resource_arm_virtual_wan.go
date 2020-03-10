@@ -77,6 +77,12 @@ func resourceArmVirtualWan() *schema.Resource {
 				Default: string(network.OfficeTrafficCategoryNone),
 			},
 
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "Standard",
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -96,6 +102,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
 	allowVnetToVnetTraffic := d.Get("allow_vnet_to_vnet_traffic").(bool)
 	office365LocalBreakoutCategory := d.Get("office365_local_breakout_category").(string)
+	virtualWanType := d.Get("type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -119,6 +126,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 			AllowBranchToBranchTraffic:     utils.Bool(allowBranchToBranchTraffic),
 			AllowVnetToVnetTraffic:         utils.Bool(allowVnetToVnetTraffic),
 			Office365LocalBreakoutCategory: network.OfficeTrafficCategory(office365LocalBreakoutCategory),
+			Type:                           utils.String(virtualWanType),
 		},
 	}
 
@@ -177,6 +185,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
 		d.Set("allow_vnet_to_vnet_traffic", props.AllowVnetToVnetTraffic)
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
+		d.Set("type", props.Type)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

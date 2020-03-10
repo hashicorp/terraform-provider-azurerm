@@ -205,6 +205,10 @@ resource "azurerm_mysql_configuration" "test" {
 
 func testAccAzureRMMySQLConfiguration_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -212,8 +216,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 

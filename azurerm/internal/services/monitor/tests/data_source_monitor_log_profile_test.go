@@ -64,6 +64,10 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 
 func testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -71,8 +75,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
@@ -88,7 +92,7 @@ resource "azurerm_monitor_log_profile" "test" {
     "%s",
   ]
 
-  storage_account_id = "${azurerm_storage_account.test.id}"
+  storage_account_id = azurerm_storage_account.test.id
 
   retention_policy {
     enabled = true
@@ -97,13 +101,17 @@ resource "azurerm_monitor_log_profile" "test" {
 }
 
 data "azurerm_monitor_log_profile" "test" {
-  name = "${azurerm_monitor_log_profile.test.name}"
+  name = azurerm_monitor_log_profile.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -111,8 +119,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctestehns-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   capacity            = 2
 }
@@ -138,7 +146,7 @@ resource "azurerm_monitor_log_profile" "test" {
 }
 
 data "azurerm_monitor_log_profile" "test" {
-  name = "${azurerm_monitor_log_profile.test.name}"
+  name = azurerm_monitor_log_profile.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Locations.Primary)
 }

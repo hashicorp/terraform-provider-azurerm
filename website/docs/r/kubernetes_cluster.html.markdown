@@ -328,7 +328,7 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
-* `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
+* `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
 
 -> **NOTE:**  At this time Private Link is in Public Preview.
 

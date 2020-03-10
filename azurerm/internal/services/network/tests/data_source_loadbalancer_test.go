@@ -33,8 +33,8 @@ func testAccAzureRMDataSourceLoadBalancer_basic(data acceptance.TestData) string
 %s
 
 data "azurerm_lb" "test" {
-  name                = "${azurerm_lb.test.name}"
-  resource_group_name = "${azurerm_lb.test.resource_group_name}"
+  name                = azurerm_lb.test.name
+  resource_group_name = azurerm_lb.test.resource_group_name
 }
 `, resource)
 }

@@ -402,6 +402,10 @@ func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestC
 
 func testAccAzureRMEventHubNamespace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -432,6 +436,10 @@ resource "azurerm_eventhub_namespace" "import" {
 
 func testAccAzureRMEventHubNamespace_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -449,6 +457,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_networkrule_iprule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -473,6 +485,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_networkrule_vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -513,6 +529,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_networkruleVnetIpRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -580,6 +600,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespaceNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -596,6 +620,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_maximumThroughputUnits(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -615,6 +643,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_basicWithTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -635,6 +667,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_capacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -652,6 +688,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -671,6 +711,10 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -42,7 +41,7 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 			"client_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.GUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"client_secret": {
@@ -57,7 +56,7 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.GUID,
+					ValidateFunc: validation.IsUUID,
 				},
 			},
 		},

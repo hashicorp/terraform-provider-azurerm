@@ -148,12 +148,10 @@ func testAccAzureRMCosmosDbSqlContainer_basic(data acceptance.TestData) string {
 
 resource "azurerm_cosmosdb_sql_container" "test" {
   name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
 }
-
-
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }
 
@@ -163,9 +161,9 @@ func testAccAzureRMCosmosDbSqlContainer_complete(data acceptance.TestData) strin
 
 resource "azurerm_cosmosdb_sql_container" "test" {
   name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_path  = "/definition/id"
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
@@ -173,7 +171,6 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   default_ttl = 500
   throughput  = 600
 }
-
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }
 
@@ -183,9 +180,9 @@ func testAccAzureRMCosmosDbSqlContainer_update(data acceptance.TestData) string 
 
 resource "azurerm_cosmosdb_sql_container" "test" {
   name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_path  = "/definition/id"
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
@@ -193,6 +190,5 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   default_ttl = 1000
   throughput  = 400
 }
-
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }

@@ -180,8 +180,8 @@ func testAccAzureRMApiManagementApiVersionSet_basic(data acceptance.TestData) st
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription1"
   display_name        = "TestApiVersionSet1%d"
   versioning_scheme   = "Segment"
@@ -195,12 +195,12 @@ func testAccAzureRMApiManagementApiVersionSet_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_api_management_api_version_set" "import" {
-  name                = "${azurerm_api_management_api_version_set.test.name}"
-  resource_group_name = "${azurerm_api_management_api_version_set.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management_api_version_set.test.api_management_name}"
-  description         = "${azurerm_api_management_api_version_set.test.description}"
-  display_name        = "${azurerm_api_management_api_version_set.test.display_name}"
-  versioning_scheme   = "${azurerm_api_management_api_version_set.test.versioning_scheme}"
+  name                = azurerm_api_management_api_version_set.test.name
+  resource_group_name = azurerm_api_management_api_version_set.test.resource_group_name
+  api_management_name = azurerm_api_management_api_version_set.test.api_management_name
+  description         = azurerm_api_management_api_version_set.test.description
+  display_name        = azurerm_api_management_api_version_set.test.display_name
+  versioning_scheme   = azurerm_api_management_api_version_set.test.versioning_scheme
 }
 `, template)
 }
@@ -212,8 +212,8 @@ func testAccAzureRMApiManagementApiVersionSet_header(data acceptance.TestData) s
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription1"
   display_name        = "TestApiVersionSet1%d"
   versioning_scheme   = "Header"
@@ -229,8 +229,8 @@ func testAccAzureRMApiManagementApiVersionSet_query(data acceptance.TestData) st
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription1"
   display_name        = "TestApiVersionSet1%d"
   versioning_scheme   = "Query"
@@ -246,8 +246,8 @@ func testAccAzureRMApiManagementApiVersionSet_update(data acceptance.TestData) s
 
 resource "azurerm_api_management_api_version_set" "test" {
   name                = "acctestAMAVS-%d"
-  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_api_management.test.resource_group_name
+  api_management_name = azurerm_api_management.test.name
   description         = "TestDescription2"
   display_name        = "TestApiVersionSet2%d"
   versioning_scheme   = "Segment"
@@ -257,6 +257,10 @@ resource "azurerm_api_management_api_version_set" "test" {
 
 func testAccAzureRMApiManagementApiVersionSet_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -264,8 +268,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"

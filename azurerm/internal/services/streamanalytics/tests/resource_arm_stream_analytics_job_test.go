@@ -155,6 +155,10 @@ func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
 
 func testAccAzureRMStreamAnalyticsJob_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -162,8 +166,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                = "acctestjob-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   streaming_units     = 3
 
   tags = {
@@ -175,12 +179,17 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMStreamAnalyticsJob_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -188,8 +197,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   data_locale                              = "en-GB"
   compatibility_level                      = "1.0"
   events_late_arrival_max_delay_in_seconds = 60
@@ -207,6 +216,7 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -217,24 +227,28 @@ func testAccAzureRMStreamAnalyticsJob_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_stream_analytics_job" "import" {
-  name                                     = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name                      = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  location                                 = "${azurerm_stream_analytics_job.test.location}"
-  compatibility_level                      = "${azurerm_stream_analytics_job.test.compatibility_level}"
-  data_locale                              = "${azurerm_stream_analytics_job.test.data_locale}"
-  events_late_arrival_max_delay_in_seconds = "${azurerm_stream_analytics_job.test.events_late_arrival_max_delay_in_seconds}"
-  events_out_of_order_max_delay_in_seconds = "${azurerm_stream_analytics_job.test.events_out_of_order_max_delay_in_seconds}"
-  events_out_of_order_policy               = "${azurerm_stream_analytics_job.test.events_out_of_order_policy}"
-  output_error_policy                      = "${azurerm_stream_analytics_job.test.output_error_policy}"
-  streaming_units                          = "${azurerm_stream_analytics_job.test.streaming_units}"
-  transformation_query                     = "${azurerm_stream_analytics_job.test.transformation_query}"
-  tags                                     = "${azurerm_stream_analytics_job.test.tags}"
+  name                                     = azurerm_stream_analytics_job.test.name
+  resource_group_name                      = azurerm_stream_analytics_job.test.resource_group_name
+  location                                 = azurerm_stream_analytics_job.test.location
+  compatibility_level                      = azurerm_stream_analytics_job.test.compatibility_level
+  data_locale                              = azurerm_stream_analytics_job.test.data_locale
+  events_late_arrival_max_delay_in_seconds = azurerm_stream_analytics_job.test.events_late_arrival_max_delay_in_seconds
+  events_out_of_order_max_delay_in_seconds = azurerm_stream_analytics_job.test.events_out_of_order_max_delay_in_seconds
+  events_out_of_order_policy               = azurerm_stream_analytics_job.test.events_out_of_order_policy
+  output_error_policy                      = azurerm_stream_analytics_job.test.output_error_policy
+  streaming_units                          = azurerm_stream_analytics_job.test.streaming_units
+  transformation_query                     = azurerm_stream_analytics_job.test.transformation_query
+  tags                                     = azurerm_stream_analytics_job.test.tags
 }
 `, template)
 }
 
 func testAccAzureRMStreamAnalyticsJob_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -242,8 +256,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   data_locale                              = "en-GB"
   compatibility_level                      = "1.1"
   events_late_arrival_max_delay_in_seconds = 10
@@ -257,6 +271,7 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [SomeOtherOutputAlias]
     FROM [SomeOtherInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

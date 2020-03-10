@@ -99,8 +99,8 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("zones", resp.Zones)
 
-	//ensure values are at least set to "", d.Set() is a noop on a nil
-	//there must be a better way...
+	// ensure values are at least set to "", d.Set() is a noop on a nil
+	// there must be a better way...
 	d.Set("location", "")
 	d.Set("sku", "")
 	d.Set("fqdn", "")

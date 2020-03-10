@@ -29,7 +29,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "0"),
 				),
 			},
-			data.ImportStep("shared_key"), //is not returned by the API
+			data.ImportStep("shared_key"), // is not returned by the API
 		},
 	})
 }
@@ -103,7 +103,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpda
 					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "0"),
 				),
 			},
-			data.ImportStep("shared_key"), //is not returned by the API
+			data.ImportStep("shared_key"), // is not returned by the API
 		},
 	})
 }
@@ -167,6 +167,10 @@ func testCheckAzureRMExpressRouteCircuitPeeringDestroy(s *terraform.State) error
 
 func testAccAzureRMExpressRouteCircuitPeering_privatePeering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -174,8 +178,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -193,8 +197,8 @@ resource "azurerm_express_route_circuit" "test" {
 
 resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
   shared_key                    = "SSSSsssssshhhhhItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
@@ -210,20 +214,24 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig(data acceptan
 %s
 
 resource "azurerm_express_route_circuit_peering" "import" {
-  peering_type                  = "${azurerm_express_route_circuit_peering.test.peering_type}"
-  express_route_circuit_name    = "${azurerm_express_route_circuit_peering.test.express_route_circuit_name}"
-  resource_group_name           = "${azurerm_express_route_circuit_peering.test.resource_group_name}"
-  shared_key                    = "${azurerm_express_route_circuit_peering.test.shared_key}"
-  peer_asn                      = "${azurerm_express_route_circuit_peering.test.peer_asn}"
-  primary_peer_address_prefix   = "${azurerm_express_route_circuit_peering.test.primary_peer_address_prefix}"
-  secondary_peer_address_prefix = "${azurerm_express_route_circuit_peering.test.secondary_peer_address_prefix}"
-  vlan_id                       = "${azurerm_express_route_circuit_peering.test.vlan_id}"
+  peering_type                  = azurerm_express_route_circuit_peering.test.peering_type
+  express_route_circuit_name    = azurerm_express_route_circuit_peering.test.express_route_circuit_name
+  resource_group_name           = azurerm_express_route_circuit_peering.test.resource_group_name
+  shared_key                    = azurerm_express_route_circuit_peering.test.shared_key
+  peer_asn                      = azurerm_express_route_circuit_peering.test.peer_asn
+  primary_peer_address_prefix   = azurerm_express_route_circuit_peering.test.primary_peer_address_prefix
+  secondary_peer_address_prefix = azurerm_express_route_circuit_peering.test.secondary_peer_address_prefix
+  vlan_id                       = azurerm_express_route_circuit_peering.test.vlan_id
 }
 `, template)
 }
 
 func testAccAzureRMExpressRouteCircuitPeering_msPeering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -231,8 +239,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -250,8 +258,8 @@ resource "azurerm_express_route_circuit" "test" {
 
 resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "MicrosoftPeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
@@ -266,6 +274,10 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
 func testAccAzureRMExpressRouteCircuitPeering_privatePeeringWithCircuitUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -273,8 +285,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_express_route_circuit" "test" {
   name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -292,8 +304,8 @@ resource "azurerm_express_route_circuit" "test" {
 
 resource "azurerm_express_route_circuit_peering" "test" {
   peering_type                  = "AzurePrivatePeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name    = azurerm_express_route_circuit.test.name
+  resource_group_name           = azurerm_resource_group.test.name
   shared_key                    = "SSSSsssssshhhhhItsASecret"
   peer_asn                      = 100
   primary_peer_address_prefix   = "192.168.1.0/30"

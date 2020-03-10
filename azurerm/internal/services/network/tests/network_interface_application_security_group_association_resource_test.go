@@ -323,6 +323,10 @@ resource "azurerm_network_interface_application_security_group_association" "tes
 
 func testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -331,21 +335,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

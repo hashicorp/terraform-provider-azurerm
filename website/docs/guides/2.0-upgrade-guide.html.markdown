@@ -307,6 +307,10 @@ Azure Container Service (ACS) is being Deprecated in favour of Azure Kubernetes 
 
 The deprecated `failover_policy` block will be removed. This has been replaced by the `geo_location` block.
 
+### Resource: `azurerm_cosmosdb_mongodb_collection`
+
+The deprecated `indexes` will be removed.
+
 ### Resource: `azurerm_devspace_controller`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
@@ -353,7 +357,11 @@ The deprecated `internal_public_ip_address_id` field in the `ip_configuration` b
 
 ### Resource: `azurerm_frontdoor`
 
-The `forwarding_protocol` property now defaults to `HttpsOnly`
+The field `cache_enabled` within the `forwarding_configuration` block now defaults to `false` rather than `true`.
+
+The field `cache_query_parameter_strip_directive` within the `forwarding_configuration` block now defaults to `StripAll` rather than `StripNone`.
+
+The field `forwarding_protocol` within the `forwarding_configuration` block now defaults to `HttpsOnly` rather than `MatchRequest`.
 
 ### Resource: `azurerm_function_app`
 
@@ -470,6 +478,14 @@ The `sku_name` field is now case sensitive.
 ### Resource: `azurerm_mariadb_server`
 
 The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+### Resource: `azurerm_metric_alertrule`
+
+The `azurerm_metric_alertrule` resource will be removed since this is no longer supported by Azure.
+
+### Resource: `azurerm_monitor_metric_alertrule`
+
+The `azurerm_monitor_metric_alertrule` resource will be removed since this is no longer supported by Azure.
 
 ### Resource: `azurerm_mysql_server`
 
@@ -594,6 +610,8 @@ The deprecated `account_type` field will be removed. This has been split into th
 The deprecated `enable_advanced_threat_protection` field will be removed. This functionality has been move in the more general `azurerm_advanced_threat_protection` resource.
 
 The default value for the field `enable_https_traffic_only` has changed from `false` to `true`. 
+
+The default value for the field `account_kind` has changed from `Storage` to `StorageV2`. 
 
 ### Resource: `azurerm_storage_blob`
 

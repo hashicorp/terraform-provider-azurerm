@@ -76,6 +76,10 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_nopreview(t *testing.T) {
 
 func testAccDataSourceAzureRMKubernetesServiceVersions_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_kubernetes_service_versions" "test" {
   location = "%s"
 }
@@ -84,6 +88,10 @@ data "azurerm_kubernetes_service_versions" "test" {
 
 func testAccDataSourceAzureRMKubernetesServiceVersions_filtered(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_kubernetes_service_versions" "test" {
   location       = "%s"
   version_prefix = "1."
@@ -93,6 +101,10 @@ data "azurerm_kubernetes_service_versions" "test" {
 
 func testAccDataSourceAzureRMKubernetesServiceVersions_nopreview(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_kubernetes_service_versions" "test" {
   location        = "%s"
   include_preview = false

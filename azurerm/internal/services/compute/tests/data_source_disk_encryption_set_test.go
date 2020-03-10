@@ -42,8 +42,8 @@ func testAccDataSourceDiskEncryptionSet_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_disk_encryption_set" "test" {
-  name                = "${azurerm_disk_encryption_set.test.name}"
-  resource_group_name = "${azurerm_disk_encryption_set.test.resource_group_name}"
+  name                = azurerm_disk_encryption_set.test.name
+  resource_group_name = azurerm_disk_encryption_set.test.resource_group_name
 }
 `, config)
 }

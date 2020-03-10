@@ -58,6 +58,10 @@ func TestAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(t *testing.T) {
 
 func testAccDataSourceAzureRMManagedDiskBasic(data acceptance.TestData, name string, resourceGroupName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"
@@ -65,8 +69,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "%s"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -78,14 +82,18 @@ resource "azurerm_managed_disk" "test" {
 }
 
 data "azurerm_managed_disk" "test" {
-  name                = "${azurerm_managed_disk.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_managed_disk.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, resourceGroupName, data.Locations.Primary, name)
 }
 
 func testAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(data acceptance.TestData, name string, resourceGroupName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "%s"
   location = "%s"
@@ -93,8 +101,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "%s"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "UltraSSD_LRS"
   create_option        = "Empty"
   disk_size_gb         = "4"
@@ -108,8 +116,8 @@ resource "azurerm_managed_disk" "test" {
 }
 
 data "azurerm_managed_disk" "test" {
-  name                = "${azurerm_managed_disk.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_managed_disk.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, resourceGroupName, data.Locations.Primary, name)
 }
