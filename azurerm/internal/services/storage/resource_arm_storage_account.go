@@ -293,6 +293,9 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
+				DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+					return len(d.Get("queue_properties").([]interface{})) == 0
+				},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cors_rule": azure.SchemaStorageAccountCorsRule(),
