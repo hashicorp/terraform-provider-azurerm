@@ -22,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// lintignore: XR002
 func resourceArmTemplateDeployment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmTemplateDeploymentCreateUpdate,

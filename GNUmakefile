@@ -73,10 +73,11 @@ tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlintx \
         -AT001 -AT005 -AT006 -AT007 -AT007\
-        -R001 -R002 -R003 -R004 -R006 -R007 -R008 -R010 -R011 -R012 -R013 -R014\
+        -R001 -R002 -R003 -R004 -R006 -R007 -R008 -R010 -R012 -R013 -R014\
         -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020\
         -S021 -S022 -S023 -S024 -S025 -S026 -S027 -S028 -S029 -S030 -S031 -S032 -S033 -S034\
-        -S021 -S022 -S023 -S024 -S025 -S026 -S027 -S028 -S029 -S030 -S031 -S032 -S033\
+        -V002 -V003 -V004 -V005 -V006 -V007 -V008\
+        -XR002 -XR003\
         ./$(PKG_NAME)/...
 	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
 
