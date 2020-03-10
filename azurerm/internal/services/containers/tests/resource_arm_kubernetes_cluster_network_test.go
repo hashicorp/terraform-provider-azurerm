@@ -1331,6 +1331,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "Standard"
     load_balancer_profile {
       managed_outbound_ip_count = 2
+      outbound_ports_allocated  = 8000
       idle_timeout_in_minutes   = 10
     }
   }
