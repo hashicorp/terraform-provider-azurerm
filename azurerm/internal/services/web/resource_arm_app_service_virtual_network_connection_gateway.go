@@ -318,6 +318,9 @@ func retrieveVPNPackageUri(vnetGatewayClient *network.VirtualNetworkGatewaysClie
 	return
 }
 
+// a bug of azure go sdk: https://github.com/Azure/azure-sdk-for-go/issues/5921
+// the rest api returns a string, but go sdk Unmarshall with json format
+// rewrite the azure go sdk function to work around
 func getResult(client network.VirtualNetworkGatewaysClient, future network.VirtualNetworkGatewaysGeneratevpnclientpackageFuture) (str string, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
