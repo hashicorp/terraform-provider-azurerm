@@ -458,8 +458,6 @@ func expandAzureRmMsSqlDatabaseGP(d *schema.ResourceData, params *sql.Database) 
 	if v, ok := gp["max_size_gb"]; ok {
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 	}
-
-	return
 }
 
 func flattenAzureRmMsSqlDatabaseGP(input *sql.Database) []interface{} {
@@ -505,8 +503,6 @@ func expandAzureRmMsSqlDatabaseHS(d *schema.ResourceData, params *sql.Database) 
 	if readReplica, ok := hs["read_replica_count"]; ok {
 		params.DatabaseProperties.ReadReplicaCount = utils.Int32(int32(readReplica.(int)))
 	}
-
-	return
 }
 
 func flattenAzureRmMsSqlDatabaseHS(input *sql.Database) []interface{} {
@@ -559,8 +555,6 @@ func expandAzureRmMsSqlDatabaseBC(d *schema.ResourceData, params *sql.Database) 
 	if zoneRedundant, ok := bc["zone_redundant"]; ok {
 		params.DatabaseProperties.ZoneRedundant = utils.Bool(zoneRedundant.(bool))
 	}
-
-	return
 }
 
 func flattenAzureRmMsSqlDatabaseBC(input *sql.Database) []interface{} {
@@ -609,8 +603,6 @@ func expandAzureRmMsSqlDatabaseCreateCopyMode(d *schema.ResourceData, params *sq
 
 	params.DatabaseProperties.CreateMode = sql.CreateModeCopy
 	params.DatabaseProperties.SourceDatabaseID = utils.String(copyMode["source_database_id"].(string))
-
-	return
 }
 
 func expandAzureRmMsSqlDatabaseCreatePITRMode(d *schema.ResourceData, params *sql.Database) {
@@ -624,8 +616,6 @@ func expandAzureRmMsSqlDatabaseCreatePITRMode(d *schema.ResourceData, params *sq
 	params.DatabaseProperties.SourceDatabaseID = utils.String(pitrMode["source_database_id"].(string))
 	restorePointInTime, _ := time.Parse(time.RFC3339, pitrMode["restore_point_in_time"].(string))
 	params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
-
-	return
 }
 
 func expandAzureRmMsSqlDatabaseCreateSecondaryMode(d *schema.ResourceData, params *sql.Database) {
@@ -637,8 +627,6 @@ func expandAzureRmMsSqlDatabaseCreateSecondaryMode(d *schema.ResourceData, param
 
 	params.DatabaseProperties.CreateMode = sql.CreateModeSecondary
 	params.DatabaseProperties.SourceDatabaseID = utils.String(secondaryMode["source_database_id"].(string))
-
-	return
 }
 
 func ValidateMsSqlServerID(i interface{}, k string) (warnings []string, errors []error) {
