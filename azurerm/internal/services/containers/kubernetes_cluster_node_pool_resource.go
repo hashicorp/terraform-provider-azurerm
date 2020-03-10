@@ -532,7 +532,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("vm_size", string(props.VMSize))
 
 		if props.OrchestratorVersion != nil {
-			d.Set("orchestrator_version", *props.OrchestratorVersion)
+			d.Set("orchestrator_version", props.OrchestratorVersion)
 		}
 	}
 
