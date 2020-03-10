@@ -201,6 +201,8 @@ A `default_node_pool` block supports the following:
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 * `vnet_subnet_id` - (Required) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A Route Table must be configured on this Subnet.

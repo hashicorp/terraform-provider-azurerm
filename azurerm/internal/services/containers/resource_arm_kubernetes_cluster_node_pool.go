@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -53,6 +54,8 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
+
+			"tags": tags.Schema(),
 
 			"vm_size": {
 				Type:         schema.TypeString,
@@ -200,12 +203,14 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
 	osType := d.Get("os_type").(string)
+	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:             containerservice.OSType(osType),
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Tags:               tags.Expand(t),
 		Type:               containerservice.VirtualMachineScaleSets,
 		VMSize:             containerservice.VMSizeTypes(vmSize),
 
@@ -365,6 +370,11 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		props.NodeTaints = nodeTaints
 	}
 
+	if d.HasChange("tags") {
+		t := d.Get("tags").(map[string]interface{})
+		props.Tags = tags.Expand(t)
+	}
+
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
 	maxCount := 0
 	if props.MaxCount != nil {
@@ -492,7 +502,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("vm_size", string(props.VMSize))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
