@@ -295,7 +295,6 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -491,7 +490,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("vm_size", string(props.VMSize))
 
 		if props.OrchestratorVersion != nil {
-			d.Set("orchestrator_version", string(*props.OrchestratorVersion))
+			d.Set("orchestrator_version", *props.OrchestratorVersion)
 		}
 	}
 

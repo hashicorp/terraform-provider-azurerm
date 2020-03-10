@@ -745,7 +745,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 		}
 
 		if *profile.OrchestratorVersion != "" {
-			agentPoolProfile["orchestrator_version"] = string(*profile.OrchestratorVersion)
+			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
 		}
 
 		if profile.MaxPods != nil {
