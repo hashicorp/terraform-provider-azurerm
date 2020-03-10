@@ -38,24 +38,24 @@ resource "azurerm_databox_job" "example" {
   location            = azurerm_resource_group.example.location
 
   contact_details {
-    name = "DataBoxJobTester"
-    emails = ["some.user@example.com"]
+    name         = "DataBoxJobTester"
+    emails       = ["some.user@example.com"]
     phone_number = "+112345678912"
   }
 
   destination_account {
-    type = "StorageAccount"
-    storage_account_id    = azurerm_storage_account.example.id
+    type               = "StorageAccount"
+    storage_account_id = azurerm_storage_account.example.id
   }
 
   preferred_shipment_type = "MicrosoftManaged"
 
   shipping_address {
-    city    = "San Francisco"
-    country = "US"
-    postal_code = "94107"
+    city              = "San Francisco"
+    country           = "US"
+    postal_code       = "94107"
     state_or_province = "CA"
-    street_address_1 = "16 TOWNSEND ST"
+    street_address_1  = "16 TOWNSEND ST"
   }
 
   sku_name = "DataBox"

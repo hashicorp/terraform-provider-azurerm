@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/parse"
@@ -83,43 +82,44 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"mobile": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"notification_preference": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"at_azure_dc": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Computed: true,
 									},
 									"data_copied": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Computed: true,
 									},
 									"delivered": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Computed: true,
 									},
 									"device_prepared": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Computed: true,
 									},
 									"dispatched": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Computed: true,
 									},
 									"picked_up": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Computed: true,
 									},
 								},
 							},
@@ -159,7 +159,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"staging_storage_account_id": {
 							Type:         schema.TypeString,
@@ -201,7 +201,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"country": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"postal_code": {
 							Type:         schema.TypeString,
@@ -211,7 +211,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"state_or_province": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"street_address_1": {
 							Type:         schema.TypeString,
@@ -291,7 +291,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 				ForceNew: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -301,7 +301,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 				Computed:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validate.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			"delivery_type": {
@@ -320,7 +320,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"expected_data_size_in_tb": {
