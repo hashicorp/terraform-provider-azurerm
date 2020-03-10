@@ -110,7 +110,7 @@ func TestValidateDataBoxJobContactName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateDataBoxJobContactName(v.input, "contact_name")
+		_, errors := ValidateDataBoxJobContactName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -462,7 +462,7 @@ func TestValidateDataBoxJobDiskPassKey(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateDataBoxJobDiskPassKey(v.input, "disk_pass_key")
+		_, errors := ValidateDataBoxJobDiskPassKey(v.input, "databox_disk_passkey")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

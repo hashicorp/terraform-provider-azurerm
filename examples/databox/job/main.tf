@@ -1,33 +1,35 @@
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
-  location = "${var.location}"
+  location = var.location
 }
 
 resource "azurerm_storage_account" "example" {
   name                = "${var.prefix}storageaccount"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "RAGRS"
 }
 
-resource "azurerm_data_box_job" "example" {
+resource "azurerm_databox_job" "example" {
   name                = "${var.prefix}-databoxjob"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   contact_details {
-    contact_name = "DataBoxJobTester"
+    name = "DataBoxJobTester"
     emails = ["some.user@example.com"]
     phone_number = "+112345678912"
   }
 
-  destination_account_details {
-    data_destination_type = "StorageAccount"
-    storage_account_id    = "${azurerm_storage_account.example.id}"
+  destination_account {
+    type = "StorageAccount"
+    storage_account_id    = azurerm_storage_account.example.id
   }
+
+  preferred_shipment_type = "MicrosoftManaged"
 
   shipping_address {
     city    = "San Francisco"

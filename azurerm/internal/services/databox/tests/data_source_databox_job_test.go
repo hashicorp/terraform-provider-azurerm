@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMDataBoxJob_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_data_box_job", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_databox_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -30,9 +30,9 @@ func testAccDataSourceDataBoxJob_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_data_box_job" "test" {
-  name                = "${azurerm_data_box_job.test.name}"
-  resource_group_name = "${azurerm_data_box_job.test.resource_group_name}"
+data "azurerm_databox_job" "test" {
+  name                = "${azurerm_databox_job.test.name}"
+  resource_group_name = "${azurerm_databox_job.test.resource_group_name}"
 }
 `, config)
 }

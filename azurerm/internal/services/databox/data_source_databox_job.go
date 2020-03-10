@@ -36,36 +36,46 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"contact_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"emails": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"phone_number": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"mobile": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"notification_preference": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"send_notification": {
+									"at_azure_dc": {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
-									"stage_name": {
-										Type:     schema.TypeString,
+									"data_copied": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"delivered": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"device_prepared": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"dispatched": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"picked_up": {
+										Type:     schema.TypeBool,
 										Computed: true,
 									},
 								},
@@ -75,27 +85,52 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"phone_number": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
 
-			"destination_account_details": {
+			"databox_preferred_disk_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"databox_preferred_disk_size_in_tb": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"datacenter_region_preference": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"delivery_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"delivery_scheduled_date_time": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"destination_account": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"data_destination_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"resource_group_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"share_password": {
-							Type:      schema.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"staging_storage_account_id": {
 							Type:     schema.TypeString,
@@ -105,8 +140,27 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
+			},
+
+			"device_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"expected_data_size_in_tb": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"preferred_shipment_type": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"shipping_address": {
@@ -114,7 +168,15 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"address_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"city": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"company_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -126,19 +188,15 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"postal_code_ext": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"state_or_province": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"street_address_1": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"address_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"company_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -150,10 +208,6 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"zip_extended_code": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -161,27 +215,6 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"additional_preferred_disks_properties": {
-				Type:     schema.TypeMap,
-				Computed: true,
-			},
-
-			"delivery_scheduled_date_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"delivery_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"device_password": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -200,9 +233,9 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name, "Details")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Data Box Job (Data Box Job Name %q / Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: DataBox Job (DataBox Job Name %q / Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading Data Box Job (Data Box Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -220,44 +253,72 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 		if details := props.Details; details != nil {
 			if v, ok := details.AsJobDetailsType(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
+
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
-				if err := d.Set("destination_account_details", flattenArmDataBoxJobDestinationAccountDetails(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("Error setting `destination_account_details`: %+v", err)
+				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
+					return fmt.Errorf("Error setting `destination_account`: %+v", err)
 				}
-				if err := d.Set("preferences", flattenArmDataBoxJobPreferences(v.Preferences)); err != nil {
-					return fmt.Errorf("Error setting `preferences`: %+v", err)
+				if v.Preferences != nil {
+					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
+						return fmt.Errorf("Error setting `datacenter_region_preference`: %+v", err)
+					}
+					if v.Preferences.TransportPreferences != nil {
+						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
+							return fmt.Errorf("Error setting `preferred_shipment_type`: %+v", err)
+						}
+					}
 				}
 				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
 					return fmt.Errorf("Error setting `shipping_address`: %+v", err)
 				}
 			} else if v, ok := details.AsDiskJobDetails(); ok && v != nil {
-				if err := d.Set("additional_preferred_disks_properties", flattenArmDataBoxJobPreferredDisks(v.PreferredDisks)); err != nil {
-					return fmt.Errorf("Error setting `additional_preferred_disks_properties`: %+v", err)
+				for k, v := range v.PreferredDisks {
+					if err := d.Set("databox_preferred_disk_count", k); err != nil {
+						return fmt.Errorf("Error setting `databox_preferred_disk_count`: %+v", err)
+					}
+					if err := d.Set("databox_preferred_disk_size_in_tb", v); err != nil {
+						return fmt.Errorf("Error setting `databox_preferred_disk_size_in_tb`: %+v", err)
+					}
 				}
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
-				if err := d.Set("destination_account_details", flattenArmDataBoxJobDestinationAccountDetails(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("Error setting `destination_account_details`: %+v", err)
+				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
+					return fmt.Errorf("Error setting `destination_account`: %+v", err)
 				}
-				if err := d.Set("preferences", flattenArmDataBoxJobPreferences(v.Preferences)); err != nil {
-					return fmt.Errorf("Error setting `preferences`: %+v", err)
+				if v.Preferences != nil {
+					if v.Preferences.TransportPreferences != nil {
+						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
+							return fmt.Errorf("Error setting `preferred_shipment_type`: %+v", err)
+						}
+					}
+					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
+						return fmt.Errorf("Error setting `datacenter_region_preference`: %+v", err)
+					}
 				}
 				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
 					return fmt.Errorf("Error setting `shipping_address`: %+v", err)
 				}
 			} else if v, ok := details.AsHeavyJobDetails(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
+
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
-				if err := d.Set("destination_account_details", flattenArmDataBoxJobDestinationAccountDetails(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("Error setting `destination_account_details`: %+v", err)
+				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
+					return fmt.Errorf("Error setting `destination_account`: %+v", err)
 				}
-				if err := d.Set("preferences", flattenArmDataBoxJobPreferences(v.Preferences)); err != nil {
-					return fmt.Errorf("Error setting `preferences`: %+v", err)
+				if v.Preferences != nil {
+					if v.Preferences.TransportPreferences != nil {
+						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
+							return fmt.Errorf("Error setting `preferred_shipment_type`: %+v", err)
+						}
+					}
+					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
+						return fmt.Errorf("Error setting `datacenter_region_preference`: %+v", err)
+					}
 				}
 				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
 					return fmt.Errorf("Error setting `shipping_address`: %+v", err)
@@ -267,7 +328,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Data Box Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("API returns a nil/empty id on DataBox Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	d.SetId(*resp.ID)
 
