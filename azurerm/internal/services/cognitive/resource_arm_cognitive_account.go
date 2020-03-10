@@ -98,40 +98,17 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				}, false),
 			},
 
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservices.Free),
-								string(cognitiveservices.Standard),
-								string(cognitiveservices.Premium),
-							}, false),
-						},
-					},
-				},
-			},
-
-			"properties": {
+			"api_properties": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					// TODO Add customSubDomainName & NetworkAcls
+					// TODO Add statisticsEnabled, eventHubConnectionString & storageAccountConnectionString
 					Schema: map[string]*schema.Schema{
-						"api_properties": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								// TODO Add statisticsEnabled, eventHubConnectionString & storageAccountConnectionString
-								Schema: map[string]*schema.Schema{
-									"qna_runtime_endpoint": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.IsURLWithHTTPS,
-									},
-								},
-							},
+						"qna_runtime_endpoint": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 					},
 				},
@@ -284,9 +261,8 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.Properties; props != nil {
-		flattenedProps := flattenCognitiveAccountProperties(props)
-		if len(flattenedProps) > 0 {
-			d.Set("properties", flattenedProps)
+		if apiProps := props.APIProperties; apiProps != nil {
+			d.Set("api_properties", flattenCognitiveAccountApiProperties(apiProps))
 		}
 		d.Set("endpoint", props.Endpoint)
 	}
@@ -347,31 +323,16 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 	}, nil
 }
 
-func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
-
-	return &cognitiveservices.Sku{
-		Name: utils.String(sku["name"].(string)),
-		Tier: cognitiveservices.SkuTier(sku["tier"].(string)),
-	}
-}
-
 func expandCognitiveAccountProperties(d *schema.ResourceData) *cognitiveservices.AccountProperties {
 	accountProperties := &cognitiveservices.AccountProperties{}
-
-	if props := d.Get("properties").([]interface{}); len(props) > 0 {
-		properties := props[0].(map[string]interface{})
-
+	if apiProps := d.Get("api_properties").([]interface{}); len(apiProps) > 0 {
 		accountApiProperties := &cognitiveservices.AccountAPIProperties{}
-		if apiProps := properties["api_properties"].([]interface{}); len(apiProps) > 0 {
-			apiProperties := apiProps[0].(map[string]interface{})
+		apiProperties := apiProps[0].(map[string]interface{})
 
-			if qnaRuntimeEndpoint := apiProperties["qna_runtime_endpoint"]; qnaRuntimeEndpoint != nil {
-				accountApiProperties.QnaRuntimeEndpoint = utils.String(qnaRuntimeEndpoint.(string))
-			}
-			accountProperties.APIProperties = accountApiProperties
+		if qnaRuntimeEndpoint := apiProperties["qna_runtime_endpoint"]; qnaRuntimeEndpoint != nil {
+			accountApiProperties.QnaRuntimeEndpoint = utils.String(qnaRuntimeEndpoint.(string))
 		}
+		accountProperties.APIProperties = accountApiProperties
 	}
 	return accountProperties
 }
@@ -398,21 +359,6 @@ func flattenCognitiveAccountSku(input *cognitiveservices.Sku) []interface{} {
 	}
 
 	return []interface{}{m}
-}
-
-func flattenCognitiveAccountProperties(input *cognitiveservices.AccountProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input.APIProperties != nil {
-		result["api_properties"] = flattenCognitiveAccountApiProperties(input.APIProperties)
-	}
-
-	if len(result) > 0 {
-		return append(results, result)
-	}
-
-	return results
 }
 
 func flattenCognitiveAccountApiProperties(input *cognitiveservices.AccountAPIProperties) []interface{} {

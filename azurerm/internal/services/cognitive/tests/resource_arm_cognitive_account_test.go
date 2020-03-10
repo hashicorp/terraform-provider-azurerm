@@ -157,9 +157,8 @@ func TestAccAzureRMCognitiveAccount_accountApiProperties(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
@@ -183,22 +182,21 @@ func TestAccAzureRMCognitiveAccount_updateAccountApiProperties(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.0.qna_runtime_endpoint", "https://localhost:8080/"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpointUpdatedUrl(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.0.api_properties.0.qna_runtime_endpoint", "https://localhost:9000/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_properties.0.qna_runtime_endpoint", "https://localhost:9000/"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
@@ -364,10 +362,8 @@ resource "azurerm_cognitive_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "QnAMaker"
 
-  properties {
-    api_properties {
-      qna_runtime_endpoint = "https://localhost:8080/"
-    }
+  api_properties {
+    qna_runtime_endpoint = "https://localhost:8080/"
   }
 
   sku_name = "S0"
@@ -388,10 +384,8 @@ resource "azurerm_cognitive_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "QnAMaker"
 
-  properties {
-    api_properties {
-      qna_runtime_endpoint = "https://localhost:9000/"
-    }
+  api_properties {
+    qna_runtime_endpoint = "https://localhost:9000/"
   }
 
   sku_name = "S0"
