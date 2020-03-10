@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -197,12 +197,7 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
 		Refresh: netappPoolDeleteStateRefreshFunc(ctx, client, resourceGroup, accountName, name),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 20 * time.Minute
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {

@@ -151,9 +151,6 @@ The following arguments are supported:
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
-* `disabled_ssl_protocols` - (Optional / **Deprecated**) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
-~> **NOTE:** `disabled_ssl_protocols ` has been deprecated in favour of `disabled_protocols` in the `ssl_policy` block.
-
 * `ssl_policy` (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
@@ -206,11 +203,7 @@ A `backend_address_pool` block supports the following:
 
 * `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
-* `fqdn_list` - (Optional **Deprecated**) A list of FQDN's which should be part of the Backend Address Pool. This field has been deprecated in favour of `fqdns` and will be removed in v2.0 of the AzureRM Provider.
-
 * `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
-
-* `ip_address_list` - (Optional **Deprecated**) A list of IP Addresses which should be part of the Backend Address Pool. This field has been deprecated in favour of `ip_addresses` and will be removed in v2.0 of the AzureRM Provider.
 
 ---
 
@@ -315,7 +308,7 @@ A `identity` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response. Defaults to `*`.
+* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
 
 * `status_code` - (Optional) A list of allowed status codes for this Health Probe.
 
@@ -387,7 +380,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10, optional if `autoscale_configuration` is set
+* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
 
 ---
 
@@ -730,9 +723,7 @@ A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

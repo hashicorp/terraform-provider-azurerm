@@ -43,18 +43,10 @@ output "storage_account_tier" {
 
 * `access_tier` - The access tier for `BlobStorage` accounts.
 
-* `enable_blob_encryption` - Are Encryption Services are enabled for Blob storage? See [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
-    for more information.
-
-* `enable_file_encryption` - Are Encryption Services are enabled for File storage? See [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
-    for more information.
-
 * `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
-    
-* `is_hns_enabled` - Is Hierarchical Namespace enabled?
 
-* `account_encryption_source` - The Encryption Source for this Storage Account.
+* `is_hns_enabled` - Is Hierarchical Namespace enabled?
 
 * `custom_domain` - A `custom_domain` block as documented below.
 
@@ -131,9 +123,7 @@ output "storage_account_tier" {
 
 * `name` - The Custom Domain Name used for the Storage Account.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

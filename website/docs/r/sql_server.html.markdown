@@ -80,9 +80,7 @@ The following attributes are exported:
 
 -> You can access the Principal ID via `${azurerm_sql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_sql_server.example.identity.0.tenant_id}`
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

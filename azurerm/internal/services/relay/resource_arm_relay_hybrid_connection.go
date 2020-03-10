@@ -91,7 +91,7 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", *existing.ID)
 		}
 	}
 
@@ -187,12 +187,7 @@ func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{})
 		Target:     []string{"Deleted"},
 		Refresh:    hybridConnectionDeleteRefreshFunc(ctx, client, resourceGroup, relayNamespace, name),
 		MinTimeout: 15 * time.Second,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 30 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {

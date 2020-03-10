@@ -32,15 +32,15 @@ output "latest_version" {
 
 * `version_prefix` - (Optional) A prefix filter for the versions of Kubernetes which should be returned; for example `1.` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.
 
+* `include_preview` - (Optional) Should Preview versions of Kubernetes in AKS be included? Defaults to `true`
+
 ## Attributes Reference
 
 * `versions` - The list of all supported versions.
 
-* `latest_version` - The most recent version available.
+* `latest_version` - The most recent version available. If `include_preview == false`, this is the most recent non-preview version available.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

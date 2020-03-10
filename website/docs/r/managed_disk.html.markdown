@@ -149,7 +149,7 @@ The `key_encryption_key` block supports:
 
 * `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
-* `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
+* `source_vault_id` - (Required) The ID of the source Key Vault.
 
 ## Attributes Reference
 
@@ -157,9 +157,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Managed Disk.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

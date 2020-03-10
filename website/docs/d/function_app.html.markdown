@@ -46,6 +46,10 @@ The following attributes are exported:
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
+* `os_type` - A string indicating the Operating System type for this function app.
+
+~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows. 
+
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses.
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses, not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
@@ -65,9 +69,7 @@ The `site_credential` block exports the following:
 * `username` - The username which can be used to publish to this App Service
 * `password` - The password associated with the username, which can be used to publish to this App Service.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

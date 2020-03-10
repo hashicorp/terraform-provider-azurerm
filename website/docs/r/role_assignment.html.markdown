@@ -23,7 +23,7 @@ data "azurerm_client_config" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Reader"
-  principal_id         = data.azurerm_client_config.example.service_principal_object_id
+  principal_id         = data.azurerm_client_config.example.object_id
 }
 ```
 
@@ -55,7 +55,7 @@ resource "azurerm_role_assignment" "example" {
   name               = "00000000-0000-0000-0000-000000000000"
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = azurerm_role_definition.example.id
-  principal_id       = data.azurerm_client_config.example.service_principal_object_id
+  principal_id       = data.azurerm_client_config.example.object_id
 }
 ```
 
@@ -152,9 +152,7 @@ The following attributes are exported:
 
 * `principal_type` - The type of the `principal_id`, e.g. User, Group, Service Principal, Application, etc.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

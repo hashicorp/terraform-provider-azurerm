@@ -46,13 +46,15 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
 
-* `sku` - (Optional) The SKU name of the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
+* `sku` - (Optional) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`. `Classic` (which was previously `Basic`) is supported only for existing resources.
 
 ~> **NOTE:** The `Classic` SKU is Deprecated and will no longer be available for new resources from the end of March 2019.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
+
+~> **NOTE:** The `georeplication_locations` is only supported on new resources with the `Premium` SKU.
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
@@ -92,9 +94,7 @@ The following attributes are exported:
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

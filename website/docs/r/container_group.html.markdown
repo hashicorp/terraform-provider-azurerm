@@ -129,10 +129,6 @@ A `container` block supports:
 
 * `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
 
-* `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
-
-~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
-
 * `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
@@ -253,9 +249,7 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the container group derived from `dns_name_label`.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

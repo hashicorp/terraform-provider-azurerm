@@ -24,8 +24,7 @@ resource "azurerm_notification_hub_namespace" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   namespace_type      = "NotificationHub"
-
-  sku_name = "Free"
+  sku_name            = "Free"
 }
 ```
 
@@ -41,17 +40,9 @@ The following arguments are supported:
 
 * `namespace_type` - (Required) The Type of Namespace - possible values are `Messaging` or `NotificationHub`. Changing this forces a new resource to be created.
 
-* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
-
-* `sku_name` - (Optional) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
-
-----
-
-A `sku` block contains:
-
-* `name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -61,9 +52,7 @@ The following attributes are exported:
 
 * `servicebus_endpoint` - The ServiceBus Endpoint for this Notification Hub Namespace.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

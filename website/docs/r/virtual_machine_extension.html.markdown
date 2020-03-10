@@ -132,19 +132,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the virtual machine extension peering. Changing
     this forces a new resource to be created.
 
-* `location` - (Optional / **Deprecated**) The location where the extension is created. Changing
-    this forces a new resource to be created.
-
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to
-    create the virtual network. Changing this forces a new resource to be
-    created.
-
-* `virtual_machine_name` - (Optional / **Deprecated**) The name of the virtual machine. Changing
-    this forces a new resource to be created.
-
-* `virtual_machine_id` - (Optional) The resource ID of the virtual machine. This value replaces
-    `location`, `resource_group_name` and `virtual_machine_name`. Changing this forces a new
-    resource to be created
+* `virtual_machine_id` - (Required) The ID of the Virtual Machine. Changing this forces a new resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers
     can be found by using the Azure CLI.
@@ -181,9 +169,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Virtual Machine Extension.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

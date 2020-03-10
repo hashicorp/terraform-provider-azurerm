@@ -60,10 +60,8 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:          schema.TypeString,
-				Optional:      true, // required in 2.0
-				Computed:      true, // remove in 2.0
-				ConflictsWith: []string{"sku"},
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"B_Gen4_1",
 					"B_Gen4_2",
@@ -86,82 +84,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					"MO_Gen5_16",
 					"MO_Gen5_32",
 				}, false),
-			},
-
-			// remove in 2.0
-			"sku": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"sku_name"},
-				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"B_Gen4_1",
-								"B_Gen4_2",
-								"B_Gen5_1",
-								"B_Gen5_2",
-								"GP_Gen4_2",
-								"GP_Gen4_4",
-								"GP_Gen4_8",
-								"GP_Gen4_16",
-								"GP_Gen4_32",
-								"GP_Gen5_2",
-								"GP_Gen5_4",
-								"GP_Gen5_8",
-								"GP_Gen5_16",
-								"GP_Gen5_32",
-								"GP_Gen5_64",
-								"MO_Gen5_2",
-								"MO_Gen5_4",
-								"MO_Gen5_8",
-								"MO_Gen5_16",
-								"MO_Gen5_32",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"capacity": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ValidateFunc: validation.IntInSlice([]int{
-								1,
-								2,
-								4,
-								8,
-								16,
-								32,
-								64,
-							}),
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.Basic),
-								string(postgresql.GeneralPurpose),
-								string(postgresql.MemoryOptimized),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"family": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Gen4",
-								"Gen5",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
 			},
 
 			"administrator_login": {
@@ -250,17 +172,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
-
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			tier, _ := diff.GetOk("sku.0.tier")
-			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
-
-			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
-				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
-			}
-
-			return nil
-		},
 	}
 }
 
@@ -288,17 +199,9 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	var sku *postgresql.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandServerSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %s (Resource Group %q): %v", name, resourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandAzureRmPostgreSQLServerSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+	sku, err := expandServerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	properties := postgresql.ServerForCreate{
@@ -348,17 +251,9 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	var sku *postgresql.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandServerSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandAzureRmPostgreSQLServerSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+	sku, err := expandServerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	properties := postgresql.ServerUpdateParameters{
@@ -428,9 +323,6 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
-	if err := d.Set("sku", flattenPostgreSQLServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
-	}
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
@@ -508,23 +400,6 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 	}, nil
 }
 
-func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData) *postgresql.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
-
-	name := sku["name"].(string)
-	capacity := sku["capacity"].(int)
-	tier := sku["tier"].(string)
-	family := sku["family"].(string)
-
-	return &postgresql.Sku{
-		Name:     utils.String(name),
-		Tier:     postgresql.SkuTier(tier),
-		Capacity: utils.Int32(int32(capacity)),
-		Family:   utils.String(family),
-	}
-}
-
 func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
 	storageprofiles := d.Get("storage_profile").([]interface{})
 	storageprofile := storageprofiles[0].(map[string]interface{})
@@ -540,26 +415,6 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 		StorageMB:           utils.Int32(int32(storageMB)),
 		StorageAutogrow:     postgresql.StorageAutogrow(autoGrow),
 	}
-}
-
-func flattenPostgreSQLServerSku(resp *postgresql.Sku) []interface{} {
-	values := map[string]interface{}{}
-
-	if name := resp.Name; name != nil {
-		values["name"] = *name
-	}
-
-	if capacity := resp.Capacity; capacity != nil {
-		values["capacity"] = *capacity
-	}
-
-	values["tier"] = string(resp.Tier)
-
-	if family := resp.Family; family != nil {
-		values["family"] = *family
-	}
-
-	return []interface{}{values}
 }
 
 func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {

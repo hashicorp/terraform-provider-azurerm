@@ -30,6 +30,45 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKustoCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKustoCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKustoCluster_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "true"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKustoCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
@@ -89,6 +128,10 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 
 func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -96,8 +139,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -109,6 +152,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -116,8 +163,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -133,6 +180,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -140,8 +191,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
@@ -158,6 +209,10 @@ resource "azurerm_kusto_cluster" "test" {
 
 func testAccAzureRMKustoCluster_skuUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -165,12 +220,38 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Standard_D11_v2"
     capacity = 2
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                    = "acctestkc%s"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  enable_disk_encryption  = true
+  enable_streaming_ingest = true
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

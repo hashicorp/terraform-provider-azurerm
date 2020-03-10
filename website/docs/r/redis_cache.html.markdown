@@ -153,6 +153,10 @@ The following attributes are exported:
 
 * `secondary_access_key` - The Secondary Access Key for the Redis Instance
 
+* `primary_connection_string` - The primary connection string of the Redis Instance.
+
+* `secondary_connection_string` - The secondary connection string of the Redis Instance.
+
 * `redis_configuration` - A `redis_configuration` block as defined below:
 
 ---
@@ -165,9 +169,7 @@ A `redis_configuration` block exports the following:
  - [Azure Redis Cache: SKU specific configuration limitations](https://azure.microsoft.com/en-us/documentation/articles/cache-configure/#advanced-settings)
  - [Redis: Available Configuration Settings](http://redis.io/topics/config)
 
-### Timeouts
-
- ~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
  The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

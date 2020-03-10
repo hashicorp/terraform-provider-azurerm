@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_virtual_machine" "example" {
   name                  = "${var.prefix}-vm"
   location              = "${azurerm_resource_group.example.location}"

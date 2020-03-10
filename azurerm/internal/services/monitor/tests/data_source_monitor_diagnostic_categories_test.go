@@ -46,6 +46,10 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T
 
 func testAccDataSourceArmMonitorDiagnosticCategories_appService(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -53,8 +57,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -64,19 +68,23 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 data "azurerm_monitor_diagnostic_categories" "test" {
-  resource_id = "${azurerm_app_service.test.id}"
+  resource_id = azurerm_app_service.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -84,8 +92,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -95,7 +103,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 data "azurerm_monitor_diagnostic_categories" "test" {
-  resource_id = "${azurerm_storage_account.test.id}"
+  resource_id = azurerm_storage_account.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

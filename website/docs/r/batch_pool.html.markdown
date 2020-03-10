@@ -275,6 +275,8 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
+* `public_ips` - (Optional) A list of public ip ids that will be allocated to nodes. Changing this forces a new resource to be created.
+
 * `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
 
 ---
@@ -307,9 +309,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Batch Pool.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
@@ -323,5 +323,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Batch Pools can be imported using the `resource id`, e.g.
 
 ```shell
- terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
+terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Batch/batchAccounts/myBatchAccount1/pools/myBatchPool1
 ```

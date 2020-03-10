@@ -53,8 +53,8 @@ func testAccDataSourceSharedImageGallery_basic(data acceptance.TestData) string 
 %s
 
 data "azurerm_shared_image_gallery" "test" {
-  name                = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_shared_image_gallery.test.resource_group_name}"
+  name                = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_shared_image_gallery.test.resource_group_name
 }
 `, template)
 }
@@ -65,8 +65,8 @@ func testAccDataSourceSharedImageGallery_complete(data acceptance.TestData) stri
 %s
 
 data "azurerm_shared_image_gallery" "test" {
-  name                = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_shared_image_gallery.test.resource_group_name}"
+  name                = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_shared_image_gallery.test.resource_group_name
 }
 `, template)
 }

@@ -424,6 +424,10 @@ resource "azurerm_databox_job" "test" {
 
 func testAccAzureRMDataBoxJob_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-databoxjob-%d"
   location = "westus"

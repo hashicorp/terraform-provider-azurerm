@@ -31,9 +31,9 @@ func testAccDataSourceAutomationVariableString_basic(data acceptance.TestData) s
 %s
 
 data "azurerm_automation_variable_string" "test" {
-  name                    = "${azurerm_automation_variable_string.test.name}"
-  resource_group_name     = "${azurerm_automation_variable_string.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_variable_string.test.automation_account_name}"
+  name                    = azurerm_automation_variable_string.test.name
+  resource_group_name     = azurerm_automation_variable_string.test.resource_group_name
+  automation_account_name = azurerm_automation_variable_string.test.automation_account_name
 }
 `, config)
 }

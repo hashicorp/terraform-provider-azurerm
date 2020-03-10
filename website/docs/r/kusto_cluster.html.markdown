@@ -46,6 +46,10 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
+
+* `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -67,9 +71,9 @@ The following attributes are exported:
 
 * `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
 
-### Timeouts
+## Timeouts
 
-~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

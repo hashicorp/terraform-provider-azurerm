@@ -175,8 +175,8 @@ func testAccDataSourceHDInsightCluster_hadoop(data acceptance.TestData) string {
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_hadoop_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_hadoop_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_hadoop_cluster.test.name
+  resource_group_name = azurerm_hdinsight_hadoop_cluster.test.resource_group_name
 }
 `, template)
 }
@@ -187,8 +187,8 @@ func testAccDataSourceHDInsightCluster_hbase(data acceptance.TestData) string {
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_hbase_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_hbase_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_hbase_cluster.test.name
+  resource_group_name = azurerm_hdinsight_hbase_cluster.test.resource_group_name
 }
 `, template)
 }
@@ -199,8 +199,8 @@ func testAccDataSourceHDInsightCluster_interactiveQuery(data acceptance.TestData
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_interactive_query_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_interactive_query_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_interactive_query_cluster.test.name
+  resource_group_name = azurerm_hdinsight_interactive_query_cluster.test.resource_group_name
 }
 `, template)
 }
@@ -211,8 +211,8 @@ func testAccDataSourceHDInsightCluster_kafka(data acceptance.TestData) string {
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_kafka_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_kafka_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_kafka_cluster.test.name
+  resource_group_name = azurerm_hdinsight_kafka_cluster.test.resource_group_name
 }
 `, template)
 }
@@ -223,8 +223,8 @@ func testAccDataSourceHDInsightCluster_mlServices(data acceptance.TestData) stri
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_ml_services_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_ml_services_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_ml_services_cluster.test.name
+  resource_group_name = azurerm_hdinsight_ml_services_cluster.test.resource_group_name
 }
 `, template)
 }
@@ -235,8 +235,8 @@ func testAccDataSourceHDInsightCluster_rserver(data acceptance.TestData) string 
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_rserver_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_rserver_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_rserver_cluster.test.name
+  resource_group_name = azurerm_hdinsight_rserver_cluster.test.resource_group_name
 }
 `, template)
 }
@@ -247,8 +247,8 @@ func testAccDataSourceHDInsightCluster_spark(data acceptance.TestData) string {
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_spark_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_spark_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_spark_cluster.test.name
+  resource_group_name = azurerm_hdinsight_spark_cluster.test.resource_group_name
 }
 `, template)
 }
@@ -259,8 +259,8 @@ func testAccDataSourceHDInsightCluster_storm(data acceptance.TestData) string {
 %s
 
 data "azurerm_hdinsight_cluster" "test" {
-  name                = "${azurerm_hdinsight_storm_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_storm_cluster.test.resource_group_name}"
+  name                = azurerm_hdinsight_storm_cluster.test.name
+  resource_group_name = azurerm_hdinsight_storm_cluster.test.resource_group_name
 }
 `, template)
 }

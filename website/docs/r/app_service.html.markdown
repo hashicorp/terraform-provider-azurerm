@@ -75,6 +75,8 @@ The following arguments are supported:
 
 * `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
 
+* `backup` - (Optional) A `backup` block as defined below.
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
@@ -223,8 +225,6 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 ~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
-* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
-
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 ---
@@ -303,11 +303,9 @@ A `google` block supports the following:
 
 A `ip_restriction` block supports the following:
 
-* `ip_address` - (Optional) The IP Address used for this IP Restriction.
+* `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
-* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
-
-* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction.
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 -> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
@@ -391,9 +389,7 @@ A `source_control` block exports the following:
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
 
-### Timeouts
-
-~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
