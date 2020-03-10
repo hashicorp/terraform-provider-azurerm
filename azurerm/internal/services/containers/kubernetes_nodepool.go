@@ -364,7 +364,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"tags":                  tags.Flatten(agentPool.Tags),
 			"type":                  string(agentPool.Type),
 			"vm_size":               string(agentPool.VMSize),
-			"orchestrator_version":  string(orchestratorVersion),
+			"orchestrator_version":  orchestratorVersion,
 			"vnet_subnet_id":        vnetSubnetId,
 		},
 	}, nil
