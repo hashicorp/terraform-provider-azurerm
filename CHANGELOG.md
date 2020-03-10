@@ -1,5 +1,8 @@
 ## 2.1.0 (Unreleased)
 
+NOTES:
+The `azurerm_frontdoor` resource has introduced a breaking change due to the underlying service API which enforces `location` attributes must be set to 'Global' on all newly deployed Front Door services.
+
 FEATURES:
 
 * **New Data Source:** `azurerm_database_migration_project` [GH-5993]
@@ -52,6 +55,7 @@ BUG FIXES:
 * `azurerm_batch_pool` - `frontend_port_range ` is now set correctly. [GH-5941]
 * `azurerm_dns_txt_record` - support records up to `1024` characters in length [GH-5837]
 * `azurerm_frontdoor` - fix the way `backend_pool_load_balancing`/`backend_pool_health_probe` [GH-5924]
+* `azurerm_frontdoor` - all new front door resources to be created in the `Global` location [GH-6015]
 * `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
 * `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
 * `azurerm_netapp_volume` - support volmes uoto `100TB` in size [GH-5485]
