@@ -1050,8 +1050,8 @@ resource "azurerm_sql_database" "test" {
   requested_service_objective_name = "S0"
 
   extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
+    storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
     storage_account_access_key_is_secondary = false
     retention_in_days                       = 11
   }

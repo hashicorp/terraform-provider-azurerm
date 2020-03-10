@@ -125,9 +125,11 @@ func FlattenAzureRmSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy 
 		return []interface{}{}
 	}
 	var storageAccessKey, storageEndpoint string
-	if blobExtendedAuditing, ok := d.GetOk("extended_auditing_policy.0.storage_account_access_key"); ok {
-		storageAccessKey = blobExtendedAuditing.(string)
+	// storage_account_access_key will not be returned, so we transfer the schema value
+	if v, ok := d.GetOk("extended_auditing_policy.0.storage_account_access_key"); ok {
+		storageAccessKey = v.(string)
 	}
+
 	if extendedDatabaseBlobAuditingPolicy.StorageEndpoint != nil {
 		storageEndpoint = *extendedDatabaseBlobAuditingPolicy.StorageEndpoint
 	}
