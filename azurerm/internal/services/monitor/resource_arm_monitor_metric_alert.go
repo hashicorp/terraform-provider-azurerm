@@ -52,7 +52,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
 			// But to prevent potential state migration in the future, let's stick to use Set now
 
-			//lintignore:S018
+			// lintignore:S018
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,

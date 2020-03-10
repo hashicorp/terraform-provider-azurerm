@@ -72,6 +72,8 @@ func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 					testCheckAzureRMNetAppPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -91,8 +93,9 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 				Config: testAccAzureRMNetAppPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -102,6 +105,8 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 					testCheckAzureRMNetAppPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
 				),
 			},
 			data.ImportStep(),
@@ -181,7 +186,7 @@ resource "azurerm_netapp_pool" "test" {
   account_name        = azurerm_netapp_account.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  service_level       = "Premium"
+  service_level       = "Standard"
   size_in_tb          = 4
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -194,6 +199,9 @@ resource "azurerm_netapp_pool" "import" {
   name                = azurerm_netapp_pool.test.name
   location            = azurerm_netapp_pool.test.location
   resource_group_name = azurerm_netapp_pool.test.resource_group_name
+  account_name        = azurerm_netapp_pool.test.account_name
+  service_level       = azurerm_netapp_pool.test.service_level
+  size_in_tb          = azurerm_netapp_pool.test.size_in_tb
 }
 `, testAccAzureRMNetAppPool_basic(data))
 }
@@ -222,6 +230,10 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_level       = "Standard"
   size_in_tb          = 15
+
+  tags = {
+    "FoO" = "BaR"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

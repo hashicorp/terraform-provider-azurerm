@@ -28,7 +28,7 @@ resource "azurerm_sql_server" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "accstr"
+  name                     = "examplesa"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
@@ -41,11 +41,11 @@ resource "azurerm_sql_database" "example" {
   location            = "West US"
   server_name         = azurerm_sql_server.example.name
 
-  blob_extended_auditing_policy {
-    storage_endpoint                = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key      = azurerm_storage_account.example.primary_access_key
-    is_storage_secondary_key_in_use = true
-    retention_days                  = 6
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
   }
 
   tags = {
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 
-* `blob_extended_auditing_policy` - (Optional) A `blob_extended_auditing_policy` block as defined below.
+* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -122,12 +122,12 @@ The following arguments are supported:
 
 ---
 
-A `blob_extended_auditing_policy` block supports the following:
+A `extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required) Specifies the identifier key of the auditing storage account.
+* `storage_account_access_key` - (Required) Specifies the access key to use for the auditing storage account.
 * `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
-* `is_storage_secondary_key_in_use` - (Optional) Specifies whether storageAccountAccessKey value is the storage's secondary key.
-* `retention_days` - (Optional) Specifies the number of days to keep in the audit logs in the storage account.
+* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
+* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
 ## Attributes Reference
 

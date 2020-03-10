@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceArmAutomationVariableDateTime() *schema.Resource {
@@ -25,7 +25,7 @@ func resourceArmAutomationVariableDateTime() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceAutomationVariableCommonSchema(schema.TypeString, validate.RFC3339Time),
+		Schema: resourceAutomationVariableCommonSchema(schema.TypeString, validation.IsRFC3339Time),
 	}
 }
 

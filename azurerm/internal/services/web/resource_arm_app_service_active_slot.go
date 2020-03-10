@@ -102,17 +102,14 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", name, resGroup)
+			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", id.Name, err)
 	}
 
 	d.Set("app_service_name", resp.Name)
