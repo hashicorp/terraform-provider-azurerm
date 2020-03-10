@@ -341,22 +341,6 @@ func validateCognitiveAccountProperties(accountProperties *cognitiveservices.Acc
 	return nil
 }
 
-func flattenCognitiveAccountSku(input *cognitiveservices.Sku) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	m := map[string]interface{}{
-		"tier": string(input.Tier),
-	}
-
-	if v := input.Name; v != nil {
-		m["name"] = *v
-	}
-
-	return []interface{}{m}
-}
-
 func flattenCognitiveAccountApiProperties(input *cognitiveservices.AccountAPIProperties) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{})
