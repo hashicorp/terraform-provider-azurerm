@@ -28,6 +28,8 @@ IMPROVEMENTS:
 * `azurerm_batch_pool` - support for the `public_ips` property [GH-5967]
 * `azurerm_frontdoor` - exposed new attributes in `backend_pool_health_probe` block `enabled` and `probe_method` [GH-5924]
 * `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
+* `azurerm_kubernetes_cluster`: Support for `node_labels` [GH-5531]
+* `azurerm_kubernetes_cluster_node_pool`: Support for `node_labels` [GH-5531]
 * `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
 * `azurerm_lb` - support for the `private_ip_address_version` property [GH-5590]
 * `azurerm_netapp_account` - support for the `tags` property [GH-5995]
