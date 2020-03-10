@@ -47,9 +47,6 @@ func NewClient(options *common.ClientOptions) *Client {
 	cachesClient := storagecache.NewCachesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&cachesClient.Client, options.ResourceManagerAuthorizer)
 
-	blobAccountsClient := accounts.NewWithEnvironment(options.Environment)
-	options.ConfigureClient(&blobAccountsClient.Client, options.StorageAuthorizer)
-
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
