@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -97,6 +97,15 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 100),
+			},
+
+			"node_labels": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"node_taints": {
@@ -211,6 +220,11 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if maxPods := int32(d.Get("max_pods").(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
+	}
+
+	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
+	if nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw); len(nodeLabels) > 0 {
+		profile.NodeLabels = nodeLabels
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
@@ -459,6 +473,10 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			count = int(*props.Count)
 		}
 		d.Set("node_count", count)
+
+		if err := d.Set("node_labels", props.NodeLabels); err != nil {
+			return fmt.Errorf("Error setting `node_labels`: %+v", err)
+		}
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("Error setting `node_taints`: %+v", err)

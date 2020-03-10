@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -372,6 +374,46 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_nodeLabels(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_nodeLabelds(t)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_nodeLabelds(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	labels1 := map[string]string{"key": "value"}
+	labels2 := map[string]string{"key2": "value2"}
+	labels3 := map[string]string{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, clientId, clientSecret, labels1),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels1),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, clientId, clientSecret, labels2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels2),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data, clientId, clientSecret, labels3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolNodeLabels(data.ResourceName, labels3),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t)
@@ -659,6 +701,45 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 	}
 }
 
+func testCheckAzureRMKubernetesNodePoolNodeLabels(resourceName string, expectedLabels map[string]string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
+		parsedK8sId, err := containers.ParseKubernetesClusterID(kubernetesClusterId)
+		if err != nil {
+			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
+		}
+
+		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
+		}
+
+		if agent_pool.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.Name, parsedK8sId.ResourceGroup)
+		}
+
+		labels := make(map[string]string)
+		for k, v := range agent_pool.NodeLabels {
+			labels[k] = *v
+		}
+		if !reflect.DeepEqual(labels, expectedLabels) {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) nodeLabels %v do not match expected %v", name, parsedK8sId.Name, parsedK8sId.ResourceGroup, labels, expectedLabels)
+		}
+
+		return nil
+	}
+}
+
 func testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data, clientId, clientSecret)
 	return fmt.Sprintf(`
@@ -895,6 +976,28 @@ resource "azurerm_kubernetes_cluster_node_pool" "manual" {
   node_count            = %d
 }
 `, template, numberOfAgents)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_nodeLabelsConfig(data acceptance.TestData, clientId, clientSecret string, labels map[string]string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data, clientId, clientSecret)
+	labelsSlice := make([]string, 0, len(labels))
+	for k, v := range labels {
+		labelsSlice = append(labelsSlice, fmt.Sprintf("    \"%s\" = \"%s\"", k, v))
+	}
+	labelsStr := strings.Join(labelsSlice, "\n")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  node_labels = {
+%s
+  }
+}
+`, template, labelsStr)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_nodePublicIPConfig(data acceptance.TestData, clientId, clientSecret string) string {
