@@ -35,6 +35,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster_node_pool`: Support for the `tags` property [GH-5931]
 * `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
 * `azurerm_lb` - support for the `private_ip_address_version` property [GH-5590]
+* `azurerm_mariadb_server` - changing the `geo_redundant_backup` property now forces a new resource [GH-5961]
 * `azurerm_netapp_account` - support for the `tags` property [GH-5995]
 * `azurerm_netapp_pool` - support for the `tags` property [GH-5995]
 * `azurerm_netapp_snapshot` - support for the `tags` property [GH-5995]
