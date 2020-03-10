@@ -236,6 +236,10 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 func testAccAzureRMTrafficManagerProfile_basic(data acceptance.TestData, method string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%[1]d"
   location = "%[2]s"
@@ -243,7 +247,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%[1]d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "%[3]s"
 
   dns_config {
@@ -266,9 +270,9 @@ func testAccAzureRMTrafficManagerProfile_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_traffic_manager_profile" "import" {
-  name                   = "${azurerm_traffic_manager_profile.test.name}"
-  resource_group_name    = "${azurerm_traffic_manager_profile.test.resource_group_name}"
-  traffic_routing_method = "${azurerm_traffic_manager_profile.test.traffic_routing_method}"
+  name                   = azurerm_traffic_manager_profile.test.name
+  resource_group_name    = azurerm_traffic_manager_profile.test.resource_group_name
+  traffic_routing_method = azurerm_traffic_manager_profile.test.traffic_routing_method
 
   dns_config {
     relative_name = "acctest-tmp-%d"
@@ -286,6 +290,10 @@ resource "azurerm_traffic_manager_profile" "import" {
 
 func testAccAzureRMTrafficManagerProfile_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -293,7 +301,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Performance"
 
   dns_config {
@@ -325,6 +333,10 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 func testAccAzureRMTrafficManagerProfile_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -332,7 +344,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Priority"
 
   dns_config {
@@ -363,6 +375,10 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 func testAccAzureRMTrafficManagerProfile_failoverError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-traffic-%d"
   location = "%s"
@@ -370,7 +386,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = azurerm_resource_group.test.name
   traffic_routing_method = "Performance"
 
   dns_config {

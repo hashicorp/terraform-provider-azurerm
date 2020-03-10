@@ -3,18 +3,19 @@ package containers
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func SchemaDefaultNodePool() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -90,11 +91,22 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
+				"node_labels": {
+					Type:     schema.TypeMap,
+					ForceNew: true,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
 				"node_taints": {
 					Type:     schema.TypeList,
 					Optional: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
+
+				"tags": tags.Schema(),
 
 				"os_disk_size_gb": {
 					Type:         schema.TypeInt,
@@ -135,29 +147,31 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			EnableNodePublicIP:     defaultCluster.EnableNodePublicIP,
 			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
+			NodeLabels:             defaultCluster.NodeLabels,
 			NodeTaints:             defaultCluster.NodeTaints,
+			Tags:                   defaultCluster.Tags,
 		},
 	}
 }
 
 func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedClusterAgentPoolProfile, error) {
 	input := d.Get("default_node_pool").([]interface{})
-	// TODO: in 2.0 make this Required
-	// this exists to allow users to migrate to default_node_pool
-	if len(input) == 0 {
-		return nil, nil
-	}
 
 	raw := input[0].(map[string]interface{})
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
+	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
+	nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw)
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
+	t := d.Get("tags").(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
+		NodeLabels:         nodeLabels,
 		NodeTaints:         nodeTaints,
+		Tags:               tags.Expand(t),
 		Type:               containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
 
@@ -166,7 +180,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// Windows agents can be configured via the separate node pool resource
 		OsType: containerservice.Linux,
 
-		//// TODO: support these in time
+		// // TODO: support these in time
 		// OrchestratorVersion:    nil,
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",
@@ -286,6 +300,14 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		name = *agentPool.Name
 	}
 
+	var nodeLabels map[string]string
+	if agentPool.NodeLabels != nil {
+		nodeLabels = make(map[string]string)
+		for k, v := range agentPool.NodeLabels {
+			nodeLabels[k] = *v
+		}
+	}
+
 	var nodeTaints []string
 	if agentPool.NodeTaints != nil {
 		nodeTaints = *agentPool.NodeTaints
@@ -311,6 +333,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"min_count":             minCount,
 			"name":                  name,
 			"node_count":            count,
+			"node_labels":           nodeLabels,
 			"node_taints":           nodeTaints,
 			"os_disk_size_gb":       osDiskSizeGB,
 			"type":                  string(agentPool.Type),

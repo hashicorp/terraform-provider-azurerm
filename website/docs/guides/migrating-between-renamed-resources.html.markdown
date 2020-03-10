@@ -22,7 +22,6 @@ This guide shows how to migrate from a resource which have been deprecated to it
 | azurerm_log_analytics_workspace_linked_service         | azurerm_log_analytics_linked_service               |
 | azurerm_iot_dps_certificate                            | azurerm_iothub_dps_certificate                     |
 | azurerm_iot_dps                                        | azurerm_iothub_dps                                 |
-| azurerm_metric_alertrule                               | azurerm_monitor_metric_alertrule                   |
 | azurerm_private_link_endpoint                          | azurerm_private_endpoint                           |
 | azurerm_private_link_endpoint_connection (Data Source) | azurerm_private_endpoint_connection                |
 | azurerm_recovery_network_mapping                       | azurerm_site_recovery_network_mapping              |

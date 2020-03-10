@@ -170,6 +170,10 @@ func testCheckAzureRMPacketCaptureDestroy(s *terraform.State) error {
 
 func testAzureRMPacketCapture_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -259,15 +263,15 @@ func testAzureRMPacketCapture_localDiskConfig(data acceptance.TestData) string {
 
 resource "azurerm_packet_capture" "test" {
   name                 = "acctestpc-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  target_resource_id   = "${azurerm_virtual_machine.test.id}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  target_resource_id   = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.test"]
+  depends_on = [azurerm_virtual_machine_extension.test]
 }
 `, config, data.RandomInteger)
 }
@@ -278,16 +282,16 @@ func testAzureRMPacketCapture_localDiskConfig_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_packet_capture" "import" {
-  name                 = "${azurerm_packet_capture.test.name}"
-  network_watcher_name = "${azurerm_packet_capture.test.network_watcher_name}"
-  resource_group_name  = "${azurerm_packet_capture.test.resource_group_name}"
-  target_resource_id   = "${azurerm_packet_capture.test.target_resource_id}"
+  name                 = azurerm_packet_capture.test.name
+  network_watcher_name = azurerm_packet_capture.test.network_watcher_name
+  resource_group_name  = azurerm_packet_capture.test.resource_group_name
+  target_resource_id   = azurerm_packet_capture.test.target_resource_id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.test"]
+  depends_on = [azurerm_virtual_machine_extension.test]
 }
 `, config)
 }
@@ -299,9 +303,9 @@ func testAzureRMPacketCapture_localDiskConfigWithFilters(data acceptance.TestDat
 
 resource "azurerm_packet_capture" "test" {
   name                 = "acctestpc-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  target_resource_id   = "${azurerm_virtual_machine.test.id}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  target_resource_id   = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -319,7 +323,7 @@ resource "azurerm_packet_capture" "test" {
     protocol         = "UDP"
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.test"]
+  depends_on = [azurerm_virtual_machine_extension.test]
 }
 `, config, data.RandomInteger)
 }
@@ -331,23 +335,23 @@ func testAzureRMPacketCapture_storageAccountConfig(data acceptance.TestData) str
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_packet_capture" "test" {
   name                 = "acctestpc-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  target_resource_id   = "${azurerm_virtual_machine.test.id}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  target_resource_id   = azurerm_virtual_machine.test.id
 
   storage_location {
-    storage_account_id = "${azurerm_storage_account.test.id}"
+    storage_account_id = azurerm_storage_account.test.id
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.test"]
+  depends_on = [azurerm_virtual_machine_extension.test]
 }
 `, config, data.RandomString, data.RandomInteger)
 }
@@ -359,24 +363,24 @@ func testAzureRMPacketCapture_storageAccountAndLocalDiskConfig(data acceptance.T
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_packet_capture" "test" {
   name                 = "acctestpc-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  target_resource_id   = "${azurerm_virtual_machine.test.id}"
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  target_resource_id   = azurerm_virtual_machine.test.id
 
   storage_location {
     file_path          = "/var/captures/packet.cap"
-    storage_account_id = "${azurerm_storage_account.test.id}"
+    storage_account_id = azurerm_storage_account.test.id
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.test"]
+  depends_on = [azurerm_virtual_machine_extension.test]
 }
 `, config, data.RandomString, data.RandomInteger)
 }

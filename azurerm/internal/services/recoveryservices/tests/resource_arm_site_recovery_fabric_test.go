@@ -32,6 +32,10 @@ func TestAccAzureRMSiteRecoveryFabric_basic(t *testing.T) {
 
 func testAccAzureRMSiteRecoveryFabric_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery-%d"
   location = "%s"
@@ -39,18 +43,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-vault-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
   soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
   name                = "acctest-fabric-%d"
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

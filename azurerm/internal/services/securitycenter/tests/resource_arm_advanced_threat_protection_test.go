@@ -197,8 +197,8 @@ func testAccAzureRMAdvancedThreatProtection_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_advanced_threat_protection" "import" {
-  target_resource_id = "${azurerm_advanced_threat_protection.test.target_resource_id}"
-  enabled            = "${azurerm_advanced_threat_protection.test.enabled}"
+  target_resource_id = azurerm_advanced_threat_protection.test.target_resource_id
+  enabled            = azurerm_advanced_threat_protection.test.enabled
 }
 `, template)
 }
@@ -215,6 +215,10 @@ resource "azurerm_advanced_threat_protection" "test" {
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ATP-%d"
   location = "%s"
@@ -222,9 +226,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -249,6 +253,10 @@ resource "azurerm_advanced_threat_protection" "test" {
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ATP-%d"
   location = "%s"
@@ -256,8 +264,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -265,7 +273,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }

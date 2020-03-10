@@ -26,10 +26,13 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 			"complete": testAccAzureRMBotConnection_complete,
 		},
 		"channel": {
-			"slackBasic":    testAccAzureRMBotChannelSlack_basic,
-			"slackUpdate":   testAccAzureRMBotChannelSlack_update,
-			"msteamsBasic":  testAccAzureRMBotChannelMsTeams_basic,
-			"msteamsUpdate": testAccAzureRMBotChannelMsTeams_update,
+			"slackBasic":         testAccAzureRMBotChannelSlack_basic,
+			"slackUpdate":        testAccAzureRMBotChannelSlack_update,
+			"msteamsBasic":       testAccAzureRMBotChannelMsTeams_basic,
+			"msteamsUpdate":      testAccAzureRMBotChannelMsTeams_update,
+			"directlineBasic":    testAccAzureRMBotChannelDirectline_basic,
+			"directlineComplete": testAccAzureRMBotChannelDirectline_complete,
+			"directlineUpdate":   testAccAzureRMBotChannelDirectline_update,
 		},
 		"web_app": {
 			"basic":    testAccAzureRMBotWebApp_basic,
@@ -173,7 +176,12 @@ func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
 
 func testAccAzureRMBotChannelsRegistration_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -183,9 +191,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "F0"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
 
   tags = {
     environment = "production"
@@ -196,7 +204,12 @@ resource "azurerm_bot_channels_registration" "test" {
 
 func testAccAzureRMBotChannelsRegistration_updateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -206,9 +219,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "F0"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
 
   tags = {
     environment = "production"
@@ -219,7 +232,12 @@ resource "azurerm_bot_channels_registration" "test" {
 
 func testAccAzureRMBotChannelsRegistration_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -228,27 +246,27 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_api_key" "test" {
   name                    = "acctestappinsightsapikey-%d"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_bot_channels_registration" "test" {
   name                = "acctestdf%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  resource_group_name = azurerm_resource_group.test.name
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
   sku                 = "F0"
 
   endpoint                              = "https://example.com"
-  developer_app_insights_api_key        = "${azurerm_application_insights_api_key.test.api_key}"
-  developer_app_insights_application_id = "${azurerm_application_insights.test.app_id}"
+  developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
+  developer_app_insights_application_id = azurerm_application_insights.test.app_id
 
   tags = {
     environment = "production"

@@ -144,6 +144,10 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 
 func testAccAzureRMAutomationCredential_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -151,15 +155,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_credential" "test" {
   name                    = "acctest-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   username                = "test_user"
   password                = "test_pwd"
 }
@@ -172,17 +176,21 @@ func testAccAzureRMAutomationCredential_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_automation_credential" "import" {
-  name                    = "${azurerm_automation_credential.test.name}"
-  resource_group_name     = "${azurerm_automation_credential.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_credential.test.automation_account_name}"
-  username                = "${azurerm_automation_credential.test.username}"
-  password                = "${azurerm_automation_credential.test.password}"
+  name                    = azurerm_automation_credential.test.name
+  resource_group_name     = azurerm_automation_credential.test.resource_group_name
+  automation_account_name = azurerm_automation_credential.test.automation_account_name
+  username                = azurerm_automation_credential.test.username
+  password                = azurerm_automation_credential.test.password
 }
 `, template)
 }
 
 func testAccAzureRMAutomationCredential_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -190,16 +198,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
-
 }
 
 resource "azurerm_automation_credential" "test" {
   name                    = "acctest-%d"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
   username                = "test_user"
   password                = "test_pwd"
   description             = "This is a test credential for terraform acceptance test"

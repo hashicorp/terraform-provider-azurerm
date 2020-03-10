@@ -19,7 +19,7 @@ func TestAccDataSourceAzureRMServiceBusNamespaceRule_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMServiceBusNamespaceAuthorizationRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
@@ -37,9 +37,9 @@ func testAccDataSourceAzureRMServiceBusNamespaceAuthorizationRule_basic(data acc
 %s
 
 data "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "${azurerm_servicebus_namespace_authorization_rule.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_servicebus_namespace_authorization_rule.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

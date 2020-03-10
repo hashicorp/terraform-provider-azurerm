@@ -32,8 +32,8 @@ func testAccDataSourceNetAppAccount_basicConfig(data acceptance.TestData) string
 %s
 
 data "azurerm_netapp_account" "test" {
-  resource_group_name = "${azurerm_netapp_account.test.resource_group_name}"
-  name                = "${azurerm_netapp_account.test.name}"
+  resource_group_name = azurerm_netapp_account.test.resource_group_name
+  name                = azurerm_netapp_account.test.name
 }
 `, config)
 }

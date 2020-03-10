@@ -68,6 +68,10 @@ func TestAccDataSourceAzureRMPolicyDefinition_custom(t *testing.T) {
 
 func testAccDataSourceBuiltInPolicyDefinition(name string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_policy_definition" "test" {
   display_name = "%s"
 }
@@ -76,17 +80,26 @@ data "azurerm_policy_definition" "test" {
 
 func testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup(name string) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 data "azurerm_policy_definition" "test" {
   display_name        = "%s"
-  management_group_id = "${data.azurerm_client_config.current.tenant_id}"
+  management_group_id = data.azurerm_client_config.current.tenant_id
 }
 `, name)
 }
 
 func testAccDataSourceCustomPolicyDefinition(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test_policy" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -107,6 +120,7 @@ resource "azurerm_policy_definition" "test_policy" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
   {
     "allowedLocations": {
@@ -120,15 +134,17 @@ POLICY_RULE
   }
 PARAMETERS
 
+
   metadata = <<METADATA
   {
 	"note":"azurerm acceptance test"
   }
 METADATA
+
 }
 
 data "azurerm_policy_definition" "test" {
-  display_name = "${azurerm_policy_definition.test_policy.display_name}"
+  display_name = azurerm_policy_definition.test_policy.display_name
 }
 `, data.RandomInteger, data.RandomInteger)
 }

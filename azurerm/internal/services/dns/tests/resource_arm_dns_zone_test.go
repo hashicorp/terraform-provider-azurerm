@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
@@ -96,19 +97,18 @@ func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		zoneName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
+		id, err := parse.DnsZoneID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := client.Get(ctx, resourceGroup, zoneName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS zone %s (resource group: %s) does not exist", zoneName, resourceGroup)
+			return fmt.Errorf("Bad: DNS zone %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -124,10 +124,12 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 			continue
 		}
 
-		zoneName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DnsZoneID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil
@@ -144,6 +146,10 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 
 func testAccAzureRMDnsZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -151,7 +157,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -162,14 +168,18 @@ func testAccAzureRMDnsZone_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_dns_zone" "import" {
-  name                = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
+  name                = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_dns_zone.test.resource_group_name
 }
 `, template)
 }
 
 func testAccAzureRMDnsZone_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -177,7 +187,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -189,6 +199,10 @@ resource "azurerm_dns_zone" "test" {
 
 func testAccAzureRMDnsZone_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -196,7 +210,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"

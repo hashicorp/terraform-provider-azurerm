@@ -33,7 +33,7 @@ data "azurerm_role_definition" "custom-byname" {
   scope = data.azurerm_subscription.primary.id
 }
 
-data "azurerm_builtin_role_definition" "builtin" {
+data "azurerm_role_definition" "builtin" {
   name = "Contributor"
 }
 

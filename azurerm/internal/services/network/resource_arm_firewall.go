@@ -66,17 +66,9 @@ func resourceArmFirewall() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validateAzureFirewallSubnetName,
 						},
-						"internal_public_ip_address_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							Deprecated:   "This field has been deprecated in favour of the `public_ip_address_id` property to better match the Azure SDK.",
-						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
+							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"private_ip_address": {
@@ -310,15 +302,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 		data := configRaw.(map[string]interface{})
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
-
-		pubID, exist := data["internal_public_ip_address_id"].(string)
-		if !exist || pubID == "" {
-			pubID, exist = data["public_ip_address_id"].(string)
-		}
-
-		if !exist || pubID == "" {
-			return nil, nil, nil, fmt.Errorf("one of `internal_public_ip_address_id` or `public_ip_address_id` must be set")
-		}
+		pubID := data["public_ip_address_id"].(string)
 
 		ipConfig := network.AzureFirewallIPConfiguration{
 			Name: utils.String(name),
@@ -384,7 +368,6 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 
 		if pip := props.PublicIPAddress; pip != nil {
 			if id := pip.ID; id != nil {
-				afIPConfig["internal_public_ip_address_id"] = *id
 				afIPConfig["public_ip_address_id"] = *id
 			}
 		}

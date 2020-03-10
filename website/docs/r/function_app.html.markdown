@@ -109,6 +109,10 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. 
+
+~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
+
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
 * `enabled` - (Optional) Is the Function App enabled?
@@ -136,13 +140,12 @@ The following arguments are supported:
 `site_config` supports the following:
 
 * `always_on` - (Optional) Should the Function App be loaded at all times? Defaults to `false`.
+
 * `use_32_bit_worker_process` - (Optional) Should the Function App run in 32 bit mode, rather than 64 bit mode? Defaults to `true`.
 
 ~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
-
-* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -96,24 +95,19 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualMachineId := d.Get("virtual_machine_id").(string)
-	v, err := ParseVirtualMachineID(virtualMachineId)
+	virtualMachineId, err := ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
-
-	virtualMachineName := v.Name
-	resourceGroup := v.ResourceGroup
+	virtualMachineName := virtualMachineId.Name
+	resourceGroup := virtualMachineId.ResourceGroup
 
 	virtualMachine, err := vmClient.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {
 		return fmt.Errorf("Error getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	location := ""
-	if virtualMachine.Location != nil {
-		location = *virtualMachine.Location
-	}
+	location := *virtualMachine.Location
 	if location == "" {
 		return fmt.Errorf("Error reading location of Virtual Machine %q", virtualMachineName)
 	}
@@ -197,28 +191,25 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	vmName := id.VirtualMachine
-	name := id.Name
 
-	virtualMachine, err := vmClient.Get(ctx, resourceGroup, vmName, "")
+	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualMachine.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", id.Name, err)
 	}
 
 	d.Set("virtual_machine_id", virtualMachine.ID)
 
-	resp, err := vmExtensionClient.Get(ctx, resourceGroup, vmName, name, "")
+	resp, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine Extension %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Virtual Machine Extension %s: %s", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -247,15 +238,12 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := ParseVirtualMachineExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["extensions"]
-	vmName := id.Path["virtualMachines"]
 
-	future, err := client.Delete(ctx, resGroup, vmName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachine, id.Name)
 	if err != nil {
 		return err
 	}

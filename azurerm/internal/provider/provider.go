@@ -15,6 +15,14 @@ import (
 )
 
 func AzureProvider() terraform.ResourceProvider {
+	return azureProvider(false)
+}
+
+func TestAzureProvider() terraform.ResourceProvider {
+	return azureProvider(true)
+}
+
+func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
@@ -136,10 +144,9 @@ func AzureProvider() terraform.ResourceProvider {
 			},
 
 			"disable_correlation_request_id": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				// TODO: add an ARM_ prefix in 2.0w
-				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_CORRELATION_REQUEST_ID", false),
 				Description: "This will disable the x-ms-correlation-request-id header.",
 			},
 
@@ -150,7 +157,7 @@ func AzureProvider() terraform.ResourceProvider {
 				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
 
-			"features": schemaFeatures(),
+			"features": schemaFeatures(supportLegacyTestSuite),
 
 			// Advanced feature flags
 			"skip_credentials_validation": {

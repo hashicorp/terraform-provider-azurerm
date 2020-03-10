@@ -138,12 +138,6 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"internal_fqdn": {
-				Type:       schema.TypeString,
-				Deprecated: "This field has been removed by Azure",
-				Computed:   true,
-			},
-
 			"enable_accelerated_networking": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -232,7 +226,6 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 			dnsServers = *s
 		}
 
-		d.Set("internal_fqdn", dnsSettings.InternalFqdn)
 		d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
 	}
 

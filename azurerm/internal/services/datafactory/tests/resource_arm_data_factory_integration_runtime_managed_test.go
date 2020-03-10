@@ -101,6 +101,10 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *tes
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -129,6 +133,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -172,6 +180,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -212,6 +224,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
 
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

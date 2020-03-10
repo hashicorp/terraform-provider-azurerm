@@ -141,6 +141,8 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
+* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+
 ## Attributes Reference
 
 The following attributes are exported:

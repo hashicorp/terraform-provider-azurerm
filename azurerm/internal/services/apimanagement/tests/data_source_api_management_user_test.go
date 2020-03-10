@@ -32,6 +32,10 @@ func TestAccDataSourceAzureRMApiManagementUser_basic(t *testing.T) {
 
 func testAccDataSourceApiManagementUser_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "amtestRG-%d"
   location = "%s"
@@ -42,14 +46,14 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "test-user"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"
@@ -58,9 +62,9 @@ resource "azurerm_api_management_user" "test" {
 }
 
 data "azurerm_api_management_user" "test" {
-  user_id             = "${azurerm_api_management_user.test.user_id}"
-  api_management_name = "${azurerm_api_management_user.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_user.test.resource_group_name}"
+  user_id             = azurerm_api_management_user.test.user_id
+  api_management_name = azurerm_api_management_user.test.api_management_name
+  resource_group_name = azurerm_api_management_user.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

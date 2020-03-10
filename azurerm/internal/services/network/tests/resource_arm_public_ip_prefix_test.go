@@ -190,6 +190,10 @@ func TestAccAzureRMPublicIpPrefix_disappears(t *testing.T) {
 
 func testAccAzureRMPublicIPPrefix_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -197,14 +201,18 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMPublicIPPrefix_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -212,8 +220,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -225,6 +233,10 @@ resource "azurerm_public_ip_prefix" "test" {
 
 func testAccAzureRMPublicIPPrefix_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -232,8 +244,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"
@@ -244,6 +256,10 @@ resource "azurerm_public_ip_prefix" "test" {
 
 func testAccAzureRMPublicIPPrefix_prefixLength(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -251,8 +267,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   prefix_length = 31
 }
