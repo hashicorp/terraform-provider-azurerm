@@ -19,7 +19,7 @@ type StorageServiceProperties struct {
 
 type StaticWebsite struct {
 	// Enabled - Required. Indicates whether static website support is enabled for the given account.
-	Enabled bool `xml:"Enabled,omitempty"`
+	Enabled bool `xml:"Enabled"`
 	// IndexDocument - Optional. The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
 	IndexDocument string `xml:"IndexDocument,omitempty"`
 	// ErrorDocument404Path - Optional. The absolute path to a webpage that Azure Storage serves for requests that do not correspond to an existing file. For example, error/404.html. Only a single custom 404 page is supported in each static website. The value is case-sensitive.
