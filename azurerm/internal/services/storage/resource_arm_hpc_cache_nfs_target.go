@@ -100,6 +100,8 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
+				// Confirmed with service team that they have a mac of 10 that is enforced by the backend.
+				MaxItems: 10,
 				Elem:     namespaceJunctionResource(),
 			},
 		},
