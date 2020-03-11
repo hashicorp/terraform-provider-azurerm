@@ -3,12 +3,12 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_database"
 description: |-
-  Manages a SQL Database.
+  Manages a MS SQL Database.
 ---
 
 # azurerm_mssql_database
 
-Allows you to manage an Azure SQL Database via the `2017-10-01-preview` API which allows for `vCore` based configurations.
+Manages a MS SQL Database.
 
 ## Example Usage
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Ms SQL Database. Changing this forces a new resource to be created.
 
-* `mssql_server_id` - (Required) The name of the Ms SQL Server on which to create the database. Changing this forces a new resource to be created.
+* `mssql_server_id` - (Required) The id of the Ms SQL Server on which to create the database. Changing this forces a new resource to be created.
 
 * `business_critical` - (Optional) A `business_critical` block as defined below. Conflicts with `general_purpose` and `hyper_scale`.
 
