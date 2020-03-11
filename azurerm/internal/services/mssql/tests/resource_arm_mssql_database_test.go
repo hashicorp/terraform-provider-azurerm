@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -13,6 +15,28 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func TestValidateArmStorageAccountName(t *testing.T) {
+	testCases := []struct {
+		input       string
+		shouldError bool
+	}{
+		{"ab", true},
+		{"ABC", true},
+		{"abc", false},
+		{"123456789012345678901234", false},
+		{"1234567890123456789012345", true},
+		{"abc12345", false},
+	}
+
+	for _, test := range testCases {
+		_, es := storage.ValidateArmStorageAccountName(test.input, "name")
+
+		if test.shouldError && len(es) == 0 {
+			t.Fatalf("Expected validating name %q to fail", test.input)
+		}
+	}
+}
 
 func TestAccAzureRMMsSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
@@ -132,7 +156,33 @@ func TestAccAzureRMMsSqlDatabase_GP(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.capacity", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.max_size_gb", "2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_GPServerless(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.serverless.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.capacity", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.max_size_gb", "2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_GPServerlessUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.serverless.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.serverless.0.auto_pause_delay_in_minutes", "360"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.serverless.0.min_capacity", "1.25"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.capacity", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen5"),
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.max_size_gb", "2"),
 				),
 			},
@@ -143,7 +193,7 @@ func TestAccAzureRMMsSqlDatabase_GP(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.capacity", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.max_size_gb", "5"),
 				),
 			},
@@ -484,7 +534,7 @@ resource "azurerm_mssql_database" "test" {
   mssql_server_id = azurerm_sql_server.test.id
   general_purpose {
     capacity    = 2
-    family      = "Gen4"
+    family      = "Gen5"
     max_size_gb = 2
   }
 }
@@ -501,8 +551,47 @@ resource "azurerm_mssql_database" "test" {
   mssql_server_id = azurerm_sql_server.test.id
   general_purpose {
     capacity    = 4
-    family      = "Gen5"
+    family      = "Gen4"
     max_size_gb = 5
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_GPServerless(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%d"
+  mssql_server_id = azurerm_sql_server.test.id
+  general_purpose {
+    capacity    = 2
+    family      = "Gen5"
+    max_size_gb = 2
+    serverless {}
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_GPServerlessUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%d"
+  mssql_server_id = azurerm_sql_server.test.id
+  general_purpose {
+    capacity    = 2
+    family      = "Gen5"
+    max_size_gb = 2
+    serverless {
+      auto_pause_delay_in_minutes = 360
+      min_capacity                = 1.25
+    }
   }
 }
 `, template, data.RandomInteger)

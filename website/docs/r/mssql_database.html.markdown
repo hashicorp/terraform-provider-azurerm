@@ -36,8 +36,12 @@ resource "azurerm_mssql_database" "example" {
 
   general_purpose {
     capacity    = 2
-    family      = "Gen4"
+    family      = "Gen5"
     max_size_gb = 4
+    serverless {
+      auto_pause_delay_in_minutes = 60
+      min_capacity                = 0.5
+    }
   }
 
   tags = {
@@ -115,6 +119,8 @@ The following arguments are supported:
 
 * `max_size_gb` - (Optional) The max size of the database in gigabytes.
 
+* `serverless` - (Optional) A `serverless` block as defined below.
+
 ---
 `hyper_scale` supports the following:
 
@@ -124,6 +130,12 @@ The following arguments are supported:
 
 * `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. 
 
+---
+`serverless` supports the following:
+
+* `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of -1 means that automatic pause is disabled. 
+
+* `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused.
 
 ## Attributes Reference
 

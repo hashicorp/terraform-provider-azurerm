@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
@@ -210,6 +211,30 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(1, 1024),
+						},
+
+						"serverless": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									// validation in 1 hour and 7 days or -1
+									"auto_pause_delay_in_minutes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: ValidateMsSqlDatabaseAutoPauseDelay,
+									},
+									// validation in float slice {0.5,0.75,1,1.25,1.5,1.75,2}
+									"min_capacity": {
+										Type:         schema.TypeFloat,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: ValidateMsSqlDBMinCapacity,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -458,6 +483,8 @@ func expandAzureRmMsSqlDatabaseGP(d *schema.ResourceData, params *sql.Database) 
 	if v, ok := gp["max_size_gb"]; ok {
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 	}
+
+	expandAzureRmMsSqlDatabaseGPServerless(d, params)
 }
 
 func flattenAzureRmMsSqlDatabaseGP(input *sql.Database) []interface{} {
@@ -480,11 +507,65 @@ func flattenAzureRmMsSqlDatabaseGP(input *sql.Database) []interface{} {
 		maxSizeGb = int32((*input.MaxSizeBytes) / int64(1073741824))
 	}
 
+	var serverless []interface{}
+	serverless = flattenAzureRmMsSqlDatabaseGPServerless(input)
+
 	return []interface{}{
 		map[string]interface{}{
 			"capacity":    capacity,
 			"family":      family,
 			"max_size_gb": maxSizeGb,
+			"serverless":  serverless,
+		},
+	}
+}
+
+func expandAzureRmMsSqlDatabaseGPServerless(d *schema.ResourceData, params *sql.Database) {
+	serverlesslist := d.Get("general_purpose.0.serverless").([]interface{})
+	if len(serverlesslist) == 0 {
+		return
+	}
+
+	// if sku is general purpose serverless, the sku_name is "GP_S_family_capacity"
+	skuNameList := strings.Split(*params.Sku.Name, "_")
+	skuNameList = append(skuNameList, "0")
+	copy(skuNameList[2:], skuNameList[1:])
+	skuNameList[1] = "S"
+	params.Sku.Name = utils.String(strings.Join(skuNameList, "_"))
+
+	if serverlesslist[0] == nil {
+		return
+	}
+	serverless := serverlesslist[0].(map[string]interface{})
+
+	if v, ok := serverless["auto_pause_delay_in_minutes"]; ok {
+		params.DatabaseProperties.AutoPauseDelay = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := serverless["min_capacity"]; ok {
+		params.DatabaseProperties.MinCapacity = utils.Float(v.(float64))
+	}
+}
+
+func flattenAzureRmMsSqlDatabaseGPServerless(input *sql.Database) []interface{} {
+	if !strings.HasPrefix(*input.Sku.Name, "GP_S") {
+		return []interface{}{}
+	}
+
+	var autoPauseDelay int32
+	if input.DatabaseProperties.AutoPauseDelay != nil {
+		autoPauseDelay = *input.DatabaseProperties.AutoPauseDelay
+	}
+
+	var minCapacity float64
+	if input.DatabaseProperties.MinCapacity != nil {
+		minCapacity = *input.DatabaseProperties.MinCapacity
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"auto_pause_delay_in_minutes": autoPauseDelay,
+			"min_capacity":                minCapacity,
 		},
 	}
 }
@@ -633,7 +714,7 @@ func ValidateMsSqlServerID(i interface{}, k string) (warnings []string, errors [
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.MsSqlServerID(v); err != nil {
@@ -647,7 +728,7 @@ func ValidateMsSqlElasticPoolID(i interface{}, k string) (warnings []string, err
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, _, _, err := parseArmMSSqlElasticPoolId(v); err != nil {
@@ -661,12 +742,47 @@ func ValidateMsSqlDatabaseID(i interface{}, k string) (warnings []string, errors
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, err := parse.MsSqlDatabaseID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Database resource id: %v", k, err))
 	}
 
+	return warnings, errors
+}
+
+func ValidateMsSqlDatabaseAutoPauseDelay(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be integer", k))
+		return warnings, errors
+	}
+	min := 60
+	max := 10080
+	if (v < min || v > max) && v != -1 {
+		errors = append(errors, fmt.Errorf("expected %s to be in the range (%d - %d) or -1, got %d", k, min, max, v))
+		return warnings, errors
+	}
+
+	return warnings, errors
+}
+
+func ValidateMsSqlDBMinCapacity(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(float64)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be float", k))
+		return warnings, errors
+	}
+
+	valid := []float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}
+
+	for _, validValue := range valid {
+		if v == validValue {
+			return warnings, errors
+		}
+	}
+
+	errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %d", k, valid, v))
 	return warnings, errors
 }
