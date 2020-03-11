@@ -507,8 +507,7 @@ func flattenAzureRmMsSqlDatabaseGP(input *sql.Database) []interface{} {
 		maxSizeGb = int32((*input.MaxSizeBytes) / int64(1073741824))
 	}
 
-	var serverless []interface{}
-	serverless = flattenAzureRmMsSqlDatabaseGPServerless(input)
+	serverless := flattenAzureRmMsSqlDatabaseGPServerless(input)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -783,6 +782,6 @@ func ValidateMsSqlDBMinCapacity(i interface{}, k string) (warnings []string, err
 		}
 	}
 
-	errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %d", k, valid, v))
+	errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
 	return warnings, errors
 }
