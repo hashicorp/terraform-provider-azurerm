@@ -184,7 +184,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				ValidateFunc: ValidateMsSqlElasticPoolID,
 			},
 
-			// By default, the db sku is general_purpose. If no sku is specified, gp will be set.
+			// By default, the db sku is general_purpose.
 			"general_purpose": {
 				Type:     schema.TypeList,
 				Optional: true,
