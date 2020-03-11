@@ -91,8 +91,8 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Enabled",
-								"Disabled",
+								string(sql.DatabaseReadScaleEnabled),
+								string(sql.DatabaseReadScaleDisabled),
 							}, false),
 						},
 
@@ -279,8 +279,8 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"BasePrice",
-					"LicenseIncluded",
+					string(sql.BasePrice),
+					string(sql.LicenseIncluded),
 				}, false),
 			},
 
@@ -290,7 +290,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"AdventureWorksLT",
+					string(sql.AdventureWorksLT),
 				}, false),
 			},
 
@@ -382,7 +382,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
 	}
 
-	if read.ID == nil {
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("Cannot read MsSql Database %q (MsSql Server Name %q / Resource Group %q) ID", name, serverId.Name, serverId.ResourceGroup)
 	}
 

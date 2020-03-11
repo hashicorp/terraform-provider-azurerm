@@ -121,7 +121,7 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.family", "Gen4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "general_purpose.0.max_size_gb", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
 			},
 			data.ImportStep("sample_name"),
@@ -135,7 +135,7 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.family", "Gen5"),
 					resource.TestCheckResourceAttr(data.ResourceName, "business_critical.0.max_size_gb", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Staging"),
 				),
 			},
 			data.ImportStep("sample_name"),
@@ -482,7 +482,7 @@ resource "azurerm_mssql_database" "test" {
   }
 
   tags = {
-    environment = "Test"
+    ENV = "Test"
   }
 }
 `, template, data.RandomInteger)
@@ -506,7 +506,7 @@ resource "azurerm_mssql_database" "test" {
   }
 
   tags = {
-    environment = "Staging"
+    ENV = "Staging"
   }
 }
 `, template, data.RandomInteger)
