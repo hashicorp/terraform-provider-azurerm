@@ -1,4 +1,4 @@
-package delivery_rule_actions
+package deliveryruleactions
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"

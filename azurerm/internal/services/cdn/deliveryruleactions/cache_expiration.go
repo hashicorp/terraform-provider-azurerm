@@ -1,4 +1,4 @@
-package delivery_rule_actions
+package deliveryruleactions
 
 import (
 	"fmt"
