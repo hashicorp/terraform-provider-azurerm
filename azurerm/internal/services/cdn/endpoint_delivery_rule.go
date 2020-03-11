@@ -49,6 +49,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleactions.CacheKeyQueryString(),
 				},
 
+				"modify_request_header_action": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleactions.ModifyRequestHeader(),
+				},
+
 				"url_redirect_action": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -68,32 +74,38 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 
 	conditions := make([]cdn.BasicDeliveryRuleCondition, 0)
 
-	if rsc := rule["request_scheme_condition"]; len(rsc.([]interface{})) > 0 {
-		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc.([]interface{})[0].(map[string]interface{})))
+	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
+		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
 	}
 
 	deliveryRule.Conditions = &conditions
 
 	actions := make([]cdn.BasicDeliveryRuleAction, 0)
 
-	if cea := rule["cache_expiration_action"]; len(cea.([]interface{})) > 0 {
-		action, err := deliveryruleactions.ExpandArmCdnEndpointActionCacheExpiration(cea.([]interface{})[0].(map[string]interface{}))
+	if cea := rule["cache_expiration_action"].([]interface{}); len(cea) > 0 {
+		action, err := deliveryruleactions.ExpandArmCdnEndpointActionCacheExpiration(cea[0].(map[string]interface{}))
 		if err != nil {
 			return nil, err
 		}
 		actions = append(actions, *action)
 	}
 
-	if ckqsa := rule["cache_key_query_string_action"]; len(ckqsa.([]interface{})) > 0 {
-		action, err := deliveryruleactions.ExpandArmCdnEndpointActionCacheKeyQueryString(ckqsa.([]interface{})[0].(map[string]interface{}))
+	if ckqsa := rule["cache_key_query_string_action"].([]interface{}); len(ckqsa) > 0 {
+		action, err := deliveryruleactions.ExpandArmCdnEndpointActionCacheKeyQueryString(ckqsa[0].(map[string]interface{}))
 		if err != nil {
 			return nil, err
 		}
 		actions = append(actions, *action)
 	}
 
-	if ura := rule["url_redirect_action"]; len(ura.([]interface{})) > 0 {
-		actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionUrlRedirect(ura.([]interface{})[0].(map[string]interface{})))
+	if mrha := rule["modify_request_header_action"].([]interface{}); len(mrha) > 0 {
+		for _, rawAction := range mrha {
+			actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionModifyRequestHeader(rawAction.(map[string]interface{})))
+		}
+	}
+
+	if ura := rule["url_redirect_action"].([]interface{}); len(ura) > 0 {
+		actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionUrlRedirect(ura[0].(map[string]interface{})))
 	}
 
 	deliveryRule.Actions = &actions
@@ -134,6 +146,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 
 			if action, isCacheKeyQueryStringAction := basicDeliveryRuleAction.AsDeliveryRuleCacheKeyQueryStringAction(); isCacheKeyQueryStringAction {
 				res["cache_key_query_string_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionCacheKeyQueryString(action)}
+				continue
+			}
+
+			if action, isModifyRequestHeaderAction := basicDeliveryRuleAction.AsDeliveryRuleRequestHeaderAction(); isModifyRequestHeaderAction {
+				res["modify_request_header_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionModifyRequestHeader(action)}
 				continue
 			}
 
