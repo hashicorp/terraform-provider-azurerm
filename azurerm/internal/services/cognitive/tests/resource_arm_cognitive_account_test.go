@@ -266,7 +266,7 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 func testAccAzureRMCognitiveAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -288,7 +288,7 @@ resource "azurerm_cognitive_account" "test" {
 func testAccAzureRMCognitiveAccount_speechServices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -326,7 +326,7 @@ resource "azurerm_cognitive_account" "import" {
 func testAccAzureRMCognitiveAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -352,7 +352,7 @@ resource "azurerm_cognitive_account" "test" {
 func testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpoint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -378,7 +378,7 @@ resource "azurerm_cognitive_account" "test" {
 func testAccAzureRMCognitiveAccount_accountApiPropertiesQnaRuntimeEndpointUpdatedUrl(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
