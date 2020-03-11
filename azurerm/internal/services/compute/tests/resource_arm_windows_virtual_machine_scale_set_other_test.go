@@ -1989,7 +1989,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_otherTerminateNotification(data acceptance.TestData, enabled bool) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
 
