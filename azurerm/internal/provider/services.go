@@ -62,6 +62,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/timeseriesinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
@@ -130,6 +131,7 @@ func SupportedServices() []common.ServiceRegistration {
 		storage.Registration{},
 		streamanalytics.Registration{},
 		subscription.Registration{},
+		timeseriesinsights.Registration{},
 		trafficmanager.Registration{},
 		web.Registration{},
 	}
