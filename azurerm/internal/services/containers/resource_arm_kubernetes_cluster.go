@@ -298,6 +298,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"outbound_ports_allocated": {
 										Type:         schema.TypeInt,
 										Optional:     true,
+										Default:      -1,
 										ValidateFunc: validation.IntBetween(0, 64000),
 									},
 									"idle_timeout_in_minutes": {
@@ -1187,7 +1188,7 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 
 	profile := &containerservice.ManagedClusterLoadBalancerProfile{}
 
-	if port := config["allocated_outbound_port"].(int); port >= 0 {
+	if port := config["outbound_ports_allocated"].(int); port >= 0 {
 		profile.AllocatedOutboundPorts = utils.Int32(int32(port))
 	}
 
