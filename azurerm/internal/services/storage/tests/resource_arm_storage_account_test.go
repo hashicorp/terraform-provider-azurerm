@@ -2,10 +2,11 @@ package tests
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"net/http"
 	"regexp"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -16,43 +17,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestValidateMsSqlDatabaseAutoPauseDelay(t *testing.T) {
+func TestValidateArmStorageAccountName(t *testing.T) {
 	testCases := []struct {
 		input       string
 		shouldError bool
 	}{
-		{"-1", false},
-		{"-2", true},
-		{"30", true},
-		{"60", false},
-		{"360", false},
-		{"19900", true},
+		{"ab", true},
+		{"ABC", true},
+		{"abc", false},
+		{"123456789012345678901234", false},
+		{"1234567890123456789012345", true},
+		{"abc12345", false},
 	}
 
 	for _, test := range testCases {
-		_, es := mssql.ValidateMsSqlDatabaseAutoPauseDelay(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
-
-func TestValidateMsSqlDBMinCapacity(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"-1", true},
-		{"0.25", true},
-		{"0.5", false},
-		{"1.25", false},
-		{"2", false},
-		{"2.25", true},
-	}
-
-	for _, test := range testCases {
-		_, es := mssql.ValidateMsSqlDBMinCapacity(test.input, "name")
+		_, es := storage.ValidateArmStorageAccountName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
