@@ -42,6 +42,13 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleactions.CacheExpiration(),
 				},
 
+				"cache_key_query_string_action": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     deliveryruleactions.CacheKeyQueryString(),
+				},
+
 				"url_redirect_action": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -71,6 +78,14 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 
 	if cea := rule["cache_expiration_action"]; len(cea.([]interface{})) > 0 {
 		action, err := deliveryruleactions.ExpandArmCdnEndpointActionCacheExpiration(cea.([]interface{})[0].(map[string]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		actions = append(actions, *action)
+	}
+
+	if ckqsa := rule["cache_key_query_string_action"]; len(ckqsa.([]interface{})) > 0 {
+		action, err := deliveryruleactions.ExpandArmCdnEndpointActionCacheKeyQueryString(ckqsa.([]interface{})[0].(map[string]interface{}))
 		if err != nil {
 			return nil, err
 		}
@@ -114,6 +129,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 		for _, basicDeliveryRuleAction := range *deliveryRule.Actions {
 			if action, isCacheExpirationAction := basicDeliveryRuleAction.AsDeliveryRuleCacheExpirationAction(); isCacheExpirationAction {
 				res["cache_expiration_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionCacheExpiration(action)}
+				continue
+			}
+
+			if action, isCacheKeyQueryStringAction := basicDeliveryRuleAction.AsDeliveryRuleCacheKeyQueryStringAction(); isCacheKeyQueryStringAction {
+				res["cache_key_query_string_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionCacheKeyQueryString(action)}
 				continue
 			}
 
