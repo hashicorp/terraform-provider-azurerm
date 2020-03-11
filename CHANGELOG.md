@@ -23,9 +23,9 @@ IMPROVEMENTS:
 
 * batch: upgrading to API version `2019-08-01` [GH-5967]
 * containerservice: upgrading to API version `2019-11-01` [GH-5531]
+* netapp: upgrading to API version `2019-10-01` [GH-5531]
 * dependencies: temporarily switching to using a fork of `github.com/Azure/go-autorest` to workaround an issue in the storage authorizer [GH-6050]
 * dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.9.0` [GH-6050]
-* netapp: upgrading to API version `2019-10-01` [GH-5531]
 * `azurerm_application_gateway` - support up to `125` for the `capacity` property with V2 SKU's [GH-5906]
 * `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
 * `azurerm_batch_pool` - support for the `public_ips` property [GH-5967]
