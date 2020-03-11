@@ -164,6 +164,14 @@ func resourceArmLoadBalancer() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"names_private_ip_addresses": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Set: schema.HashString,
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -270,6 +278,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 			privateIpAddress := ""
 			privateIpAddresses := make([]string, 0)
+			namesPrivateIpAddresses := make(map[string]string)
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
 					if ip := feipProps.PrivateIPAddress; ip != nil {
@@ -278,12 +287,16 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 						}
 
 						privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
+						if config.Name != nil {
+							namesPrivateIpAddresses[*config.Name] = *feipProps.PrivateIPAddress
+						}
 					}
 				}
 			}
 
 			d.Set("private_ip_address", privateIpAddress)
 			d.Set("private_ip_addresses", privateIpAddresses)
+			d.Set("names_private_ip_addresses", namesPrivateIpAddresses)
 		}
 	}
 
