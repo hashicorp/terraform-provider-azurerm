@@ -55,6 +55,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleactions.ModifyRequestHeader(),
 				},
 
+				"modify_response_header_action": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleactions.ModifyResponseHeader(),
+				},
+
 				"url_redirect_action": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -101,6 +107,12 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 	if mrha := rule["modify_request_header_action"].([]interface{}); len(mrha) > 0 {
 		for _, rawAction := range mrha {
 			actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionModifyRequestHeader(rawAction.(map[string]interface{})))
+		}
+	}
+
+	if mrha := rule["modify_response_header_action"].([]interface{}); len(mrha) > 0 {
+		for _, rawAction := range mrha {
+			actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionModifyResponseHeader(rawAction.(map[string]interface{})))
 		}
 	}
 
@@ -151,6 +163,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 
 			if action, isModifyRequestHeaderAction := basicDeliveryRuleAction.AsDeliveryRuleRequestHeaderAction(); isModifyRequestHeaderAction {
 				res["modify_request_header_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionModifyRequestHeader(action)}
+				continue
+			}
+
+			if action, isModifyResponseHeaderAction := basicDeliveryRuleAction.AsDeliveryRuleResponseHeaderAction(); isModifyResponseHeaderAction {
+				res["modify_response_header_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionModifyResponseHeader(action)}
 				continue
 			}
 
