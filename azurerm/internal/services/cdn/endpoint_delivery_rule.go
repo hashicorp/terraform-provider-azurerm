@@ -78,14 +78,29 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 		Order: utils.Int32(int32(rule["order"].(int))),
 	}
 
+	conditions := expandDeliveryRuleConditions(rule)
+	deliveryRule.Conditions = &conditions
+
+	actions, err := expandDeliveryRuleActions(rule)
+	if err != nil {
+		return nil, err
+	}
+	deliveryRule.Actions = &actions
+
+	return &deliveryRule, nil
+}
+
+func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDeliveryRuleCondition {
 	conditions := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
 		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
 	}
 
-	deliveryRule.Conditions = &conditions
+	return conditions
+}
 
+func expandDeliveryRuleActions(rule map[string]interface{}) ([]cdn.BasicDeliveryRuleAction, error) {
 	actions := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	if cea := rule["cache_expiration_action"].([]interface{}); len(cea) > 0 {
@@ -120,9 +135,7 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 		actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionUrlRedirect(ura[0].(map[string]interface{})))
 	}
 
-	deliveryRule.Actions = &actions
-
-	return &deliveryRule, nil
+	return actions, nil
 }
 
 func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[string]interface{} {
