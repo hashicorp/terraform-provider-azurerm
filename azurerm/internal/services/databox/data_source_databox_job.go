@@ -24,7 +24,7 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateDataBoxJobName,
+				ValidateFunc: validateDataBoxJobName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -48,38 +48,6 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
-						},
-						"notification_preference": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"at_azure_dc": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"data_copied": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"delivered": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"device_prepared": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"dispatched": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"picked_up": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-								},
-							},
 						},
 						"phone_extension": {
 							Type:     schema.TypeString,
@@ -254,7 +222,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 			if v, ok := details.AsJobDetailsType(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, false)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -282,7 +250,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 						return fmt.Errorf("Error setting `databox_preferred_disk_size_in_tb`: %+v", err)
 					}
 				}
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, false)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -304,7 +272,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 			} else if v, ok := details.AsHeavyJobDetails(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, false)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {

@@ -47,7 +47,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateDataBoxJobName,
+				ValidateFunc: validateDataBoxJobName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -63,7 +63,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateDataBoxJobContactName,
+							ValidateFunc: validateDataBoxJobContactName,
 						},
 						"emails": {
 							Type:     schema.TypeSet,
@@ -71,13 +71,13 @@ func resourceArmDataBoxJob() *schema.Resource {
 							MaxItems: 10,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: ValidateDataBoxJobEmail,
+								ValidateFunc: validateDataBoxJobEmail,
 							},
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateDataBoxJobPhoneNumber,
+							ValidateFunc: validateDataBoxJobPhoneNumber,
 						},
 						"mobile": {
 							Type:         schema.TypeString,
@@ -127,7 +127,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"phone_extension": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: ValidateDataBoxJobPhoneExtension,
+							ValidateFunc: validateDataBoxJobPhoneExtension,
 						},
 					},
 				},
@@ -196,7 +196,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"city": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateDataBoxJobCity,
+							ValidateFunc: validateDataBoxJobCity,
 						},
 						"country": {
 							Type:         schema.TypeString,
@@ -206,7 +206,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"postal_code": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateDataBoxJobPostCode,
+							ValidateFunc: validateDataBoxJobPostCode,
 						},
 						"state_or_province": {
 							Type:         schema.TypeString,
@@ -216,7 +216,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"street_address_1": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: ValidateDataBoxJobStreetAddress,
+							ValidateFunc: validateDataBoxJobStreetAddress,
 						},
 						"address_type": {
 							Type:     schema.TypeString,
@@ -231,22 +231,22 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"company_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: ValidateDataBoxJobCompanyName,
+							ValidateFunc: validateDataBoxJobCompanyName,
 						},
 						"street_address_2": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: ValidateDataBoxJobStreetAddress,
+							ValidateFunc: validateDataBoxJobStreetAddress,
 						},
 						"street_address_3": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: ValidateDataBoxJobStreetAddress,
+							ValidateFunc: validateDataBoxJobStreetAddress,
 						},
 						"postal_code_ext": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: ValidateDataBoxJobPostCode,
+							ValidateFunc: validateDataBoxJobPostCode,
 						},
 					},
 				},
@@ -268,7 +268,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ForceNew:     true,
-				ValidateFunc: ValidateDataBoxJobDiskPassKey,
+				ValidateFunc: validateDataBoxJobDiskPassKey,
 			},
 
 			"databox_preferred_disk_count": {
@@ -507,7 +507,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 			if v, ok := details.AsJobDetailsType(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, true)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -539,7 +539,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 						return fmt.Errorf("Error setting `databox_preferred_disk_size_in_tb`: %+v", err)
 					}
 				}
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, true)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -561,7 +561,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 			} else if v, ok := details.AsHeavyJobDetails(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, true)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -941,7 +941,7 @@ func flattenArmDataBoxJobDestinationAccount(input *[]databox.BasicDestinationAcc
 	return results
 }
 
-func flattenArmDataBoxJobContactDetails(input *databox.ContactDetails) []interface{} {
+func flattenArmDataBoxJobContactDetails(input *databox.ContactDetails, includeNotification bool) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -972,14 +972,19 @@ func flattenArmDataBoxJobContactDetails(input *databox.ContactDetails) []interfa
 		phoneNumber = *input.Phone
 	}
 
-	results = append(results, map[string]interface{}{
-		"name":                    contactName,
-		"emails":                  utils.FlattenStringSlice(&emails),
-		"mobile":                  mobile,
-		"notification_preference": flattenArmDataBoxJobNotificationPreference(input.NotificationPreference),
-		"phone_extension":         phoneExtension,
-		"phone_number":            phoneNumber,
-	})
+	result := map[string]interface{}{
+		"name":            contactName,
+		"emails":          utils.FlattenStringSlice(&emails),
+		"mobile":          mobile,
+		"phone_extension": phoneExtension,
+		"phone_number":    phoneNumber,
+	}
+
+	if includeNotification {
+		result["notification_preference"] = flattenArmDataBoxJobNotificationPreference(input.NotificationPreference)
+	}
+
+	results = append(results, result)
 
 	return results
 }

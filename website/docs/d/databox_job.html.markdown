@@ -73,25 +73,7 @@ An `contact_details` block supports the following:
 
 * `mobile` - The mobile number of the contact person
 
-* `notification_preference` - One or more `notification_preference` block defined below.
-
 * `phone_extension` - The phone extension number of the contact person.
-
----
-
-An `notification_preference` block supports the following:
-
-* `at_azure_dc` - (Optional) Is the at_azure_dc allowed?
-
-* `data_copied` - (Optional) Is the data_copied allowed?
-
-* `delivered` - (Optional) Is the delivered allowed?
-
-* `device_prepared` - (Optional) Is the device_prepared allowed?
-
-* `dispatched` - (Optional) Is the dispatched allowed?
-
-* `picked_up` - (Optional) Is the picked_up allowed?
 
 ---
 

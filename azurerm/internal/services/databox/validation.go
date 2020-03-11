@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func ValidateDataBoxJobName(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\da-zA-Z][-\da-zA-Z]{1,22}[\da-zA-Z]$`).MatchString(value) {
@@ -15,7 +15,7 @@ func ValidateDataBoxJobName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-func ValidateDataBoxJobContactName(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobContactName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{3,34}$`).MatchString(value) {
@@ -25,7 +25,7 @@ func ValidateDataBoxJobContactName(v interface{}, k string) (warnings []string, 
 	return warnings, errors
 }
 
-func ValidateDataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[+][\d]{2,}$`).MatchString(value) {
@@ -35,7 +35,7 @@ func ValidateDataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, 
 	return warnings, errors
 }
 
-func ValidateDataBoxJobEmail(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobEmail(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(value) {
@@ -45,7 +45,7 @@ func ValidateDataBoxJobEmail(v interface{}, k string) (warnings []string, errors
 	return warnings, errors
 }
 
-func ValidateDataBoxJobPhoneExtension(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobPhoneExtension(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\d]{0,4}$`).MatchString(value) {
@@ -55,7 +55,7 @@ func ValidateDataBoxJobPhoneExtension(v interface{}, k string) (warnings []strin
 	return warnings, errors
 }
 
-func ValidateDataBoxJobStreetAddress(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobStreetAddress(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{1,35}$`).MatchString(value) {
@@ -65,7 +65,7 @@ func ValidateDataBoxJobStreetAddress(v interface{}, k string) (warnings []string
 	return warnings, errors
 }
 
-func ValidateDataBoxJobPostCode(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobPostCode(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{1,9}$`).MatchString(value) {
@@ -75,7 +75,7 @@ func ValidateDataBoxJobPostCode(v interface{}, k string) (warnings []string, err
 	return warnings, errors
 }
 
-func ValidateDataBoxJobCity(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobCity(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{2,30}$`).MatchString(value) {
@@ -85,7 +85,7 @@ func ValidateDataBoxJobCity(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-func ValidateDataBoxJobCompanyName(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobCompanyName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{2,35}$`).MatchString(value) {
@@ -95,7 +95,7 @@ func ValidateDataBoxJobCompanyName(v interface{}, k string) (warnings []string, 
 	return warnings, errors
 }
 
-func ValidateDataBoxJobDiskPassKey(v interface{}, k string) (warnings []string, errors []error) {
+func validateDataBoxJobDiskPassKey(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) < 12 || len(value) > 32 {
