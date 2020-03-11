@@ -1474,7 +1474,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string, key string, value string) string {
+func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string, key string, value string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
