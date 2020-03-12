@@ -1,6 +1,6 @@
 # Terraform Provider for Azure (Resource Manager)
 
-The AzureRM Provider supports Terraform 0.10.x and later - but Terraform 0.12.x is recommended.
+Version 2.0 of the AzureRM Provider requires Terraform 0.12.x and later.
 
 * [Terraform Website](https://www.terraform.io)
 * [AzureRM Provider Documentation](https://www.terraform.io/docs/providers/azurerm/index.html)
