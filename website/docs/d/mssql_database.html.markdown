@@ -27,7 +27,7 @@ output "database_id" {
 
 * `name` - The name of the Ms SQL Database.
 
-* `mssql_server_id` - The name of the Ms SQL Server on which to create the database.
+* `mssql_server_id` - The id of the Ms SQL Server on which to create the database.
 
 ## Timeouts
 
