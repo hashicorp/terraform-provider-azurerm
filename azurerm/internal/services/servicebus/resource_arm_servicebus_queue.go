@@ -46,7 +46,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
+				ValidateFunc: validate.ServiceBusNamespaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
