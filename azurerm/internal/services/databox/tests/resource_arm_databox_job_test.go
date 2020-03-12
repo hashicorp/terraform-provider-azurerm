@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -46,6 +47,30 @@ func TestAccAzureRMDataBoxJob_complete(t *testing.T) {
 				),
 			},
 			data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
+		},
+	})
+}
+
+func TestAccAzureRMDataBoxJob_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_databox_job", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataBoxJob_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataBoxJobExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMDataBoxJob_requiresImport),
 		},
 	})
 }
@@ -116,33 +141,6 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataBoxJob_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_databox_job", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataBoxJob_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataBoxJobExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMDataBoxJob_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_databox_job"),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMDataBoxJobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataBox.JobClient
@@ -153,12 +151,14 @@ func testCheckAzureRMDataBoxJobExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("DataBox Job not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DataBoxJobID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: DataBox Job %q (Resource Group %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: DataBox Job %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on DataBox.JobClient: %+v", err)
 		}
@@ -176,10 +176,12 @@ func testCheckAzureRMDataBoxJobDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DataBoxJobID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on DataBox.JobClient: %+v", err)
 			}
@@ -198,8 +200,8 @@ func testAccAzureRMDataBoxJob_basic(data acceptance.TestData) string {
 
 resource "azurerm_databox_job" "test" {
   name                = "acctest-DataBox-%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   contact_details {
     name         = "DataBoxJobTester"
@@ -209,7 +211,7 @@ resource "azurerm_databox_job" "test" {
 
   destination_account {
     type               = "StorageAccount"
-    storage_account_id = "${azurerm_storage_account.test.id}"
+    storage_account_id = azurerm_storage_account.test.id
   }
 
   shipping_address {
@@ -220,7 +222,7 @@ resource "azurerm_databox_job" "test" {
     street_address_1  = "16 TOWNSEND ST"
   }
 
-  preferred_shipment_type = "CustomerManaged"
+  preferred_shipment_type = "MicrosoftManaged"
 
   sku_name = "DataBox"
 }
@@ -232,9 +234,9 @@ func testAccAzureRMDataBoxJob_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_databox_job" "import" {
-  name                = "${azurerm_databox_job.test.name}"
-  location            = "${azurerm_databox_job.test.location}"
-  resource_group_name = "${azurerm_databox_job.test.resource_group_name}"
+  name                = azurerm_databox_job.test.name
+  location            = azurerm_databox_job.test.location
+  resource_group_name = azurerm_databox_job.test.resource_group_name
 
   contact_details {
     name         = "DataBoxJobTester"
@@ -244,7 +246,7 @@ resource "azurerm_databox_job" "import" {
 
   destination_account {
     type               = "StorageAccount"
-    storage_account_id = "${azurerm_storage_account.test.id}"
+    storage_account_id = azurerm_storage_account.test.id
   }
 
   shipping_address {
@@ -255,7 +257,7 @@ resource "azurerm_databox_job" "import" {
     street_address_1  = "16 TOWNSEND ST"
   }
 
-  preferred_shipment_type = "CustomerManaged"
+  preferred_shipment_type = "MicrosoftManaged"
 
   sku_name = "DataBox"
 }
@@ -271,8 +273,8 @@ data "azurerm_subscription" "current" {}
 
 resource "azurerm_storage_account" "test2" {
   name                = "acctestrgstorage2%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   account_kind             = "StorageV2"
   account_tier             = "Standard"
@@ -281,8 +283,8 @@ resource "azurerm_storage_account" "test2" {
 
 resource "azurerm_databox_job" "test" {
   name                = "acctest-DataBox-%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   contact_details {
     name         = "DataBoxJobTester"
@@ -302,14 +304,14 @@ resource "azurerm_databox_job" "test" {
 
   destination_account {
     type               = "StorageAccount"
-    storage_account_id = "${azurerm_storage_account.test2.id}"
+    storage_account_id = azurerm_storage_account.test2.id
     share_password     = "fddbc123123aa@"
   }
 
   destination_account {
-    type                       = "ManagedDisk"
-    resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
-    staging_storage_account_id = "${azurerm_storage_account.test.id}"
+    type                                    = "ManagedDisk"
+    managed_disk_resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
+    managed_disk_staging_storage_account_id = azurerm_storage_account.test.id
   }
 
   shipping_address {
@@ -325,15 +327,18 @@ resource "azurerm_databox_job" "test" {
     postal_code_ext   = "94107"
   }
 
-  expected_data_size_in_tb          = 5
-  databox_disk_passkey              = "abcabc123123@"
-  databox_preferred_disk_count      = 5
-  databox_preferred_disk_size_in_tb = 2
-  sku_name                          = "DataBoxDisk"
-  datacenter_region_preference      = ["westus", "eastus"]
-  delivery_type                     = "Scheduled"
-  delivery_scheduled_date_time      = "2020-04-01T05:30:00+05:30"
-  preferred_shipment_type           = "CustomerManaged"
+  expected_data_size_in_tb = 5
+  databox_disk_passkey     = "abcabc123123@"
+
+  databox_preferred_disk {
+    size_in_tb = 2
+    count      = 5
+  }
+
+  sku_name                     = "DataBoxDisk"
+  datacenter_region_preference = ["westus", "westcentralus"]
+  delivery_type                = "NonScheduled"
+  preferred_shipment_type      = "MicrosoftManaged"
 
   tags = {
     env = "TEST"
@@ -351,8 +356,8 @@ data "azurerm_subscription" "current" {}
 
 resource "azurerm_storage_account" "test2" {
   name                = "acctestrgstorage2%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   account_kind             = "StorageV2"
   account_tier             = "Standard"
@@ -361,8 +366,8 @@ resource "azurerm_storage_account" "test2" {
 
 resource "azurerm_databox_job" "test" {
   name                = "acctest-DataBox-%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   contact_details {
     name         = "DataBoxJobTester2"
@@ -382,14 +387,14 @@ resource "azurerm_databox_job" "test" {
 
   destination_account {
     type               = "StorageAccount"
-    storage_account_id = "${azurerm_storage_account.test2.id}"
+    storage_account_id = azurerm_storage_account.test2.id
     share_password     = "fddbc123123aa@"
   }
 
   destination_account {
-    type                       = "ManagedDisk"
-    resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
-    staging_storage_account_id = "${azurerm_storage_account.test.id}"
+    type                                    = "ManagedDisk"
+    managed_disk_resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
+    managed_disk_staging_storage_account_id = azurerm_storage_account.test.id
   }
 
   shipping_address {
@@ -405,15 +410,18 @@ resource "azurerm_databox_job" "test" {
     postal_code_ext   = "92111"
   }
 
-  expected_data_size_in_tb          = 6
-  databox_disk_passkey              = "abcabc123123@"
-  databox_preferred_disk_count      = 5
-  databox_preferred_disk_size_in_tb = 2
-  sku_name                          = "DataBoxDisk"
-  datacenter_region_preference      = ["westus", "eastus"]
-  delivery_type                     = "Scheduled"
-  delivery_scheduled_date_time      = "2020-04-01T05:30:00+05:30"
-  preferred_shipment_type           = "CustomerManaged"
+  expected_data_size_in_tb = 5
+  databox_disk_passkey     = "abcabc123123@"
+
+  databox_preferred_disk {
+    size_in_tb = 2
+    count      = 5
+  }
+
+  sku_name                     = "DataBoxDisk"
+  datacenter_region_preference = ["westus", "westcentralus"]
+  delivery_type                = "NonScheduled"
+  preferred_shipment_type      = "MicrosoftManaged"
 
   tags = {
     env = "TEST2"
@@ -423,6 +431,9 @@ resource "azurerm_databox_job" "test" {
 }
 
 func testAccAzureRMDataBoxJob_template(data acceptance.TestData) string {
+	// Only location `West Central US` is whitelisted.
+	location := "westcentralus"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -430,17 +441,17 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-databoxjob-%d"
-  location = "westus"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
   name                = "acctestrgstorage%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "RAGRS"
 }
-`, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, location, data.RandomString)
 }

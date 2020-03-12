@@ -76,27 +76,25 @@ The following arguments are supported:
 
 * `destination_account` - (Required) One or more `destination_account` block defined below.
 
-* `preferred_shipment_type` - (Required) Specified shipment logistics type that the customer preferred. Possible values include: `CustomerManaged`, `MicrosoftManaged`. Changing this forces a new resource to be created.
+* `preferred_shipment_type` - (Required) Specified shipment logistics type that the customer preferred. Possible values include: `CustomerManaged` and `MicrosoftManaged`. Changing this forces a new resource to be created.
 
-* `shipping_address` - (Required) One or more `destination_account` block defined below.
+* `shipping_address` - (Required) One or more `shipping_address` block defined below.
 
-* `sku_name` - (Required) Specified the sku name. Possible values include: `DataBox`, `DataBoxDisk`, `DataBoxHeavy`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) Specified the sku name. Possible values include: `DataBox`, `DataBoxDisk` and `DataBoxHeavy`. Changing this forces a new resource to be created.
 
 * `databox_disk_passkey` - (Optional) Specified user entered passkey for DataBox Disk job. Changing this forces a new resource to be created.
 
-* `databox_preferred_disk_count` - (Optional) Specified the disk count. Changing this forces a new resource to be created.
-
-* `databox_preferred_disk_size_in_tb` - (Optional) Specified the disk size in tb. Changing this forces a new resource to be created.
+* `databox_preferred_disk` - (Required) One or more `databox_preferred_disk` block defined below.
 
 * `datacenter_region_preference` - (Optional) Specified the preferred Data Center Region. Changing this forces a new resource to be created.
 
 * `delivery_scheduled_date_time` - (Optional) Specified the delivery scheduled date time. Changing this forces a new resource to be created.
 
-* `delivery_type` - (Optional) Specified the delivery type of Job. Possible values include: `NonScheduled`, `Scheduled`. Changing this forces a new resource to be created.
+* `delivery_type` - (Optional) Specified the delivery type of Job. Possible values include: `NonScheduled` and `Scheduled`. Changing this forces a new resource to be created.
 
 * `device_password` - (Optional) Specified the device password for unlocking DataBox Heavy. Changing this forces a new resource to be created.
 
-* `expected_data_size_in_tb` - (Optional) Specified the expected size of the data, which needs to be transferred in this job, in tb. Changing this forces a new resource to be created.
+* `expected_data_size_in_tb` - (Optional) Specified the expected size of the data, which needs to be transferred in this job, in tb. For `DataBoxDisk`, specifying the expected data in terabytes is mandatory. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -115,6 +113,14 @@ An `contact_details` block supports the following:
 * `notification_preference` - (Optional) One or more `notification_preference` block defined below.
 
 * `phone_extension` - (Optional) Specified the phone extension number of the contact person.
+
+---
+
+An `databox_preferred_disk` block supports the following:
+
+* `count` - (Optional) Specified the disk count. Changing this forces a new resource to be created.
+
+* `size_in_tb` - (Optional) Specified the disk size in tb. Changing this forces a new resource to be created.
 
 ---
 
@@ -138,11 +144,11 @@ An `destination_account` block supports the following:
 
 * `type` - (Required) Specified the destination account type. Possible values include: `DataDestinationTypeManagedDisk`, `DataDestinationTypeStorageAccount`. Changing this forces a new resource to be created.
 
-* `resource_group_id` - (Optional) Specified the destination Resource Group Id where the Compute disks should be created. Changing this forces a new resource to be created.
+* `managed_disk_resource_group_id` - (Optional) Specified the destination Resource Group Id where the Compute disks should be created. Changing this forces a new resource to be created.
 
 * `share_password` - (Optional) Specified the share password to be shared by all shares in SA. Changing this forces a new resource to be created.
 
-* `staging_storage_account_id` - (Optional) Specified arm id of the storage account that can be used to copy the vhd for staging. Changing this forces a new resource to be created.
+* `managed_disk_staging_storage_account_id` - (Optional) Specified arm id of the storage account that can be used to copy the vhd for staging. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Optional) Specified arm id of the destination where the data has to be moved. Changing this forces a new resource to be created.
 

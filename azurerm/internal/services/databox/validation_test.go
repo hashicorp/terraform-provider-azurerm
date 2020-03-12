@@ -402,6 +402,10 @@ func TestValidateDataBoxJobDiskPassKey(t *testing.T) {
 			expected: false,
 		},
 		{
+			input:    "     ",
+			expected: false,
+		},
+		{
 			input:    "hellohellohello!1",
 			expected: true,
 		},

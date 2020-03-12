@@ -31,76 +31,20 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"contact_details": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"emails": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"mobile": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"phone_extension": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"phone_number": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"databox_preferred_disk_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
-			"databox_preferred_disk_size_in_tb": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
-			"datacenter_region_preference": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
-			"delivery_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"delivery_scheduled_date_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"destination_account": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"resource_group_id": {
+						"managed_disk_resource_group_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"managed_disk_staging_storage_account_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"share_password": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"staging_storage_account_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -117,67 +61,9 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 			},
 
 			"device_password": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"expected_data_size_in_tb": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
-			"preferred_shipment_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"shipping_address": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"address_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"city": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"company_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"country": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"postal_code": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"postal_code_ext": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"state_or_province": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"street_address_1": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"street_address_2": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"street_address_3": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
 			},
 
 			"sku_name": {
@@ -213,83 +99,22 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 	}
 	d.Set("sku_name", resp.Sku.Name)
 	if props := resp.JobProperties; props != nil {
-		if props.DeliveryInfo != nil && props.DeliveryInfo.ScheduledDateTime != nil {
-			d.Set("delivery_scheduled_date_time", (*props.DeliveryInfo.ScheduledDateTime).Format(time.RFC3339))
-		}
-		d.Set("delivery_type", props.DeliveryType)
-
 		if details := props.Details; details != nil {
 			if v, ok := details.AsJobDetailsType(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, false)); err != nil {
-					return fmt.Errorf("Error setting `contact_details`: %+v", err)
-				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
 					return fmt.Errorf("Error setting `destination_account`: %+v", err)
-				}
-				if v.Preferences != nil {
-					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
-						return fmt.Errorf("Error setting `datacenter_region_preference`: %+v", err)
-					}
-					if v.Preferences.TransportPreferences != nil {
-						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
-							return fmt.Errorf("Error setting `preferred_shipment_type`: %+v", err)
-						}
-					}
-				}
-				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
-					return fmt.Errorf("Error setting `shipping_address`: %+v", err)
 				}
 			} else if v, ok := details.AsDiskJobDetails(); ok && v != nil {
-				for k, v := range v.PreferredDisks {
-					if err := d.Set("databox_preferred_disk_count", k); err != nil {
-						return fmt.Errorf("Error setting `databox_preferred_disk_count`: %+v", err)
-					}
-					if err := d.Set("databox_preferred_disk_size_in_tb", v); err != nil {
-						return fmt.Errorf("Error setting `databox_preferred_disk_size_in_tb`: %+v", err)
-					}
-				}
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, false)); err != nil {
-					return fmt.Errorf("Error setting `contact_details`: %+v", err)
-				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
 					return fmt.Errorf("Error setting `destination_account`: %+v", err)
-				}
-				if v.Preferences != nil {
-					if v.Preferences.TransportPreferences != nil {
-						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
-							return fmt.Errorf("Error setting `preferred_shipment_type`: %+v", err)
-						}
-					}
-					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
-						return fmt.Errorf("Error setting `datacenter_region_preference`: %+v", err)
-					}
-				}
-				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
-					return fmt.Errorf("Error setting `shipping_address`: %+v", err)
 				}
 			} else if v, ok := details.AsHeavyJobDetails(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, false)); err != nil {
-					return fmt.Errorf("Error setting `contact_details`: %+v", err)
-				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
 					return fmt.Errorf("Error setting `destination_account`: %+v", err)
-				}
-				if v.Preferences != nil {
-					if v.Preferences.TransportPreferences != nil {
-						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
-							return fmt.Errorf("Error setting `preferred_shipment_type`: %+v", err)
-						}
-					}
-					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
-						return fmt.Errorf("Error setting `datacenter_region_preference`: %+v", err)
-					}
-				}
-				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
-					return fmt.Errorf("Error setting `shipping_address`: %+v", err)
 				}
 			}
 		}

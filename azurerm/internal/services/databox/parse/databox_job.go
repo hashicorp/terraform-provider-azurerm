@@ -4,18 +4,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DataBoxJobID struct {
+type DataBoxJobId struct {
 	Name          string
 	ResourceGroup string
 }
 
-func ParseDataBoxJobID(input string) (*DataBoxJobID, error) {
+func DataBoxJobID(input string) (*DataBoxJobId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	account := DataBoxJobID{
+	account := DataBoxJobId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

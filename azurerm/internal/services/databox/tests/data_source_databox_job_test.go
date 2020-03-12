@@ -31,8 +31,8 @@ func testAccDataSourceDataBoxJob_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_databox_job" "test" {
-  name                = "${azurerm_databox_job.test.name}"
-  resource_group_name = "${azurerm_databox_job.test.resource_group_name}"
+  name                = azurerm_databox_job.test.name
+  resource_group_name = azurerm_databox_job.test.resource_group_name
 }
 `, config)
 }

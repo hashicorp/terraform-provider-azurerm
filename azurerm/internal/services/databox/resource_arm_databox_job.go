@@ -31,7 +31,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 		Delete: resourceArmDataBoxJobDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ParseDataBoxJobID(id)
+			_, err := parse.DataBoxJobID(id)
 			return err
 		}),
 
@@ -94,32 +94,32 @@ func resourceArmDataBoxJob() *schema.Resource {
 									"at_azure_dc": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
+										Default:  true,
 									},
 									"data_copied": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
+										Default:  true,
 									},
 									"delivered": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
+										Default:  true,
 									},
 									"device_prepared": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
+										Default:  true,
 									},
 									"dispatched": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
+										Default:  true,
 									},
 									"picked_up": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
+										Default:  true,
 									},
 								},
 							},
@@ -134,7 +134,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 			},
 
 			"destination_account": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MaxItems: 10,
 				Elem: &schema.Resource{
@@ -148,7 +148,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 								string(databox.DataDestinationTypeManagedDisk),
 							}, false),
 						},
-						"resource_group_id": {
+						"managed_disk_resource_group_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
@@ -161,7 +161,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"staging_storage_account_id": {
+						"managed_disk_staging_storage_account_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
@@ -221,7 +221,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"address_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							Default:  string(databox.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(databox.Commercial),
 								string(databox.None),
@@ -271,18 +271,26 @@ func resourceArmDataBoxJob() *schema.Resource {
 				ValidateFunc: validateDataBoxJobDiskPassKey,
 			},
 
-			"databox_preferred_disk_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-
-			"databox_preferred_disk_size_in_tb": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
+			"databox_preferred_disk": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"size_in_tb": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
 			},
 
 			"datacenter_region_preference": {
@@ -307,8 +315,8 @@ func resourceArmDataBoxJob() *schema.Resource {
 			"delivery_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
+				Default:  string(databox.NonScheduled),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(databox.NonScheduled),
 					string(databox.Scheduled),
@@ -316,11 +324,12 @@ func resourceArmDataBoxJob() *schema.Resource {
 			},
 
 			"device_password": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ForceNew:      true,
+				ConflictsWith: []string{"databox_disk_passkey"},
+				ValidateFunc:  validation.StringIsNotEmpty,
 			},
 
 			"expected_data_size_in_tb": {
@@ -358,33 +367,15 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	contactDetails := d.Get("contact_details").([]interface{})
 	deliveryType := d.Get("delivery_type").(string)
-	destinationAccount := d.Get("destination_account").([]interface{})
+	destinationAccount := d.Get("destination_account").(*schema.Set).List()
 	devicePassword := d.Get("device_password").(string)
 	diskPassKey := d.Get("databox_disk_passkey").(string)
+	databoxPreferredDisk := d.Get("databox_preferred_disk").([]interface{})
 	preferredShipmentType := d.Get("preferred_shipment_type").(string)
 	datacenterRegionPreference := d.Get("datacenter_region_preference").(*schema.Set).List()
 	shippingAddress := d.Get("shipping_address").([]interface{})
 	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})
-
-	var expectedDataSizeInTB *int32
-	if v, ok := d.GetOkExists("expected_data_size_in_tb"); ok {
-		expectedDataSizeInTB = utils.Int32(int32(v.(int)))
-	}
-
-	var databoxPreferredDiskCount *int
-	if v, ok := d.GetOkExists("databox_preferred_disk_count"); ok {
-		databoxPreferredDiskCount = utils.Int(v.(int))
-	}
-
-	var databoxPreferredDiskSizeInTB *int
-	if v, ok := d.GetOkExists("databox_preferred_disk_size_in_tb"); ok {
-		databoxPreferredDiskSizeInTB = utils.Int(v.(int))
-	}
-
-	if !(databoxPreferredDiskCount == nil && databoxPreferredDiskSizeInTB == nil) && !(databoxPreferredDiskCount != nil && databoxPreferredDiskSizeInTB != nil) {
-		return fmt.Errorf("Error setting `databox_preferred_disk_count` and `databox_preferred_disk_size_in_tb`: They should be set or not set together")
-	}
 
 	parameters := databox.JobResource{
 		Location: utils.String(location),
@@ -395,6 +386,11 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 			Name: databox.SkuName(skuName),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	var expectedDataSizeInTB *int32
+	if v, ok := d.GetOkExists("expected_data_size_in_tb"); ok {
+		expectedDataSizeInTB = utils.Int32(int32(v.(int)))
 	}
 
 	if v, ok := d.GetOk("delivery_scheduled_date_time"); ok {
@@ -431,7 +427,7 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 				},
 				PreferredDataCenterRegion: utils.ExpandStringSlice(datacenterRegionPreference),
 			},
-			PreferredDisks:  expandArmDataBoxJobPreferredDisks(databoxPreferredDiskSizeInTB, databoxPreferredDiskCount),
+			PreferredDisks:  expandArmDataBoxJobPreferredDisks(databoxPreferredDisk),
 			ShippingAddress: expandArmDataBoxJobShippingAddress(shippingAddress),
 		}
 	case string(databox.DataBoxHeavy):
@@ -475,7 +471,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseDataBoxJobID(d.Id())
+	id, err := parse.DataBoxJobID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -507,7 +503,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 			if v, ok := details.AsJobDetailsType(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, true)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -527,19 +523,10 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 					return fmt.Errorf("Error setting `shipping_address`: %+v", err)
 				}
 			} else if v, ok := details.AsDiskJobDetails(); ok && v != nil {
-				for k, v := range v.PreferredDisks {
-					diskSizeInTB, err := strconv.Atoi(k)
-					if err != nil {
-						return fmt.Errorf("Error converting `databox_preferred_disk_size_in_tb` %q to an int: %+v", k, err)
-					}
-					if err := d.Set("databox_preferred_disk_count", v); err != nil {
-						return fmt.Errorf("Error setting `databox_preferred_disk_count`: %+v", err)
-					}
-					if err := d.Set("databox_preferred_disk_size_in_tb", diskSizeInTB); err != nil {
-						return fmt.Errorf("Error setting `databox_preferred_disk_size_in_tb`: %+v", err)
-					}
+				if err := d.Set("databox_preferred_disk", flattenArmDataBoxJobPreferredDisk(v.PreferredDisks)); err != nil {
+					return fmt.Errorf("Error setting `databox_preferred_disk`: %+v", err)
 				}
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, true)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -561,7 +548,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 			} else if v, ok := details.AsHeavyJobDetails(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails, true)); err != nil {
+				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("Error setting `contact_details`: %+v", err)
 				}
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
@@ -639,7 +626,7 @@ func resourceArmDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseDataBoxJobID(d.Id())
+	id, err := parse.DataBoxJobID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -668,7 +655,7 @@ func resourceArmDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	destinationAccount := d.Get("destination_account").([]interface{})
+	destinationAccount := d.Get("destination_account").(*schema.Set).List()
 	for _, item := range destinationAccount {
 		if item != nil {
 			v := item.(map[string]interface{})
@@ -680,7 +667,7 @@ func resourceArmDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error
 			case string(databox.DataDestinationTypeStorageAccount):
 				scope = v["storage_account_id"].(string)
 			case string(databox.DataDestinationTypeManagedDisk):
-				scope = v["staging_storage_account_id"].(string)
+				scope = v["managed_disk_staging_storage_account_id"].(string)
 			}
 
 			if scope != "" {
@@ -747,9 +734,9 @@ func expandArmDataBoxJobDestinationAccount(input []interface{}) *[]databox.Basic
 			case string(databox.DataDestinationTypeManagedDisk):
 				result := &databox.DestinationManagedDiskDetails{
 					DataDestinationType:     databox.DataDestinationTypeBasicDestinationAccountDetails(dataDestinationType),
-					ResourceGroupID:         utils.String(v["resource_group_id"].(string)),
+					ResourceGroupID:         utils.String(v["managed_disk_resource_group_id"].(string)),
 					SharePassword:           utils.String(v["share_password"].(string)),
-					StagingStorageAccountID: utils.String(v["staging_storage_account_id"].(string)),
+					StagingStorageAccountID: utils.String(v["managed_disk_staging_storage_account_id"].(string)),
 				}
 				results = append(results, result)
 			}
@@ -806,13 +793,14 @@ func expandArmDataBoxJobNotificationPreference(input []interface{}) *[]databox.N
 	return &results
 }
 
-func expandArmDataBoxJobPreferredDisks(preferredDiskSizeInTB *int, preferredDiskCount *int) map[string]*int32 {
+func expandArmDataBoxJobPreferredDisks(input []interface{}) map[string]*int32 {
 	results := make(map[string]*int32)
-	if preferredDiskCount == nil || preferredDiskSizeInTB == nil {
+	if len(input) == 0 {
 		return results
 	}
 
-	results[*utils.String(strconv.Itoa(*preferredDiskSizeInTB))] = utils.Int32(int32(*preferredDiskCount))
+	v := input[0].(map[string]interface{})
+	results[*utils.String(strconv.Itoa(v["size_in_tb"].(int)))] = utils.Int32(int32(v["count"].(int)))
 
 	return results
 }
@@ -929,10 +917,10 @@ func flattenArmDataBoxJobDestinationAccount(input *[]databox.BasicDestinationAcc
 				}
 
 				results = append(results, map[string]interface{}{
-					"type":                       dataDestinationType,
-					"resource_group_id":          resourceGroupID,
-					"share_password":             sharePassword,
-					"staging_storage_account_id": stagingStorageAccountID,
+					"type":                           dataDestinationType,
+					"managed_disk_resource_group_id": resourceGroupID,
+					"share_password":                 sharePassword,
+					"managed_disk_staging_storage_account_id": stagingStorageAccountID,
 				})
 			}
 		}
@@ -941,7 +929,7 @@ func flattenArmDataBoxJobDestinationAccount(input *[]databox.BasicDestinationAcc
 	return results
 }
 
-func flattenArmDataBoxJobContactDetails(input *databox.ContactDetails, includeNotification bool) []interface{} {
+func flattenArmDataBoxJobContactDetails(input *databox.ContactDetails) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -972,19 +960,14 @@ func flattenArmDataBoxJobContactDetails(input *databox.ContactDetails, includeNo
 		phoneNumber = *input.Phone
 	}
 
-	result := map[string]interface{}{
-		"name":            contactName,
-		"emails":          utils.FlattenStringSlice(&emails),
-		"mobile":          mobile,
-		"phone_extension": phoneExtension,
-		"phone_number":    phoneNumber,
-	}
-
-	if includeNotification {
-		result["notification_preference"] = flattenArmDataBoxJobNotificationPreference(input.NotificationPreference)
-	}
-
-	results = append(results, result)
+	results = append(results, map[string]interface{}{
+		"name":                    contactName,
+		"emails":                  utils.FlattenStringSlice(&emails),
+		"mobile":                  mobile,
+		"notification_preference": flattenArmDataBoxJobNotificationPreference(input.NotificationPreference),
+		"phone_extension":         phoneExtension,
+		"phone_number":            phoneNumber,
+	})
 
 	return results
 }
@@ -1026,6 +1009,26 @@ func flattenArmDataBoxJobNotificationPreference(input *[]databox.NotificationPre
 		"at_azure_dc":     atAzureDC,
 		"data_copied":     dataCopied,
 	})
+
+	return results
+}
+
+func flattenArmDataBoxJobPreferredDisk(input map[string]*int32) []interface{} {
+	results := make([]interface{}, 0)
+	if len(input) == 0 {
+		return results
+	}
+
+	result := map[string]interface{}{}
+	for k, v := range input {
+		if v != nil {
+			sizeInTB, _ := strconv.Atoi(k)
+			result["size_in_tb"] = sizeInTB
+			result["count"] = v
+		}
+	}
+
+	results = append(results, result)
 
 	return results
 }

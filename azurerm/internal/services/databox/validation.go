@@ -3,7 +3,24 @@ package databox
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/parse"
 )
+
+func DataBoxJobID(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if _, err := parse.DataBoxJobID(v); err != nil {
+		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+		return
+	}
+
+	return warnings, errors
+}
 
 func validateDataBoxJobName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
@@ -18,7 +35,7 @@ func validateDataBoxJobName(v interface{}, k string) (warnings []string, errors 
 func validateDataBoxJobContactName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^[\s\S]{3,34}$`).MatchString(value) {
+	if !regexp.MustCompile(`^[\S][\s\S]{1,32}[\S]$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf("%q must be between 3 and 34 characters in length", k))
 	}
 

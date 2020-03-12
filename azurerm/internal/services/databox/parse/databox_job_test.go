@@ -4,10 +4,10 @@ import (
 	"testing"
 )
 
-func TestParseDataBoxJobID(t *testing.T) {
+func TestDataBoxJobID(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *DataBoxJobID
+		expected *DataBoxJobId
 	}{
 		{
 			input:    "",
@@ -39,7 +39,7 @@ func TestParseDataBoxJobID(t *testing.T) {
 		},
 		{
 			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.DataBox/jobs/job1",
-			expected: &DataBoxJobID{
+			expected: &DataBoxJobId{
 				Name:          "job1",
 				ResourceGroup: "hello",
 			},
@@ -48,7 +48,7 @@ func TestParseDataBoxJobID(t *testing.T) {
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := ParseDataBoxJobID(v.input)
+		actual, err := DataBoxJobID(v.input)
 
 		// if we get something there shouldn't be an error
 		if v.expected != nil && err == nil {
