@@ -1116,56 +1116,56 @@ resource "azurerm_service_fabric_cluster" "test" {
 func testAccAzureRMServiceFabricCluster_clientCertificateCommonNames(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+	name     = "acctestRG-%d"
+	location = "%s"
+	}
 
-resource "azurerm_service_fabric_cluster" "test" {
-  name                = "acctest-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  reliability_level   = "Bronze"
-  upgrade_mode        = "Automatic"
-  vm_image            = "Windows"
-  management_endpoint = "https://example:80"
+	resource "azurerm_service_fabric_cluster" "test" {
+	name                = "acctest-%d"
+	resource_group_name = azurerm_resource_group.test.name
+	location            = azurerm_resource_group.test.location
+	reliability_level   = "Bronze"
+	upgrade_mode        = "Automatic"
+	vm_image            = "Windows"
+	management_endpoint = "https://example:80"
 
-  certificate {
-    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
-    x509_store_name = "My"
-  }
+	certificate {
+		thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+		x509_store_name = "My"
+	}
 
-  client_certificate_common_name {
-    certificate_common_name = "firstcertcommonname"
-	is_admin   = true
-	certificate_issuer_thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
-  }
+	client_certificate_common_name {
+		certificate_common_name       = "firstcertcommonname"
+		is_admin                      = true
+		certificate_issuer_thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+	}
 
-  client_certificate_common_name {
-	certificate_common_name = "secondcertcommonname"
-	is_admin   = false
-  }
+	client_certificate_common_name {
+		certificate_common_name = "secondcertcommonname"
+		is_admin                = false
+	}
 
-  client_certificate_thumbprint {
-    thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
-    is_admin   = true
-  }
+	client_certificate_thumbprint {
+		thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+		is_admin   = true
+	}
 
-  fabric_settings {
-    name = "Security"
+	fabric_settings {
+		name = "Security"
 
-    parameters = {
-      "ClusterProtectionLevel" = "EncryptAndSign"
-    }
-  }
+		parameters = {
+		"ClusterProtectionLevel" = "EncryptAndSign"
+		}
+	}
 
-  node_type {
-    name                 = "first"
-    instance_count       = 3
-    is_primary           = true
-    client_endpoint_port = 2020
-    http_endpoint_port   = 80
-  }
-}
+	node_type {
+		name                 = "first"
+		instance_count       = 3
+		is_primary           = true
+		client_endpoint_port = 2020
+		http_endpoint_port   = 80
+	}
+	}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
