@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `mssql_server_id` - (Required) The id of the Ms SQL Server on which to create the database. Changing this forces a new resource to be created.
 
-* `business_critical` - (Optional) A `business_critical` block as defined below. Conflicts with `general_purpose` and `hyper_scale`.
+* `business_critical` - (Optional) A `business_critical` block as defined below. Conflicts with `general_purpose`, `hyper_scale` and `elastic_pool_id`.
 
 * `collation` - (Optional) Specifies the collation of the database. Changing this forces a new resource to be created.
 
@@ -72,11 +72,11 @@ The following arguments are supported:
 
 * `create_secondary_mode` - (Optional) A `create_secondary_mode` block as defined below. Conflicts with `create_copy_mode` and `create_pitr_mode`.
 
-* `elastic_pool_id` - (Optional) Specifies the id of the elastic pool containing this database. Changing this forces a new resource to be created.
+* `elastic_pool_id` - (Optional) Specifies the id of the elastic pool containing this database. Changing this forces a new resource to be created. Conflicts with `general_purpose`, `hyper_scale` and `business_critical`.
 
-* `general_purpose` - (Optional) A `general_purpose` block as defined below. Conflicts with `business_critical` and `hyper_scale`.
+* `general_purpose` - (Optional) A `general_purpose` block as defined below. Conflicts with `business_critical`, `hyper_scale`and `elastic_pool_id`.
 
-* `hyper_scale` - (Optional) A `hyper_scale` block as defined below. Changing this forces a new resource to be created. Conflicts with `business_critical` and `general_purpose`.
+* `hyper_scale` - (Optional) A `hyper_scale` block as defined below. Changing this forces a new resource to be created. Conflicts with `business_critical`, `general_purpose` and `elastic_pool_id`.
 
 * `license_type` - (Optional) Specifies the license type to apply for this database. Possible values are `LicenseIncluded` and `BasePrice`.
 

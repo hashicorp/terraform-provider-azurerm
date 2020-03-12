@@ -103,7 +103,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"hyper_scale", "general_purpose"},
+				ConflictsWith: []string{"elastic_pool_id", "general_purpose", "hyper_scale"},
 			},
 
 			"collation": {
@@ -178,10 +178,11 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"elastic_pool_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: ValidateMsSqlElasticPoolID,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  ValidateMsSqlElasticPoolID,
+				ConflictsWith: []string{"business_critical", "general_purpose", "hyper_scale"},
 			},
 
 			// By default, the db sku is general_purpose.
@@ -238,7 +239,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"hyper_scale", "business_critical"},
+				ConflictsWith: []string{"business_critical", "elastic_pool_id", "hyper_scale"},
 			},
 
 			// hyper_scale could not be changed to the other skus
@@ -271,7 +272,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"business_critical", "general_purpose"},
+				ConflictsWith: []string{"business_critical", "elastic_pool_id", "general_purpose"},
 			},
 
 			"license_type": {
