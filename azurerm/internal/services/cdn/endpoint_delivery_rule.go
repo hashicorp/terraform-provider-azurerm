@@ -19,7 +19,7 @@ func EndpointDeliveryRule() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.CdnEndpointDeliveryPolicyRuleName(),
+					ValidateFunc: validate.EndpointDeliveryPolicyRuleName(),
 				},
 
 				"order": {
@@ -66,6 +66,13 @@ func EndpointDeliveryRule() *schema.Schema {
 					Optional: true,
 					MaxItems: 1,
 					Elem:     deliveryruleactions.URLRedirect(),
+				},
+
+				"url_rewrite_action": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     deliveryruleactions.URLRewrite(),
 				},
 			},
 		},
@@ -135,6 +142,10 @@ func expandDeliveryRuleActions(rule map[string]interface{}) ([]cdn.BasicDelivery
 		actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionUrlRedirect(ura[0].(map[string]interface{})))
 	}
 
+	if ura := rule["url_rewrite_action"].([]interface{}); len(ura) > 0 {
+		actions = append(actions, *deliveryruleactions.ExpandArmCdnEndpointActionURLRewrite(ura[0].(map[string]interface{})))
+	}
+
 	return actions, nil
 }
 
@@ -186,6 +197,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 
 			if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
 				res["url_redirect_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionUrlRedirect(action)}
+				continue
+			}
+
+			if action, isURLRewriteAction := basicDeliveryRuleAction.AsURLRewriteAction(); isURLRewriteAction {
+				res["url_rewrite_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionURLRewrite(action)}
 				continue
 			}
 		}

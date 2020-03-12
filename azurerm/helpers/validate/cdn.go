@@ -2,17 +2,23 @@ package validate
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"regexp"
+	"strings"
 )
 
-func CdnEndpointDeliveryPolicyRuleName() schema.SchemaValidateFunc {
+func EndpointDeliveryPolicyRuleName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*$"),
 		"The Delivery Policy Rule Name must start with a letter any may only contain letters and numbers.",
+	)
+}
+
+func RuleActionCacheExpirationDuration() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^(\\d+\\.)?([0-1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9]$"),
+		"The Cache duration must be in this format [d.]hh:mm:ss.",
 	)
 }
 
@@ -55,9 +61,16 @@ func RuleActionUrlRedirectFragment() schema.SchemaValidateFunc {
 	)
 }
 
-func RuleActionCacheExpirationDuration() schema.SchemaValidateFunc {
+func RuleActionUrlRewriteSourcePattern() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^(\\d+\\.)?([0-1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9]$"),
-		"The Cache duration must be in this format [d.]hh:mm:ss.",
+		regexp.MustCompile("^/[^\n]{0,259}$"),
+		"The Url Rewrite Source Pattern must start with a slash and can not have more than 260 characters.",
+	)
+}
+
+func RuleActionUrlRewriteDestination() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^/[^\n]{0,259}$"),
+		"The Url Rewrite Destination must start with a slash and can not have more than 260 characters.",
 	)
 }

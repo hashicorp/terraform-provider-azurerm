@@ -45,7 +45,7 @@ func TestCdnEndpointDeliveryPolicyRuleName(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			_, errors := CdnEndpointDeliveryPolicyRuleName()(tc.Name, "name")
+			_, errors := EndpointDeliveryPolicyRuleName()(tc.Name, "name")
 
 			hasErrors := len(errors) > 0
 			if !hasErrors && tc.ShouldError {
@@ -238,6 +238,92 @@ func TestRuleActionCacheExpirationDuration(t *testing.T) {
 
 			if hasErrors && !tc.ShouldError {
 				t.Fatalf("Expected to get no errors for %q but got %d", tc.Duration, len(errors))
+			}
+		})
+	}
+}
+
+func TestRuleActionUrlRewriteSourcePattern(t *testing.T) {
+	cases := []struct {
+		SourcePattern string
+		ShouldError   bool
+	}{
+		{
+			SourcePattern: "",
+			ShouldError:   true,
+		},
+		{
+			SourcePattern: "a",
+			ShouldError:   true,
+		},
+		{
+			SourcePattern: "/",
+			ShouldError:   false,
+		},
+		{
+			SourcePattern: "/abc",
+			ShouldError:   false,
+		},
+		{
+			SourcePattern: "/abc\n",
+			ShouldError:   true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.SourcePattern, func(t *testing.T) {
+			_, errors := RuleActionUrlRewriteSourcePattern()(tc.SourcePattern, "source_pattern")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.SourcePattern)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.SourcePattern, len(errors))
+			}
+		})
+	}
+}
+
+func TestRuleActionUrlRewriteSourceDestination(t *testing.T) {
+	cases := []struct {
+		Destination string
+		ShouldError bool
+	}{
+		{
+			Destination: "",
+			ShouldError: true,
+		},
+		{
+			Destination: "a",
+			ShouldError: true,
+		},
+		{
+			Destination: "/",
+			ShouldError: false,
+		},
+		{
+			Destination: "/abc",
+			ShouldError: false,
+		},
+		{
+			Destination: "/abc\n",
+			ShouldError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Destination, func(t *testing.T) {
+			_, errors := RuleActionUrlRewriteDestination()(tc.Destination, "destination")
+
+			hasErrors := len(errors) > 0
+			if !hasErrors && tc.ShouldError {
+				t.Fatalf("Expected an error but didn't get one for %q", tc.Destination)
+			}
+
+			if hasErrors && !tc.ShouldError {
+				t.Fatalf("Expected to get no errors for %q but got %d", tc.Destination, len(errors))
 			}
 		})
 	}
