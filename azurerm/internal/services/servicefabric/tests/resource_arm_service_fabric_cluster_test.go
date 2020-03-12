@@ -1165,7 +1165,7 @@ resource "azurerm_resource_group" "test" {
 		client_endpoint_port = 2020
 		http_endpoint_port   = 80
 	}
-	}
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
