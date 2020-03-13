@@ -431,8 +431,7 @@ resource "azurerm_databox_job" "test" {
 }
 
 func testAccAzureRMDataBoxJob_template(data acceptance.TestData) string {
-	// Only location `West Central US` is whitelisted.
-	location := "westcentralus"
+	location := "westus"
 
 	return fmt.Sprintf(`
 provider "azurerm" {

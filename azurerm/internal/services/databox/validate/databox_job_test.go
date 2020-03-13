@@ -1,8 +1,8 @@
-package databox
+package validate
 
 import "testing"
 
-func TestValidateDataBoxJobName(t *testing.T) {
+func TestDataBoxJobName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -52,7 +52,7 @@ func TestValidateDataBoxJobName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobName(v.input, "name")
+		_, errors := DataBoxJobName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -60,7 +60,7 @@ func TestValidateDataBoxJobName(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobContactName(t *testing.T) {
+func TestDataBoxJobContactName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -110,7 +110,7 @@ func TestValidateDataBoxJobContactName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobContactName(v.input, "name")
+		_, errors := DataBoxJobContactName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -118,7 +118,7 @@ func TestValidateDataBoxJobContactName(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobPhoneNumber(t *testing.T) {
+func TestDataBoxJobPhoneNumber(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -164,7 +164,7 @@ func TestValidateDataBoxJobPhoneNumber(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobPhoneNumber(v.input, "phone_number")
+		_, errors := DataBoxJobPhoneNumber(v.input, "phone_number")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -172,7 +172,7 @@ func TestValidateDataBoxJobPhoneNumber(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobEmail(t *testing.T) {
+func TestDataBoxJobEmail(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -194,7 +194,7 @@ func TestValidateDataBoxJobEmail(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobEmail(v.input, "email")
+		_, errors := DataBoxJobEmail(v.input, "email")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -202,7 +202,7 @@ func TestValidateDataBoxJobEmail(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobPhoneExtension(t *testing.T) {
+func TestDataBoxJobPhoneExtension(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -232,7 +232,7 @@ func TestValidateDataBoxJobPhoneExtension(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobPhoneExtension(v.input, "phone_extension")
+		_, errors := DataBoxJobPhoneExtension(v.input, "phone_extension")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -240,7 +240,7 @@ func TestValidateDataBoxJobPhoneExtension(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobStreetAddress(t *testing.T) {
+func TestDataBoxJobStreetAddress(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -266,7 +266,7 @@ func TestValidateDataBoxJobStreetAddress(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobStreetAddress(v.input, "street_address")
+		_, errors := DataBoxJobStreetAddress(v.input, "street_address")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -274,7 +274,7 @@ func TestValidateDataBoxJobStreetAddress(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobPostCode(t *testing.T) {
+func TestDataBoxJobPostCode(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -296,7 +296,7 @@ func TestValidateDataBoxJobPostCode(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobPostCode(v.input, "post_code")
+		_, errors := DataBoxJobPostCode(v.input, "post_code")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -304,7 +304,7 @@ func TestValidateDataBoxJobPostCode(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobCity(t *testing.T) {
+func TestDataBoxJobCity(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -326,7 +326,7 @@ func TestValidateDataBoxJobCity(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobCity(v.input, "city")
+		_, errors := DataBoxJobCity(v.input, "city")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -334,7 +334,7 @@ func TestValidateDataBoxJobCity(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobCompanyName(t *testing.T) {
+func TestDataBoxJobCompanyName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -384,7 +384,7 @@ func TestValidateDataBoxJobCompanyName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobCompanyName(v.input, "company_name")
+		_, errors := DataBoxJobCompanyName(v.input, "company_name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -392,7 +392,7 @@ func TestValidateDataBoxJobCompanyName(t *testing.T) {
 	}
 }
 
-func TestValidateDataBoxJobDiskPassKey(t *testing.T) {
+func TestDataBoxJobDiskPassKey(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -466,7 +466,7 @@ func TestValidateDataBoxJobDiskPassKey(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := validateDataBoxJobDiskPassKey(v.input, "databox_disk_passkey")
+		_, errors := DataBoxJobDiskPassKey(v.input, "databox_disk_passkey")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

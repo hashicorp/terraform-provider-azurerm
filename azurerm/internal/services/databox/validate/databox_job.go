@@ -1,4 +1,4 @@
-package databox
+package validate
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func DataBoxJobID(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
-func validateDataBoxJobName(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\da-zA-Z][-\da-zA-Z]{1,22}[\da-zA-Z]$`).MatchString(value) {
@@ -32,7 +32,7 @@ func validateDataBoxJobName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-func validateDataBoxJobContactName(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobContactName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\S][\s\S]{1,32}[\S]$`).MatchString(value) {
@@ -42,7 +42,7 @@ func validateDataBoxJobContactName(v interface{}, k string) (warnings []string, 
 	return warnings, errors
 }
 
-func validateDataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[+][\d]{2,}$`).MatchString(value) {
@@ -52,7 +52,7 @@ func validateDataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, 
 	return warnings, errors
 }
 
-func validateDataBoxJobEmail(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobEmail(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$`).MatchString(value) {
@@ -62,7 +62,7 @@ func validateDataBoxJobEmail(v interface{}, k string) (warnings []string, errors
 	return warnings, errors
 }
 
-func validateDataBoxJobPhoneExtension(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobPhoneExtension(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\d]{0,4}$`).MatchString(value) {
@@ -72,7 +72,7 @@ func validateDataBoxJobPhoneExtension(v interface{}, k string) (warnings []strin
 	return warnings, errors
 }
 
-func validateDataBoxJobStreetAddress(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobStreetAddress(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{1,35}$`).MatchString(value) {
@@ -82,7 +82,7 @@ func validateDataBoxJobStreetAddress(v interface{}, k string) (warnings []string
 	return warnings, errors
 }
 
-func validateDataBoxJobPostCode(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobPostCode(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{1,9}$`).MatchString(value) {
@@ -92,7 +92,7 @@ func validateDataBoxJobPostCode(v interface{}, k string) (warnings []string, err
 	return warnings, errors
 }
 
-func validateDataBoxJobCity(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobCity(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{2,30}$`).MatchString(value) {
@@ -102,7 +102,7 @@ func validateDataBoxJobCity(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-func validateDataBoxJobCompanyName(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobCompanyName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\s\S]{2,35}$`).MatchString(value) {
@@ -112,7 +112,7 @@ func validateDataBoxJobCompanyName(v interface{}, k string) (warnings []string, 
 	return warnings, errors
 }
 
-func validateDataBoxJobDiskPassKey(v interface{}, k string) (warnings []string, errors []error) {
+func DataBoxJobDiskPassKey(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) < 12 || len(value) > 32 {

@@ -23,7 +23,7 @@ data "azurerm_databox_job" "existing" {
 }
 
 output "id" {
-  value = azurerm_databox_job.existing.id
+  value = data.azurerm_databox_job.existing.id
 }
 ```
 

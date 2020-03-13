@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/databox/mgmt/2019-09-01/databox"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -17,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -47,7 +47,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDataBoxJobName,
+				ValidateFunc: validate.DataBoxJobName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -63,7 +63,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateDataBoxJobContactName,
+							ValidateFunc: validate.DataBoxJobContactName,
 						},
 						"emails": {
 							Type:     schema.TypeSet,
@@ -71,13 +71,13 @@ func resourceArmDataBoxJob() *schema.Resource {
 							MaxItems: 10,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validateDataBoxJobEmail,
+								ValidateFunc: validate.DataBoxJobEmail,
 							},
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateDataBoxJobPhoneNumber,
+							ValidateFunc: validate.DataBoxJobPhoneNumber,
 						},
 						"mobile": {
 							Type:         schema.TypeString,
@@ -127,7 +127,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"phone_extension": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateDataBoxJobPhoneExtension,
+							ValidateFunc: validate.DataBoxJobPhoneExtension,
 						},
 					},
 				},
@@ -196,7 +196,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"city": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateDataBoxJobCity,
+							ValidateFunc: validate.DataBoxJobCity,
 						},
 						"country": {
 							Type:         schema.TypeString,
@@ -206,7 +206,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"postal_code": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateDataBoxJobPostCode,
+							ValidateFunc: validate.DataBoxJobPostCode,
 						},
 						"state_or_province": {
 							Type:         schema.TypeString,
@@ -216,7 +216,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"street_address_1": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateDataBoxJobStreetAddress,
+							ValidateFunc: validate.DataBoxJobStreetAddress,
 						},
 						"address_type": {
 							Type:     schema.TypeString,
@@ -231,22 +231,22 @@ func resourceArmDataBoxJob() *schema.Resource {
 						"company_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateDataBoxJobCompanyName,
+							ValidateFunc: validate.DataBoxJobCompanyName,
 						},
 						"street_address_2": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateDataBoxJobStreetAddress,
+							ValidateFunc: validate.DataBoxJobStreetAddress,
 						},
 						"street_address_3": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateDataBoxJobStreetAddress,
+							ValidateFunc: validate.DataBoxJobStreetAddress,
 						},
 						"postal_code_ext": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateDataBoxJobPostCode,
+							ValidateFunc: validate.DataBoxJobPostCode,
 						},
 					},
 				},
@@ -268,7 +268,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ForceNew:     true,
-				ValidateFunc: validateDataBoxJobDiskPassKey,
+				ValidateFunc: validate.DataBoxJobDiskPassKey,
 			},
 
 			"databox_preferred_disk": {
@@ -650,9 +650,7 @@ func resourceArmDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+		return fmt.Errorf("Error waiting for deleting DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	destinationAccount := d.Get("destination_account").(*schema.Set).List()
