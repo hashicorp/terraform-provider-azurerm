@@ -55,7 +55,7 @@ func validateDataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, 
 func validateDataBoxJobEmail(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(value) {
+	if !regexp.MustCompile(`^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf("%q must be with @", k))
 	}
 
