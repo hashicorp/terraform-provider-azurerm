@@ -13,27 +13,27 @@ func getAccountNameFromEndpoint(endpoint string) (*string, error) {
 	return &segments[0], nil
 }
 
-// getBlobEndpoint returns the endpoint for Blob API Operations on this storage account
-func getBlobEndpoint(baseUri string, accountName string) string {
+// GetBlobEndpoint returns the endpoint for Blob API Operations on this storage account
+func GetBlobEndpoint(baseUri string, accountName string) string {
 	return fmt.Sprintf("https://%s.blob.%s", accountName, baseUri)
 }
 
-// getDataLakeStoreEndpoint returns the endpoint for Data Lake Store API Operations on this storage account
-func getDataLakeStoreEndpoint(baseUri string, accountName string) string {
+// GetDataLakeStoreEndpoint returns the endpoint for Data Lake Store API Operations on this storage account
+func GetDataLakeStoreEndpoint(baseUri string, accountName string) string {
 	return fmt.Sprintf("https://%s.dfs.%s", accountName, baseUri)
 }
 
-// getFileEndpoint returns the endpoint for File Share API Operations on this storage account
-func getFileEndpoint(baseUri string, accountName string) string {
+// GetFileEndpoint returns the endpoint for File Share API Operations on this storage account
+func GetFileEndpoint(baseUri string, accountName string) string {
 	return fmt.Sprintf("https://%s.file.%s", accountName, baseUri)
 }
 
-// getQueueEndpoint returns the endpoint for Queue API Operations on this storage account
-func getQueueEndpoint(baseUri string, accountName string) string {
+// GetQueueEndpoint returns the endpoint for Queue API Operations on this storage account
+func GetQueueEndpoint(baseUri string, accountName string) string {
 	return fmt.Sprintf("https://%s.queue.%s", accountName, baseUri)
 }
 
-// getTableEndpoint returns the endpoint for Table API Operations on this storage account
-func getTableEndpoint(baseUri string, accountName string) string {
+// GetTableEndpoint returns the endpoint for Table API Operations on this storage account
+func GetTableEndpoint(baseUri string, accountName string) string {
 	return fmt.Sprintf("https://%s.table.%s", accountName, baseUri)
 }
