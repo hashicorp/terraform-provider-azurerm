@@ -489,7 +489,7 @@ func expandAzureRmMsSqlDatabaseGP(d *schema.ResourceData, params *sql.Database) 
 }
 
 func flattenAzureRmMsSqlDatabaseGP(input *sql.Database) []interface{} {
-	if *input.Sku.Tier != "GeneralPurpose" {
+	if input.Sku ==nil || input.Sku.Tier ==nil || *input.Sku.Tier != "GeneralPurpose" {
 		return []interface{}{}
 	}
 
@@ -548,7 +548,7 @@ func expandAzureRmMsSqlDatabaseGPServerless(d *schema.ResourceData, params *sql.
 }
 
 func flattenAzureRmMsSqlDatabaseGPServerless(input *sql.Database) []interface{} {
-	if !strings.HasPrefix(*input.Sku.Name, "GP_S") {
+	if input.Sku==nil || input.Sku.Name==nil || !strings.HasPrefix(*input.Sku.Name, "GP_S") {
 		return []interface{}{}
 	}
 
@@ -587,7 +587,7 @@ func expandAzureRmMsSqlDatabaseHS(d *schema.ResourceData, params *sql.Database) 
 }
 
 func flattenAzureRmMsSqlDatabaseHS(input *sql.Database) []interface{} {
-	if *input.Sku.Tier != "Hyperscale" {
+	if input.Sku ==nil || input.Sku.Tier ==nil || *input.Sku.Tier != "Hyperscale" {
 		return []interface{}{}
 	}
 
@@ -639,7 +639,7 @@ func expandAzureRmMsSqlDatabaseBC(d *schema.ResourceData, params *sql.Database) 
 }
 
 func flattenAzureRmMsSqlDatabaseBC(input *sql.Database) []interface{} {
-	if *input.Sku.Tier != "BusinessCritical" {
+	if input.Sku ==nil || input.Sku.Tier ==nil || *input.Sku.Tier != "BusinessCritical" {
 		return []interface{}{}
 	}
 
