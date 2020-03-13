@@ -57,8 +57,8 @@ func resourceArmStorageContainer() *schema.Resource {
 				Optional: true,
 				Default:  "private",
 				ValidateFunc: validation.StringInSlice([]string{
-					string(containers.Blob),
-					string(containers.Container),
+					"blob",
+					"container",
 					"private",
 				}, false),
 			},
