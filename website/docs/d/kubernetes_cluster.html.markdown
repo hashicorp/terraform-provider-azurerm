@@ -114,15 +114,18 @@ A `agent_pool_profile` block exports the following:
 
 * `name` - The name assigned to this pool of agents.
 
+* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
+
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 
 * `os_type` - The Operating System used for the Agents.
+
+* `tags` - A mapping of tags to assign to the resource.
 
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
 
 ---
 
