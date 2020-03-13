@@ -103,8 +103,8 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta inte
 
 	primaryConnectionString := ""
 	secondaryConnectionString := ""
-	if iothubDps.Properties != nil && iothubDps.Properties.DeviceProvisioningHostName != nil {
-		hostname := iothubDps.Properties.DeviceProvisioningHostName
+	if iothubDps.Properties != nil && iothubDps.Properties.ServiceOperationsHostName != nil {
+		hostname := iothubDps.Properties.ServiceOperationsHostName
 		if primary := accessPolicy.PrimaryKey; primary != nil {
 			primaryConnectionString = getSAPConnectionString(*hostname, keyName, *primary)
 		}
