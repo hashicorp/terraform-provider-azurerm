@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -41,7 +40,7 @@ func resourceArmRoute() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateRouteName,
+				ValidateFunc: validation.ValidateRouteName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -50,7 +49,7 @@ func resourceArmRoute() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateName,
+				ValidateFunc: validation.ValidateRouteName,
 			},
 
 			"address_prefix": {

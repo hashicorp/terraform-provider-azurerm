@@ -64,7 +64,7 @@ func resourceArmRouteTable() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ValidateRouteName,
+							ValidateFunc: validation.ValidateRouteName,
 						},
 
 						"address_prefix": {
