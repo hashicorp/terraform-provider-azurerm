@@ -165,6 +165,26 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoleDefinition_managementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleDefinition_managementGroup(uuid.New().String(), data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleDefinitionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "scope", "/providers/Microsoft.Management/managementGroups/testMG"),
+					resource.TestCheckResourceAttr(data.ResourceName, "assignable_scopes.0", "/providers/Microsoft.Management/managementGroups/testMG"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
@@ -368,4 +388,34 @@ resource "azurerm_role_definition" "test" {
   ]
 }
 `, data.RandomInteger)
+}
+
+func testAccAzureRMRoleDefinition_managementGroup(id string, data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_management_group" "test" {
+}
+
+locals {
+  scope = azurerm_management_group.test.id
+}
+
+resource "azurerm_role_definition" "test" {
+  role_definition_id = "%s"
+  name               = "acctestrd-%d"
+  scope              = local.scope
+
+  permissions {
+    actions     = ["*"]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    local.scope
+  ]
+}
+`, id, data.RandomInteger)
 }

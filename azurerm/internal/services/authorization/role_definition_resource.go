@@ -184,7 +184,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if id := resp.ID; id != nil {
-		roleDefinitionId, err := parseRoleDefinitionId(*id)
+		roleDefinitionId, err := parseRoleDefinitionId(*id, *resp.RoleDefinitionProperties.AssignableScopes)
 		if err != nil {
 			return fmt.Errorf("Error parsing Role Definition ID: %+v", err)
 		}
@@ -217,7 +217,9 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseRoleDefinitionId(d.Id())
+	scope := d.Get("scope").(string)
+
+	id, err := parseRoleDefinitionId(d.Id(), []string{scope})
 	if err != nil {
 		return err
 	}
@@ -346,8 +348,19 @@ type roleDefinitionId struct {
 	roleDefinitionId string
 }
 
-func parseRoleDefinitionId(input string) (*roleDefinitionId, error) {
+func parseRoleDefinitionId(input string, scopes []string) (*roleDefinitionId, error) {
 	segments := strings.Split(input, "/providers/Microsoft.Authorization/roleDefinitions/")
+
+	// First check if role is scoped to a Management Group
+	if len(scopes) == 1 && strings.HasPrefix(scopes[0], "/providers/Microsoft.Management/managementGroups/") {
+		id := roleDefinitionId{
+			scope:            strings.TrimPrefix(scopes[0], "/"),
+			roleDefinitionId: segments[1],
+		}
+		return &id, nil
+	}
+
+	// Role is scoped to a Subscription
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected Role Definition ID to be in the format `{scope}/providers/Microsoft.Authorization/roleDefinitions/{name}` but got %q", input)
 	}
