@@ -1267,6 +1267,21 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			"firewall_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+					},
+				},
+			},
+
 			"custom_error_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -1426,6 +1441,15 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	if _, ok := d.GetOk("waf_configuration"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	if res, ok := d.GetOk("firewall_policy"); ok {
+		vs := res.([]interface{})
+		v := vs[0].(map[string]interface{})
+		id := v["id"].(string)
+		gateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+			ID: &id,
+		}
 	}
 
 	if stopApplicationGateway {
@@ -1605,6 +1629,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
+		}
+
+		if setErr := d.Set("firewall_policy", flattenApplicationGatewayFirewallPolicy(props.FirewallPolicy)); setErr != nil {
+			return fmt.Errorf("Error setting `firewall_policy`: %+v", setErr)
 		}
 	}
 
@@ -3603,6 +3631,20 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	if input.Exclusions != nil {
 		output["exclusion"] = flattenApplicationGatewayFirewallExclusion(input.Exclusions)
 	}
+	results = append(results, output)
+
+	return results
+}
+
+func flattenApplicationGatewayFirewallPolicy(input *network.SubResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	output := make(map[string]interface{})
+
+	output["id"] = input.ID
 	results = append(results, output)
 
 	return results
