@@ -27,6 +27,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.ContainerInstance":    {},
 		"Microsoft.ContainerRegistry":    {},
 		"Microsoft.ContainerService":     {},
+		"Microsoft.CostManagement":       {},
 		"Microsoft.Databricks":           {},
 		"Microsoft.DataLakeAnalytics":    {},
 		"Microsoft.DataLakeStore":        {},

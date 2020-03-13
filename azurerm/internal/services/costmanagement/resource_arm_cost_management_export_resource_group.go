@@ -2,8 +2,8 @@ package costmanagement
 
 import (
 	"fmt"
-	"github.com/Azure/go-autorest/autorest/date"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement"
@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,8 +21,9 @@ import (
 
 func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCostManagementExportResourceGroupCreate,
+		Create: resourceArmCostManagementExportResourceGroupCreateUpdate,
 		Read:   resourceArmCostManagementExportResourceGroupRead,
+		Update: resourceArmCostManagementExportResourceGroupCreateUpdate,
 		Delete: resourceArmCostManagementExportResourceGroupDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CostManagementExportResourceGroupID(id)
@@ -39,50 +39,83 @@ func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateCostManagementExportName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"active": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"recurrence_type": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(costmanagement.RecurrenceTypeDaily),
 					string(costmanagement.RecurrenceTypeWeekly),
 					string(costmanagement.RecurrenceTypeMonthly),
 					string(costmanagement.RecurrenceTypeAnnually),
-				},false),
+				}, false),
 			},
 
 			"recurrence_period_start": {
-				Type: schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"recurrence_period_end": {
-				Type: schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"delivery_info": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_account_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"container_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"root_folder_path": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func resourceArmCostManagementExportResourceGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CostManagement.ExportClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
+	resourceGroup := strings.TrimPrefix(d.Get("resource_group_id").(string), "/")
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -97,24 +130,29 @@ func resourceArmCostManagementExportResourceGroupCreate(d *schema.ResourceData, 
 		}
 	}
 
-	t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
-	props.Recurrence.EndTime = &date.Time{Time: t}
+	//from, _ := time.Parse(time.RFC3339, d.Get("recurrence_period_start").(string))
+	//to, _ := time.Parse(time.RFC3339, d.Get("recurrence_period_end").(string))
 
-	recurrencePeriod := costmanagement.ExportRecurrencePeriod{
-		From: time.Parse(time.RFC3339, d.Get("recurrence_period_from").(string)),
-		To:   nil,
+	status := costmanagement.Active
+	if v := d.Get("active"); !v.(bool) {
+		status = costmanagement.Inactive
 	}
-
 	schedule := &costmanagement.ExportSchedule{
 		Recurrence: costmanagement.RecurrenceType(d.Get("recurrence_type").(string)),
+		/*
+			RecurrencePeriod: &costmanagement.ExportRecurrencePeriod{
+				From: &date.Time{Time: from},
+				To: &date.Time{Time: to},
+			},*/
+		Status: status,
 	}
 
 	properties := &costmanagement.ExportProperties{
-		Schedule: schedule,
+		Schedule:     schedule,
+		DeliveryInfo: expandExportDeliveryInfo(d.Get("delivery_info").([]interface{})),
 	}
 
 	account := costmanagement.Export{
-		Tags: tags.Expand(t),
 		ExportProperties: properties,
 	}
 
@@ -146,20 +184,30 @@ func resourceArmCostManagementExportResourceGroupRead(d *schema.ResourceData, me
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceId, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Cost Management Export Resource Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Cost Management Export Resource Group %q (Resource Group %q): %+v", id.Name, id.ResourceId, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name_id", id.ResourceId)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if schedule := resp.Schedule; schedule != nil {
+		if recurrencePeriod := schedule.RecurrencePeriod; recurrencePeriod != nil {
+			d.Set("recurrence_period_start", recurrencePeriod.From)
+			d.Set("recurrence_period_end", recurrencePeriod.To)
+		}
+	}
+	if err := d.Set("delivery_info", flattenExportDeliveryInfo(resp.DeliveryInfo)); err != nil {
+		return fmt.Errorf("setting `delivery_info`: %+v", err)
+	}
+
+	return nil
 }
 
 func resourceArmCostManagementExportResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
@@ -172,10 +220,10 @@ func resourceArmCostManagementExportResourceGroupDelete(d *schema.ResourceData, 
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	response, err := client.Delete(ctx, id.ResourceId, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Cost Management Export Resource Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Cost Management Export Resource Group %q (Resource Group %q): %+v", id.Name, id.ResourceId, err)
 		}
 	}
 
@@ -198,4 +246,41 @@ func validateCostManagementExportName(v interface{}, k string) (warnings []strin
 	}
 
 	return warnings, errors
+}
+
+func expandExportDeliveryInfo(input []interface{}) *costmanagement.ExportDeliveryInfo {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	attrs := input[0].(map[string]interface{})
+	deliveryInfo := &costmanagement.ExportDeliveryInfo{
+		Destination: &costmanagement.ExportDeliveryDestination{
+			ResourceID:     utils.String(attrs["storage_account_id"].(string)),
+			Container:      utils.String(attrs["container_name"].(string)),
+			RootFolderPath: utils.String(attrs["root_folder_path"].(string)),
+		},
+	}
+
+	return deliveryInfo
+}
+
+func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []interface{} {
+	if input == nil || input.Destination == nil {
+		return []interface{}{}
+	}
+
+	destination := input.Destination
+	attrs := make(map[string]interface{})
+	if resourceID := destination.ResourceID; resourceID != nil {
+		attrs["storage_account_id"] = &resourceID
+	}
+	if containerName := destination.Container; containerName != nil {
+		attrs["container_name"] = &containerName
+	}
+	if rootFolderPath := destination.RootFolderPath; rootFolderPath != nil {
+		attrs["root_folder_path"] = &rootFolderPath
+	}
+
+	return []interface{}{attrs}
 }

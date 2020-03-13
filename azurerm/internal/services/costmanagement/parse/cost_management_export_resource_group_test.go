@@ -39,8 +39,8 @@ func TestCostManagementExportResourceGroupId(t *testing.T) {
 			Name:  "Cost Management Export ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.CostManagement/exports/Export1",
 			Expected: &CostManagementExportResourceGroupId{
-				Name:          "Export1",
-				ResourceGroup: "resGroup1",
+				Name:       "Export1",
+				ResourceId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1",
 			},
 		},
 		{
@@ -66,8 +66,8 @@ func TestCostManagementExportResourceGroupId(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		if actual.ResourceId != v.Expected.ResourceId {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceId, actual.ResourceId)
 		}
 	}
 }

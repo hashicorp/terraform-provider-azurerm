@@ -7,8 +7,8 @@ import (
 )
 
 type CostManagementExportResourceGroupId struct {
-	ResourceGroup string
-	Name          string
+	ResourceId string
+	Name       string
 }
 
 func CostManagementExportResourceGroupID(input string) (*CostManagementExportResourceGroupId, error) {
@@ -18,7 +18,7 @@ func CostManagementExportResourceGroupID(input string) (*CostManagementExportRes
 	}
 
 	service := CostManagementExportResourceGroupId{
-		ResourceGroup: id.ResourceGroup,
+		ResourceId: fmt.Sprintf("subscriptions/%s/resourceGroups/%s", id.SubscriptionID+id.ResourceGroup),
 	}
 
 	if service.Name, err = id.PopSegment("exports"); err != nil {
