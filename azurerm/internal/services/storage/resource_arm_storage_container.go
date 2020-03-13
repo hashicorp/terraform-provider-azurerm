@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
@@ -286,4 +287,9 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 	}
 
 	return string(input)
+}
+
+func getResourceID(baseUri, accountName, containerName string) string {
+	domain := parsers.GetBlobEndpoint(baseUri, accountName)
+	return fmt.Sprintf("%s/%s", domain, containerName)
 }
