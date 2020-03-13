@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -54,6 +55,8 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
+			"tags": tags.Schema(),
+
 			"vm_size": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -83,7 +86,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"max_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"max_pods": {
@@ -96,7 +99,16 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"min_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
+			},
+
+			"node_labels": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"node_taints": {
@@ -191,12 +203,14 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
 	osType := d.Get("os_type").(string)
+	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:             containerservice.OSType(osType),
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Tags:               tags.Expand(t),
 		Type:               containerservice.VirtualMachineScaleSets,
 		VMSize:             containerservice.VMSizeTypes(vmSize),
 
@@ -211,6 +225,11 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if maxPods := int32(d.Get("max_pods").(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
+	}
+
+	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
+	if nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw); len(nodeLabels) > 0 {
+		profile.NodeLabels = nodeLabels
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
@@ -351,6 +370,11 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		props.NodeTaints = nodeTaints
 	}
 
+	if d.HasChange("tags") {
+		t := d.Get("tags").(map[string]interface{})
+		props.Tags = tags.Expand(t)
+	}
+
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
 	maxCount := 0
 	if props.MaxCount != nil {
@@ -460,6 +484,10 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		}
 		d.Set("node_count", count)
 
+		if err := d.Set("node_labels", props.NodeLabels); err != nil {
+			return fmt.Errorf("Error setting `node_labels`: %+v", err)
+		}
+
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("Error setting `node_taints`: %+v", err)
 		}
@@ -474,7 +502,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("vm_size", string(props.VMSize))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
