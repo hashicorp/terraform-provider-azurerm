@@ -31,6 +31,7 @@ import (
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
+	iotcentral "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
@@ -40,6 +41,7 @@ import (
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
 	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
 	media "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/client"
+	mixedreality "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality/client"
 	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
@@ -102,6 +104,7 @@ type Client struct {
 	HDInsight         *hdinsight.Client
 	HealthCare        *healthcare.Client
 	IoTHub            *iothub.Client
+	IoTCentral        *iotcentral.Client
 	KeyVault          *keyvault.Client
 	Kusto             *kusto.Client
 	LogAnalytics      *loganalytics.Client
@@ -110,6 +113,7 @@ type Client struct {
 	Maps              *maps.Client
 	MariaDB           *mariadb.Client
 	Media             *media.Client
+	MixedReality      *mixedreality.Client
 	Monitor           *monitor.Client
 	MSI               *msi.Client
 	MSSQL             *mssql.Client
@@ -171,6 +175,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
+	client.IoTCentral = iotcentral.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
@@ -179,6 +184,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Maps = maps.NewClient(o)
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
+	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
 	client.MSI = msi.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)

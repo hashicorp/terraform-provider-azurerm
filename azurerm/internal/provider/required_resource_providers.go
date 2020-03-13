@@ -50,6 +50,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.Maps":                 {},
 		"Microsoft.MarketplaceOrdering":  {},
 		"Microsoft.Media":                {},
+		"Microsoft.MixedReality":         {},
 		"Microsoft.Network":              {},
 		"Microsoft.NotificationHubs":     {},
 		"Microsoft.OperationalInsights":  {},
@@ -63,6 +64,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.ServiceFabric":        {},
 		"Microsoft.Sql":                  {},
 		"Microsoft.Storage":              {},
+		"Microsoft.StorageCache":         {},
 		"Microsoft.StreamAnalytics":      {},
 		"Microsoft.Web":                  {},
 	}

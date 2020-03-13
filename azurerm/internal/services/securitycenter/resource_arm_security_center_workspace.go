@@ -17,7 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-//only valid name is default
+// only valid name is default
 // Message="Invalid workspace settings name 'kttest' , only default is allowed "
 const securityCenterWorkspaceName = "default"
 
@@ -76,8 +76,8 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	//get pricing tier, workspace can only be configured when tier is not Free.
-	//API does not error, it just doesn't set the workspace scope
+	// get pricing tier, workspace can only be configured when tier is not Free.
+	// API does not error, it just doesn't set the workspace scope
 	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
@@ -107,7 +107,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	//api returns "" for workspace id after an create/update and eventually the new value
+	// api returns "" for workspace id after an create/update and eventually the new value
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},

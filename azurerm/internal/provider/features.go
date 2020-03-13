@@ -1,13 +1,11 @@
 package provider
 
 import (
-	"os"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func schemaFeatures() *schema.Schema {
+func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	features := map[string]*schema.Schema{
@@ -59,8 +57,9 @@ func schemaFeatures() *schema.Schema {
 		},
 	}
 
-	runningAcceptanceTests := os.Getenv("TF_ACC") != ""
-	if runningAcceptanceTests {
+	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
+	// rather than doing it as a big-bang and breaking all open PR's
+	if supportLegacyTestSuite {
 		return &schema.Schema{
 			Type:     schema.TypeList,
 			Optional: true,

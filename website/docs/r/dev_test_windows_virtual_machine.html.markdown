@@ -53,9 +53,9 @@ resource "azurerm_dev_test_windows_virtual_machine" "example" {
   notes                  = "Some notes about this Virtual Machine."
 
   gallery_image_reference {
-    offer     = "UbuntuServer"
-    publisher = "Canonical"
-    sku       = "18.04-LTS"
+    offer     = "WindowsServer"
+    publisher = "MicrosoftWindowsServer"
+    sku       = "2019-Datacenter"
     version   = "latest"
   }
 }
@@ -142,8 +142,6 @@ A `inbound_nat_rule` block exports the following:
 * `frontend_port` - The frontend port associated with this Inbound NAT Rule.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

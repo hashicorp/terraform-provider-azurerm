@@ -230,12 +230,12 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.RFC3339Time,
+										ValidateFunc: validation.IsRFC3339Time,
 									},
 									"end": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.RFC3339Time,
+										ValidateFunc: validation.IsRFC3339Time,
 									},
 								},
 							},
