@@ -116,8 +116,13 @@ resource "azurerm_cost_management_export_resource_group" "test" {
 
   delivery_info {
     storage_account_id = azurerm_storage_account.test.id
-    container_name     = "accTestContainer"
+    container_name     = "acctestcontainer"
     root_folder_path   = "/root"
+  }
+
+  definition {
+    type       = "Usage"
+    time_frame = "TheLastMonth"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)

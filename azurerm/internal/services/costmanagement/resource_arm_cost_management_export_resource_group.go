@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -95,12 +96,40 @@ func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 						"container_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validateCostManagementExportContainerName,
 						},
 						"root_folder_path": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"definition": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"time_frame": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(costmanagement.Custom),
+								string(costmanagement.MonthToDate),
+								string(costmanagement.TheLastMonth),
+								string(costmanagement.TheLastWeek),
+								string(costmanagement.TheLastYear),
+								string(costmanagement.WeekToDate),
+								string(costmanagement.MonthToDate),
+							}, false),
 						},
 					},
 				},
@@ -115,7 +144,7 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroup := strings.TrimPrefix(d.Get("resource_group_id").(string), "/")
+	resourceGroup := d.Get("resource_group_id").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -130,8 +159,8 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 		}
 	}
 
-	//from, _ := time.Parse(time.RFC3339, d.Get("recurrence_period_start").(string))
-	//to, _ := time.Parse(time.RFC3339, d.Get("recurrence_period_end").(string))
+	from, _ := time.Parse(time.RFC3339, d.Get("recurrence_period_start").(string))
+	to, _ := time.Parse(time.RFC3339, d.Get("recurrence_period_end").(string))
 
 	status := costmanagement.Active
 	if v := d.Get("active"); !v.(bool) {
@@ -139,17 +168,18 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 	}
 	schedule := &costmanagement.ExportSchedule{
 		Recurrence: costmanagement.RecurrenceType(d.Get("recurrence_type").(string)),
-		/*
-			RecurrencePeriod: &costmanagement.ExportRecurrencePeriod{
-				From: &date.Time{Time: from},
-				To: &date.Time{Time: to},
-			},*/
+		RecurrencePeriod: &costmanagement.ExportRecurrencePeriod{
+			From: &date.Time{Time: from},
+			To:   &date.Time{Time: to},
+		},
 		Status: status,
 	}
 
 	properties := &costmanagement.ExportProperties{
 		Schedule:     schedule,
 		DeliveryInfo: expandExportDeliveryInfo(d.Get("delivery_info").([]interface{})),
+		Format:       costmanagement.Csv,
+		Definition:   expandExportDefinition(d.Get("definition").([]interface{})),
 	}
 
 	account := costmanagement.Export{
@@ -169,7 +199,13 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 		return fmt.Errorf("cannot read Cost Management Export Resource Group %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	d.SetId(*resp.ID)
+	id := *resp.ID
+	// The ID is missing the prefix `/` which causes our uri parse to fail
+	if !strings.HasPrefix(*resp.ID, "/") {
+		id = fmt.Sprintf("/%s", id)
+	}
+
+	d.SetId(id)
 
 	return resourceArmCostManagementExportResourceGroupRead(d, meta)
 }
@@ -195,16 +231,20 @@ func resourceArmCostManagementExportResourceGroupRead(d *schema.ResourceData, me
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name_id", id.ResourceId)
+	d.Set("resource_group_id", id.ResourceId)
 
 	if schedule := resp.Schedule; schedule != nil {
 		if recurrencePeriod := schedule.RecurrencePeriod; recurrencePeriod != nil {
-			d.Set("recurrence_period_start", recurrencePeriod.From)
-			d.Set("recurrence_period_end", recurrencePeriod.To)
+			d.Set("recurrence_period_start", recurrencePeriod.From.Format(time.RFC3339))
+			d.Set("recurrence_period_end", recurrencePeriod.To.Format(time.RFC3339))
 		}
 	}
 	if err := d.Set("delivery_info", flattenExportDeliveryInfo(resp.DeliveryInfo)); err != nil {
 		return fmt.Errorf("setting `delivery_info`: %+v", err)
+	}
+
+	if err := d.Set("definition", flattenExportDefinition(resp.Definition)); err != nil {
+		return fmt.Errorf("setting `definition`: %+v", err)
 	}
 
 	return nil
@@ -228,24 +268,6 @@ func resourceArmCostManagementExportResourceGroupDelete(d *schema.ResourceData, 
 	}
 
 	return nil
-}
-
-func validateCostManagementExportName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
-	}
-
-	if len(name) < 3 || len(name) > 24 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 24 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }
 
 func expandExportDeliveryInfo(input []interface{}) *costmanagement.ExportDeliveryInfo {
@@ -273,14 +295,78 @@ func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []inter
 	destination := input.Destination
 	attrs := make(map[string]interface{})
 	if resourceID := destination.ResourceID; resourceID != nil {
-		attrs["storage_account_id"] = &resourceID
+		attrs["storage_account_id"] = *resourceID
 	}
 	if containerName := destination.Container; containerName != nil {
-		attrs["container_name"] = &containerName
+		attrs["container_name"] = *containerName
 	}
 	if rootFolderPath := destination.RootFolderPath; rootFolderPath != nil {
-		attrs["root_folder_path"] = &rootFolderPath
+		attrs["root_folder_path"] = *rootFolderPath
 	}
 
 	return []interface{}{attrs}
+}
+
+func expandExportDefinition(input []interface{}) *costmanagement.QueryDefinition {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	attrs := input[0].(map[string]interface{})
+	definitionInfo := &costmanagement.QueryDefinition{
+		Type:      utils.String(attrs["type"].(string)),
+		Timeframe: costmanagement.TimeframeType(attrs["time_frame"].(string)),
+	}
+
+	return definitionInfo
+}
+
+func flattenExportDefinition(input *costmanagement.QueryDefinition) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	attrs := make(map[string]interface{})
+	if queryType := input.Type; queryType != nil {
+		attrs["type"] = *queryType
+	}
+	attrs["time_frame"] = string(input.Timeframe)
+
+	return []interface{}{attrs}
+}
+
+func validateCostManagementExportName(v interface{}, k string) (warnings []string, errors []error) {
+	name := v.(string)
+
+	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
+		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
+	}
+
+	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(name) {
+		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
+	}
+
+	if len(name) < 3 || len(name) > 24 {
+		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 24 characters long but is %d", k, len(name)))
+	}
+
+	return warnings, errors
+}
+
+func validateCostManagementExportContainerName(v interface{}, k string) (warnings []string, errors []error) {
+	name := v.(string)
+
+	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
+		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
+	}
+
+	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(name) {
+		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
+	}
+
+	if len(name) < 3 || len(name) > 63 {
+		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 24 characters long but is %d", k, len(name)))
+	}
+
+	return warnings, errors
 }

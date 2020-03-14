@@ -18,7 +18,7 @@ func CostManagementExportResourceGroupID(input string) (*CostManagementExportRes
 	}
 
 	service := CostManagementExportResourceGroupId{
-		ResourceId: fmt.Sprintf("subscriptions/%s/resourceGroups/%s", id.SubscriptionID+id.ResourceGroup),
+		ResourceId: fmt.Sprintf("subscriptions/%s/resourceGroups/%s", id.SubscriptionID, id.ResourceGroup),
 	}
 
 	if service.Name, err = id.PopSegment("exports"); err != nil {
