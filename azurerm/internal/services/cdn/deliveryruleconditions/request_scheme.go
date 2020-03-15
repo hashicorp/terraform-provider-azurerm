@@ -40,22 +40,18 @@ func RequestScheme() *schema.Resource {
 func ExpandArmCdnEndpointConditionRequestScheme(rsc map[string]interface{}) *cdn.DeliveryRuleRequestSchemeCondition {
 	requestSchemeCondition := cdn.DeliveryRuleRequestSchemeCondition{
 		Name: cdn.NameRequestScheme,
+		Parameters: &cdn.RequestSchemeMatchConditionParameters{
+			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestSchemeConditionParameters"),
+			NegateCondition: utils.Bool(rsc["negate_condition"].(bool)),
+		},
 	}
 
 	matchValues := []string{rsc["match_value"].(string)}
-	params := cdn.RequestSchemeMatchConditionParameters{
-		OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestSchemeConditionParameters"),
-		MatchValues:     &matchValues,
-		NegateCondition: utils.Bool(rsc["negate_condition"].(bool)),
-	}
+	requestSchemeCondition.Parameters.MatchValues = &matchValues
 
 	if operator := rsc["operator"]; operator.(string) != "" {
-		params.Operator = utils.String(operator.(string))
+		requestSchemeCondition.Parameters.Operator = utils.String(operator.(string))
 	}
-
-	params.NegateCondition = utils.Bool(rsc["negate_condition"].(bool))
-
-	requestSchemeCondition.Parameters = &params
 
 	return &requestSchemeCondition
 }
