@@ -34,6 +34,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.Cookies(),
 				},
 
+				"http_version_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.HTTPVersion(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -112,6 +118,12 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 		}
 	}
 
+	if hvcs := rule["http_version_condition"].([]interface{}); len(hvcs) > 0 {
+		for _, hvc := range hvcs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionHTTPVersion(hvc.(map[string]interface{})))
+		}
+	}
+
 	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
 		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
 	}
@@ -184,6 +196,15 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				}
 
 				res["cookies_condition"] = append(res["cookies_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionCookies(condition))
+				continue
+			}
+
+			if condition, isHTTPVersionCondition := basicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); isHTTPVersionCondition {
+				if _, ok := res["http_version_condition"]; !ok {
+					res["http_version_condition"] = []map[string]interface{}{}
+				}
+
+				res["http_version_condition"] = append(res["http_version_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionHTTPVersion(condition))
 				continue
 			}
 
