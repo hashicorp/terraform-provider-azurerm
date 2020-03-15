@@ -49,12 +49,15 @@ func Cookies() *schema.Resource {
 			},
 
 			"transforms": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeList,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.Lowercase),
-					string(cdn.Uppercase),
-				}, false),
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(cdn.Lowercase),
+						string(cdn.Uppercase),
+					}, false),
+				},
 			},
 		},
 	}
@@ -72,8 +75,11 @@ func ExpandArmCdnEndpointConditionCookies(cc map[string]interface{}) *cdn.Delive
 		},
 	}
 
-	if transform := cc["transforms"].(string); transform != "" {
-		transforms := []cdn.Transform{cdn.Transform(transform)}
+	if rawTransforms := cc["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		transforms := make([]cdn.Transform, 0)
+		for _, t := range rawTransforms {
+			transforms = append(transforms, cdn.Transform(t.(string)))
+		}
 		cookiesCondition.Parameters.Transforms = &transforms
 	}
 
@@ -98,7 +104,7 @@ func FlattenArmCdnEndpointConditionCookies(cc *cdn.DeliveryRuleCookiesCondition)
 			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
 		}
 
-		if params.Transforms != nil && len(*params.Transforms) > 0 {
+		if params.Transforms != nil {
 			transforms := make([]string, 0)
 			for _, transform := range *params.Transforms {
 				transforms = append(transforms, string(transform))
