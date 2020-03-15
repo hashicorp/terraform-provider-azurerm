@@ -40,6 +40,13 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.HTTPVersion(),
 				},
 
+				"device_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     deliveryruleconditions.Device(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -124,6 +131,10 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 		}
 	}
 
+	if rsc := rule["device_condition"].([]interface{}); len(rsc) > 0 {
+		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionDevice(rsc[0].(map[string]interface{})))
+	}
+
 	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
 		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
 	}
@@ -205,6 +216,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				}
 
 				res["http_version_condition"] = append(res["http_version_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionHTTPVersion(condition))
+				continue
+			}
+
+			if condition, isDeviceCondition := basicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); isDeviceCondition {
+				res["device_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionDevice(condition)}
 				continue
 			}
 
