@@ -25,13 +25,17 @@ func RequestScheme() *schema.Resource {
 				Default:  false,
 			},
 
-			"match_value": {
-				Type:     schema.TypeString,
+			"match_values": {
+				Type:     schema.TypeSet,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"HTTP",
-					"HTTPS",
-				}, false),
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"HTTP",
+						"HTTPS",
+					}, false),
+				},
 			},
 		},
 	}
@@ -43,11 +47,9 @@ func ExpandArmCdnEndpointConditionRequestScheme(rsc map[string]interface{}) *cdn
 		Parameters: &cdn.RequestSchemeMatchConditionParameters{
 			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestSchemeConditionParameters"),
 			NegateCondition: utils.Bool(rsc["negate_condition"].(bool)),
+			MatchValues:     utils.ExpandStringSlice(rsc["match_values"].(*schema.Set).List()),
 		},
 	}
-
-	matchValues := []string{rsc["match_value"].(string)}
-	requestSchemeCondition.Parameters.MatchValues = &matchValues
 
 	if operator := rsc["operator"]; operator.(string) != "" {
 		requestSchemeCondition.Parameters.Operator = utils.String(operator.(string))
@@ -68,8 +70,8 @@ func FlattenArmCdnEndpointConditionRequestScheme(condition *cdn.DeliveryRuleRequ
 			res["negate_condition"] = *params.NegateCondition
 		}
 
-		if params.MatchValues != nil && len(*params.MatchValues) > 0 {
-			res["match_value"] = (*params.MatchValues)[0]
+		if params.MatchValues != nil {
+			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
 		}
 	}
 
