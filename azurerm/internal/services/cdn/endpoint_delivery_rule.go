@@ -28,6 +28,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
+				"cookies_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.Cookies(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -100,6 +106,12 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDeliveryRuleCondition {
 	conditions := make([]cdn.BasicDeliveryRuleCondition, 0)
 
+	if ccs := rule["cookies_condition"].([]interface{}); len(ccs) > 0 {
+		for _, cc := range ccs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionCookies(cc.(map[string]interface{})))
+		}
+	}
+
 	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
 		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
 	}
@@ -166,6 +178,15 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 
 	if deliveryRule.Conditions != nil {
 		for _, basicDeliveryRuleCondition := range *deliveryRule.Conditions {
+			if condition, isCookiesCondition := basicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); isCookiesCondition {
+				if _, ok := res["cookies_condition"]; !ok {
+					res["cookies_condition"] = []map[string]interface{}{}
+				}
+
+				res["cookies_condition"] = append(res["cookies_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionCookies(condition))
+				continue
+			}
+
 			if condition, isRequestSchemeCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); isRequestSchemeCondition {
 				res["request_scheme_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestScheme(condition)}
 				continue
