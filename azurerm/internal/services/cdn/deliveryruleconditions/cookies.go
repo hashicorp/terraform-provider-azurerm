@@ -38,10 +38,14 @@ func Cookies() *schema.Resource {
 				Default:  false,
 			},
 
-			"match_value": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotWhiteSpace,
+			"match_values": {
+				Type:     schema.TypeSet,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotWhiteSpace,
+				},
 			},
 
 			"transforms": {
@@ -64,11 +68,9 @@ func ExpandArmCdnEndpointConditionCookies(cc map[string]interface{}) *cdn.Delive
 			Selector:        utils.String(cc["selector"].(string)),
 			Operator:        cdn.CookiesOperator(cc["operator"].(string)),
 			NegateCondition: utils.Bool(cc["negate_condition"].(bool)),
+			MatchValues:     utils.ExpandStringSlice(cc["match_values"].(*schema.Set).List()),
 		},
 	}
-
-	matchValues := []string{cc["match_value"].(string)}
-	cookiesCondition.Parameters.MatchValues = &matchValues
 
 	if transform := cc["transforms"].(string); transform != "" {
 		transforms := []cdn.Transform{cdn.Transform(transform)}
@@ -92,8 +94,8 @@ func FlattenArmCdnEndpointConditionCookies(cc *cdn.DeliveryRuleCookiesCondition)
 			res["negate_condition"] = *params.NegateCondition
 		}
 
-		if params.MatchValues != nil && len(*params.MatchValues) > 0 {
-			res["match_value"] = (*params.MatchValues)[0]
+		if params.MatchValues != nil {
+			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
 		}
 
 		if params.Transforms != nil && len(*params.Transforms) > 0 {
