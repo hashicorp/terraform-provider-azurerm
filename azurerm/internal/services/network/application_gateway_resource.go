@@ -1276,7 +1276,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
