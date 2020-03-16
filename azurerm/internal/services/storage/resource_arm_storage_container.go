@@ -209,12 +209,9 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
-	}
+	client := storageClient.BlobContainersClient
 
-	props, err := client.GetProperties(ctx, id.AccountName, id.ContainerName)
+	props, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.ContainerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
 			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, account.ResourceGroup)
@@ -228,9 +225,14 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
 
-	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
+	accessLevel, err := flattenStorageContainerAccessLevel(props.PublicAccess)
+	if err != nil {
+		fmt.Errorf("Error retrieving public access Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	}
 
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+	d.Set("container_access_type", accessLevel)
+
+	if err := d.Set("metadata", flattenMetaData(props.Metadata)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
 	}
 
