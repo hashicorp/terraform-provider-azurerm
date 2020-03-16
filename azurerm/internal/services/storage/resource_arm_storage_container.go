@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
@@ -248,7 +247,7 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseResourceID(d.Id())
+	id, err := parsers.ParseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -261,12 +260,9 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
-	}
+	client := storageClient.BlobContainersClient
 
-	if _, err := client.Delete(ctx, id.AccountName, id.ContainerName); err != nil {
+	if _, err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.ContainerName); err != nil {
 		return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
