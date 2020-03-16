@@ -146,7 +146,7 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseResourceID(d.Id())
+	id, err := parsers.ParseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -159,31 +159,29 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
+	client := storageClient.BlobContainersClient
+
+	log.Printf("[DEBUG] Computing the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+	accessLevelRaw := d.Get("container_access_type").(string)
+	accessLevel, err := expandStorageContainerAccessLevel(accessLevelRaw)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("Invalid public access for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
-	if d.HasChange("container_access_type") {
-		log.Printf("[DEBUG] Updating the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
-		accessLevelRaw := d.Get("container_access_type").(string)
-		accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
+	log.Printf("[DEBUG] Computing the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaData := expandMetaData(metaDataRaw)
 
-		if _, err := client.SetAccessControl(ctx, id.AccountName, id.ContainerName, accessLevel); err != nil {
-			return fmt.Errorf("Error updating the Access Control for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	if d.HasChange("container_access_type") || d.HasChange("metadata") {
+		input := storage.BlobContainer{
+			ContainerProperties: &storage.ContainerProperties{
+				PublicAccess: accessLevel,
+				Metadata:     metaData,
+			},
 		}
-		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
-	}
-
-	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
-		metaData := ExpandMetaData(metaDataRaw)
-
-		if _, err := client.SetMetaData(ctx, id.AccountName, id.ContainerName, metaData); err != nil {
-			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		if _, err := client.Update(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, input); err != nil {
+			return fmt.Errorf("Error updating Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 		}
-		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
 	}
 
 	return resourceArmStorageContainerRead(d, meta)
