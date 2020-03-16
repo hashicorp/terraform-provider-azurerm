@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	v3sql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -15,6 +16,7 @@ type Client struct {
 	ServerAzureADAdministratorsClient        *sql.ServerAzureADAdministratorsClient
 	VirtualNetworkRulesClient                *sql.VirtualNetworkRulesClient
 	ExtendedServerBlobAuditingPoliciesClient *sql.ExtendedServerBlobAuditingPoliciesClient
+	BackupLongTermRetentionPoliciesClient    *v3sql.BackupLongTermRetentionPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -46,6 +48,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	ExtendedServerBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClient(o.SubscriptionId)
 	o.ConfigureClient(&ExtendedServerBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	BackupLongTermRetentionPoliciesClient := v3sql.NewBackupLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BackupLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DatabasesClient:                          &DatabasesClient,
 		DatabaseThreatDetectionPoliciesClient:    &DatabaseThreatDetectionPoliciesClient,
@@ -56,5 +61,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerAzureADAdministratorsClient:        &ServerAzureADAdministratorsClient,
 		VirtualNetworkRulesClient:                &VirtualNetworkRulesClient,
 		ExtendedServerBlobAuditingPoliciesClient: &ExtendedServerBlobAuditingPoliciesClient,
+		BackupLongTermRetentionPoliciesClient:    &BackupLongTermRetentionPoliciesClient,
 	}
 }
