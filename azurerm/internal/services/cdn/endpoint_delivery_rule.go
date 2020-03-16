@@ -53,6 +53,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.PostArg(),
 				},
 
+				"query_string_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.QueryString(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -144,6 +150,12 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 	if pacs := rule["post_arg_condition"].([]interface{}); len(pacs) > 0 {
 		for _, pac := range pacs {
 			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionPostArg(pac.(map[string]interface{})))
+		}
+	}
+
+	if qscs := rule["query_string_condition"].([]interface{}); len(qscs) > 0 {
+		for _, qsc := range qscs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionQueryString(qsc.(map[string]interface{})))
 		}
 	}
 
@@ -242,6 +254,15 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				}
 
 				res["post_arg_condition"] = append(res["post_arg_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionPostArg(condition))
+				continue
+			}
+
+			if condition, isQueryStringCondition := basicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); isQueryStringCondition {
+				if _, ok := res["query_string_condition"]; !ok {
+					res["query_string_condition"] = []map[string]interface{}{}
+				}
+
+				res["query_string_condition"] = append(res["query_string_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionQueryString(condition))
 				continue
 			}
 
