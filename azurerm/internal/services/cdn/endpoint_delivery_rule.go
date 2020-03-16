@@ -47,6 +47,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.Device(),
 				},
 
+				"post_arg_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.PostArg(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -135,6 +141,12 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionDevice(rsc[0].(map[string]interface{})))
 	}
 
+	if pacs := rule["post_arg_condition"].([]interface{}); len(pacs) > 0 {
+		for _, pac := range pacs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionPostArg(pac.(map[string]interface{})))
+		}
+	}
+
 	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
 		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
 	}
@@ -221,6 +233,15 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 
 			if condition, isDeviceCondition := basicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); isDeviceCondition {
 				res["device_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionDevice(condition)}
+				continue
+			}
+
+			if condition, isPostArgCondition := basicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); isPostArgCondition {
+				if _, ok := res["post_arg_condition"]; !ok {
+					res["post_arg_condition"] = []map[string]interface{}{}
+				}
+
+				res["post_arg_condition"] = append(res["post_arg_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionPostArg(condition))
 				continue
 			}
 
