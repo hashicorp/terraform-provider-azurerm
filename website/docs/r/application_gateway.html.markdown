@@ -165,9 +165,9 @@ The following arguments are supported:
 
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
-* `firewall_policy` - (Optional) A `firewall_policy` block as defined below.
-
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `firewall_policy` - (Optional) A `firewall_policy` block as defined below.
 
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
@@ -487,17 +487,17 @@ A `exclusion` block supports the following:
 
 ---
 
-A `firewall_policy` block supports the following:
-
-* `id` - (Required) ID of an existing Web Application Firewall Policy with which to associate the Application Gateway
-
----
-
 A `custom_error_configuration` block supports the following:
 
 * `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
 
 * `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
+
+---
+
+A `firewall_policy` block supports the following:
+
+* `id` - (Required) ID of an existing Web Application Firewall Policy with which to associate the Application Gateway
 
 ---
 
