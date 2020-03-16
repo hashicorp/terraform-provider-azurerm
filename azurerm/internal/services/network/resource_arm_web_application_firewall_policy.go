@@ -48,7 +48,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"custom_rules": {
+			"custom_rule": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -62,7 +62,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 								string(network.WebApplicationFirewallActionLog),
 							}, false),
 						},
-						"match_conditions": {
+						"match_condition": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Resource{
@@ -74,7 +74,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"match_variables": {
+									"match_variable": {
 										Type:     schema.TypeList,
 										Required: true,
 										Elem: &schema.Resource{
@@ -143,6 +143,87 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 				},
 			},
 
+			"managed_rules": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"exclusion": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"match_variable": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.RequestArgNames),
+											string(network.RequestCookieNames),
+											string(network.RequestHeaderNames),
+										}, false),
+									},
+									"selector": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.NoZeroValues,
+									},
+									"selector_match_operator": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEndsWith),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEquals),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEqualsAny),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
+										}, false),
+									},
+								},
+							},
+						},
+						"managed_rule_set": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"rule_set_type": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.NoZeroValues,
+									},
+									"rule_set_version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.NoZeroValues,
+									},
+									"rule_group_override": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"rule_group_name": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.NoZeroValues,
+												},
+												"disabled_rules": {
+													Type:     schema.TypeList,
+													Required: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"policy_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -193,8 +274,9 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	customRules := d.Get("custom_rules").([]interface{})
+	customRules := d.Get("custom_rule").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
+	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.WebApplicationFirewallPolicy{
@@ -202,6 +284,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 		WebApplicationFirewallPolicyPropertiesFormat: &network.WebApplicationFirewallPolicyPropertiesFormat{
 			CustomRules:    expandArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandArmWebApplicationFirewallPolicyPolicySettings(policySettings),
+			ManagedRules:   expandArmWebApplicationFirewallPolicyManagedRulesDefinition(managedRules),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -250,11 +333,14 @@ func resourceArmWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta in
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if webApplicationFirewallPolicyPropertiesFormat := resp.WebApplicationFirewallPolicyPropertiesFormat; webApplicationFirewallPolicyPropertiesFormat != nil {
-		if err := d.Set("custom_rules", flattenArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(webApplicationFirewallPolicyPropertiesFormat.CustomRules)); err != nil {
+		if err := d.Set("custom_rule", flattenArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(webApplicationFirewallPolicyPropertiesFormat.CustomRules)); err != nil {
 			return fmt.Errorf("Error setting `custom_rules`: %+v", err)
 		}
 		if err := d.Set("policy_settings", flattenArmWebApplicationFirewallPolicyPolicySettings(webApplicationFirewallPolicyPropertiesFormat.PolicySettings)); err != nil {
-			return fmt.Errorf("Error setting `policy_settings`: %+v", err)
+			return fmt.Errorf("Error setting `policy_setting`: %+v", err)
+		}
+		if err := d.Set("managed_rules", flattenArmWebApplicationFirewallPolicyManagedRulesDefinition(webApplicationFirewallPolicyPropertiesFormat.ManagedRules)); err != nil {
+			return fmt.Errorf("Error setting `managed_rule`: %+v", err)
 		}
 	}
 
@@ -297,7 +383,7 @@ func expandArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input
 		name := v["name"].(string)
 		priority := v["priority"].(int)
 		ruleType := v["rule_type"].(string)
-		matchConditions := v["match_conditions"].([]interface{})
+		matchConditions := v["match_condition"].([]interface{})
 		action := v["action"].(string)
 
 		result := network.WebApplicationFirewallCustomRule{
@@ -320,7 +406,7 @@ func expandArmWebApplicationFirewallPolicyPolicySettings(input []interface{}) *n
 	v := input[0].(map[string]interface{})
 
 	enabled := network.WebApplicationFirewallEnabledStateDisabled
-	if v["enabled"].(bool) {
+	if value, ok := v["enabled"].(bool); ok && value {
 		enabled = network.WebApplicationFirewallEnabledStateEnabled
 	}
 	mode := v["mode"].(string)
@@ -332,11 +418,100 @@ func expandArmWebApplicationFirewallPolicyPolicySettings(input []interface{}) *n
 	return &result
 }
 
+func expandArmWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{}) *network.ManagedRulesDefinition {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	exclusions := v["exclusion"].([]interface{})
+	managedRuleSets := v["managed_rule_set"].([]interface{})
+
+	result := network.ManagedRulesDefinition{
+		Exclusions:      expandArmWebApplicationFirewallPolicyExclusions(exclusions),
+		ManagedRuleSets: expandArmWebApplicationFirewallPolicyManagedRuleSet(managedRuleSets),
+	}
+	return &result
+}
+
+func expandArmWebApplicationFirewallPolicyExclusions(input []interface{}) *[]network.OwaspCrsExclusionEntry {
+	results := make([]network.OwaspCrsExclusionEntry, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		matchVariable := v["match_variable"].(string)
+		selectorMatchOperator := v["selector_match_operator"].(string)
+		selector := v["selector"].(string)
+
+		result := network.OwaspCrsExclusionEntry{
+			MatchVariable:         network.OwaspCrsExclusionEntryMatchVariable(matchVariable),
+			SelectorMatchOperator: network.OwaspCrsExclusionEntrySelectorMatchOperator(selectorMatchOperator),
+			Selector:              utils.String(selector),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandArmWebApplicationFirewallPolicyManagedRuleSet(input []interface{}) *[]network.ManagedRuleSet {
+	results := make([]network.ManagedRuleSet, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleSetType := v["rule_set_type"].(string)
+		ruleSetVersion := v["rule_set_version"].(string)
+		ruleGroupOverrides := v["rule_group_overrides"].([]interface{})
+		result := network.ManagedRuleSet{
+			RuleSetType:        utils.String(ruleSetType),
+			RuleSetVersion:     utils.String(ruleSetVersion),
+			RuleGroupOverrides: expandArmWebApplicationFirewallPolicyRuleGroupOverrides(ruleGroupOverrides),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandArmWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}) *[]network.ManagedRuleGroupOverride {
+	results := make([]network.ManagedRuleGroupOverride, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleGroupName := v["rule_group_name"].(string)
+		disabledRules := v["disabled_rules"].([]interface{})
+
+		result := network.ManagedRuleGroupOverride{
+			RuleGroupName: utils.String(ruleGroupName),
+			Rules:         expandArmWebApplicationFirewallPolicyRules(disabledRules),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+
+}
+
+func expandArmWebApplicationFirewallPolicyRules(input []interface{}) *[]network.ManagedRuleOverride {
+	results := make([]network.ManagedRuleOverride, 0)
+	for _, item := range input {
+		ruleID := item.(string)
+
+		result := network.ManagedRuleOverride{
+			RuleID: utils.String(ruleID),
+			State:  network.ManagedRuleEnabledStateDisabled,
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
 func expandArmWebApplicationFirewallPolicyMatchCondition(input []interface{}) *[]network.MatchCondition {
 	results := make([]network.MatchCondition, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		matchVariables := v["match_variables"].([]interface{})
+		matchVariables := v["match_variable"].([]interface{})
 		operator := v["operator"].(string)
 		negationCondition := v["negation_condition"].(bool)
 		matchValues := v["match_values"].([]interface{})
@@ -383,7 +558,7 @@ func flattenArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(inpu
 			v["name"] = *name
 		}
 		v["action"] = string(item.Action)
-		v["match_conditions"] = flattenArmWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
+		v["match_condition"] = flattenArmWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
 		if priority := item.Priority; priority != nil {
 			v["priority"] = int(*priority)
 		}
@@ -402,10 +577,100 @@ func flattenArmWebApplicationFirewallPolicyPolicySettings(input *network.PolicyS
 
 	result := make(map[string]interface{})
 
-	result["enabled"] = input.State == network.WebApplicationFirewallEnabledStateDisabled
+	result["enabled"] = input.State == network.WebApplicationFirewallEnabledStateEnabled
 	result["mode"] = string(input.Mode)
 
 	return []interface{}{result}
+}
+
+func flattenArmWebApplicationFirewallPolicyManagedRulesDefinition(input *network.ManagedRulesDefinition) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	v := make(map[string]interface{})
+
+	v["exclusion"] = flattenArmWebApplicationFirewallPolicyExclusions(input.Exclusions)
+	v["managed_rule_set"] = flattenArmWebApplicationFirewallPolicyManagedRuleSets(input.ManagedRuleSets)
+
+	results = append(results, v)
+
+	return results
+}
+
+func flattenArmWebApplicationFirewallPolicyExclusions(input *[]network.OwaspCrsExclusionEntry) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		selector := item.Selector
+
+		v["match_variable"] = string(item.MatchVariable)
+		if selector != nil {
+			v["selector"] = string(*selector)
+		}
+		v["selector_match_operator"] = string(item.SelectorMatchOperator)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenArmWebApplicationFirewallPolicyManagedRuleSets(input *[]network.ManagedRuleSet) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["rule_set_type"] = item.RuleSetType
+		v["rule_set_version"] = item.RuleSetVersion
+		v["rule_group_override"] = flattenArmWebApplicationFirewallPolicyRuleGroupOverrides(item.RuleGroupOverrides)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenArmWebApplicationFirewallPolicyRuleGroupOverrides(input *[]network.ManagedRuleGroupOverride) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["rule_group_name"] = item.RuleGroupName
+		v["disabled_rules"] = flattenArmWebApplicationFirewallPolicyManagedRuleOverrides(item.Rules)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenArmWebApplicationFirewallPolicyManagedRuleOverrides(input *[]network.ManagedRuleOverride) []string {
+	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if item.State == "" || item.State == network.ManagedRuleEnabledStateDisabled {
+			v := *item.RuleID
+
+			results = append(results, v)
+		}
+	}
+
+	return results
 }
 
 func flattenArmWebApplicationFirewallPolicyMatchCondition(input *[]network.MatchCondition) []interface{} {
@@ -418,7 +683,7 @@ func flattenArmWebApplicationFirewallPolicyMatchCondition(input *[]network.Match
 		v := make(map[string]interface{})
 
 		v["match_values"] = utils.FlattenStringSlice(item.MatchValues)
-		v["match_variables"] = flattenArmWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
+		v["match_variable"] = flattenArmWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition
 		}
