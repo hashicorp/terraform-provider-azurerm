@@ -4,6 +4,11 @@ IMPROVEMENTS:
 
 * `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
 
+BUG FIXES:
+
+* Data Source: `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+* `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+
 ## 2.1.0 (March 11, 2020)
 
 NOTES:
