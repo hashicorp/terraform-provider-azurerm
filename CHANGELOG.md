@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
+* `azurerm_sql_database` - support for the `extended_auditing_policy` property [GH-5049]
 
 BUG FIXES:
 
