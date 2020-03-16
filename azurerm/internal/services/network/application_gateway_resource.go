@@ -3644,7 +3644,11 @@ func flattenApplicationGatewayFirewallPolicy(input *network.SubResource) []inter
 
 	output := make(map[string]interface{})
 
-	output["id"] = input.ID
+	id := ""
+	if input.ID != nil {
+		id = *input.ID
+	}
+	output["id"] = id
 	results = append(results, output)
 
 	return results
