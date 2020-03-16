@@ -1,4 +1,9 @@
 ## 2.2.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
+
 ## 2.1.0 (March 11, 2020)
 
 NOTES:
