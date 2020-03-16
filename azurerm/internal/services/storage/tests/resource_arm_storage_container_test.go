@@ -216,12 +216,9 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.ContainersClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Containers Client: %s", err)
-		}
+		client := storageClient.BlobContainersClient
 
-		resp, err := client.GetProperties(ctx, accountName, containerName)
+		resp, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, account.ResourceGroup)
