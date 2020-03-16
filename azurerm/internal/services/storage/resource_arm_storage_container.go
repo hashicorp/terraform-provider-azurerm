@@ -315,7 +315,7 @@ func flattenMetaData(input map[string]*string) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	for k, v := range input {
-		output[k] = &v
+		output[k] = v
 	}
 
 	return output
