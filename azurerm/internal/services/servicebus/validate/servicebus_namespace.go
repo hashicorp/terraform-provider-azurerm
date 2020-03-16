@@ -17,7 +17,7 @@ func ServiceBusNamespaceName(v interface{}, k string) (warnings []string, errors
 		errors = append(errors, fmt.Errorf("%s must contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long", k))
 	}
 
-// Ask KT about this vs breaking them out separately
+	// Ask KT about this vs breaking them out separately
 	// 	if strings.HasSuffix(v, "-") || strings.HasSuffix(v, "-sb") || strings.HasSuffix(v, "-mgmt") {
 	// 	errors = append(errors, fmt.Errorf("%q cannot end with a hyphen, -sb, or -mgmt", k, value))
 	// }
