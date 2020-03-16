@@ -67,6 +67,32 @@ func validateIpv4Address(i interface{}, k string, allowEmpty bool) (warnings []s
 	return warnings, errors
 }
 
+func IPAddress(i interface{}, k string) (warnings []string, errors []error) {
+	return validateIpAddress(i, k, false)
+}
+
+func IPAddressOrEmpty(i interface{}, k string) (warnings []string, errors []error) {
+	return validateIpAddress(i, k, true)
+}
+
+func validateIpAddress(i interface{}, k string, allowEmpty bool) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if v == "" && allowEmpty {
+		return
+	}
+
+	if net.ParseIP(v) == nil {
+		errors = append(errors, fmt.Errorf("%q is not a valid IP address: %q", k, v))
+	}
+
+	return warnings, errors
+}
+
 func MACAddress(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
