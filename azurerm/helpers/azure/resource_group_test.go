@@ -58,11 +58,11 @@ func TestValidateResourceGroupName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateResourceGroupName(tc.Value, "azurerm_resource_group")
+		_, errors := ValidateResourceGroupName(tc.Value, "azurerm_resource_group")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected "+
-				"validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
+				"ValidateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
 		}
 	}
 }
