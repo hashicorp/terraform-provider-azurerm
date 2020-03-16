@@ -9,8 +9,8 @@ import (
 func ServiceBusNamespaceName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}").MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s must be a GUID", k))
+	if regexp.MustCompile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}").MatchString(value) {
+		return
 	}
 
 	if !regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$").MatchString(value) {
