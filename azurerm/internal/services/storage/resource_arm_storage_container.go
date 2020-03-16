@@ -192,7 +192,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseResourceID(d.Id())
+	id, err := parsers.ParseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
