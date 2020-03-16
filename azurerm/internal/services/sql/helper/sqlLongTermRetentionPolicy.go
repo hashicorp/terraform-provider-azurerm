@@ -1,3 +1,5 @@
+package helper
+
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
