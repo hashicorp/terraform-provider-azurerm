@@ -252,12 +252,9 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.ContainersClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Containers Client: %s", err)
-		}
+		client := storageClient.BlobContainersClient
 
-		if _, err := client.Delete(ctx, accountName, containerName); err != nil {
+		if _, err := client.Delete(ctx, account.ResourceGroup, accountName, containerName); err != nil {
 			return fmt.Errorf("Error deleting Container %q (Account %q): %s", containerName, accountName, err)
 		}
 
