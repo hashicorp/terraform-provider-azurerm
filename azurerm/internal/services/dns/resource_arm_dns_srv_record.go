@@ -199,7 +199,7 @@ func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 func flattenAzureRmDnsSrvRecords(records *[]dns.SrvRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
+	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {
