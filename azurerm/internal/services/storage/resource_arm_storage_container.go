@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -91,11 +92,15 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 
 	containerName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
+
 	accessLevelRaw := d.Get("container_access_type").(string)
-	accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
+	accessLevel, err := expandStorageContainerAccessLevel(accessLevelRaw)
+	if err != nil {
+		return fmt.Errorf("Invalid container public access Account %q for Container %q: %s", accountName, containerName, err)
+	}
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	metaData := ExpandMetaData(metaDataRaw)
+	metaData := expandMetaData(metaDataRaw)
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
@@ -105,14 +110,11 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Containers Client: %s", err)
-	}
+	client := storageClient.BlobContainersClient
 
 	id := getResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName)
 	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetProperties(ctx, accountName, containerName)
+		existing, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q): %+v", containerName, accountName, account.ResourceGroup, err)
@@ -125,11 +127,13 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	log.Printf("[INFO] Creating Container %q in Storage Account %q", containerName, accountName)
-	input := containers.CreateInput{
-		AccessLevel: accessLevel,
-		MetaData:    metaData,
+	input := storage.BlobContainer{
+		ContainerProperties: &storage.ContainerProperties{
+			PublicAccess: accessLevel,
+			Metadata:     metaData,
+		},
 	}
-	if _, err := client.Create(ctx, accountName, containerName, input); err != nil {
+	if _, err := client.Create(ctx, account.ResourceGroup, accountName, containerName, input); err != nil {
 		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
 	}
 
@@ -269,24 +273,30 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandStorageContainerAccessLevel(input string) containers.AccessLevel {
-	// for historical reasons, "private" above is an empty string in the API
-	// so the enum doesn't 1:1 match. You could argue the SDK should handle this
-	// but this is suitable for now
-	if input == "private" {
-		return containers.Private
+func expandStorageContainerAccessLevel(input string) (storage.PublicAccess, error) {
+	switch input {
+	case "private":
+		return storage.PublicAccessNone, nil
+	case "container":
+		return storage.PublicAccessContainer, nil
+	case "blob":
+		return storage.PublicAccessBlob, nil
+	default:
+		return "", fmt.Errorf("%s", input)
 	}
-
-	return containers.AccessLevel(input)
 }
 
-func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
-	// for historical reasons, "private" above is an empty string in the API
-	if input == containers.Private {
-		return "private"
+func flattenStorageContainerAccessLevel(input storage.PublicAccess) (string, error) {
+	switch input {
+	case storage.PublicAccessNone:
+		return "private", nil
+	case storage.PublicAccessContainer:
+		return "container", nil
+	case storage.PublicAccessBlob:
+		return "blob", nil
+	default:
+		return "", fmt.Errorf("%s", input)
 	}
-
-	return string(input)
 }
 
 func getResourceID(baseUri, accountName, containerName string) string {
