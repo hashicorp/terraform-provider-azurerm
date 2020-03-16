@@ -1,4 +1,15 @@
-## 2.1.0 (Unreleased)
+## 2.2.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
+
+BUG FIXES:
+
+* Data Source: `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+* `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+
+## 2.1.0 (March 11, 2020)
 
 NOTES:
 
@@ -6,67 +17,71 @@ The `azurerm_frontdoor` resource has introduced a breaking change due to the und
 
 FEATURES:
 
-* **New Data Source:** `azurerm_database_migration_project` [GH-5993]
-* **New Data Source:** `azurerm_database_migration_service` [GH-5258]
-* **New Data Source:** `azurerm_kusto_cluster` [GH-5942]
-* **New Data Source:** `azurerm_servicebus_topic_authorization_rule` [GH-6017]
-* **New Resource:** `azurerm_bot_channel_directline` [GH-5445]
-* **New Resource:** `azurerm_database_migration_project` [GH-5993]
-* **New Resource:** `azurerm_database_migration_service` [GH-5258]
-* **New Resource:** `azurerm_hpc_cache` [GH-5528]
-* **New Resource:** `azurerm_iotcentral_application` [GH-5446]
-* **New Resource:** `azurerm_monitor_scheduled_query_rules_alert` [GH-5053]
-* **New Resource:** `azurerm_monitor_scheduled_query_rules_log` [GH-5053]
-* **New Resource:** `azurerm_spatial_anchors_account` [GH-6011]
+* **New Data Source:** `azurerm_database_migration_project` ([#5993](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5993))
+* **New Data Source:** `azurerm_database_migration_service` ([#5258](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5258))
+* **New Data Source:** `azurerm_kusto_cluster` ([#5942](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5942))
+* **New Data Source:** `azurerm_servicebus_topic_authorization_rule` ([#6017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6017))
+* **New Resource:** `azurerm_bot_channel_directline` ([#5445](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5445))
+* **New Resource:** `azurerm_database_migration_project` ([#5993](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5993))
+* **New Resource:** `azurerm_database_migration_service` ([#5258](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5258))
+* **New Resource:** `azurerm_hpc_cache` ([#5528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5528))
+* **New Resource:** `azurerm_iotcentral_application` ([#5446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5446))
+* **New Resource:** `azurerm_monitor_scheduled_query_rules_alert` ([#5053](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5053))
+* **New Resource:** `azurerm_monitor_scheduled_query_rules_log` ([#5053](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5053))
+* **New Resource:** `azurerm_spatial_anchors_account` ([#6011](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6011))
 
 IMPROVEMENTS:
 
-* batch: upgrading to API version `2019-08-01` [GH-5967]
-* containerservice: upgrading to API version `2019-11-01` [GH-5531]
-* netapp: upgrading to API version `2019-10-01` [GH-5531]
-* `azurerm_application_gateway` - support up to `125` for the `capacity` property with V2 SKU's [GH-5906]
-* `azurerm_automation_dsc_configuration` - support for the `tags` property [GH-5827]
-* `azurerm_batch_pool` - support for the `public_ips` property [GH-5967]
-* `azurerm_frontdoor` - exposed new attributes in `backend_pool_health_probe` block `enabled` and `probe_method` [GH-5924]
-* `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps [GH-5839]
-* `azurerm_kubernetes_cluster`: Support for the `node_labels` property [GH-5531]
-* `azurerm_kubernetes_cluster`: Support for the `tags` property [GH-5931]
-* `azurerm_kubernetes_cluster_node_pool`: Support for the `node_labels` property [GH-5531]
-* `azurerm_kubernetes_cluster_node_pool`: Support for the `tags` property [GH-5931]
-* `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties [GH-5855]
-* `azurerm_lb` - support for the `private_ip_address_version` property [GH-5590]
-* `azurerm_mariadb_server` - changing the `geo_redundant_backup` property now forces a new resource [GH-5961]
-* `azurerm_netapp_account` - support for the `tags` property [GH-5995]
-* `azurerm_netapp_pool` - support for the `tags` property [GH-5995]
-* `azurerm_netapp_snapshot` - support for the `tags` property [GH-5995]
-* `azurerm_netapp_volume` - support for the `tags` property [GH-5995]
-* `azurerm_netapp_volume` - support for the `protocol_types` property [GH-5485]
-* `azurerm_netapp_volume` - deprecated the `cifs_enabled`, `nfsv3_enabled`, and `nfsv4_enabled` properties in favour of `protocols_enabled` [GH-5485]
-* `azurerm_network_watcher_flow_log` - support for the traffic analysis `interval_in_minutes` property [GH-5851]
-* `azurerm_private_dns_a_record` - export the `fqdn` property [GH-5949]
-* `azurerm_private_dns_aaaa_record` - export the `fqdn` property [GH-5949]
-* `azurerm_private_dns_cname_record` - export the `fqdn` property [GH-5949]
-* `azurerm_private_dns_mx_record` - export the `fqdn` property [GH-5949]
-* `azurerm_private_dns_ptr_record` - export the `fqdn` property [GH-5949]
-* `azurerm_private_dns_srv_record` - export the `fqdn` property [GH-5949]
-* `azurerm_private_endpoint` - exposed `private_ip_address` as a computed attribute [GH-5838]
-* `azurerm_redis_cache` - support for the `primary_connection_string` and `secondary_connection_string` properties [GH-5958]
-* `azurerm_sql_server` - support for the `extended_auditing_policy` property [GH-5036]
-* `azurerm_storage_account` - support up to 50 tags [GH-5934]
-* `azurerm_virtual_wan` - support for the `type` property [GH-5877]
+* batch: upgrading to API version `2019-08-01` ([#5967](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5967))
+* containerservice: upgrading to API version `2019-11-01` ([#5531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5531))
+* netapp: upgrading to API version `2019-10-01` ([#5531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5531))
+* dependencies: temporarily switching to using a fork of `github.com/Azure/go-autorest` to workaround an issue in the storage authorizer ([#6050](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6050))
+* dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.9.0` ([#6050](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6050))
+* `azurerm_application_gateway` - support up to `125` for the `capacity` property with V2 SKU's ([#5906](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5906))
+* `azurerm_automation_dsc_configuration` - support for the `tags` property ([#5827](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5827))
+* `azurerm_batch_pool` - support for the `public_ips` property ([#5967](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5967))
+* `azurerm_frontdoor` - exposed new attributes in `backend_pool_health_probe` block `enabled` and `probe_method` ([#5924](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5924))
+* `azurerm_function_app` - Added `os_type` field to facilitate support of `linux` function apps ([#5839](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5839))
+* `azurerm_kubernetes_cluster`: Support for the `node_labels` property ([#5531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5531))
+* `azurerm_kubernetes_cluster`: Support for the `tags` property ([#5931](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5931))
+* `azurerm_kubernetes_cluster_node_pool`: Support for the `node_labels` property ([#5531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5531))
+* `azurerm_kubernetes_cluster_node_pool`: Support for the `tags` property ([#5931](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5931))
+* `azurerm_kusto_cluster` - support for `enable_disk_encryption` and `enable_streaming_ingest` properties ([#5855](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5855))
+* `azurerm_lb` - support for the `private_ip_address_version` property ([#5590](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5590))
+* `azurerm_mariadb_server` - changing the `geo_redundant_backup` property now forces a new resource ([#5961](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5961))
+* `azurerm_netapp_account` - support for the `tags` property ([#5995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5995))
+* `azurerm_netapp_pool` - support for the `tags` property ([#5995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5995))
+* `azurerm_netapp_snapshot` - support for the `tags` property ([#5995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5995))
+* `azurerm_netapp_volume` - support for the `tags` property ([#5995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5995))
+* `azurerm_netapp_volume` - support for the `protocol_types` property ([#5485](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5485))
+* `azurerm_netapp_volume` - deprecated the `cifs_enabled`, `nfsv3_enabled`, and `nfsv4_enabled` properties in favour of `protocols_enabled` ([#5485](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5485))
+* `azurerm_network_watcher_flow_log` - support for the traffic analysis `interval_in_minutes` property ([#5851](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5851))
+* `azurerm_private_dns_a_record` - export the `fqdn` property ([#5949](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5949))
+* `azurerm_private_dns_aaaa_record` - export the `fqdn` property ([#5949](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5949))
+* `azurerm_private_dns_cname_record` - export the `fqdn` property ([#5949](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5949))
+* `azurerm_private_dns_mx_record` - export the `fqdn` property ([#5949](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5949))
+* `azurerm_private_dns_ptr_record` - export the `fqdn` property ([#5949](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5949))
+* `azurerm_private_dns_srv_record` - export the `fqdn` property ([#5949](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5949))
+* `azurerm_private_endpoint` - exposed `private_ip_address` as a computed attribute ([#5838](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5838))
+* `azurerm_redis_cache` - support for the `primary_connection_string` and `secondary_connection_string` properties ([#5958](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5958))
+* `azurerm_sql_server` - support for the `extended_auditing_policy` property ([#5036](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5036))
+* `azurerm_storage_account` - support up to 50 tags ([#5934](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5934))
+* `azurerm_virtual_wan` - support for the `type` property ([#5877](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5877))
 
 BUG FIXES:
 
-* `azurerm_app_service_plan` - no longer sends an empty `app_service_environment_id` property on update [GH-5915]
-* `azurerm_automation_schedule` - fix time validation [GH-5876]
-* `azurerm_batch_pool` - `frontend_port_range ` is now set correctly. [GH-5941]
-* `azurerm_dns_txt_record` - support records up to `1024` characters in length [GH-5837]
-* `azurerm_frontdoor` - fix the way `backend_pool_load_balancing`/`backend_pool_health_probe` [GH-5924]
-* `azurerm_frontdoor` - all new front door resources to be created in the `Global` location [GH-6015]
-* `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions [GH-5943]
-* `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation [GH-5901]
-* `azurerm_netapp_volume` - support volmes uoto `100TB` in size [GH-5485]
-* `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource [GH-5935]
+* `azurerm_app_service_plan` - no longer sends an empty `app_service_environment_id` property on update ([#5915](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5915))
+* `azurerm_automation_schedule` - fix time validation ([#5876](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5876))
+* `azurerm_batch_pool` - `frontend_port_range ` is now set correctly. ([#5941](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5941))
+* `azurerm_dns_txt_record` - support records up to `1024` characters in length ([#5837](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5837))
+* `azurerm_frontdoor` - fix the way `backend_pool_load_balancing`/`backend_pool_health_probe` ([#5924](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5924))
+* `azurerm_frontdoor` - all new front door resources to be created in the `Global` location ([#6015](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6015))
+* `azurerm_frontdoor_firewall_policy` - add validation for Frontdoor WAF Name Restrictions ([#5943](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5943))
+* `azurerm_linux_virtual_machine_scale_set` - correct `source_image_id` validation ([#5901](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5901))
+* `azurerm_netapp_volume` - support volmes uoto `100TB` in size ([#5485](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5485))
+* `azurerm_search_service` - changing the properties `replica_count` & `partition_count` properties no longer force a new resource ([#5935](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5935))
+* `azurerm_storage_account` - fixing a crash when an empty `static_website` block was specified ([#6050](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6050))
+* `azurerm_storage_account` - using SharedKey Authorization for reading/updating the Static Website when not using AzureAD authentication ([#6050](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6050))
 
 ## 2.0.0 (February 24, 2020)
 
