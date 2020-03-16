@@ -461,7 +461,10 @@ func expandArmWebApplicationFirewallPolicyManagedRuleSet(input []interface{}) *[
 
 		ruleSetType := v["rule_set_type"].(string)
 		ruleSetVersion := v["rule_set_version"].(string)
-		ruleGroupOverrides := v["rule_group_overrides"].([]interface{})
+		ruleGroupOverrides := []interface{}{}
+		if value, exists := v["rule_group_overrides"]; exists {
+			ruleGroupOverrides = value.([]interface{})
+		}
 		result := network.ManagedRuleSet{
 			RuleSetType:        utils.String(ruleSetType),
 			RuleSetVersion:     utils.String(ruleSetVersion),
