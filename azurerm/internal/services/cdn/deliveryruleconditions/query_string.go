@@ -58,7 +58,7 @@ func QueryString() *schema.Resource {
 }
 
 func ExpandArmCdnEndpointConditionQueryString(qsc map[string]interface{}) *cdn.DeliveryRuleQueryStringCondition {
-	cookiesCondition := cdn.DeliveryRuleQueryStringCondition{
+	queryStringCondition := cdn.DeliveryRuleQueryStringCondition{
 		Name: cdn.NameQueryString,
 		Parameters: &cdn.QueryStringMatchConditionParameters{
 			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleQueryStringConditionParameters"),
@@ -73,10 +73,10 @@ func ExpandArmCdnEndpointConditionQueryString(qsc map[string]interface{}) *cdn.D
 		for _, t := range rawTransforms {
 			transforms = append(transforms, cdn.Transform(t.(string)))
 		}
-		cookiesCondition.Parameters.Transforms = &transforms
+		queryStringCondition.Parameters.Transforms = &transforms
 	}
 
-	return &cookiesCondition
+	return &queryStringCondition
 }
 
 func FlattenArmCdnEndpointConditionQueryString(qsc *cdn.DeliveryRuleQueryStringCondition) map[string]interface{} {
