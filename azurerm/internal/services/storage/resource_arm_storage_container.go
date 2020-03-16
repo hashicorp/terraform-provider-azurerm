@@ -293,3 +293,24 @@ func getResourceID(baseUri, accountName, containerName string) string {
 	domain := parsers.GetBlobEndpoint(baseUri, accountName)
 	return fmt.Sprintf("%s/%s", domain, containerName)
 }
+
+func expandMetaData(input map[string]interface{}) map[string]*string {
+	output := make(map[string]*string)
+
+	for k, v := range input {
+		temp := v.(string)
+		output[k] = &temp
+	}
+
+	return output
+}
+
+func flattenMetaData(input map[string]*string) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	for k, v := range input {
+		output[k] = &v
+	}
+
+	return output
+}
