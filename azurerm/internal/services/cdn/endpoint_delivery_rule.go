@@ -65,6 +65,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.RemoteAddress(),
 				},
 
+				"request_body_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.RequestBody(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -168,6 +174,12 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 	if racs := rule["remote_address_condition"].([]interface{}); len(racs) > 0 {
 		for _, rac := range racs {
 			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRemoteAddress(rac.(map[string]interface{})))
+		}
+	}
+
+	if rbcs := rule["request_body_condition"].([]interface{}); len(rbcs) > 0 {
+		for _, rbc := range rbcs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestBody(rbc.(map[string]interface{})))
 		}
 	}
 
@@ -284,6 +296,15 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				}
 
 				res["remote_address_condition"] = append(res["remote_address_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRemoteAddress(condition))
+				continue
+			}
+
+			if condition, isRequestBodyCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); isRequestBodyCondition {
+				if _, ok := res["request_body_condition"]; !ok {
+					res["request_body_condition"] = []map[string]interface{}{}
+				}
+
+				res["request_body_condition"] = append(res["request_body_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRequestBody(condition))
 				continue
 			}
 
