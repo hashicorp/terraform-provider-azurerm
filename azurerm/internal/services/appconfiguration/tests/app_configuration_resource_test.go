@@ -5,85 +5,27 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppConfigurationName_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "four",
-			ErrCount: 1,
-		},
-		{
-			Value:    "5five",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello-world",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello_world",
-			ErrCount: 1,
-		},
-		{
-			Value:    "helloWorld",
-			ErrCount: 0,
-		},
-		{
-			Value:    "helloworld12",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello@world",
-			ErrCount: 1,
-		},
-		{
-			Value:    "qfvbdsbvipqdbwsbddbdcwqffewsqwcdw21ddwqwd3324120",
-			ErrCount: 0,
-		},
-		{
-			Value:    "qfvbdsbvipqdbwsbddbdcwqffewsqwcdw21ddwqwd332412020",
-			ErrCount: 0,
-		},
-		{
-			Value:    "qfvbdsbvipqdbwsbddbdcwqfjjfewsqwcdw21ddwqwd33241201",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := appconfiguration.ValidateAppConfigurationName(tc.Value, "azurerm_app_configuration")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure App Configuration Name to trigger a validation error: %v", tc)
-		}
-	}
-}
-
-func TestAccAzureAppConfiguration_free(t *testing.T) {
+func TestAppConfigurationResource_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureAppConfigurationDestroy,
+		CheckDestroy: testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureAppConfiguration_free(data),
+				Config: testAppConfigurationResource_free(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureAppConfigurationExists(data.ResourceName),
+					testCheckAppConfigurationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -91,18 +33,18 @@ func TestAccAzureAppConfiguration_free(t *testing.T) {
 	})
 }
 
-func TestAccAzureAppConfiguration_standard(t *testing.T) {
+func TestAppConfigurationResource_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureAppConfigurationDestroy,
+		CheckDestroy: testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureAppConfiguration_standard(data),
+				Config: testAppConfigurationResource_standard(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureAppConfigurationExists(data.ResourceName),
+					testCheckAppConfigurationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -110,41 +52,37 @@ func TestAccAzureAppConfiguration_standard(t *testing.T) {
 	})
 }
 
-func TestAccAzureAppConfiguration_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+func TestAppConfigurationResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureAppConfigurationDestroy,
+		CheckDestroy: testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureAppConfiguration_free(data),
+				Config: testAppConfigurationResource_free(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureAppConfigurationExists(data.ResourceName),
+					testCheckAppConfigurationExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureAppConfiguration_requiresImport),
+			data.RequiresImportErrorStep(testAppConfigurationResource_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureAppConfiguration_complete(t *testing.T) {
+func TestAppConfigurationResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureAppConfigurationDestroy,
+		CheckDestroy: testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureAppConfiguration_complete(data),
+				Config: testAppConfigurationResource_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureAppConfigurationExists(data.ResourceName),
+					testCheckAppConfigurationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -152,31 +90,31 @@ func TestAccAzureAppConfiguration_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureAppConfiguration_update(t *testing.T) {
+func TestAppConfigurationResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureAppConfigurationDestroy,
+		CheckDestroy: testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureAppConfiguration_complete(data),
+				Config: testAppConfigurationResource_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureAppConfigurationExists(data.ResourceName),
+					testCheckAppConfigurationExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureAppConfiguration_completeUpdated(data),
+				Config: testAppConfigurationResource_completeUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureAppConfigurationExists(data.ResourceName),
+					testCheckAppConfigurationExists(data.ResourceName),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureAppConfigurationDestroy(s *terraform.State) error {
+func testCheckAppConfigurationDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -203,7 +141,7 @@ func testCheckAzureAppConfigurationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureAppConfigurationExists(resourceName string) resource.TestCheckFunc {
+func testCheckAppConfigurationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppConfiguration.AppConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -232,7 +170,7 @@ func testCheckAzureAppConfigurationExists(resourceName string) resource.TestChec
 	}
 }
 
-func testAccAzureAppConfiguration_free(data acceptance.TestData) string {
+func testAppConfigurationResource_free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -252,7 +190,7 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureAppConfiguration_standard(data acceptance.TestData) string {
+func testAppConfigurationResource_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -272,8 +210,8 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureAppConfiguration_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureAppConfiguration_free(data)
+func testAppConfigurationResource_requiresImport(data acceptance.TestData) string {
+	template := testAppConfigurationResource_free(data)
 	return fmt.Sprintf(`
 %s
 
@@ -286,7 +224,7 @@ resource "azurerm_app_configuration" "import" {
 `, template)
 }
 
-func testAccAzureAppConfiguration_complete(data acceptance.TestData) string {
+func testAppConfigurationResource_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -310,7 +248,7 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureAppConfiguration_completeUpdated(data acceptance.TestData) string {
+func testAppConfigurationResource_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

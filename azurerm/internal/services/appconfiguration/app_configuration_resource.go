@@ -3,11 +3,10 @@ package appconfiguration
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
-	appconf "github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration"
+	"github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -16,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -46,7 +46,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAppConfigurationName,
+				ValidateFunc: validate.AppConfigurationName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -194,9 +194,9 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	parameters := appconf.ConfigurationStore{
+	parameters := appconfiguration.ConfigurationStore{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Sku: &appconf.Sku{
+		Sku: &appconfiguration.Sku{
 			Name: utils.String(d.Get("sku").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -235,8 +235,8 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	parameters := appconf.ConfigurationStoreUpdateParameters{
-		Sku: &appconf.Sku{
+	parameters := appconfiguration.ConfigurationStoreUpdateParameters{
+		Sku: &appconfiguration.Sku{
 			Name: utils.String(d.Get("sku").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -284,61 +284,32 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error making Read request on App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	resultPage, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", sku.Name)
+	skuName := ""
+	if resp.Sku != nil && resp.Sku.Name != nil {
+		skuName = *resp.Sku.Name
+	}
+	d.Set("sku", skuName)
+
+	if props := resp.ConfigurationStoreProperties; props != nil {
+		d.Set("endpoint", props.Endpoint)
 	}
 
-	if endpoint := resp.Endpoint; endpoint != nil {
-		d.Set("endpoint", resp.Endpoint)
-	}
-
-	resultPage, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, "")
-	if err != nil {
-		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	values := resultPage.Values()
-	for _, value := range values {
-		accessKeyParams := map[string]string{}
-		if id := value.ID; id != nil {
-			accessKeyParams["id"] = *id
-		}
-		if value := value.Value; value != nil {
-			accessKeyParams["secret"] = *value
-		}
-		if connectionString := value.ConnectionString; connectionString != nil {
-			accessKeyParams["connection_string"] = *value.ConnectionString
-		}
-
-		accessKey := []interface{}{accessKeyParams}
-		if n := value.Name; n != nil {
-			if strings.HasPrefix(*n, "Primary") {
-				if readOnly := value.ReadOnly; readOnly != nil {
-					if *readOnly {
-						d.Set("primary_read_key", accessKey)
-					} else {
-						d.Set("primary_write_key", accessKey)
-					}
-				}
-			} else if strings.HasPrefix(*n, "Secondary") {
-				if readOnly := value.ReadOnly; readOnly != nil {
-					if *readOnly {
-						d.Set("secondary_read_key", accessKey)
-					} else {
-						d.Set("secondary_write_key", accessKey)
-					}
-				}
-			} else {
-				log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", *n)
-			}
-		}
-	}
+	accessKeys := flattenAppConfigurationAccessKeys(resultPage.Values())
+	d.Set("primary_read_key", accessKeys.primaryReadKey)
+	d.Set("primary_write_key", accessKeys.primaryWriteKey)
+	d.Set("secondary_read_key", accessKeys.secondaryReadKey)
+	d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -371,11 +342,72 @@ func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func ValidateAppConfigurationName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{5,50}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 5-50 chars", k))
+type flattenedAccessKeys struct {
+	primaryReadKey    []interface{}
+	primaryWriteKey   []interface{}
+	secondaryReadKey  []interface{}
+	secondaryWriteKey []interface{}
+}
+
+func flattenAppConfigurationAccessKeys(values []appconfiguration.APIKey) flattenedAccessKeys {
+	result := flattenedAccessKeys{
+		primaryReadKey:    make([]interface{}, 0),
+		primaryWriteKey:   make([]interface{}, 0),
+		secondaryReadKey:  make([]interface{}, 0),
+		secondaryWriteKey: make([]interface{}, 0),
 	}
 
-	return warnings, errors
+	for _, value := range values {
+		if value.Name == nil || value.ReadOnly == nil {
+			continue
+		}
+
+		accessKey := flattenAppConfigurationAccessKey(value)
+		name := *value.Name
+		readOnly := *value.ReadOnly
+
+		if strings.HasPrefix(strings.ToLower(name), "primary") {
+			if readOnly {
+				result.primaryReadKey = accessKey
+			} else {
+				result.primaryWriteKey = accessKey
+			}
+		}
+
+		if strings.HasPrefix(strings.ToLower(name), "secondary") {
+			if readOnly {
+				result.secondaryReadKey = accessKey
+			} else {
+				result.secondaryWriteKey = accessKey
+			}
+		}
+	}
+
+	return result
+}
+
+func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface{} {
+	connectionString := ""
+
+	if input.ConnectionString != nil {
+		connectionString = *input.ConnectionString
+	}
+
+	id := ""
+	if input.ID != nil {
+		id = *input.ID
+	}
+
+	secret := ""
+	if input.Value != nil {
+		secret = *input.Value
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"connection_string": connectionString,
+			"id":                id,
+			"secret":            secret,
+		},
+	}
 }
