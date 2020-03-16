@@ -94,7 +94,7 @@ func FlattenArmCdnEndpointConditionPostArg(pac *cdn.DeliveryRulePostArgsConditio
 			res["selector"] = *params.Selector
 		}
 
-		res["operator"] = params.Operator
+		res["operator"] = string(params.Operator)
 
 		if params.NegateCondition != nil {
 			res["negate_condition"] = *params.NegateCondition
