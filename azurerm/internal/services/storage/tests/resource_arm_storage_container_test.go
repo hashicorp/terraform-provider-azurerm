@@ -282,12 +282,9 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			return nil
 		}
 
-		client, err := storageClient.ContainersClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Containers Client: %s", err)
-		}
+		client := storageClient.BlobContainersClient
 
-		props, err := client.GetProperties(ctx, accountName, containerName)
+		props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
 			return nil
 		}
