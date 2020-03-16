@@ -71,14 +71,11 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Account %q for Storage Container %q", accountName, containerName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
-	}
+	client := storageClient.BlobContainersClient
 
-	d.SetId(client.GetResourceID(accountName, containerName))
+	d.SetId(getResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName))
 
-	props, err := client.GetProperties(ctx, accountName, containerName)
+	props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
 			return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
@@ -91,9 +88,13 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("storage_account_name", accountName)
 
-	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
+	accessLevel, err := flattenStorageContainerAccessLevel(props.PublicAccess)
+	if err != nil {
+		return fmt.Errorf("Error setting access level: %+v", err)
+	}
+	d.Set("container_access_type", accessLevel)
 
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+	if err := d.Set("metadata", flattenMetaData(props.Metadata)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
 	}
 
