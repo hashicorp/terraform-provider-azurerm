@@ -110,7 +110,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error building Containers Client: %s", err)
 	}
 
-	id := client.GetResourceID(accountName, containerName)
+	id := getResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName)
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
