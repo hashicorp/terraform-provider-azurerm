@@ -23,13 +23,13 @@ resource "azurerm_web_application_firewall_policy" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  custom_rules {
+  custom_rule {
     name      = "Rule1"
     priority  = 1
     rule_type = "MatchRule"
 
-    match_conditions {
-      match_variables {
+    match_condition {
+      match_variable {
         variable_name = "RemoteAddr"
       }
 
@@ -41,13 +41,13 @@ resource "azurerm_web_application_firewall_policy" "example" {
     action = "Block"
   }
 
-  custom_rules {
+  custom_rule {
     name      = "Rule2"
     priority  = 2
     rule_type = "MatchRule"
 
-    match_conditions {
-      match_variables {
+    match_condition {
+      match_variable {
         variable_name = "RemoteAddr"
       }
 
@@ -56,8 +56,8 @@ resource "azurerm_web_application_firewall_policy" "example" {
       match_values       = ["192.168.1.0/24"]
     }
 
-    match_conditions {
-      match_variables {
+    match_condition {
+      match_variable {
         variable_name = "RequestHeaders"
         selector      = "UserAgent"
       }
@@ -69,6 +69,37 @@ resource "azurerm_web_application_firewall_policy" "example" {
 
     action = "Block"
   }
+
+  policy_setting {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-company-secret-header"
+      selector_match_operator = "Equals"
+    }
+    exclusion {
+      match_variable          = "RequestCookieNames"
+      selector                = "too-tasty"
+      selector_match_operator = "EndsWith"
+    }
+
+    managed_rules_set {
+      rule_set_type    = "OWASP"
+      rule_set_version = "3.1"
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        disabled_rules = [
+          "920300",
+          "920440"
+        ]
+      }
+    }
+  }
+
 }
 ```
 
@@ -82,9 +113,11 @@ The following arguments are supported:
 
 * `location` - (Optional) Resource location. Changing this forces a new resource to be created.
 
-* `custom_rules` - (Optional) One or more `custom_rule` blocks as defined below.
+* `custom_rule` - (Optional) One or more `custom_rules` blocks as defined below.
 
-* `policy_settings` - (Optional) A `policy_setting` block as defined below.
+* `policy_setting` - (Optional) A `policy_setting` block as defined below.
+
+* `managed_rules` - (Optional) A `managed_rules` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
@@ -94,25 +127,25 @@ The `custom_rule` block supports the following:
 
 * `name` - (Optional) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
-* `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value
+* `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value.
 
-* `rule_type` - (Required) Describes the type of rule
+* `rule_type` - (Required) Describes the type of rule.
 
-* `match_conditions` - (Required) One or more `match_condition` block defined below.
+* `match_condition` - (Required) One or more `match_condition` blocks as defined below.
 
-* `action` - (Required) Type of Actions
+* `action` - (Required) Type of action.
 
 ---
 
 The `match_condition` block supports the following:
 
-* `match_variables` - (Required) One or more `match_variable` block defined below.
+* `match_variable` - (Required) One or more `match_variable` blocks as defined below.
 
-* `operator` - (Required) Describes operator to be matched
+* `operator` - (Required) Describes operator to be matched.
 
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
-* `match_values` - (Required) Match value
+* `match_values` - (Required) A list of match values.
 
 ---
 
@@ -129,6 +162,42 @@ The `policy_setting` block supports the following:
 * `enabled` - (Optional) Describes if the policy is in enabled state or disabled state Defaults to `Enabled`.
 
 * `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level Defaults to `Prevention`.
+
+---
+
+The `managed_rules` block supports the following:
+
+* `exclusion` - (Optional) One or more `exclusion` block defined below.
+
+* `managed_rules_set` - (Optional) One or more `managed_rules_set` block defined below.
+
+---
+
+The `exclusion` block supports the following:
+
+* `match_variable` - (Required) The name of the Match Variable.
+
+* `selector` - (Optional) Describes field of the matchVariable collection.
+
+* `selector_match_operator` - (Required) Describes operator to be matched.
+
+---
+
+The `managed_rules_set` block supports the following:
+
+* `rule_set_type` - (Required) The rule set type.
+
+* `rule_set_version` - (Required) The rule set version.
+
+* `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
+
+---
+
+The `rule_group_override` block supports the following:
+
+* `rule_group_name` - (Required) The name of the Rule Group
+
+* `disabled_rules` - (Optional) One or more Rule ID's
 
 ## Attributes Reference
 
