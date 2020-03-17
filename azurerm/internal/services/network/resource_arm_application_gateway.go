@@ -1001,8 +1001,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"key_vault_secret_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateKeyVaultChildId,
 						},
 
 						"id": {
@@ -3207,30 +3208,33 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 		password := v["password"].(string)
 		kvsid := v["key_vault_secret_id"].(string)
 
+		// data must be base64 encoded
+		data = utils.Base64EncodeIfNot(data)
+
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
 			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{},
 		}
 
 		if data != "" && kvsid != "" {
-			return nil, fmt.Errorf("Error: only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
+			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		} else if data != "" {
 			// data must be base64 encoded
 			output.ApplicationGatewaySslCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
 
 			if password == "" {
-				return nil, fmt.Errorf("Error: 'password' is required if `data` is specified for the `ssl_certificate` block %q", name)
+				return nil, fmt.Errorf("'password' is required if `data` is specified for the `ssl_certificate` block %q", name)
 			}
 
 			output.ApplicationGatewaySslCertificatePropertiesFormat.Password = utils.String(password)
 		} else if kvsid != "" {
 			if password != "" {
-				return nil, fmt.Errorf("Error: only one of `key_vault_secret_id` or `password` must be specified for the `ssl_certificate` block %q", name)
+				return nil, fmt.Errorf("only one of `key_vault_secret_id` or `password` must be specified for the `ssl_certificate` block %q", name)
 			}
 
 			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
 		} else {
-			return nil, fmt.Errorf("Error: either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
+			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}
 
 		results = append(results, output)
