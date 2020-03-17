@@ -103,6 +103,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.URLFileExtension(),
 				},
 
+				"url_file_name_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.URLFileName(),
+				},
+
 				"cache_expiration_action": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -231,6 +237,12 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 	if ufecs := rule["url_file_extension_condition"].([]interface{}); len(ufecs) > 0 {
 		for _, ufec := range ufecs {
 			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionURLFileExtension(ufec.(map[string]interface{})))
+		}
+	}
+
+	if ufncs := rule["url_file_name_condition"].([]interface{}); len(ufncs) > 0 {
+		for _, ufnc := range ufncs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionURLFileName(ufnc.(map[string]interface{})))
 		}
 	}
 
@@ -374,12 +386,21 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				continue
 			}
 
-			if condition, isRequestURICondition := basicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); isRequestURICondition {
+			if condition, isURLFileExtensionCondition := basicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); isURLFileExtensionCondition {
 				if _, ok := res["url_file_extension_condition"]; !ok {
 					res["url_file_extension_condition"] = []map[string]interface{}{}
 				}
 
 				res["url_file_extension_condition"] = append(res["url_file_extension_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileExtension(condition))
+				continue
+			}
+
+			if condition, isURLFileNameExtension := basicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); isURLFileNameExtension {
+				if _, ok := res["url_file_name_condition"]; !ok {
+					res["url_file_name_condition"] = []map[string]interface{}{}
+				}
+
+				res["url_file_name_condition"] = append(res["url_file_name_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileName(condition))
 				continue
 			}
 		}
