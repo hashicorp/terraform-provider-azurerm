@@ -3208,9 +3208,6 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 		password := v["password"].(string)
 		kvsid := v["key_vault_secret_id"].(string)
 
-		// data must be base64 encoded
-		data = utils.Base64EncodeIfNot(data)
-
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
 			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{},

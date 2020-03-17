@@ -2945,13 +2945,13 @@ func testAccAzureRMApplicationGateway_sslCertificate_keyvault(data acceptance.Te
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  auth_cert_name                 = azurerm_virtual_network.test.name-auth
-  backend_address_pool_name      = azurerm_virtual_network.test.name-beap
-  frontend_port_name             = azurerm_virtual_network.test.name-feport
-  frontend_ip_configuration_name = azurerm_virtual_network.test.name-feip
-  http_setting_name              = azurerm_virtual_network.test.name-be-htst
-  listener_name                  = azurerm_virtual_network.test.name-httplstn
-  request_routing_rule_name      = azurerm_virtual_network.test.name-rqrt
+  auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth""
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap""
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport""
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip""
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst""
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn""
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt""
 }
 
 data "azurerm_client_config" "test" {}
