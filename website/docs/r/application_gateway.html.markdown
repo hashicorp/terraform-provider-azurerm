@@ -219,7 +219,7 @@ A `backend_http_settings` block supports the following:
 
 * `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
 
-* `probe_name` - (Required) The name of an associated HTTP Probe.
+* `probe_name` - (Optional) The name of an associated HTTP Probe.
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
