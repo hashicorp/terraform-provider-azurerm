@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_policy"
-sidebar_current: "docs-azurerm-resource-api-management-api-policy"
 description: |-
   Manages an API Management API Policy
 ---
@@ -55,6 +55,15 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management API Policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management API Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Policy.
 
 ## Import
 

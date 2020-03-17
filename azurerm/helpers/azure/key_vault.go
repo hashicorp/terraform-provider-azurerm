@@ -9,7 +9,6 @@ import (
 )
 
 func GetKeyVaultBaseUrlFromID(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) (string, error) {
-
 	if keyVaultId == "" {
 		return "", fmt.Errorf("keyVaultId is empty")
 	}
@@ -60,7 +59,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient
 		resourceGroup := vid.ResourceGroup
 		name := vid.Path["vaults"]
 
-		//resp does not appear to contain the vault properties, so lets fetch them
+		// resp does not appear to contain the vault properties, so lets fetch them
 		get, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(get.Response) {
@@ -90,7 +89,6 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient
 }
 
 func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) (bool, error) {
-
 	if keyVaultId == "" {
 		return false, fmt.Errorf("keyVaultId is empty")
 	}

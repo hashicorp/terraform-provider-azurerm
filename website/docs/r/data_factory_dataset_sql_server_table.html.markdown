@@ -1,7 +1,7 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_sql_server_table"
-sidebar_current: "docs-azurerm-resource-data-factory-dataset-sql-server-table"
 description: |-
   Manages a SQL Server Table Dataset inside a Azure Data Factory.
 ---
@@ -14,28 +14,28 @@ Manages a SQL Server Table Dataset inside a Azure Data Factory.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_data_factory_linked_service_sql_server" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  data_factory_name   = "${azurerm_data_factory.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  data_factory_name   = azurerm_data_factory.example.name
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 }
 
 resource "azurerm_data_factory_dataset_sql_server_table" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  data_factory_name   = "${azurerm_data_factory.example.name}"
-  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  data_factory_name   = azurerm_data_factory.example.name
+  linked_service_name = azurerm_data_factory_linked_service_sql_server.example.name
 }
 ```
 
@@ -80,11 +80,20 @@ A `schema_column` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory Dataset.
+* `id` - The ID of the Data Factory SQL Server Table Dataset.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory SQL Server Table Dataset.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory SQL Server Table Dataset.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory SQL Server Table Dataset.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory SQL Server Table Dataset.
 
 ## Import
 
-Data Factory Dataset SQL Server Table can be imported using the `resource id`, e.g.
+Data Factory SQL Server Table Datasets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_dataset_sql_server_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example

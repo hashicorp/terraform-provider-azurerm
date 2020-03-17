@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
@@ -54,7 +54,6 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 	var sp *graphrbac.ServicePrincipal
 
 	if v, ok := d.GetOk("object_id"); ok {
-
 		//use the object_id to find the Azure AD service principal
 		objectId := v.(string)
 		app, err := client.Get(ctx, objectId)
@@ -67,9 +66,7 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 		}
 
 		sp = &app
-
 	} else if _, ok := d.GetOk("display_name"); ok {
-
 		// use the display_name to find the Azure AD service principal
 		displayName := d.Get("display_name").(string)
 		filter := fmt.Sprintf("displayName eq '%s'", displayName)
@@ -93,9 +90,7 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 		if sp == nil {
 			return fmt.Errorf("A Service Principal with the Display Name %q was not found", displayName)
 		}
-
 	} else {
-
 		// use the application_id to find the Azure AD service principal
 		applicationId := d.Get("application_id").(string)
 		filter := fmt.Sprintf("appId eq '%s'", applicationId)
@@ -119,7 +114,6 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 		if sp == nil {
 			return fmt.Errorf("A Service Principal for Application ID %q was not found", applicationId)
 		}
-
 	}
 
 	if sp.ObjectID == nil {

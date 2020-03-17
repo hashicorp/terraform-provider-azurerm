@@ -1,7 +1,7 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-authorization-rule"
 description: |-
   Manages an Authorization Rule for an Event Hub Namespace.
 ---
@@ -13,15 +13,15 @@ Manages an Authorization Rule for an Event Hub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
+resource "azurerm_resource_group" "example" {
+  name     = "resourcegroup"
   location = "West US"
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "acceptanceTestEventHubNamespace"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Basic"
   capacity            = 2
 
@@ -30,10 +30,10 @@ resource "azurerm_eventhub_namespace" "test" {
   }
 }
 
-resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+resource "azurerm_eventhub_namespace_authorization_rule" "example" {
   name                = "navi"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
 
   listen = true
   send   = false
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The EventHub ID.
+* `id` - The EventHub Namespace Authorization Rule ID.
 
 * `primary_key` - The Primary Key for the Authorization Rule.
 
@@ -73,9 +73,20 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The Secondary Connection String for the Authorization Rule.
 
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace Authorization Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace Authorization Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Namespace Authorization Rule.
+
 ## Import
 
-EventHubs can be imported using the `resource id`, e.g.
+EventHub Namespace Authorization Rules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_eventhub_namespace_authorization_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules/rule1

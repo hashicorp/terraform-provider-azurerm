@@ -30,34 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 
-// ApplicationHTTPSEndpointAccessMode enumerates the values for application https endpoint access mode.
-type ApplicationHTTPSEndpointAccessMode string
-
-const (
-	// WebPage ...
-	WebPage ApplicationHTTPSEndpointAccessMode = "WebPage"
-)
-
-// PossibleApplicationHTTPSEndpointAccessModeValues returns an array of possible values for the ApplicationHTTPSEndpointAccessMode const type.
-func PossibleApplicationHTTPSEndpointAccessModeValues() []ApplicationHTTPSEndpointAccessMode {
-	return []ApplicationHTTPSEndpointAccessMode{WebPage}
-}
-
-// ApplicationType enumerates the values for application type.
-type ApplicationType string
-
-const (
-	// CustomApplication ...
-	CustomApplication ApplicationType = "CustomApplication"
-	// RServer ...
-	RServer ApplicationType = "RServer"
-)
-
-// PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
-func PossibleApplicationTypeValues() []ApplicationType {
-	return []ApplicationType{CustomApplication, RServer}
-}
-
 // AsyncOperationState enumerates the values for async operation state.
 type AsyncOperationState string
 
@@ -260,7 +232,7 @@ type ApplicationGetEndpoint struct {
 // ApplicationGetHTTPSEndpoint gets the application HTTP endpoints.
 type ApplicationGetHTTPSEndpoint struct {
 	// AccessModes - The list of access modes for the application.
-	AccessModes *[]ApplicationHTTPSEndpointAccessMode `json:"accessModes,omitempty"`
+	AccessModes *[]string `json:"accessModes,omitempty"`
 	// Location - The location of the endpoint.
 	Location *string `json:"location,omitempty"`
 	// DestinationPort - The destination port to connect to.
@@ -434,8 +406,8 @@ type ApplicationProperties struct {
 	SSHEndpoints *[]ApplicationGetEndpoint `json:"sshEndpoints,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the application.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ApplicationType - The application type. Possible values include: 'CustomApplication', 'RServer'
-	ApplicationType ApplicationType `json:"applicationType,omitempty"`
+	// ApplicationType - The application type.
+	ApplicationType *string `json:"applicationType,omitempty"`
 	// ApplicationState - READ-ONLY; The application state.
 	ApplicationState *string `json:"applicationState,omitempty"`
 	// Errors - The list of errors.
@@ -614,6 +586,14 @@ func (cr CapabilitiesResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ClientGroupInfo the information of AAD security group.
+type ClientGroupInfo struct {
+	// GroupName - The AAD security group name.
+	GroupName *string `json:"groupName,omitempty"`
+	// GroupID - The AAD security group id.
+	GroupID *string `json:"groupId,omitempty"`
+}
+
 // Cluster the HDInsight cluster.
 type Cluster struct {
 	autorest.Response `json:"-"`
@@ -712,6 +692,8 @@ type ClusterCreateProperties struct {
 	Tier Tier `json:"tier,omitempty"`
 	// ClusterDefinition - The cluster definition.
 	ClusterDefinition *ClusterDefinition `json:"clusterDefinition,omitempty"`
+	// KafkaRestProperties - The cluster kafka rest proxy configuration.
+	KafkaRestProperties *KafkaRestProperties `json:"kafkaRestProperties,omitempty"`
 	// SecurityProfile - The security profile.
 	SecurityProfile *SecurityProfile `json:"securityProfile,omitempty"`
 	// ComputeProfile - The compute profile.
@@ -772,6 +754,8 @@ type ClusterGetProperties struct {
 	Tier Tier `json:"tier,omitempty"`
 	// ClusterDefinition - The cluster definition.
 	ClusterDefinition *ClusterDefinition `json:"clusterDefinition,omitempty"`
+	// KafkaRestProperties - The cluster kafka rest proxy configuration.
+	KafkaRestProperties *KafkaRestProperties `json:"kafkaRestProperties,omitempty"`
 	// SecurityProfile - The security profile.
 	SecurityProfile *SecurityProfile `json:"securityProfile,omitempty"`
 	// ComputeProfile - The compute profile.
@@ -1383,6 +1367,12 @@ type GatewaySettings struct {
 type HardwareProfile struct {
 	// VMSize - The size of the VM
 	VMSize *string `json:"vmSize,omitempty"`
+}
+
+// KafkaRestProperties the kafka rest proxy configuration which contains AAD security group information.
+type KafkaRestProperties struct {
+	// ClientGroupInfo - The information of AAD security group.
+	ClientGroupInfo *ClientGroupInfo `json:"clientGroupInfo,omitempty"`
 }
 
 // LinuxOperatingSystemProfile the ssh username, password, and ssh public key.
@@ -2082,7 +2072,7 @@ type StorageAccount struct {
 	IsDefault *bool `json:"isDefault,omitempty"`
 	// Container - The container in the storage account, only to be specified for WASB storage accounts.
 	Container *string `json:"container,omitempty"`
-	// FileSystem - The filesystem, only to be specified for Azure Data Lake Storage type Gen 2.
+	// FileSystem - The filesystem, only to be specified for Azure Data Lake Storage Gen 2.
 	FileSystem *string `json:"fileSystem,omitempty"`
 	// Key - The storage account access key.
 	Key *string `json:"key,omitempty"`

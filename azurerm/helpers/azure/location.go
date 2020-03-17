@@ -3,8 +3,8 @@ package azure
 import (
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func SchemaLocation() *schema.Schema {
@@ -32,17 +32,6 @@ func SchemaLocationForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
 		Computed: true,
-	}
-}
-
-func SchemaLocationDeprecated() *schema.Schema {
-	return &schema.Schema{
-		Type:             schema.TypeString,
-		ForceNew:         true,
-		Optional:         true,
-		StateFunc:        NormalizeLocation,
-		DiffSuppressFunc: SuppressLocationDiff,
-		Deprecated:       "location is no longer used",
 	}
 }
 

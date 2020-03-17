@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_operation_policy"
-sidebar_current: "docs-azurerm-resource-api-management-api-operation-policy"
 description: |-
   Manages an API Management API Operation Policy
 ---
@@ -19,10 +19,10 @@ resource "azurerm_api_management_api_operation" "example" {
 }
 
 resource "azurerm_api_management_api_operation_policy" "example" {
-  api_name            = "${azurerm_api_management_api_operation.example.api_name}"
-  api_management_name = "${azurerm_api_management_api_operation.example.api_management_name}"
-  resource_group_name = "${azurerm_api_management_api_operation.example.resource_group_name}"
-  operation_id        = "${azurerm_api_management_api_operation.example.operation_id}"
+  api_name            = azurerm_api_management_api_operation.example.api_name
+  api_management_name = azurerm_api_management_api_operation.example.api_management_name
+  resource_group_name = azurerm_api_management_api_operation.example.resource_group_name
+  operation_id        = azurerm_api_management_api_operation.example.operation_id
 
   xml_content = <<XML
 <policies>
@@ -31,6 +31,7 @@ resource "azurerm_api_management_api_operation_policy" "example" {
   </inbound>
 </policies>
 XML
+
 }
 ```
 
@@ -54,6 +55,15 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management API Operation Policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Operation Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Operation Policy.
 
 ## Import
 

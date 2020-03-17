@@ -1,7 +1,7 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_configuration"
-sidebar_current: "docs-azurerm-resource-database-mariadb-configuration"
 description: |-
   Sets a MariaDB Configuration value on a MariaDB Server.
 ---
@@ -9,8 +9,6 @@ description: |-
 # azurerm_mariadb_configuration
 
 Sets a MariaDB Configuration value on a MariaDB Server.
-
--> **NOTE** MariaDB Server is currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-us/updates/mariadb-public-preview/).
 
 ## Example Usage
 
@@ -22,15 +20,10 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_mariadb_server" "example" {
   name                = "mariadb-server-1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen5"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120
@@ -46,8 +39,8 @@ resource "azurerm_mariadb_server" "example" {
 
 resource "azurerm_mariadb_configuration" "example" {
   name                = "interactive_timeout"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_mariadb_server.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mariadb_server.example.name
   value               = "600"
 }
 ```
@@ -69,6 +62,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the MariaDB Configuration.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MariaDB Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the MariaDB Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MariaDB Configuration.
 
 ## Import
 

@@ -1,7 +1,7 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_analytics_firewall_rule"
-sidebar_current: "docs-azurerm-resource-data-lake-analytics-firewall-rule"
 description: |-
   Manages a Azure Data Lake Analytics Firewall Rule.
 ---
@@ -20,22 +20,22 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_lake_store" "example" {
   name                = "tfexdatalakestore"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_data_lake_analytics_account" "example" {
   name                = "tfexdatalakeaccount"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
-  default_store_account_name = "${azurerm_data_lake_store.example.name}"
+  default_store_account_name = azurerm_data_lake_store.example.name
 }
 
 resource "azurerm_data_lake_analytics_firewall_rule" "example" {
   name                = "office-ip-range"
-  account_name        = "${azurerm_data_lake_analytics.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  account_name        = azurerm_data_lake_analytics.example.name
+  resource_group_name = azurerm_resource_group.example.name
   start_ip_address    = "1.2.3.4"
   end_ip_address      = "2.3.4.5"
 }
@@ -59,11 +59,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Date Lake Store Firewall Rule ID.
+* `id` - The ID of the Data Lake Firewall Rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Lake Analytics Firewall Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Lake Analytics Firewall Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Lake Analytics Firewall Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Lake Analytics Firewall Rule.
 
 ## Import
 
-Date Lake Store Firewall Rules can be imported using the `resource id`, e.g.
+Data Lake Analytics Firewall Rules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_lake_analytics_firewall_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataLakeAnalytics/accounts/mydatalakeaccount/firewallRules/rule1

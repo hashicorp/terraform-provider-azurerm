@@ -1,7 +1,7 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_data_lake_storage_gen2"
-sidebar_current: "docs-azurerm-resource-data-factory-linked-service-data-lake-storage-gen2"
 description: |-
   Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
 ---
@@ -16,23 +16,24 @@ Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure D
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "example" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  data_factory_name     = "${azurerm_data_factory.test.name}"
-  service_principal_id  = "${data.azurerm_client_config.current.client_id}"
+  resource_group_name   = azurerm_resource_group.example.name
+  data_factory_name     = azurerm_data_factory.example.name
+  service_principal_id  = data.azurerm_client_config.current.client_id
   service_principal_key = "exampleKey"
   tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://datalakestoragegen2"
@@ -71,11 +72,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory Linked Service.
+* `id` - The ID of the Data Factory Data Lake Storage Gen2 Linked Service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Data Lake Storage Gen2 Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Data Lake Storage Gen2 Linked Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Data Lake Storage Gen2 Linked Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Data Lake Storage Gen2 Linked Service.
 
 ## Import
 
-Data Factory Linked Service MySQL can be imported using the `resource id`, e.g.
+Data Factory Data Lake Storage Gen2 Linked Services can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_linked_service_mysql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example

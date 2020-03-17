@@ -1,7 +1,7 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_analytics_account"
-sidebar_current: "docs-azurerm-resource-data-lake-analytics-account"
 description: |-
   Manages an Azure Data Lake Analytics Account.
 ---
@@ -20,16 +20,16 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_lake_store" "example" {
   name                = "tfexdatalakestore"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_data_lake_analytics_account" "example" {
   name                = "tfexdatalakeaccount"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
-  default_store_account_name = "${azurerm_data_lake_store.example.name}"
+  default_store_account_name = azurerm_data_lake_store.example.name
 }
 ```
 
@@ -53,12 +53,21 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Date Lake Store ID.
+* `id` - The ID of the Data Lake Analytics Account.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Lake Analytics Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Lake Analytics Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Lake Analytics Account.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Lake Analytics Account.
 
 ## Import
 
-Date Lake Analytics Account can be imported using the `resource id`, e.g.
+Data Lake Analytics Account can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_lake_analytics_account.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataLakeAnalytics/accounts/mydatalakeaccount
+terraform import azurerm_data_lake_analytics_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataLakeAnalytics/accounts/mydatalakeaccount
 ```

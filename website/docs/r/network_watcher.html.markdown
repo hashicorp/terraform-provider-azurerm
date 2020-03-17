@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher"
-sidebar_current: "docs-azurerm-resource-network-watcher"
 description: |-
   Manages a Network Watcher.
 
@@ -14,15 +14,15 @@ Manages a Network Watcher.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "production-nwwatcher"
   location = "West US"
 }
 
-resource "azurerm_network_watcher" "test" {
+resource "azurerm_network_watcher" "example" {
   name                = "production-nwwatcher"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -42,7 +42,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Network Watcher ID.
+* `id` - The ID of the Network Watcher.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Watcher.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Watcher.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Watcher.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Watcher.
 
 ## Import
 

@@ -1,7 +1,7 @@
 ---
+subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_application"
-sidebar_current: "docs-azurerm-resource-batch-application"
 description: |-
   Manages Azure Batch Application instance.
 ---
@@ -20,24 +20,24 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplesa"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "example" {
   name                 = "exampleba"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  location             = "${azurerm_resource_group.example.location}"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.example.id}"
+  storage_account_id   = azurerm_storage_account.example.id
 }
 
 resource "azurerm_batch_application" "example" {
   name                = "example-batch-application"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_batch_account.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_batch_account.example.name
 }
 ```
 
@@ -61,12 +61,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the resource.
+* `id` - The ID of the Batch Application.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Batch Application.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Application.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Batch Application.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Batch Application.
 
 ## Import
 
-Batch Application can be imported using the `resource id`, e.g.
+Batch Applications can be imported using the `resource id`, e.g.
 
 ```shell
 $ terraform import azurerm_batch_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Batch/batchAccounts/exampleba/applications/example-batch-application

@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_application_firewall_policy"
-sidebar_current: "docs-azurerm-resource-web-application-firewall-policy"
 description: |-
   Manages a Azure Web Application Firewall Policy instance.
 ---
@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_web_application_firewall_policy" "example" {
   name                = "example-wafpolicy"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   custom_rules {
     name      = "Rule1"
@@ -134,7 +134,16 @@ The `policy_setting` block supports the following:
 
 The following attributes are exported:
 
-* `id` - Resource ID.
+* `id` - The ID of the Web Application Firewall Policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Web Application Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Application Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Web Application Firewall Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Web Application Firewall Policy.
 
 ## Import
 

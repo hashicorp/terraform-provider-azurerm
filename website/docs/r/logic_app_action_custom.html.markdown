@@ -1,7 +1,7 @@
 ---
+subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_action_custom"
-sidebar_current: "docs-azurerm-resource-logic-app-action-custom"
 description: |-
   Manages a Custom Action within a Logic App Workflow
 ---
@@ -13,20 +13,20 @@ Manages a Custom Action within a Logic App Workflow
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "workflow-resources"
   location = "East US"
 }
 
-resource "azurerm_logic_app_workflow" "test" {
+resource "azurerm_logic_app_workflow" "example" {
   name                = "workflow1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_logic_app_action_custom" "test" {
+resource "azurerm_logic_app_action_custom" "example" {
   name         = "example-action"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.example.id
 
   body = <<BODY
 {
@@ -44,6 +44,7 @@ resource "azurerm_logic_app_action_custom" "test" {
     "type": "InitializeVariable"
 }
 BODY
+
 }
 ```
 
@@ -66,6 +67,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Action within the Logic App Workflow.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Logic App Custom Action.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App Custom Action.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Custom Action.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Logic App Custom Action.
 
 ## Import
 

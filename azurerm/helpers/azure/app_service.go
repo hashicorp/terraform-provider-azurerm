@@ -3,15 +3,20 @@ package azure
 import (
 	"fmt"
 	"log"
-	"net"
+	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+const (
+	// TODO: switch back once https://github.com/Azure/azure-rest-api-specs/pull/8435 has been fixed
+	SystemAssignedUserAssigned web.ManagedServiceIdentityType = "SystemAssigned, UserAssigned"
 )
 
 func SchemaAppServiceAadAuthSettings() *schema.Schema {
@@ -177,7 +182,7 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 				"issuer": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.URLIsHTTPOrHTTPS,
+					ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 				},
 				"runtime_version": {
 					Type:     schema.TypeString,
@@ -225,7 +230,7 @@ func SchemaAppServiceIdentity() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedServiceIdentityTypeNone),
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
-						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
+						string(SystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
@@ -302,24 +307,14 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
-								Type:     schema.TypeString,
-								Optional: true,
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validate.CIDR,
 							},
 							"virtual_network_subnet_id": {
 								Type:         schema.TypeString,
 								Optional:     true,
-								ValidateFunc: validate.NoEmptyStrings,
-							},
-							"subnet_mask": {
-								Type:     schema.TypeString,
-								Optional: true,
-								Computed: true,
-								// TODO we should fix this in 2.0
-								// This attribute was made with the assumption that `ip_address` was the only valid option
-								// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
-								// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
-								// and `subnet_mask` is not.
-								// Default:  "255.255.255.255",
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -328,17 +323,16 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"java_version": {
 					Type:     schema.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"1.7",
-						"1.8",
-						"11",
-					}, false),
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(1\.7|1\.8|11)`),
+						`Invalid Java version provided`),
 				},
 
 				"java_container": {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						"JAVA",
 						"JETTY",
 						"TOMCAT",
 					}, true),
@@ -376,6 +370,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						"7.0",
 						"7.1",
 						"7.2",
+						"7.3",
 					}, false),
 				},
 
@@ -477,12 +472,12 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					}, false),
 				},
 
-				"virtual_network_name": {
+				"cors": SchemaWebCorsSettings(),
+
+				"auto_swap_slot_name": {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
-
-				"cors": SchemaWebCorsSettings(),
 			},
 		},
 	}
@@ -599,7 +594,7 @@ func SchemaAppServiceStorageAccounts() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type": {
@@ -614,20 +609,20 @@ func SchemaAppServiceStorageAccounts() *schema.Schema {
 				"account_name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"share_name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"access_key": {
 					Type:         schema.TypeString,
 					Required:     true,
 					Sensitive:    true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"mount_path": {
@@ -681,10 +676,6 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 								Computed: true,
 							},
 							"virtual_network_subnet_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"subnet_mask": {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
@@ -772,15 +763,9 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Computed: true,
 				},
 
-				"virtual_network_name": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
 				"cors": {
 					Type:     schema.TypeList,
 					Computed: true,
-					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"allowed_origins": {
@@ -1164,7 +1149,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 	appLogs := make([]interface{}, 0)
 	if input.ApplicationLogs != nil {
-
 		appLogsItem := make(map[string]interface{})
 
 		blobStorage := make([]interface{}, 0)
@@ -1197,7 +1181,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 		fileSystem := make([]interface{}, 0)
 		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
-
 			fileSystemItem := make(map[string]interface{})
 
 			if fileSystemInput.RetentionInDays != nil {
@@ -1245,7 +1228,7 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	configs := input.([]interface{})
 	logs := web.SiteLogsConfigProperties{}
 
-	if len(configs) == 0 {
+	if len(configs) == 0 || configs[0] == nil {
 		return logs
 	}
 
@@ -1316,12 +1299,11 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	return logs
 }
 
-func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
-	identities := d.Get("identity").([]interface{})
-	if len(identities) == 0 {
+func ExpandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
+	if len(input) == 0 {
 		return nil
 	}
-	identity := identities[0].(map[string]interface{})
+	identity := input[0].(map[string]interface{})
 	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
 
 	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
@@ -1333,7 +1315,7 @@ func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentit
 		Type: identityType,
 	}
 
-	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == SystemAssignedUserAssigned {
 		managedServiceIdentity.UserAssignedIdentities = identityIds
 	}
 
@@ -1345,14 +1327,14 @@ func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
+	principalId := ""
 	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
+		principalId = *identity.PrincipalID
 	}
+
+	tenantId := ""
 	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
+		tenantId = *identity.TenantID
 	}
 
 	identityIds := make([]string, 0)
@@ -1361,9 +1343,15 @@ func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 			identityIds = append(identityIds, key)
 		}
 	}
-	result["identity_ids"] = identityIds
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"identity_ids": identityIds,
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+		},
+	}
 }
 
 func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
@@ -1432,31 +1420,20 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			ipAddress := restriction["ip_address"].(string)
 			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
 			if vNetSubnetID != "" && ipAddress != "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			if vNetSubnetID == "" && ipAddress == "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			ipSecurityRestriction := web.IPSecurityRestriction{}
+			if ipAddress == "Any" {
+				continue
+			}
+
 			if ipAddress != "" {
-				mask := restriction["subnet_mask"].(string)
-				if mask == "" {
-					mask = "255.255.255.255"
-				}
-				// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
-				// so translate the IP and mask if necessary
-				restrictionMask := ""
-				cidrAddress := ipAddress
-				if mask != "" {
-					ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
-					cidrAddress = ipNet.String()
-				} else if !strings.Contains(ipAddress, "/") {
-					cidrAddress += "/32"
-				}
-				ipSecurityRestriction.IPAddress = &cidrAddress
-				ipSecurityRestriction.SubnetMask = &restrictionMask
+				ipSecurityRestriction.IPAddress = &ipAddress
 			}
 
 			if vNetSubnetID != "" {
@@ -1464,7 +1441,6 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			}
 
 			restrictions = append(restrictions, ipSecurityRestriction)
-
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
@@ -1513,14 +1489,14 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
 
-	if v, ok := config["virtual_network_name"]; ok {
-		siteConfig.VnetName = utils.String(v.(string))
-	}
-
 	if v, ok := config["cors"]; ok {
 		corsSettings := v.(interface{})
 		expand := ExpandWebCorsSettings(corsSettings)
 		siteConfig.Cors = &expand
+	}
+
+	if v, ok := config["auto_swap_slot_name"]; ok {
+		siteConfig.AutoSwapSlotName = utils.String(v.(string))
 	}
 
 	return siteConfig, nil
@@ -1577,19 +1553,13 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	if vs := input.IPSecurityRestrictions; vs != nil {
 		for _, v := range *vs {
 			block := make(map[string]interface{})
+
 			if ip := v.IPAddress; ip != nil {
-				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
-				if strings.Contains(*ip, "/") {
-					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
-					block["ip_address"] = ipAddr.String()
-					mask := net.IP(ipNet.Mask)
-					block["subnet_mask"] = mask.String()
+				if *ip == "Any" {
+					continue
 				} else {
 					block["ip_address"] = *ip
 				}
-			}
-			if subnet := v.SubnetMask; subnet != nil {
-				block["subnet_mask"] = *subnet
 			}
 			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
 				block["virtual_network_subnet_id"] = *vNetSubnetID
@@ -1633,21 +1603,20 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["windows_fx_version"] = *input.WindowsFxVersion
 	}
 
-	if input.VnetName != nil {
-		result["virtual_network_name"] = *input.VnetName
-	}
-
 	result["scm_type"] = string(input.ScmType)
 	result["ftps_state"] = string(input.FtpsState)
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
 
+	if input.AutoSwapSlotName != nil {
+		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
+
 	return append(results, result)
 }
 
-func ExpandAppServiceStorageAccounts(d *schema.ResourceData) map[string]*web.AzureStorageInfoValue {
-	input := d.Get("storage_account").(*schema.Set).List()
+func ExpandAppServiceStorageAccounts(input []interface{}) map[string]*web.AzureStorageInfoValue {
 	output := make(map[string]*web.AzureStorageInfoValue, len(input))
 
 	for _, v := range input {

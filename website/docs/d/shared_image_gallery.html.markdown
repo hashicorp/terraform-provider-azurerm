@@ -1,7 +1,7 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_gallery"
-sidebar_current: "docs-azurerm-datasource-shared-image-gallery"
 description: |-
   Gets information about an existing Shared Image Gallery.
 
@@ -11,12 +11,10 @@ description: |-
 
 Use this data source to access information about an existing Shared Image Gallery.
 
--> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
-
 ## Example Usage
 
 ```hcl
-data "azurerm_shared_image_gallery" "test" {
+data "azurerm_shared_image_gallery" "example" {
   name                = "my-image-gallery"
   resource_group_name = "example-resources"
 }
@@ -26,9 +24,9 @@ data "azurerm_shared_image_gallery" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Shared Image Gallery.
+* `name` - The name of the Shared Image Gallery.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Shared Image Gallery exists.
+* `resource_group_name` - The name of the Resource Group in which the Shared Image Gallery exists.
 
 ## Attributes Reference
 
@@ -41,3 +39,9 @@ The following attributes are exported:
 * `unique_name` - The unique name assigned to the Shared Image Gallery.
 
 * `tags` - A mapping of tags which are assigned to the Shared Image Gallery.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image Gallery.

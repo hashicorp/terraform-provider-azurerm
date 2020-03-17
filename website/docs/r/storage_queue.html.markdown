@@ -1,7 +1,7 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_queue"
-sidebar_current: "docs-azurerm-resource-storage-queue"
 description: |-
   Manages a Queue within an Azure Storage Account.
 ---
@@ -13,23 +13,22 @@ Manages a Queue within an Azure Storage Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "examplestorageacc"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_queue" "test" {
+resource "azurerm_storage_queue" "example" {
   name                 = "mysamplequeue"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.example.name
 }
 ```
 
@@ -41,8 +40,6 @@ The following arguments are supported:
 
 * `storage_account_name` - (Required) Specifies the Storage Account in which the Storage Queue should exist. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage queue.
-
 * `metadata` - (Optional) A mapping of MetaData which should be assigned to this Storage Queue.
 
 ## Attributes Reference
@@ -50,6 +47,15 @@ The following arguments are supported:
 The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Queue.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Queue.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Queue.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Queue.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Queue.
 
 ## Import
 

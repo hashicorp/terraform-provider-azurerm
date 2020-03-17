@@ -1,7 +1,7 @@
 package tags
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 // SchemaDataSource returns the Schema which should be used for Tags on a Data Source
@@ -21,9 +21,11 @@ func ForceNewSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
 		Optional:     true,
-		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: Validate,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
 
@@ -32,7 +34,9 @@ func Schema() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
 		Optional:     true,
-		Computed:     true,
 		ValidateFunc: Validate,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }

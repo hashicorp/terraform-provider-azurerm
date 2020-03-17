@@ -1,7 +1,7 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_diagnostic_setting"
-sidebar_current: "docs-azurerm-resource-monitor-diagnostic-setting"
 description: |-
   Manages a Diagnostic Setting for an existing Resource.
 
@@ -13,26 +13,26 @@ Manages a Diagnostic Setting for an existing Resource.
 
 ## Example Usage
 
-```
-resource "azurerm_resource_group" "test" {
+```hcl
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-data "azurerm_storage_account" "test" {
+data "azurerm_storage_account" "example" {
   name                = "examplestoracc"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-data "azurerm_key_vault" "test" {
+data "azurerm_key_vault" "example" {
   name                = "example-vault"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_monitor_diagnostic_setting" "test" {
+resource "azurerm_monitor_diagnostic_setting" "example" {
   name               = "example"
-  target_resource_id = "${data.azurerm_key_vault.test.id}"
-  storage_account_id = "${data.azurerm_storage_account.test.id}"
+  target_resource_id = "${data.azurerm_key_vault.example.id}"
+  storage_account_id = "${data.azurerm_storage_account.example.id}"
 
   log {
     category = "AuditEvent"
@@ -132,12 +132,21 @@ The following attributes are exported:
 
 * `id` - The ID of the Diagnostic Setting.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Diagnostics Setting.
+* `update` - (Defaults to 30 minutes) Used when updating the Diagnostics Setting.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Diagnostics Setting.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Diagnostics Setting.
+
 ## Import
 
 Diagnostic Settings can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_monitor_diagnostics.test /subscriptions/XXX/resourcegroups/resource_group/providers/microsoft.keyvault/vaults/vault|logMonitoring
+terraform import azurerm_monitor_diagnostics.example /subscriptions/XXX/resourcegroups/resource_group/providers/microsoft.keyvault/vaults/vault|logMonitoring
 ```
 
 -> **NOTE:** This is a Terraform specific Resource ID which uses the format `{resourceId}|{diagnosticSettingName}`

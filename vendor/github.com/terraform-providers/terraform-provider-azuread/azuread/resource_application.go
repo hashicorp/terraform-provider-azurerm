@@ -6,8 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
@@ -224,7 +224,6 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 		// continue to automatically set the homepage with the type is not native
 		if appType != "native" {
 			properties.Homepage = p.String(fmt.Sprintf("https://%s", name))
-
 		}
 	}
 
@@ -260,7 +259,6 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	// AAD graph doesn't have the API to create a native app, aka public client, the recommended hack is
 	// to create a web app first, then convert to a native one
 	if appType == "native" {
-
 		properties := graphrbac.ApplicationUpdateParameters{
 			Homepage:       nil,
 			IdentifierUris: &[]string{},
@@ -468,7 +466,7 @@ func expandADApplicationRequiredResourceAccess(d *schema.ResourceData) *[]graphr
 }
 
 func expandADApplicationResourceAccess(in []interface{}) *[]graphrbac.ResourceAccess {
-	var resourceAccesses []graphrbac.ResourceAccess
+	resourceAccesses := make([]graphrbac.ResourceAccess, 0, len(in))
 	for _, resource_access_raw := range in {
 		resource_access := resource_access_raw.(map[string]interface{})
 
@@ -532,8 +530,7 @@ func expandADApplicationAppRoles(i interface{}) *[]graphrbac.AppRole {
 		return nil
 	}
 
-	var output []graphrbac.AppRole
-
+	output := make([]graphrbac.AppRole, 0, len(input))
 	for _, appRoleRaw := range input {
 		appRole := appRoleRaw.(map[string]interface{})
 

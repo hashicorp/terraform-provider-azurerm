@@ -13,6 +13,5 @@ func TestAccRandTimeInt(t *testing.T) {
 		if ri > 999999999999999999 {
 			t.Fatalf("AccRandTimeInt returned a value (%d) longer then expected", ri)
 		}
-
 	})
 }

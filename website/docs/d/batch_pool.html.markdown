@@ -1,7 +1,7 @@
 ---
+subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_pool"
-sidebar_current: "docs-azurerm-datasource-batch-pool"
 description: |-
   Get information about an existing Azure Batch pool.
 
@@ -14,7 +14,7 @@ Use this data source to access information about an existing Batch pool
 ## Example Usage
 
 ```hcl
-data "azurerm_batch_pool" "test" {
+data "azurerm_batch_pool" "example" {
   name                = "testbatchpool"
   account_name        = "testbatchaccount"
   resource_group_name = "test"
@@ -81,7 +81,7 @@ A `start_task` block exports the following:
 
 * `user_identity` - A `user_identity` block that describes the user identity under which the start task runs.
 
-* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+* `resource_file` - One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
 
 ---
 
@@ -148,3 +148,41 @@ A `container_registries` block exports the following:
 * `user_name` - The user name to log into the registry server.
 
 * `password` - The password to log into the registry server.
+
+---
+
+A `network_configuration` block exports the following:
+
+* `subnet_id` - The ARM resource identifier of the virtual network subnet which the compute nodes of the pool are joined too.
+
+* `endpoint_configuration` - The inbound NAT pools that are used to address specific ports on the individual compute node externally.
+
+---
+
+A `endpoint_configuration` block exports the following:
+
+* `name` - The name of the endpoint.
+
+* `backend_port` - The port number on the compute node.
+
+* `protocol` - The protocol of the endpoint.
+
+* `frontend_port_range` - The range of external ports that are used to provide inbound access to the backendPort on the individual compute nodes in the format of `1000-1100`.
+
+* `network_security_group_rules` - The list of network security group rules that are applied to the endpoint.
+
+---
+
+A `network_security_group_rules` block exports the following:
+
+* `access` - The action that should be taken for a specified IP address, subnet range or tag.
+
+* `priority` - The priority for this rule.
+
+* `source_address_prefix` - The source address prefix or tag to match for the rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.

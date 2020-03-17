@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-resource-network-express-route-circuit-x"
 description: |-
   Manages an ExpressRoute circuit.
 ---
@@ -13,15 +13,15 @@ Manages an ExpressRoute circuit.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "exprtTest"
   location = "West US"
 }
 
-resource "azurerm_express_route_circuit" "test" {
+resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `tier` - (Required) The service tier. Possible values are `Standard` or `Premium`.
+* `tier` - (Required) The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 
 * `family` - (Required) The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
 
@@ -78,6 +78,17 @@ The following attributes are exported:
 * `id` - The Resource ID of the ExpressRoute circuit.
 * `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit.
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit.
 
 ## Import
 

@@ -1,7 +1,7 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_blob"
-sidebar_current: "docs-azurerm-resource-stream-analytics-output-blob"
 description: |-
   Manages a Stream Analytics Output to Blob Storage.
 ---
@@ -19,31 +19,31 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplesa"
-  resource_group_name      = "${data.azurerm_resource_group.example.name}"
-  location                 = "${data.azurerm_resource_group.example.location}"
+  resource_group_name      = data.azurerm_resource_group.example.name
+  location                 = data.azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "example"
-  resource_group_name   = "${data.azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = data.azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_stream_analytics_output_blob" "example" {
   name                      = "output-to-blob-storage"
-  stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
-  storage_account_name      = "${azurerm_storage_account.example.name}"
-  storage_account_key       = "${azurerm_storage_account.example.primary_access_key}"
-  storage_container_name    = "${azurerm_storage_container.example.name}"
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
+  storage_account_name      = azurerm_storage_account.example.name
+  storage_account_key       = azurerm_storage_account.example.primary_access_key
+  storage_container_name    = azurerm_storage_container.example.name
   path_pattern              = "some-pattern"
   date_format               = "yyyy-MM-dd"
   time_format               = "HH"
@@ -104,10 +104,19 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Stream Analytics Output Blob Storage.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output Blob Storage.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output Blob Storage.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output Blob Storage.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Output Blob Storage.
+
 ## Import
 
 Stream Analytics Outputs to Blob Storage can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_blob.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_blob.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
 ```

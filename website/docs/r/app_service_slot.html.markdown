@@ -1,7 +1,7 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_slot"
-sidebar_current: "docs-azurerm-resource-app-service-slot"
 description: |-
   Manages an App Service Slot (within an App Service).
 
@@ -25,15 +25,15 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "some-resource-group"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -41,11 +41,11 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_app_service" "test" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+resource "azurerm_app_service" "example" {
+  name                = random_id.server.hex
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 
   site_config {
     dotnet_framework_version = "v4.0"
@@ -62,12 +62,12 @@ resource "azurerm_app_service" "test" {
   }
 }
 
-resource "azurerm_app_service_slot" "test" {
-  name                = "${random_id.server.hex}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+resource "azurerm_app_service_slot" "example" {
+  name                = random_id.server.hex
+  app_service_name    = azurerm_app_service.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 
   site_config {
     dotnet_framework_version = "v4.0"
@@ -96,15 +96,15 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "some-resource-group"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -112,11 +112,11 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_app_service" "test" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+resource "azurerm_app_service" "example" {
+  name                = random_id.server.hex
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 
   site_config {
     java_version           = "1.8"
@@ -125,12 +125,12 @@ resource "azurerm_app_service" "test" {
   }
 }
 
-resource "azurerm_app_service_slot" "test" {
-  name                = "${random_id.server.hex}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+resource "azurerm_app_service_slot" "example" {
+  name                = random_id.server.hex
+  app_service_name    = azurerm_app_service.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 
   site_config {
     java_version           = "1.8"
@@ -177,7 +177,7 @@ The following arguments are supported:
 `connection_string` supports the following:
 
 * `name` - (Required) The name of the Connection String.
-* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
+* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure`, and  `SQLServer`.
 * `value` - (Required) The value for the Connection String.
 
 ---
@@ -202,7 +202,7 @@ The following arguments are supported:
 
 * `java_container_version` - (Optional) The version of the Java Container to use. If specified `java_version` and `java_container` must also be specified.
 
-* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11`.
+* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8`, and `11` and their specific versions - except for Java 11 (e.g. `1.7.0_80`, `1.8.0_181`, `11`)
 
 * `local_mysql_enabled` - (Optional) Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
@@ -212,15 +212,15 @@ The following arguments are supported:
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
 
-* `php_version` - (Optional) The version of PHP to use in this App Service Slot. Possible values are `5.5`, `5.6`, `7.0`, `7.1` and `7.2`.
+* `php_version` - (Optional) The version of PHP to use in this App Service Slot. Possible values are `5.5`, `5.6`, `7.0`, `7.1`, `7.2`, and `7.3`.
 
 * `python_version` - (Optional) The version of Python to use in this App Service Slot. Possible values are `2.7` and `3.4`.
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
+* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015`, and `VS2017`.
 
-* `scm_type` - (Optional) The type of Source Control enabled for this App Service Slot. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO` and `VSTSRM`
+* `scm_type` - (Optional) The type of Source Control enabled for this App Service Slot. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
 * `use_32_bit_worker_process` - (Optional) Should the App Service Slot run in 32 bit mode, rather than 64 bit mode?
 
@@ -229,6 +229,8 @@ The following arguments are supported:
 * `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service Slot should be attached to.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
+* `auto_swap_slot_name` - (Optional) The name of the swap to automatically swap to during deployment
 
 ---
 
@@ -252,7 +254,7 @@ A `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
-~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 
@@ -310,7 +312,7 @@ A `ip_restriction` block supports the following:
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
-* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction. 
+* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction.
 
 -> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
@@ -337,6 +339,46 @@ A `identity` block supports the following:
 
 ---
 
+A `logs` block supports the following:
+
+* `application_logs` - (Optional) An `application_logs` block as defined below.
+
+* `http_logs` - (Optional) An `http_logs` block as defined below.
+
+---
+
+An `application_logs` block supports the following:
+
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
+
+---
+
+An `http_logs` block supports *one* of the following:
+
+* `file_system` - (Optional) A `file_system` block as defined below.
+
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
+
+---
+
+An `azure_blob_storage` block supports the following:
+
+* `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
+* `sas_url` - (Required) The URL to the storage container, with a Service SAS token appended. **NOTE:** there is currently no means of generating Service SAS tokens with the `azurerm` provider.
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
+
+---
+
+A `file_system` block supports the following:
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
+
+* `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
+
+---
+
 Elements of `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) support:
 
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
@@ -355,10 +397,19 @@ The following attributes are exported:
 
 ---
 
-`site_credential` exports the following:
+The `site_credential` block exports the following:
 
 * `username` - The username which can be used to publish to this App Service
 * `password` - The password associated with the username, which can be used to publish to this App Service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Slot.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Slot.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Slot.
 
 ## Import
 

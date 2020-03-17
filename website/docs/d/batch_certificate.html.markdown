@@ -1,7 +1,7 @@
 ---
+subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_certificate"
-sidebar_current: "docs-azurerm-datasource-batch-certificate"
 description: |-
   Get information about an existing certificate in a Batch Account
 
@@ -21,17 +21,17 @@ data "azurerm_batch_certificate" "example" {
 }
 
 output "thumbprint" {
-  value = "${data.azurerm_batch_certificate.example.thumbprint}"
+  value = data.azurerm_batch_certificate.example.thumbprint
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Batch certificate.
+* `name` - The name of the Batch certificate.
 
-* `account_name` - (Required) The name of the Batch account.
+* `account_name` - The name of the Batch account.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where this Batch account exists.
+* `resource_group_name` - The Name of the Resource Group where this Batch account exists.
 
 ## Attributes Reference
 
@@ -46,3 +46,9 @@ The following attributes are exported:
 * `thumbprint` - The thumbprint of the certificate.
 
 * `thumbprint_algorithm` - The algorithm of the certificate thumbprint.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the certificate.

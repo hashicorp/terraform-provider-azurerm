@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
@@ -83,7 +83,8 @@ func dataSourceGroupsRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Unexpected number of groups returned (%d != %d)", len(groups), expectedCount)
 	}
 
-	var names, oids []string
+	names := make([]string, 0, len(groups))
+	oids := make([]string, 0, len(groups))
 	for _, u := range groups {
 		if u.ObjectID == nil || u.DisplayName == nil {
 			return fmt.Errorf("User with nil ObjectId or UPN was found: %v", u)

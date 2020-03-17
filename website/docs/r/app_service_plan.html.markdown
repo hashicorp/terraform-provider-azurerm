@@ -1,7 +1,7 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
-sidebar_current: "docs-azurerm-resource-app-service-plan"
 description: |-
   Manages an App Service Plan component.
 ---
@@ -13,15 +13,15 @@ Manages an App Service Plan component.
 ## Example Usage (Dedicated)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -33,15 +33,15 @@ resource "azurerm_app_service_plan" "test" {
 ## Example Usage (Shared / Consumption Plan)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   kind                = "FunctionApp"
 
   sku {
@@ -54,15 +54,15 @@ resource "azurerm_app_service_plan" "test" {
 ## Example Usage (Linux)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   kind                = "Linux"
   reserved            = true
 
@@ -76,15 +76,15 @@ resource "azurerm_app_service_plan" "test" {
 ## Example Usage (Windows Container)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   kind                = "xenon"
   is_xenon            = true
 
@@ -107,9 +107,9 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption) and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
 
-* `maximum_elastic_worker_count` - The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
+~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`, and when creating a `Windows`/`app` App Service Plan the `reserved` field must be set to `false`.
 
-~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`.
+* `maximum_elastic_worker_count` - The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
 
 * `sku` - (Required) A `sku` block as documented below.
 
@@ -138,6 +138,15 @@ The following attributes are exported:
 
 * `id` - The ID of the App Service Plan component.
 * `maximum_number_of_workers` - The maximum number of workers supported with the App Service Plan's sku.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the App Service Plan.
+* `update` - (Defaults to 60 minutes) Used when updating the App Service Plan.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Plan.
+* `delete` - (Defaults to 60 minutes) Used when deleting the App Service Plan.
 
 ## Import
 

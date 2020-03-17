@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_security_group"
-sidebar_current: "docs-azurerm-resource-network-application-security-group"
 description: |-
   Manages an Application Security Group.
 ---
@@ -13,15 +13,15 @@ Manages an Application Security Group.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
 }
 
-resource "azurerm_application_security_group" "test" {
+resource "azurerm_application_security_group" "example" {
   name                = "tf-appsecuritygroup"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     Hello = "World"
@@ -46,6 +46,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Application Security Group.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Application Security Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Security Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Security Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Security Group.
 
 ## Import
 

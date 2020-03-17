@@ -1,21 +1,21 @@
 ---
+subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_set_definition"
-sidebar_current: "docs-azurerm-resource-policy-set-definition"
 description: |-
   Manages a policy set definition.
 ---
 
 # azurerm_policy_set_definition
 
-Manages a policy set definition. 
+Manages a policy set definition.
 
 -> **NOTE:**  Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_policy_set_definition" "test" {
+resource "azurerm_policy_set_definition" "example" {
   name         = "testPolicySet"
   policy_type  = "Custom"
   display_name = "Test Policy Set"
@@ -33,6 +33,7 @@ resource "azurerm_policy_set_definition" "test" {
     }
 PARAMETERS
 
+
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -45,6 +46,7 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
+
 }
 ```
 
@@ -74,16 +76,25 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The policy set definition id.
+* `id` - The ID of the Policy Set Definition.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Policy Set Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Set Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Policy Set Definition.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Policy Set Definition.
 
 ## Import
 
 Policy Set Definitions can be imported using the Resource ID, e.g.
 
 ```shell
-terraform import azurerm_policy_set_definition.test  /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
+terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
 ```
 or
 ```shell
-terraform import azurerm_policy_set_definition.test /providers/Microsoft.Management/managementgroups/my-mgmt-group-id/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
+terraform import azurerm_policy_set_definition.example/providers/Microsoft.Management/managementgroups/my-mgmt-group-id/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
 ```

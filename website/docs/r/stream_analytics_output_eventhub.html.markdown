@@ -1,7 +1,7 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_eventhub"
-sidebar_current: "docs-azurerm-resource-stream-analytics-output-eventhub"
 description: |-
   Manages a Stream Analytics Output to an EventHub.
 ---
@@ -19,33 +19,32 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "example-ehnamespace"
-  location            = "${data.azurerm_resource_group.example.location}"
-  resource_group_name = "${data.azurerm_resource_group.example.name}"
+  location            = data.azurerm_resource_group.example.location
+  resource_group_name = data.azurerm_resource_group.example.name
   sku                 = "Standard"
   capacity            = 1
-  kafka_enabled       = false
 }
 
-resource "azurerm_eventhub" "test" {
+resource "azurerm_eventhub" "example" {
   name                = "example-eventhub"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
-  resource_group_name = "${data.azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = data.azurerm_resource_group.example.name
   partition_count     = 2
   message_retention   = 1
 }
 
 resource "azurerm_stream_analytics_output_eventhub" "example" {
   name                      = "output-to-eventhub"
-  stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
-  eventhub_name             = "${azurerm_eventhub.example.name}"
-  servicebus_namespace      = "${azurerm_eventhub_namespace.example.name}"
-  shared_access_policy_key  = "${azurerm_eventhub_namespace.example.default_primary_key}"
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
+  eventhub_name             = azurerm_eventhub.example.name
+  servicebus_namespace      = azurerm_eventhub_namespace.example.name
+  shared_access_policy_key  = azurerm_eventhub_namespace.example.default_primary_key
   shared_access_policy_name = "RootManageSharedAccessKey"
 
   serialization {
@@ -98,10 +97,19 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Stream Analytics Output EventHub.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output EventHub.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output EventHub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output EventHub.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Output EventHub.
+
 ## Import
 
 Stream Analytics Outputs to an EventHub can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_eventhub.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_eventhub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
 ```

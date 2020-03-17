@@ -1,7 +1,7 @@
 ---
+subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_hadoop_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-hadoop-cluster"
 description: |-
   Manages a HDInsight Hadoop Cluster.
 ---
@@ -20,23 +20,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "hdinsightstor"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "example" {
   name                = "example-hdicluster"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -51,8 +51,8 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.example.id}"
-    storage_account_key  = "${azurerm_storage_account.example.primary_access_key}"
+    storage_container_id = azurerm_storage_container.example.id
+    storage_account_key  = azurerm_storage_account.example.primary_access_key
     is_default           = true
   }
 
@@ -98,6 +98,8 @@ The following arguments are supported:
 * `roles` - (Required) A `roles` block as defined below.
 
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
+
+* `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
@@ -153,17 +155,35 @@ A `roles` block supports the following:
 
 * `zookeeper_node` - (Required) A `zookeeper_node` block as defined below.
 
+* `edge_node` - (Optional) A `edge_node` block as defined below.
+
 ---
 
 A `storage_account` block supports the following:
 
 * `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
 
--> **NOTE:** One of the `storage_account` blocks must be marked as the default.
+-> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
 * `storage_account_key` - (Required) The Access Key which should be used to connect to the Storage Account. Changing this forces a new resource to be created.
 
 * `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
+
+-> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+
+---
+
+A `storage_account_gen2` block supports the following:
+
+* `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
+
+-> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
+
+* `storage_resource_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
+
+* `filesystem_id` - (Required) The ID of the Gen2 Filesystem. Changing this forces a new resource to be created.
+
+* `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 
@@ -211,6 +231,22 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+---
+
+A `edge_node` block supports the following:
+
+* `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Edge Nodes. Changing this forces a new resource to be created.
+
+* `install_script_action` - A `install_script_action` block as defined below.
+
+---
+
+A `install_script_action` block supports the following:
+
+* `name` - (Required) The name of the install script action. Changing this forces a new resource to be created.
+
+* `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -221,10 +257,21 @@ The following attributes are exported:
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Hadoop Cluster.
 
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Hadoop HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the Hadoop HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Hadoop HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Hadoop HDInsight Cluster.
+
 ## Import
 
 HDInsight Hadoop Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_hadoop_cluster.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_hadoop_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
 ```

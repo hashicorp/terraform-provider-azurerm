@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -89,6 +90,21 @@ func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *
 		return nil, err
 	}
 
+	var refreshFunc adal.TokenRefresh = func(ctx context.Context, resource string) (*adal.Token, error) {
+		token, err := obtainAuthorizationToken(resource, a.profile.subscriptionId)
+		if err != nil {
+			return nil, err
+		}
+
+		adalToken, err := token.ToADALToken()
+		if err != nil {
+			return nil, err
+		}
+
+		return &adalToken, nil
+	}
+	spt.SetCustomRefreshFunc(refreshFunc)
+
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
 }
@@ -99,9 +115,19 @@ func (a azureCliTokenAuth) name() string {
 
 func (a azureCliTokenAuth) populateConfig(c *Config) error {
 	c.ClientID = a.profile.clientId
+	c.TenantID = a.profile.tenantId
 	c.Environment = a.profile.environment
 	c.SubscriptionID = a.profile.subscriptionId
-	c.TenantID = a.profile.tenantId
+
+	c.GetAuthenticatedObjectID = func(ctx context.Context) (string, error) {
+		objectId, err := obtainAuthenticatedObjectID()
+		if err != nil {
+			return "", err
+		}
+
+		return objectId, nil
+	}
+
 	return nil
 }
 
@@ -129,35 +155,56 @@ func (a azureCliTokenAuth) validate() error {
 	return err.ErrorOrNil()
 }
 
+func obtainAuthenticatedObjectID() (string, error) {
+
+	var json struct {
+		ObjectId string `json:"objectId"`
+	}
+
+	err := jsonUnmarshalAzCmd(&json, "ad", "signed-in-user", "show", "-o=json")
+	if err != nil {
+		return "", fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+	}
+
+	return json.ObjectId, nil
+}
+
 func obtainAuthorizationToken(endpoint string, subscriptionId string) (*cli.Token, error) {
+	var token cli.Token
+	err := jsonUnmarshalAzCmd(&token, "account", "get-access-token", "--resource", endpoint, "--subscription", subscriptionId, "-o=json")
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+	}
+
+	return &token, nil
+}
+
+func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 
-	cmd := exec.Command("az", "account", "get-access-token", "--resource", endpoint, "--subscription", subscriptionId, "-o=json")
+	cmd := exec.Command("az", arg...)
 
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
 
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("Error launching Azure CLI: %+v", err)
+		return fmt.Errorf("Error launching Azure CLI: %+v", err)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return nil, fmt.Errorf("Error waiting for the Azure CLI: %+v", err)
+		return fmt.Errorf("Error waiting for the Azure CLI: %+v", err)
 	}
 
 	stdOutStr := stdout.String()
 	stdErrStr := stderr.String()
-
 	if stdErrStr != "" {
-		return nil, fmt.Errorf("Error retrieving access token from Azure CLI: %s", strings.TrimSpace(stdErrStr))
+		return fmt.Errorf("Error retrieving running Azure CLI: %s", strings.TrimSpace(stdErrStr))
 	}
 
-	var token *cli.Token
-	err := json.Unmarshal([]byte(stdOutStr), &token)
-	if err != nil {
-		return nil, fmt.Errorf("Error unmarshaling Access Token from the Azure CLI: %s", err)
+	if err := json.Unmarshal([]byte(stdOutStr), &i); err != nil {
+		return fmt.Errorf("Error unmarshaling the result of Azure CLI: %v", err)
 	}
 
-	return token, nil
+	return nil
 }

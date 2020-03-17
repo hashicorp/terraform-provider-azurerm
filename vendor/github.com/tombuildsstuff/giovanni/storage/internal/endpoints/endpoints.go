@@ -18,6 +18,11 @@ func GetBlobEndpoint(baseUri string, accountName string) string {
 	return fmt.Sprintf("https://%s.blob.%s", accountName, baseUri)
 }
 
+// GetDataLakeStoreEndpoint returns the endpoint for Data Lake Store API Operations on this storage account
+func GetDataLakeStoreEndpoint(baseUri string, accountName string) string {
+	return fmt.Sprintf("https://%s.dfs.%s", accountName, baseUri)
+}
+
 // GetFileEndpoint returns the endpoint for File Share API Operations on this storage account
 func GetFileEndpoint(baseUri string, accountName string) string {
 	return fmt.Sprintf("https://%s.file.%s", accountName, baseUri)

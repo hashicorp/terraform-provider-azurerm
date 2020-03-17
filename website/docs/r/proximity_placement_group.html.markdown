@@ -1,7 +1,7 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_proximity_placement_group"
-sidebar_current: "docs-azurerm-resource-compute-proximity-placement-group"
 description: |-
   Manages a proximity placement group for virtual machines, virtual machine scale sets and availability sets.
 
@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_proximity_placement_group" "example" {
   name                = "exampleProximityPlacementGroup"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     environment = "Production"
@@ -46,15 +46,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Proximity Placement Group ID.
+* `id` - The ID of the Proximity Placement Group.
 
-* `name` - The name of the Proximity Placement Group.
+## Timeouts
 
-* `location` - The location of the Proximity Placement Group.
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `resource_group_name` - The name of the resource group in which the Proximity Placement Group exists.
-
-* `tags` - The tags attached to the Proximity Placement Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Proximity Placement Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Proximity Placement Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Proximity Placement Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Proximity Placement Group.
 
 ## Import
 

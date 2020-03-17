@@ -49,6 +49,7 @@ func (a servicePrincipalClientSecretAuth) getAuthorizationToken(sender autorest.
 
 func (a servicePrincipalClientSecretAuth) populateConfig(c *Config) error {
 	c.AuthenticatedAsAServicePrincipal = true
+	c.GetAuthenticatedObjectID = buildServicePrincipalObjectIDFunc(c)
 	return nil
 }
 

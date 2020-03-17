@@ -1,7 +1,7 @@
 ---
+subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_zone_virtual_network_link"
-sidebar_current: "docs-azurerm-resource-private-dns-zone-virtual-network-link"
 description: |-
   Manages a Private DNS Zone Virtual Network Link.
 ---
@@ -13,21 +13,21 @@ Enables you to manage Private DNS zone Virtual Network Links. These Links enable
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_private_dns_zone" "test" {
+resource "azurerm_private_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   name                  = "test"
-  resource_group_name   = azurerm_resource_group.test.name
-  private_dns_zone_name = azurerm_private_dns_zone.test.name
-  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.example.name
+  private_dns_zone_name = azurerm_private_dns_zone.example.name
+  virtual_network_id    = azurerm_virtual_network.example.id
 }
 ```
 
@@ -52,6 +52,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Resource ID of the Private DNS Zone Virtual Network Link.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Private DNS Zone Virtual Network Link.
+* `update` - (Defaults to 30 minutes) Used when updating the Private DNS Zone Virtual Network Link.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS Zone Virtual Network Link.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Private DNS Zone Virtual Network Link.
 
 ## Import
 

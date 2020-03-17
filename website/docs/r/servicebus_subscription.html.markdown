@@ -1,7 +1,7 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-x"
 description: |-
   Manages a ServiceBus Subscription.
 ---
@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -31,17 +31,17 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_topic" "example" {
   name                = "tfex_sevicebus_topic"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
   name                = "tfex_sevicebus_subscription"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
-  topic_name          = "${azurerm_servicebus_topic.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
+  topic_name          = azurerm_servicebus_topic.example.name
   max_delivery_count  = 1
 }
 ```
@@ -58,9 +58,6 @@ The following arguments are supported:
 
 * `topic_name` - (Required) The name of the ServiceBus Topic to create
     this Subscription in. Changing this forces a new resource to be created.
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
-    Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
@@ -89,13 +86,13 @@ The following arguments are supported:
     supports the concept of a session. Defaults to false. Changing this forces a
     new resource to be created.
 
-* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward 
-    messages to.
-    
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to.
+
+* `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward Dead Letter messages to.
+
 ### TimeSpan Format
 
-Some arguments for this resource are required in the TimeSpan format which is
-used to represent a length of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
+Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
 
 ## Attributes Reference
 
@@ -103,10 +100,19 @@ The following attributes are exported:
 
 * `id` - The ServiceBus Subscription ID.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Subscription.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Subscription.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Subscription.
+
 ## Import
 
 Service Bus Subscriptions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_subscription.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
+terraform import azurerm_servicebus_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
 ```

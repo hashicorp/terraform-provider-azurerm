@@ -1,6 +1,9 @@
 package locks
 
-import "github.com/hashicorp/terraform/helper/mutexkv"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/common"
+)
 
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
@@ -16,7 +19,9 @@ func ByName(name string, resourceType string) {
 }
 
 func MultipleByName(names *[]string, resourceType string) {
-	for _, name := range *names {
+	newSlice := common.RemoveDuplicatesFromStringArray(*names)
+
+	for _, name := range newSlice {
 		ByName(name, resourceType)
 	}
 }
@@ -31,7 +36,9 @@ func UnlockByName(name string, resourceType string) {
 }
 
 func UnlockMultipleByName(names *[]string, resourceType string) {
-	for _, name := range *names {
+	newSlice := common.RemoveDuplicatesFromStringArray(*names)
+
+	for _, name := range newSlice {
 		UnlockByName(name, resourceType)
 	}
 }

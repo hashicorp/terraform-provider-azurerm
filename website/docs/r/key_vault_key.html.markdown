@@ -1,7 +1,7 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key"
-sidebar_current: "docs-azurerm-resource-key-vault-key"
 description: |-
   Manages a Key Vault Key.
 
@@ -14,9 +14,10 @@ Manages a Key Vault Key.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "my-resource-group"
   location = "West US"
 }
@@ -29,17 +30,17 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "keyvaultkeyexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -58,7 +59,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "generated" {
   name         = "generated-certificate"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -89,6 +90,10 @@ The following arguments are supported:
 
 * `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case sensitive.
 
+* `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
+
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
@@ -102,11 +107,21 @@ The following attributes are exported:
 * `x` - The EC X component of this Key Vault Key.
 * `y` - The EC Y component of this Key Vault Key.
 
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Key.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Key.
 
 ## Import
 
 Key Vault Key which is Enabled can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_key.test https://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_key.examplehttps://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

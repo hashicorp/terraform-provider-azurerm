@@ -8,9 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/p"
@@ -97,7 +97,6 @@ func ParsePasswordCredentialId(id string) (PasswordCredentialId, error) {
 		ObjectId: parts[0],
 		KeyId:    parts[1],
 	}, nil
-
 }
 
 func PasswordCredentialIdFrom(objectId, keyId string) PasswordCredentialId {

@@ -155,3 +155,25 @@ func ParseCosmosTableID(id string) (*CosmosTableID, error) {
 		Table:           table,
 	}, nil
 }
+
+type CosmosGremlinGraphID struct {
+	CosmosDatabaseID
+	Graph string
+}
+
+func ParseCosmosGramlinGraphID(id string) (*CosmosGremlinGraphID, error) {
+	subid, err := ParseCosmosDatabaseID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	graph, ok := subid.Path["graphs"]
+	if !ok {
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Gremlin Graph Resource ID: Graph is missing from: %s", id)
+	}
+
+	return &CosmosGremlinGraphID{
+		CosmosDatabaseID: *subid,
+		Graph:            graph,
+	}, nil
+}

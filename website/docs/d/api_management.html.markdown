@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
-sidebar_current: "docs-azurerm-datasource-api-management-x"
 description: |-
   Gets information about an existing API Management Service.
 ---
@@ -13,21 +13,21 @@ Use this data source to access information about an existing API Management Serv
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management" "test" {
+data "azurerm_api_management" "example" {
   name                = "search-api"
   resource_group_name = "search-service"
 }
 
 output "api_management_id" {
-  value = "${data.azurerm_api_management.test.id}"
+  value = data.azurerm_api_management.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the API Management service.
+* `name` - The name of the API Management service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
 ## Attributes Reference
 
@@ -133,3 +133,9 @@ A `sku` block exports the following:
 * `name` - Specifies the plan's pricing tier.
 
 * `capacity` - Specifies the number of units associated with this API Management service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.

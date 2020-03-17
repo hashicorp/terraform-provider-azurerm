@@ -3,7 +3,7 @@ package validate
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestSharedImageGalleryName(t *testing.T) {
@@ -205,7 +205,7 @@ func TestVirtualMachineTimeZone(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := VirtualMachineTimeZone()(tc.Value, "unittest")
+		_, errors := VirtualMachineTimeZoneCaseInsensitive()(tc.Value, "unittest")
 
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected VirtualMachineTimeZone to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))

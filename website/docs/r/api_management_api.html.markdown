@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api"
-sidebar_current: "docs-azurerm-resource-api-management-api-x"
 description: |-
   Manages an API within an API Management Service.
 ---
@@ -13,28 +13,25 @@ Manages an API within an API Management Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
-resource "azurerm_api_management_api" "test" {
+resource "azurerm_api_management_api" "example" {
   name                = "example-api"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
   revision            = "1"
   display_name        = "Example API"
   path                = "example"
@@ -77,6 +74,12 @@ The following arguments are supported:
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
+* `version` - (Optional) The Version number of this API, if this API is versioned.
+
+* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
+
+-> **NOTE:** When `version` is set, `version_set_id` must also be specified
+
 ---
 
 A `import` block supports the following:
@@ -103,8 +106,6 @@ A `wsdl_selector` block supports the following:
 
 * `endpoint_name` - (Required) The name of endpoint (port) to import from WSDL.
 
----
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -119,10 +120,19 @@ In addition to all arguments above, the following attributes are exported:
 
 * `version_set_id` - The ID of the Version Set which this API is associated with.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management API.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management API.
+
 ## Import
 
 API Management API's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1
+terraform import azurerm_api_management_api.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1
 ```

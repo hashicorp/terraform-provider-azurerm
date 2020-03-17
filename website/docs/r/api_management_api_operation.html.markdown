@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_operation"
-sidebar_current: "docs-azurerm-resource-api-management-api-operation"
 description: |-
   Manages an API Operation within an API Management Service.
 ---
@@ -22,9 +22,9 @@ data "azurerm_api_management_api" "example" {
 
 resource "azurerm_api_management_api_operation" "example" {
   operation_id        = "user-delete"
-  api_name            = "${data.azurerm_api_management_api.example.name}"
-  api_management_name = "${data.azurerm_api_management_api.example.api_management_name}"
-  resource_group_name = "${data.azurerm_api_management_api.example.resource_group_name}"
+  api_name            = data.azurerm_api_management_api.example.name
+  api_management_name = data.azurerm_api_management_api.example.api_management_name
+  resource_group_name = data.azurerm_api_management_api.example.resource_group_name
   display_name        = "Delete User Operation"
   method              = "DELETE"
   url_template        = "/users/{id}/delete"
@@ -181,10 +181,19 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management API Operation.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Operation.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Operation.
+
 ## Import
 
 API Management API Operation's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api_operation.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/operations/operation1
+terraform import azurerm_api_management_api_operation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/operations/operation1
 ```

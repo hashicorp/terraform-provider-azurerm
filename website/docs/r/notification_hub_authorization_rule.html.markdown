@@ -1,7 +1,7 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-notification-hub-authorization-rule"
 description: |-
   Manages an Authorization Rule associated with a Notification Hub within a Notification Hub Namespace.
 
@@ -14,32 +14,31 @@ Manages an Authorization Rule associated with a Notification Hub within a Notifi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "notificationhub-resources"
   location = "Australia East"
 }
 
-resource "azurerm_notification_hub_namespace" "test" {
+resource "azurerm_notification_hub_namespace" "example" {
   name                = "myappnamespace"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   namespace_type      = "NotificationHub"
-
-  sku_name = "Free"
+  sku_name            = "Free"
 }
 
-resource "azurerm_notification_hub" "test" {
+resource "azurerm_notification_hub" "example" {
   name                = "mynotificationhub"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  namespace_name      = azurerm_notification_hub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
-resource "azurerm_notification_hub_authorization_rule" "test" {
+resource "azurerm_notification_hub_authorization_rule" "example" {
   name                  = "management-auth-rule"
-  notification_hub_name = "${azurerm_notification_hub.test.name}"
-  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  notification_hub_name = azurerm_notification_hub.example.name
+  namespace_name        = azurerm_notification_hub_namespace.example.name
+  resource_group_name   = azurerm_resource_group.example.name
   manage                = true
   send                  = true
   listen                = true
@@ -75,6 +74,15 @@ The following attributes are exported:
 * `primary_access_key` - The Primary Access Key associated with this Authorization Rule.
 
 * `secondary_access_key` - The Secondary Access Key associated with this Authorization Rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Notification Hub Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Notification Hub Authorization Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Notification Hub Authorization Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Notification Hub Authorization Rule.
 
 ## Import
 

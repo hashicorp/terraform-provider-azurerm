@@ -1,7 +1,7 @@
 ---
+subcategory: "Service Fabric"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_service_fabric_cluster"
-sidebar_current: "docs-azurerm-resource-service-fabric-cluster"
 description: |-
   Manages a Service Fabric Cluster.
 ---
@@ -13,18 +13,18 @@ Manages a Service Fabric Cluster.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_service_fabric_cluster" "test" {
+resource "azurerm_service_fabric_cluster" "example" {
   name                 = "example-servicefabric"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
-  cluster_code_version = "6.3.176.9494"
+  cluster_code_version = "6.5.639.9590"
   vm_image             = "Windows"
   management_endpoint  = "https://example:80"
 
@@ -211,6 +211,15 @@ The following attributes are exported:
 * `id` - The ID of the Service Fabric Cluster.
 
 * `cluster_endpoint` - The Cluster Endpoint for this Service Fabric Cluster.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Fabric Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Fabric Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Fabric Cluster.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Fabric Cluster.
 
 ## Import
 

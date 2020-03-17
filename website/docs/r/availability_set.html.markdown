@@ -1,28 +1,28 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
-sidebar_current: "docs-azurerm-resource-compute-availability-set"
 description: |-
-  Manages an availability set for virtual machines.
+  Manages an Availability Set for Virtual Machines.
 
 ---
 
 # azurerm_availability_set
 
-Manages an availability set for virtual machines.
+Manages an Availability Set for Virtual Machines.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
-resource "azurerm_availability_set" "test" {
-  name                = "acceptanceTestAvailabilitySet1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_availability_set" "example" {
+  name                = "example-aset"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     environment = "Production"
@@ -40,17 +40,17 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `platform_update_domain_count` - (Optional) Specifies the number of update domains that are used. Defaults to 5.
+* `platform_update_domain_count` - (Optional) Specifies the number of update domains that are used. Defaults to `5`.
 
 ~> **NOTE:** The number of Update Domains varies depending on which Azure Region you're using - [a list can be found here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used. Defaults to 3.
+* `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used. Defaults to `3`.
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - [a list can be found here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
-* `managed` - (Optional) Specifies whether the availability set is managed or not. Possible values are `true` (to specify aligned) or `false` (to specify classic). Default is `false`.
+* `managed` - (Optional) Specifies whether the availability set is managed or not. Possible values are `true` (to specify aligned) or `false` (to specify classic). Default is `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -58,8 +58,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The virtual Availability Set ID.
+* `id` - The ID of the Availability Set.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Availability Set.
+* `update` - (Defaults to 30 minutes) Used when updating the Availability Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Availability Set.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Availability Set.
 
 ## Import
 
