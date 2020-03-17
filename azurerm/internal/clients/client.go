@@ -51,6 +51,7 @@ import (
 	policy "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/client"
 	portal "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/client"
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
+	powerBI "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
 	recoveryServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
@@ -122,6 +123,7 @@ type Client struct {
 	Policy            *policy.Client
 	Portal            *portal.Client
 	Postgres          *postgres.Client
+	PowerBI           *powerBI.Client
 	PrivateDns        *privatedns.Client
 	RecoveryServices  *recoveryServices.Client
 	Redis             *redis.Client
@@ -192,6 +194,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
+	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)

@@ -48,6 +48,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
@@ -116,6 +117,7 @@ func SupportedServices() []common.ServiceRegistration {
 		policy.Registration{},
 		portal.Registration{},
 		postgres.Registration{},
+		powerbi.Registration{},
 		privatedns.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
