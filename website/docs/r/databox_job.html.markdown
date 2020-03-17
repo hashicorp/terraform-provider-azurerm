@@ -108,7 +108,7 @@ An `contact_details` block supports the following:
 
 * `phone_number` - (Required) Specified the phone number of the contact person?
 
-* `mobile` - (Optional) Specified the mobile number of the contact person
+* `phone_mobile` - (Optional) Specified the mobile number of the contact person
 
 * `notification_preference` - (Optional) One or more `notification_preference` block defined below.
 
@@ -174,7 +174,7 @@ An `shipping_address` block supports the following:
 
 * `street_address_3` - (Optional) Specified the Street Address line 3.
 
-* `postal_code_ext` - (Optional) Specified the extended portal code.
+* `zip_code_extension` - (Optional) Specified the extended portal code.
 
 ---
 

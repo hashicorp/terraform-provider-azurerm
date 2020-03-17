@@ -90,7 +90,7 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.name", "DataBoxJobTester"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.emails.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.phone_number", "+11234567891"),
-					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.mobile", "+11234567891"),
+					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.phone_mobile", "+11234567891"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.notification_preference.0.at_azure_dc", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.notification_preference.0.data_copied", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.notification_preference.0.delivered", "false"),
@@ -105,7 +105,7 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.company_name", "Microsoft"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_2", "17 TOWNSEND ST"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_3", "18 TOWNSEND ST"),
-					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.postal_code_ext", "94107"),
+					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.zip_code_extension", "94107"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TEST"),
 				),
 			},
@@ -117,7 +117,7 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.name", "DataBoxJobTester2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.emails.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.phone_number", "+11234567892"),
-					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.mobile", "+11234567892"),
+					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.phone_mobile", "+11234567892"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.notification_preference.0.at_azure_dc", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.notification_preference.0.data_copied", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.notification_preference.0.delivered", "true"),
@@ -132,7 +132,7 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.company_name", "Intel"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_2", "6902 SUN STREET"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_3", "6903 SUN STREET"),
-					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.postal_code_ext", "92111"),
+					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.zip_code_extension", "92111"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TEST2"),
 				),
 			},
@@ -290,7 +290,7 @@ resource "azurerm_databox_job" "test" {
     name         = "DataBoxJobTester"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
-    mobile       = "+11234567891"
+    phone_mobile = "+11234567891"
     notification_preference {
       at_azure_dc     = false
       data_copied     = false
@@ -315,16 +315,16 @@ resource "azurerm_databox_job" "test" {
   }
 
   shipping_address {
-    city              = "San Francisco"
-    country           = "US"
-    postal_code       = "94107"
-    state_or_province = "CA"
-    street_address_1  = "16 TOWNSEND ST"
-    address_type      = "Commercial"
-    company_name      = "Microsoft"
-    street_address_2  = "17 TOWNSEND ST"
-    street_address_3  = "18 TOWNSEND ST"
-    postal_code_ext   = "94107"
+    city               = "San Francisco"
+    country            = "US"
+    postal_code        = "94107"
+    state_or_province  = "CA"
+    street_address_1   = "16 TOWNSEND ST"
+    address_type       = "Commercial"
+    company_name       = "Microsoft"
+    street_address_2   = "17 TOWNSEND ST"
+    street_address_3   = "18 TOWNSEND ST"
+    zip_code_extension = "94107"
   }
 
   expected_data_size_in_tb = 5
@@ -373,7 +373,7 @@ resource "azurerm_databox_job" "test" {
     name         = "DataBoxJobTester2"
     emails       = ["some.user@example.com", "some.user2@example.com"]
     phone_number = "+11234567892"
-    mobile       = "+11234567892"
+    phone_mobile = "+11234567892"
     notification_preference {
       at_azure_dc     = true
       data_copied     = true
@@ -398,16 +398,16 @@ resource "azurerm_databox_job" "test" {
   }
 
   shipping_address {
-    city              = "San Diego"
-    country           = "US"
-    postal_code       = "92111"
-    state_or_province = "CA"
-    street_address_1  = "6901 SUN STREET"
-    address_type      = "Residential"
-    company_name      = "Intel"
-    street_address_2  = "6902 SUN STREET"
-    street_address_3  = "6903 SUN STREET"
-    postal_code_ext   = "92111"
+    city               = "San Diego"
+    country            = "US"
+    postal_code        = "92111"
+    state_or_province  = "CA"
+    street_address_1   = "6901 SUN STREET"
+    address_type       = "Residential"
+    company_name       = "Intel"
+    street_address_2   = "6902 SUN STREET"
+    street_address_3   = "6903 SUN STREET"
+    zip_code_extension = "92111"
   }
 
   expected_data_size_in_tb = 5

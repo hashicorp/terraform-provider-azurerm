@@ -47,7 +47,7 @@ output "id" {
 
 ---
 
-An `destination_account` block supports the following:
+A `destination_account` block exports the following:
 
 * `type` -The destination account type.
 

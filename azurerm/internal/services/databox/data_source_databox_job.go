@@ -88,9 +88,9 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name, "Details")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: DataBox Job (DataBox Job Name %q / Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("DataBox Job (DataBox Job Name %q / Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -105,17 +105,17 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 				d.Set("device_password", v.DevicePassword)
 
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("Error setting `destination_account`: %+v", err)
+					return fmt.Errorf("setting `destination_account`: %+v", err)
 				}
 			} else if v, ok := details.AsDiskJobDetails(); ok && v != nil {
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("Error setting `destination_account`: %+v", err)
+					return fmt.Errorf("setting `destination_account`: %+v", err)
 				}
 			} else if v, ok := details.AsHeavyJobDetails(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
 				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("Error setting `destination_account`: %+v", err)
+					return fmt.Errorf("setting `destination_account`: %+v", err)
 				}
 			}
 		}

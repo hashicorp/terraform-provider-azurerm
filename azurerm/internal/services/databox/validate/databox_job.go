@@ -26,7 +26,7 @@ func DataBoxJobName(v interface{}, k string) (warnings []string, errors []error)
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\da-zA-Z][-\da-zA-Z]{1,22}[\da-zA-Z]$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be between 3 and 24 characters in length, and it must begin and end with an alphanumeric and can only contain alphanumeric characters and hyphens", k))
+		errors = append(errors, fmt.Errorf("%q must be between 3 and 24 characters in length, begin and end with an alphanumeric character, can only contain alphanumeric characters and hyphens", k))
 	}
 
 	return warnings, errors
@@ -46,7 +46,7 @@ func DataBoxJobPhoneNumber(v interface{}, k string) (warnings []string, errors [
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[+][\d]{2,}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must begin with + and may contain only at least 2 numbers", k))
+		errors = append(errors, fmt.Errorf("%q must begin with '+' and must be at least 2 digits in length", k))
 	}
 
 	return warnings, errors
@@ -66,7 +66,7 @@ func DataBoxJobPhoneExtension(v interface{}, k string) (warnings []string, error
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[\d]{0,4}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must have maximum 4 characters in length and can only contain numbers", k))
+		errors = append(errors, fmt.Errorf("%q must contain only numeric values with a maximum length of 4 digits", k))
 	}
 
 	return warnings, errors
@@ -117,11 +117,11 @@ func DataBoxJobDiskPassKey(v interface{}, k string) (warnings []string, errors [
 
 	if len(value) < 12 || len(value) > 32 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be between 12 and 32 characters: %q", k, value))
+			"%q must be between 12 and 32 characters in length, received: %q", k, value))
 	}
 
 	if !regexp.MustCompile(`^.*[\d]+.*[^a-zA-Z0-9 ]+.*|.*[^a-zA-Z0-9 ]+.*[\d]+.*$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be alphanumeric, contain at least one special character and atleast one number", k))
+		errors = append(errors, fmt.Errorf("%q must be alphanumeric, contain at least one special character and at least one number", k))
 	}
 
 	return warnings, errors
