@@ -224,7 +224,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 	accessLevel, err := flattenStorageContainerAccessLevel(props.PublicAccess)
 	if err != nil {
-		fmt.Errorf("Error retrieving public access Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving public access Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	d.Set("container_access_type", accessLevel)
