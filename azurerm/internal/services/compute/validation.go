@@ -9,11 +9,85 @@ import (
 )
 
 func ValidateLinuxName(i interface{}, k string) (warnings []string, errors []error) {
-	return validateName(64)(i, k)
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("Expected %q to be a string but it wasn't!", k))
+		return
+	}
+
+	// The value must not be empty.
+	if strings.TrimSpace(v) == "" {
+		errors = append(errors, fmt.Errorf("%q must not be empty", k))
+		return
+	}
+
+	const maxLength = 64
+	// The value must be between 1 and 64 (Linux) characters long.
+	if len(v) > maxLength {
+		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
+	}
+
+	if strings.HasPrefix(v, "_") {
+		errors = append(errors, fmt.Errorf("%q cannot begin with an underscore", k))
+	}
+
+	if strings.HasSuffix(v, ".") || strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q cannot end with an period or dash", k))
+	}
+
+	// Azure resource names cannot contain special characters \/""[]:|<>+=;,?*@& or begin with '_' or end with '.' or '-'
+	specialCharacters := `\/""[]:|<>+=;,?*@&`
+	if strings.ContainsAny(v, specialCharacters) {
+		errors = append(errors, fmt.Errorf("%q cannot contain the special characters: `%s`", k, specialCharacters))
+	}
+
+	// The value can only contain alphanumeric characters and can start with a number.
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9-_.]+$`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores", k))
+	}
+
+	// Portal: Virtual machine name cannot contain only numbers.
+	if matched := regexp.MustCompile(`^\d+$`).Match([]byte(v)); matched {
+		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
+	}
+
+	return warnings, errors
 }
 
 func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []error) {
-	return validateName(16)(i, k)
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("Expected %q to be a string but it wasn't!", k))
+		return
+	}
+
+	// The value must not be empty.
+	if strings.TrimSpace(v) == "" {
+		errors = append(errors, fmt.Errorf("%q must not be empty", k))
+		return
+	}
+
+	const maxLength = 15
+	// The value must be between 1 and 15 (Windows) characters long.
+	if len(v) > maxLength {
+		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
+	}
+
+	if strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q cannot end with dash", k))
+	}
+
+	// A windows computer name can only contain alphanumeric characters and hyphens
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]+$`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	}
+
+	// Portal: Virtual machine name cannot contain only numbers.
+	if matched := regexp.MustCompile(`^\d+$`).Match([]byte(v)); matched {
+		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
+	}
+
+	return warnings, errors
 }
 
 func ValidateScaleSetResourceID(i interface{}, k string) (s []string, es []error) {
@@ -35,48 +109,6 @@ func ValidateScaleSetResourceID(i interface{}, k string) (s []string, es []error
 	}
 
 	return
-}
-
-func validateName(maxLength int) func(i interface{}, k string) (warnings []string, errors []error) {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
-		v, ok := i.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("Expected %q to be a string but it wasn't!", k))
-			return
-		}
-
-		// The value must not be empty.
-		if strings.TrimSpace(v) == "" {
-			errors = append(errors, fmt.Errorf("%q must not be empty", k))
-			return
-		}
-
-		// The value must be between 1 and 64 (Linux) or 16 (Windows) characters long.
-		if len(v) >= maxLength {
-			errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength-1, len(v)))
-		}
-
-		if strings.HasPrefix(v, "_") {
-			errors = append(errors, fmt.Errorf("%q cannot begin with an underscore", k))
-		}
-
-		if strings.HasSuffix(v, ".") || strings.HasSuffix(v, "-") {
-			errors = append(errors, fmt.Errorf("%q cannot end with an period or dash", k))
-		}
-
-		// Azure resource names cannot contain special characters \/""[]:|<>+=;,?*@& or begin with '_' or end with '.' or '-'
-		specialCharacters := `\/""[]:|<>+=;,?*@&`
-		if strings.ContainsAny(v, specialCharacters) {
-			errors = append(errors, fmt.Errorf("%q cannot contain the special characters: `%s`", k, specialCharacters))
-		}
-
-		// The value can only contain alphanumeric characters and cannot start with a number.
-		if matched := regexp.MustCompile(`^[a-zA-Z0-9-_]+$`).Match([]byte(v)); !matched {
-			errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores", k))
-		}
-
-		return
-	}
 }
 
 func validateDiskEncryptionSetName(i interface{}, k string) (warnings []string, errors []error) {

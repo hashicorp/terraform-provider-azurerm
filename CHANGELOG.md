@@ -1,4 +1,22 @@
 ## 2.2.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_virtual_hub_connection` [GH-5951]
+
+IMPROVEMENTS:
+
+* `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
+* `azurerm_sql_database` - support for the `extended_auditing_policy` property [GH-5049]
+
+BUG FIXES:
+
+* Data Source: `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+* `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+* `azurerm_linux_virtual_machine` - updating the validation for `name` to allow periods [GH-5966]
+* `azurerm_linux_virtual_machine_scale_set` - updating the validation for `name` to allow periods [GH-5966]
+* `azurerm_storage_management_policy` - Fixed the use of single blob rule actions [GH-5803]
+
 ## 2.1.0 (March 11, 2020)
 
 NOTES:
