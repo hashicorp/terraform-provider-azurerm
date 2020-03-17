@@ -71,6 +71,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.RequestBody(),
 				},
 
+				"request_header_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.RequestHeader(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -180,6 +186,12 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 	if rbcs := rule["request_body_condition"].([]interface{}); len(rbcs) > 0 {
 		for _, rbc := range rbcs {
 			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestBody(rbc.(map[string]interface{})))
+		}
+	}
+
+	if rhcs := rule["request_header_condition"].([]interface{}); len(rhcs) > 0 {
+		for _, rhc := range rhcs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestHeader(rhc.(map[string]interface{})))
 		}
 	}
 
