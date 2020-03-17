@@ -19,7 +19,7 @@ func EndpointDeliveryRule() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.EndpointDeliveryPolicyRuleName(),
+					ValidateFunc: validate.EndpointDeliveryRuleName(),
 				},
 
 				"order": {
@@ -107,6 +107,12 @@ func EndpointDeliveryRule() *schema.Schema {
 					Type:     schema.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.URLFileName(),
+				},
+
+				"url_path_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     deliveryruleconditions.URLPath(),
 				},
 
 				"cache_expiration_action": {
@@ -243,6 +249,12 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 	if ufncs := rule["url_file_name_condition"].([]interface{}); len(ufncs) > 0 {
 		for _, ufnc := range ufncs {
 			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionURLFileName(ufnc.(map[string]interface{})))
+		}
+	}
+
+	if upcs := rule["url_path_condition"].([]interface{}); len(upcs) > 0 {
+		for _, upc := range upcs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionURLPath(upc.(map[string]interface{})))
 		}
 	}
 
@@ -401,6 +413,15 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				}
 
 				res["url_file_name_condition"] = append(res["url_file_name_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileName(condition))
+				continue
+			}
+
+			if condition, isURLPathCondition := basicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); isURLPathCondition {
+				if _, ok := res["url_path_condition"]; !ok {
+					res["url_path_condition"] = []map[string]interface{}{}
+				}
+
+				res["url_path_condition"] = append(res["url_path_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLPath(condition))
 				continue
 			}
 		}

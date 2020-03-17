@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-func EndpointDeliveryPolicyRuleName() schema.SchemaValidateFunc {
+func EndpointDeliveryRuleName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*$"),
-		"The Delivery Policy Rule Name must start with a letter any may only contain letters and numbers.",
+		"The Delivery Rule Name must start with a letter any may only contain letters and numbers.",
 	)
 }
 

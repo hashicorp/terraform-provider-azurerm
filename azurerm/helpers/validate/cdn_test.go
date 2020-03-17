@@ -45,7 +45,7 @@ func TestCdnEndpointDeliveryPolicyRuleName(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			_, errors := EndpointDeliveryPolicyRuleName()(tc.Name, "name")
+			_, errors := EndpointDeliveryRuleName()(tc.Name, "name")
 
 			hasErrors := len(errors) > 0
 			if !hasErrors && tc.ShouldError {
