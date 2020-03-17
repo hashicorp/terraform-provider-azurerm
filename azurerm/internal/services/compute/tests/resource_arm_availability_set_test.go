@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -11,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -188,21 +188,17 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		// Name of the actual scale set
-		name := rs.Primary.Attributes["name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
-		}
-
-		vmss, err := client.Get(ctx, resourceGroup, name)
+		id, err := parse.AvailabilitySetID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
+			return err
 		}
 
-		if vmss.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: VirtualMachineScaleSet %q (resource group: %q) does not exist", name, resourceGroup)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Availability Set %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+			}
+			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
 		}
 
 		return nil
@@ -220,13 +216,12 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		availSetName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
+		id, err := parse.AvailabilitySetID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := client.Delete(ctx, resourceGroup, availSetName)
+		resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Delete on availSetClient: %+v", err)
@@ -246,10 +241,12 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.AvailabilitySetID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -258,7 +255,7 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Availability Set still exists:\n%#v", resp.AvailabilitySetProperties)
+		return fmt.Errorf("Bad: Availability Set still exists:\n%#v", resp.AvailabilitySetProperties)
 	}
 
 	return nil
