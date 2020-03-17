@@ -53,24 +53,13 @@ The following attributes are exported:
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow.
 
-* `endpoint_configuration` - The Endpoint Configuration for the Logic App Workflow as defined below.
+* `connector_endpoint_ip_addresses` - The list of access endpoint ip addresses of connector.
 
----
+* `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
 
-A `endpoint_configuration` block supports the following:
+* `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
 
-* `workflow` - The Flow Endpoints Configuration applied to workflow as defined below.
-
-* `connector` - The Flow Endpoints Configuration applied to connector as defined below.
-
----
-
-A `workflow`/`connector` block supports the following:
-
-* `outgoing_ip_addresses` - A set of the outgoing ip addresses.
-
-* `access_endpoint_ip_addresses` - A set of the access endpoint ip addresses.
-
+* `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
 
 ## Timeouts
 

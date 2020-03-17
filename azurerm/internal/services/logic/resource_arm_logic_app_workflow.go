@@ -19,27 +19,6 @@ import (
 
 var logicAppResourceName = "azurerm_logic_app"
 
-func buildFlowEndpointsSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"outgoing_ip_addresses": {
-					Type:     schema.TypeSet,
-					Computed: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
-				},
-				"access_endpoint_ip_addresses": {
-					Type:     schema.TypeSet,
-					Computed: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
-				},
-			},
-		},
-	}
-}
-
 func resourceArmLogicAppWorkflow() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLogicAppWorkflowCreate,
@@ -96,15 +75,25 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				Computed: true,
 			},
 
-			"endpoint_configuration": {
+			"connector_endpoint_ip_addresses": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"workflow":  buildFlowEndpointsSchema(),
-						"connector": buildFlowEndpointsSchema(),
-					},
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"connector_outbound_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"workflow_endpoint_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"workflow_outbound_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tags.Schema(),
@@ -261,10 +250,21 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 
 		d.Set("access_endpoint", props.AccessEndpoint)
 
-		if err := d.Set("endpoint_configuration", flattenFlowEndpointsConfiguration(props.EndpointsConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `endpoint_configuration`: %+v", err)
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
+			d.Set("connector_endpoint_ip_addresses", []interface{}{})
+			d.Set("connector_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
+			d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
 		}
 
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
+			d.Set("workflow_endpoint_ip_addresses", []interface{}{})
+			d.Set("workflow_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
+			d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
+		}
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
 				d.Set("workflow_schema", v["$schema"].(string))
@@ -335,40 +335,14 @@ func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter
 	return output
 }
 
-func flattenFlowEndpointsConfiguration(input *logic.FlowEndpointsConfiguration) []interface{} {
+func flattenIPAddresses(input *[]logic.IPAddress) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"workflow":  flattenFlowEndpoint(input.Workflow),
-			"connector": flattenFlowEndpoint(input.Connector),
-		},
+	var addresses []interface{}
+	for _, addr := range *input {
+		addresses = append(addresses, *addr.Address)
 	}
-}
-func flattenFlowEndpoint(input *logic.FlowEndpoints) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	outgoingIpAddresses := []string{}
-	if input.OutgoingIPAddresses != nil {
-		for _, addr := range *input.OutgoingIPAddresses {
-			outgoingIpAddresses = append(outgoingIpAddresses, *addr.Address)
-		}
-	}
-	accessEndpointIpAddresses := []string{}
-	if input.AccessEndpointIPAddresses != nil {
-		for _, addr := range *input.AccessEndpointIPAddresses {
-			accessEndpointIpAddresses = append(accessEndpointIpAddresses, *addr.Address)
-		}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"outgoing_ip_addresses":        outgoingIpAddresses,
-			"access_endpoint_ip_addresses": accessEndpointIpAddresses,
-		},
-	}
+	return addresses
 }

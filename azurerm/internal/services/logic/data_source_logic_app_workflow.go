@@ -56,15 +56,25 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 				Computed: true,
 			},
 
-			"endpoint_configuration": {
+			"connector_endpoint_ip_addresses": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"workflow":  buildFlowEndpointsSchema(),
-						"connector": buildFlowEndpointsSchema(),
-					},
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"connector_outbound_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"workflow_endpoint_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"workflow_outbound_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -102,8 +112,20 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 
 		d.Set("access_endpoint", props.AccessEndpoint)
 
-		if err := d.Set("endpoint_configuration", flattenFlowEndpointsConfiguration(props.EndpointsConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `endpoint_configuration`: %+v", err)
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
+			d.Set("connector_endpoint_ip_addresses", []interface{}{})
+			d.Set("connector_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
+			d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
+		}
+
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
+			d.Set("workflow_endpoint_ip_addresses", []interface{}{})
+			d.Set("workflow_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
+			d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
 		}
 
 		if definition := props.Definition; definition != nil {
