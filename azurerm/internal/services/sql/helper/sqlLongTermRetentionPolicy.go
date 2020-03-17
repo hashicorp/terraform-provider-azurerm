@@ -2,6 +2,7 @@ package helper
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func SqlLongTermRententionPolicy() *schema.Schema {
@@ -11,11 +12,31 @@ func SqlLongTermRententionPolicy() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				// "retention_in_days": {
-				// 	Type:         schema.TypeInt,
-				// 	Optional:     true,
-				// 	ValidateFunc: validation.IntBetween(0, 3285),
-				// },
+				// TODO Update validation
+				// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+				"weekly_retention": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+				"monthly_retention": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+				"yearly_retention": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
+				"week_of_year": {
+					Type:         schema.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(0, 1000),
+				},
 			},
 		},
 	}

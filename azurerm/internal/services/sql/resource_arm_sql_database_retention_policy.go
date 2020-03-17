@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlServerLongTermRetentionPolicy() *schema.Resource {
+func resourceArmSQLServerLongTermRetentionPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlServerLongTermRetentionPolicyCreateUpdate,
-		Read:   resourceArmSqlServerRead,
-		Update: resourceArmSqlServerCreateUpdate,
-		Delete: resourceArmSqlServerDelete,
+		Create: resourceArmSQLServerDatabaseRetentionPolicyCreateUpdate,
+		Read:   resourceArmSQLServerDatabaseRetentionPolicyRead,
+		Update: resourceArmSQLServerDatabaseRetentionPolicyCreateUpdate,
+		Delete: resourceArmSQLServerDatabaseRetentionPolicyDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -33,6 +33,11 @@ func resourceArmSqlServerLongTermRetentionPolicy() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"backup_long_term_retention_policy": helper.SqlLongTermRententionPolicy(),
+			"backup_short_term_retention_policy": { // do a block?
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -50,7 +55,7 @@ func resourceArmSqlServerLongTermRetentionPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSqlServerLongTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSQLServerDatabaseRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -66,10 +71,10 @@ func resourceArmSqlServerLongTermRetentionPolicyCreateUpdate(d *schema.ResourceD
 	return nil
 }
 
-func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSQLServerDatabaseRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSQLServerDatabaseRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
