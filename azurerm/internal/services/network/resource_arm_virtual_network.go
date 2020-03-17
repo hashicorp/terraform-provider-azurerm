@@ -442,8 +442,9 @@ func resourceAzureSubnetHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(m["name"].(string))
-		buf.WriteString(m["address_prefix"].(string))
-
+		if v, ok := m["address_prefix"]; ok {
+			buf.WriteString(v.(string))
+		}
 		if v, ok := m["security_group"]; ok {
 			buf.WriteString(v.(string))
 		}
