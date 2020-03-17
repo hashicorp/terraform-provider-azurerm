@@ -319,6 +319,33 @@ func TestAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMHDInsightHadoopCluster_metastore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_metastore(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account",
+				"hive_metastore.0.password"),
+		},
+	})
+}
+
 func testAccAzureRMHDInsightHadoopCluster_basic(data acceptance.TestData) string {
 	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
@@ -973,4 +1000,90 @@ resource "azurerm_role_assignment" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMHDInsightHadoopCluster_metastore(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_server" "test"{
+  name                            = "acctestsql-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  administrator_login             = "sql_admin"
+  administrator_login_password    = "TerrAform123!"
+  version                         = "12.0"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                             = "metastore"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  server_name                      = azurerm_sql_server.test.name
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode                      = "Default"
+  requested_service_objective_name = "GP_Gen5_2"
+}
+
+resource "azurerm_sql_firewall_rule" "AzureServices" {
+  name                = "allow-azure-services"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_sql_server.test.name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0"
+}
+
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "3.6"
+  tier                = "Standard"
+
+  component_version {
+    hadoop = "2.7"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+
+  hive_metastore {
+    server   = azurerm_sql_server.test.fully_qualified_domain_name
+    database_name = azurerm_sql_database.test.name
+    username      = azurerm_sql_server.test.administrator_login
+    password      = azurerm_sql_server.test.administrator_login_password
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }

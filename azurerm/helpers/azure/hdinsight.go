@@ -105,6 +105,43 @@ func SchemaHDInsightsGateway() *schema.Schema {
 	}
 }
 
+func SchemaHDInsightsHiveMetastore() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"server": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+				"database_name": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+				"username": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+				"password": {
+					Type:      schema.TypeString,
+					Required:  true,
+					ForceNew:  true,
+					Sensitive: true,
+					// Azure returns the key as *****. We'll suppress that here.
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
@@ -113,13 +150,41 @@ func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} 
 	username := vs["username"].(string)
 	password := vs["password"].(string)
 
-	return map[string]interface{}{
+	config := map[string]interface{}{
 		"gateway": map[string]interface{}{
 			"restAuthCredential.isEnabled": enabled,
 			"restAuthCredential.username":  username,
 			"restAuthCredential.password":  password,
 		},
 	}
+	return config
+}
+
+func ExpandHDInsightsMetastore(input []interface{}) map[string]interface{} {
+	vs := input[0].(map[string]interface{})
+
+	server := vs["server"].(string)
+	database := vs["database_name"].(string)
+	username := vs["username"].(string)
+	password := vs["password"].(string)
+
+	return map[string]interface{}{
+		"hive-site": map[string]interface{}{
+			"javax.jdo.option.ConnectionDriverName": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+			"javax.jdo.option.ConnectionURL":        fmt.Sprintf("jdbc:sqlserver://%s;database=%s;encrypt=true;trustServerCertificate=true;create=false;loginTimeout=300", server, database),
+			"javax.jdo.option.ConnectionUserName":   username,
+			"javax.jdo.option.ConnectionPassword":   password,
+		},
+		"hive-env": map[string]interface{}{
+			"hive_database":                       "Existing MSSQL Server database with SQL authentication",
+			"hive_database_name":                  database,
+			"hive_database_type":                  "mssql",
+			"hive_existing_mssql_server_database": database,
+			"hive_existing_mssql_server_host":     server,
+			"hive_hostname":                       server,
+		},
+	}
+
 }
 
 func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
@@ -147,6 +212,43 @@ func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
 			"username": username,
 			"password": password,
 		},
+	}
+}
+
+func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
+
+	server := ""
+	if v, exists := env["hive_hostname"]; exists && v != nil {
+		server = *v
+	}
+
+	database := ""
+	if v, exists := env["hive_database_name"]; exists && v != nil {
+		database = *v
+	}
+
+	username := ""
+	if v, exists := site["javax.jdo.option.ConnectionUserName"]; exists && v != nil {
+		username = *v
+	}
+
+	password := ""
+	if v, exists := site["javax.jdo.option.ConnectionPassword"]; exists && v != nil {
+		password = *v
+	}
+
+	if server != "" && database != "" {
+
+		return []interface{}{
+			map[string]interface{}{
+				"server":        server,
+				"database_name": database,
+				"username":      username,
+				"password":      password,
+			},
+		}
+	} else {
+		return nil
 	}
 }
 

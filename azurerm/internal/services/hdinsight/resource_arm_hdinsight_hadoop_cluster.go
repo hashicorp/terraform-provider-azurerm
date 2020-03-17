@@ -91,6 +91,8 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
+			"hive_metastore": azure.SchemaHDInsightsHiveMetastore(),
+
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
@@ -183,7 +185,14 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	componentVersions := expandHDInsightHadoopComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+
+	if metastoreRaw, ok := d.GetOkExists("hive_metastore"); ok {
+		metastore := azure.ExpandHDInsightsMetastore(metastoreRaw.([]interface{}))
+		for k, v := range metastore {
+			configurations[k] = v
+		}
+	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
@@ -225,7 +234,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Hadoop"),
 				ComponentVersion: componentVersions,
-				Configurations:   gateway,
+				Configurations:   configurations,
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -311,9 +320,15 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error retrieving HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
+	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
+	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	gateway, exists := configurations.Configurations["gateway"]
+	if !exists {
+		return fmt.Errorf("Error retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -332,8 +347,14 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 				return fmt.Errorf("Error flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+			}
+
+			hiveEnv, envExists := configurations.Configurations["hive-env"]
+			hiveSite, siteExists := configurations.Configurations["hive-site"]
+			if envExists && siteExists {
+				d.Set("hive_metastore", azure.FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite))
 			}
 		}
 

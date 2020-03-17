@@ -107,6 +107,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Hadoop Cluster.
 
+* `hive_metastore` - (Optional) A `hive_metastore` block as defined below.
+
 ---
 
 A `component_version` block supports the following:
@@ -246,6 +248,17 @@ A `install_script_action` block supports the following:
 * `name` - (Required) The name of the install script action. Changing this forces a new resource to be created.
 
 * `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
+
+---
+A `hive_metastore` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.
+
+* `username` - (Required) The external Hive metastore's existing SQL server admin username.
+
+* `password` - (Required) The external Hive metastore's existing SQL server admin password.
 
 ## Attributes Reference
 
