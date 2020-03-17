@@ -321,7 +321,7 @@ github.com/satori/uuid
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
-# github.com/terraform-providers/terraform-provider-azuread v0.6.1-0.20191007035844-361c0a206ad4
+# github.com/terraform-providers/terraform-provider-azuread v0.8.0
 github.com/terraform-providers/terraform-provider-azuread/azuread
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph
