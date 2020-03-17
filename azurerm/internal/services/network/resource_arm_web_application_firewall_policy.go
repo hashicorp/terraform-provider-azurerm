@@ -492,7 +492,6 @@ func expandArmWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}
 		results = append(results, result)
 	}
 	return &results
-
 }
 
 func expandArmWebApplicationFirewallPolicyRules(input []interface{}) *[]network.ManagedRuleOverride {
@@ -615,7 +614,7 @@ func flattenArmWebApplicationFirewallPolicyExclusions(input *[]network.OwaspCrsE
 
 		v["match_variable"] = string(item.MatchVariable)
 		if selector != nil {
-			v["selector"] = string(*selector)
+			v["selector"] = *selector
 		}
 		v["selector_match_operator"] = string(item.SelectorMatchOperator)
 
