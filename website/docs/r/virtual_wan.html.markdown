@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `office365_local_breakout_category` - (Optional) Specifies the Office365 local breakout category. Possible values include: `Optimize`, `OptimizeAndAllow`, `All`, `None`. Defaults to `None`.
 
+* `type` - (Optional) Specifies the Virtual WAN type. Possible Values include: `Basic` and `Standard`. Defaults to `Standard`.
+
 * `tags` - (Optional) A mapping of tags to assign to the Virtual WAN.
 
 ## Attributes Reference

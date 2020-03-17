@@ -109,6 +109,10 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 
 func testAccAzureRMAPIManagementGroupUser_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -116,8 +120,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -126,25 +130,25 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_group" "test" {
   name                = "acctestAMGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
   display_name        = "Test Group"
 }
 
 resource "azurerm_api_management_user" "test" {
   user_id             = "acctestuser%d"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
   first_name          = "Acceptance"
   last_name           = "Test"
   email               = "azure-acctest%d@example.com"
 }
 
 resource "azurerm_api_management_group_user" "test" {
-  user_id             = "${azurerm_api_management_user.test.user_id}"
-  group_name          = "${azurerm_api_management_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  user_id             = azurerm_api_management_user.test.user_id
+  group_name          = azurerm_api_management_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -155,10 +159,10 @@ func testAccAzureRMAPIManagementGroupUser_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_api_management_group_user" "import" {
-  user_id             = "${azurerm_api_management_group_user.test.user_id}"
-  group_name          = "${azurerm_api_management_group_user.test.group_name}"
-  api_management_name = "${azurerm_api_management_group_user.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_group_user.test.resource_group_name}"
+  user_id             = azurerm_api_management_group_user.test.user_id
+  group_name          = azurerm_api_management_group_user.test.group_name
+  api_management_name = azurerm_api_management_group_user.test.api_management_name
+  resource_group_name = azurerm_api_management_group_user.test.resource_group_name
 }
 `, template)
 }

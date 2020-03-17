@@ -596,6 +596,33 @@ func testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones(
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_nodeLabels(t)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	labels := map[string]string{"key": "value"}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMKubernetesCluster_nodeLabelsConfig(data, clientId, clientSecret, labels),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "agent_pool_profile.0.node_labels.key", "value"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t)
@@ -654,8 +681,8 @@ func testAccDataSourceAzureRMKubernetesCluster_basicConfig(data acceptance.TestD
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -666,8 +693,8 @@ func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlConfig(data
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, resource)
 }
@@ -678,8 +705,8 @@ func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(d
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, resource)
 }
@@ -690,8 +717,8 @@ func testAccDataSourceAzureRMKubernetesCluster_internalNetworkConfig(data accept
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -702,8 +729,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureConfig(dat
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -714,8 +741,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPoli
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -726,8 +753,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyC
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -738,8 +765,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCompleteCo
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -750,8 +777,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPoli
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -762,8 +789,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyC
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -774,8 +801,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetConfig(d
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -786,8 +813,8 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -798,8 +825,8 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMSConfig(data accept
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -810,8 +837,8 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboardConfig(d
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -822,8 +849,8 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicyConfig(dat
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -834,8 +861,8 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileRoutingConfig(data ac
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -846,14 +873,26 @@ func testAccDataSourceAzureRMKubernetesCluster_autoScalingNoAvailabilityZonesCon
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_autoScalingWithAvailabilityZonesConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	r := testAccAzureRMKubernetesCluster_autoscaleWithAvailabilityZonesConfig(data, clientId, clientSecret)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_nodeLabelsConfig(data acceptance.TestData, clientId string, clientSecret string, labels map[string]string) string {
+	r := testAccAzureRMKubernetesCluster_nodeLabelsConfig(data, clientId, clientSecret, labels)
 	return fmt.Sprintf(`
 %s
 
@@ -870,8 +909,8 @@ func testAccDataSourceAzureRMKubernetesCluster_nodeTaintsConfig(data acceptance.
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
@@ -882,8 +921,8 @@ func testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIPConfig(data acc
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }

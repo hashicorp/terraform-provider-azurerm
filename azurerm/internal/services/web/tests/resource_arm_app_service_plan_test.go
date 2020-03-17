@@ -306,6 +306,10 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 
 func testAccAzureRMAppServicePlan_basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -313,8 +317,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Basic"
@@ -326,6 +330,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_basicLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -333,8 +341,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Linux"
 
   sku {
@@ -353,10 +361,10 @@ func testAccAzureRMAppServicePlan_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_app_service_plan" "import" {
-  name                = "${azurerm_app_service_plan.test.name}"
-  location            = "${azurerm_app_service_plan.test.location}"
-  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
-  kind                = "${azurerm_app_service_plan.test.kind}"
+  name                = azurerm_app_service_plan.test.name
+  location            = azurerm_app_service_plan.test.location
+  resource_group_name = azurerm_app_service_plan.test.resource_group_name
+  kind                = azurerm_app_service_plan.test.kind
 
   sku {
     tier = "Basic"
@@ -370,6 +378,10 @@ resource "azurerm_app_service_plan" "import" {
 
 func testAccAzureRMAppServicePlan_basicLinuxNew(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -377,8 +389,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Linux"
 
   sku {
@@ -393,6 +405,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_standardWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -400,8 +416,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -413,6 +429,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_premiumWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -420,8 +440,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Premium"
@@ -433,6 +453,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_premiumWindowsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -440,8 +464,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier     = "Premium"
@@ -454,6 +478,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_completeWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -461,8 +489,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Windows"
 
   sku {
@@ -482,6 +510,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_completeWindowsNew(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -489,8 +521,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Windows"
 
   sku {
@@ -510,6 +542,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_consumptionPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -517,8 +553,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   kind                = "FunctionApp"
 
   sku {
@@ -531,6 +567,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_premiumConsumptionPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -538,8 +578,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   kind                = "elastic"
 
   maximum_elastic_worker_count = 20
@@ -554,6 +594,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServicePlan_basicWindowsContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -561,8 +605,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "xenon"
   is_xenon            = true
 

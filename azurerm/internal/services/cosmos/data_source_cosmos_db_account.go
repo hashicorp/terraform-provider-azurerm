@@ -222,7 +222,7 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)
 		}
 
-		//sort `geo_locations` by fail over priority
+		// sort `geo_locations` by fail over priority
 		locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
 		for _, l := range *props.FailoverPolicies {
 			locations[*l.FailoverPriority] = map[string]interface{}{

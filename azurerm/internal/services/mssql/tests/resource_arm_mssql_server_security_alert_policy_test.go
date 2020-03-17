@@ -163,6 +163,10 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 
 func testAccAzureRMMssqlServerSecurityAlertPolicy_server(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%d"
   location = "%s"
@@ -170,8 +174,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -179,7 +183,7 @@ resource "azurerm_sql_server" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = "%s"
   account_tier             = "Standard"
   account_replication_type = "GRS"

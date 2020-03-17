@@ -143,6 +143,10 @@ func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestC
 
 func testAccAzureRMAutomationAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -150,8 +154,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Basic"
 }
@@ -164,9 +168,9 @@ func testAccAzureRMAutomationAccount_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_automation_account" "import" {
-  name                = "${azurerm_automation_account.test.name}"
-  location            = "${azurerm_automation_account.test.location}"
-  resource_group_name = "${azurerm_automation_account.test.resource_group_name}"
+  name                = azurerm_automation_account.test.name
+  location            = azurerm_automation_account.test.location
+  resource_group_name = azurerm_automation_account.test.resource_group_name
 
   sku_name = "Basic"
 }
@@ -175,6 +179,10 @@ resource "azurerm_automation_account" "import" {
 
 func testAccAzureRMAutomationAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -182,8 +190,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Basic"
 

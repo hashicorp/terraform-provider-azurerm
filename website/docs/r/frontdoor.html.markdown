@@ -27,7 +27,6 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
-  location                                     = azurerm_resource_group.example.location
   resource_group_name                          = azurerm_resource_group.example.name
   enforce_backend_pools_certificate_name_check = false
 
@@ -78,8 +77,6 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
 
@@ -155,9 +152,15 @@ The `backend_pool_health_probe` block supports the following:
 
 * `name` - (Required) Specifies the name of the Health Probe.
 
+* `enabled` - (Optional) Is this health probe enabled? Dafaults to `true`.
+
 * `path` - (Optional) The path to use for the Health Probe. Default is `/`.
 
 * `protocol` - (Optional) Protocol scheme to use for the Health Probe. Defaults to `Http`.
+
+* `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `Get`.
+
+-> **NOTE:** Use the `Head` method if you do not need to check the response body of your health probe.
 
 * `interval_in_seconds` - (Optional) The number of seconds between each Health Probe. Defaults to `120`.
 
@@ -197,11 +200,11 @@ The `forwarding_configuration` block supports the following:
 
 * `backend_pool_name` - (Required) Specifies the name of the Backend Pool to forward the incoming traffic to.
 
-* `cache_enabled` - (Optional) Specifies whether to Enable caching or not. Valid options are `true` or `false`. Defaults to `true`.
+* `cache_enabled` - (Optional) Specifies whether to Enable caching or not. Valid options are `true` or `false`. Defaults to `false`.
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripNone`.
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripAll`.
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
 

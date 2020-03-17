@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -94,6 +95,11 @@ func dataSourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
+			"os_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -167,6 +173,12 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 	}
+
+	osType := ""
+	if v := resp.Kind; v != nil && strings.Contains(*v, "linux") {
+		osType = "linux"
+	}
+	d.Set("os_type", osType)
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 

@@ -292,7 +292,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -353,7 +353,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -388,7 +388,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"network_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -547,7 +547,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_profile_os_disk": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -645,7 +645,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_profile_image_reference": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -682,7 +682,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"plan": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -707,7 +707,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"extension": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -2048,7 +2048,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 		osDisk.ManagedDisk = managedDisk
 	}
 
-	//BEGIN: code to be removed after GH-13016 is merged
+	// BEGIN: code to be removed after GH-13016 is merged
 	if image != "" && managedDiskType != "" {
 		return nil, fmt.Errorf("[ERROR] Conflict between `image` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
 	}
@@ -2056,7 +2056,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	if len(vhd_containers) > 0 && managedDiskType != "" {
 		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_containers` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
 	}
-	//END: code to be removed after GH-13016 is merged
+	// END: code to be removed after GH-13016 is merged
 
 	return osDisk, nil
 }

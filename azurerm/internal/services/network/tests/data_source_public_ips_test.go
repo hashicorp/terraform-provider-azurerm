@@ -89,6 +89,10 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 
 func testAccDataSourceAzureRMPublicIPs_attached(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -97,8 +101,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_public_ip" "test" {
   count                   = 7
   name                    = "acctestpip%s-${count.index}"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
@@ -110,12 +114,12 @@ resource "azurerm_public_ip" "test" {
 resource "azurerm_lb" "test" {
   count               = 3
   name                = "acctestlb-${count.index}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
     name                 = "frontend"
-    public_ip_address_id = "${element(azurerm_public_ip.test.*.id, count.index)}"
+    public_ip_address_id = element(azurerm_public_ip.test.*.id, count.index)
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -127,12 +131,12 @@ func testAccDataSourceAzureRMPublicIPs_attachedDataSource(data acceptance.TestDa
 %s
 
 data "azurerm_public_ips" "unattached" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   attached            = false
 }
 
 data "azurerm_public_ips" "attached" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   attached            = true
 }
 `, resources)
@@ -140,6 +144,10 @@ data "azurerm_public_ips" "attached" {
 
 func testAccDataSourceAzureRMPublicIPs_prefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -148,8 +156,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_public_ip" "test" {
   count                   = 2
   name                    = "acctestpipb%s-${count.index}"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
@@ -161,8 +169,8 @@ resource "azurerm_public_ip" "test" {
 resource "azurerm_public_ip" "test2" {
   count                   = 2
   name                    = "acctestpipa%s-${count.index}"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
@@ -179,7 +187,7 @@ func testAccDataSourceAzureRMPublicIPs_prefixDataSource(data acceptance.TestData
 %s
 
 data "azurerm_public_ips" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   name_prefix         = "acctestpipa"
 }
 `, prefixed)
@@ -187,6 +195,10 @@ data "azurerm_public_ips" "test" {
 
 func testAccDataSourceAzureRMPublicIPs_allocationType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -195,8 +207,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_public_ip" "dynamic" {
   count                   = 4
   name                    = "acctestpipd%s-${count.index}"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
   idle_timeout_in_minutes = 30
 
@@ -208,8 +220,8 @@ resource "azurerm_public_ip" "dynamic" {
 resource "azurerm_public_ip" "static" {
   count                   = 3
   name                    = "acctestpips%s-${count.index}"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 
@@ -226,12 +238,12 @@ func testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(data acceptance
 %s
 
 data "azurerm_public_ips" "dynamic" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   allocation_type     = "Dynamic"
 }
 
 data "azurerm_public_ips" "static" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   allocation_type     = "Static"
 }
 `, allocationType)

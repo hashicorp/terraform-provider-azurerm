@@ -33,10 +33,10 @@ func resourceArmAppServicePlan() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -94,7 +94,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				},
 			},
 
-			/// AppServicePlanProperties
+			// / AppServicePlanProperties
 			"app_service_environment_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -179,8 +179,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, exists := d.GetOkExists("app_service_environment_id"); exists {
-		appServicePlan.AppServicePlanProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-			ID: utils.String(v.(string)),
+		if v != "" {
+			appServicePlan.AppServicePlanProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+				ID: utils.String(v.(string)),
+			}
 		}
 	}
 
@@ -234,47 +236,51 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Name
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removnig from state!", name, resourceGroup)
+			log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removnig from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
 	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
 	if utils.ResponseWasNotFound(resp.Response) {
-		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
-		if profile := props.HostingEnvironmentProfile; profile != nil {
-			d.Set("app_service_environment_id", profile.ID)
+		appServiceEnvironmentId := ""
+		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
+			appServiceEnvironmentId = *props.HostingEnvironmentProfile.ID
 		}
+		d.Set("app_service_environment_id", appServiceEnvironmentId)
 
+		maximumNumberOfWorkers := 0
 		if props.MaximumNumberOfWorkers != nil {
-			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
+			maximumNumberOfWorkers = int(*props.MaximumNumberOfWorkers)
 		}
+		d.Set("maximum_number_of_workers", maximumNumberOfWorkers)
 
+		maximumElasticWorkerCount := 0
 		if props.MaximumElasticWorkerCount != nil {
-			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
+			maximumElasticWorkerCount = int(*props.MaximumElasticWorkerCount)
 		}
+		d.Set("maximum_elastic_worker_count", maximumElasticWorkerCount)
 
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
@@ -297,15 +303,13 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Name
 
-	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting App Service Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

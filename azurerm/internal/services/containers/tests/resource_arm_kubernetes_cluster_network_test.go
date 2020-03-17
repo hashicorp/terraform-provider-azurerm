@@ -636,6 +636,10 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -690,6 +694,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -765,6 +773,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -820,6 +832,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -896,6 +912,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data acceptance.TestData, clientId, clientSecret, location string, enabled bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -924,6 +944,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_internalNetworkConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -975,6 +999,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, clientId string, clientSecret string, location string, cdir string, enablePrivateLink bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1018,6 +1046,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1074,6 +1106,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1151,6 +1187,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1210,6 +1250,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1277,6 +1321,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1336,6 +1384,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1410,6 +1462,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

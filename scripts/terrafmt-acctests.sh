@@ -16,13 +16,13 @@ if ${error}; then
   echo "You can fix this by running make tools and then terrafmt on them."
   echo ""
   echo "format a single file:"
-  echo "$ terrafmt fmt ./azurerm/internal/services/service/tests/resource_test.go"
+  echo "$ terrafmt fmt -f ./azurerm/internal/services/service/tests/resource_test.go"
   echo ""
   echo "format all website files:"
   echo "$ find azurerm | egrep \"_test.go\" | sort | while read f; do terrafmt fmt -f \$f; done"
   echo ""
   echo "on windows:"
-  echo "$ Get-ChildItem -Path . -Recurse -Filter \"_test.go\" | foreach {terrafmt fmt -f $.name}"
+  echo "$ Get-ChildItem -Path . -Recurse -Filter \"*_test.go\" | foreach {terrafmt fmt -f $_.fullName}"
   echo ""
   exit 1
 fi

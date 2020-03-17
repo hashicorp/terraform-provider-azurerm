@@ -28,6 +28,8 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "log_verbose"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "state"),
 					resource.TestCheckResourceAttr(data.ResourceName, "content_embedded", "configuration acctest {}"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
 				),
 			},
 			data.ImportStep(),
@@ -126,6 +128,10 @@ func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resou
 
 func testAccAzureRMAutomationDscConfiguration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -145,6 +151,10 @@ resource "azurerm_automation_dsc_configuration" "test" {
   location                = "${azurerm_resource_group.test.location}"
   content_embedded        = "configuration acctest {}"
   description             = "test"
+
+  tags = {
+    ENV = "prod"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -155,12 +165,12 @@ func testAccAzureRMAutomationDscConfiguration_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_automation_dsc_configuration" "import" {
-  name                    = "${azurerm_automation_dsc_configuration.test.name}"
-  resource_group_name     = "${azurerm_automation_dsc_configuration.test.resource_group_name}"
-  automation_account_name = "${azurerm_automation_dsc_configuration.test.automation_account_name}"
-  location                = "${azurerm_automation_dsc_configuration.test.location}"
-  content_embedded        = "${azurerm_automation_dsc_configuration.test.content_embedded}"
-  description             = "${azurerm_automation_dsc_configuration.test.description}"
+  name                    = azurerm_automation_dsc_configuration.test.name
+  resource_group_name     = azurerm_automation_dsc_configuration.test.resource_group_name
+  automation_account_name = azurerm_automation_dsc_configuration.test.automation_account_name
+  location                = azurerm_automation_dsc_configuration.test.location
+  content_embedded        = azurerm_automation_dsc_configuration.test.content_embedded
+  description             = azurerm_automation_dsc_configuration.test.description
 }
 `, template)
 }

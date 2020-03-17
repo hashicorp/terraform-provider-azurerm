@@ -122,9 +122,9 @@ func testAccAzureRMBotConnection_basicConfig(data acceptance.TestData) string {
 
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
-  bot_name              = "${azurerm_bot_channels_registration.test.name}"
-  location              = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  bot_name              = azurerm_bot_channels_registration.test.name
+  location              = azurerm_bot_channels_registration.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "box"
   client_id             = "test"
   client_secret         = "secret"
@@ -139,9 +139,9 @@ func testAccAzureRMBotConnection_completeConfig(data acceptance.TestData) string
 
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
-  bot_name              = "${azurerm_bot_channels_registration.test.name}"
-  location              = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  bot_name              = azurerm_bot_channels_registration.test.name
+  location              = azurerm_bot_channels_registration.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Salesforce"
   client_id             = "test"
   client_secret         = "secret"
@@ -161,9 +161,9 @@ func testAccAzureRMBotConnection_completeUpdateConfig(data acceptance.TestData) 
 
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
-  bot_name              = "${azurerm_bot_channels_registration.test.name}"
-  location              = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  bot_name              = azurerm_bot_channels_registration.test.name
+  location              = azurerm_bot_channels_registration.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   service_provider_name = "Salesforce"
   client_id             = "test2"
   client_secret         = "secret2"

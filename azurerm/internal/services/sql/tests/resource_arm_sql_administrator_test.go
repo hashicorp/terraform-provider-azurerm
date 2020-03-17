@@ -153,7 +153,12 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 
 func testAccAzureRMSqlAdministrator_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -162,19 +167,19 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = "${azurerm_sql_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = azurerm_sql_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
   login               = "sqladmin"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  object_id           = "${data.azurerm_client_config.current.client_id}"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  object_id           = data.azurerm_client_config.current.client_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -184,18 +189,23 @@ func testAccAzureRMSqlAdministrator_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_sql_active_directory_administrator" "import" {
-  server_name         = "${azurerm_sql_active_directory_administrator.test.server_name}"
-  resource_group_name = "${azurerm_sql_active_directory_administrator.test.resource_group_name}"
-  login               = "${azurerm_sql_active_directory_administrator.test.login}"
-  tenant_id           = "${azurerm_sql_active_directory_administrator.test.tenant_id}"
-  object_id           = "${azurerm_sql_active_directory_administrator.test.object_id}"
+  server_name         = azurerm_sql_active_directory_administrator.test.server_name
+  resource_group_name = azurerm_sql_active_directory_administrator.test.resource_group_name
+  login               = azurerm_sql_active_directory_administrator.test.login
+  tenant_id           = azurerm_sql_active_directory_administrator.test.tenant_id
+  object_id           = azurerm_sql_active_directory_administrator.test.object_id
 }
 `, testAccAzureRMSqlAdministrator_basic(data))
 }
 
 func testAccAzureRMSqlAdministrator_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -204,19 +214,19 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = "${azurerm_sql_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = azurerm_sql_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
   login               = "sqladmin2"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  object_id           = "${data.azurerm_client_config.current.client_id}"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  object_id           = data.azurerm_client_config.current.client_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

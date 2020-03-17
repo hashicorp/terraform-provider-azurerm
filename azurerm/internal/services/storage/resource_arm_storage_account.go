@@ -20,7 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
 
-const blobStorageAccountDefaultAccessTier = "Hot"
+var storageAccountResourceName = "azurerm_storage_account"
 
 func resourceArmStorageAccount() *schema.Resource {
 	return &schema.Resource{
@@ -75,7 +74,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
-				Default: string(storage.Storage),
+				Default: string(storage.StorageV2),
 			},
 
 			"account_tier": {
@@ -112,17 +111,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				}, true),
 			},
 
-			"account_encryption_source": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(storage.MicrosoftStorage),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.MicrosoftKeyvault),
-					string(storage.MicrosoftStorage),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
 			"custom_domain": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -141,18 +129,6 @@ func resourceArmStorageAccount() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"enable_blob_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"enable_file_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			"enable_https_traffic_only": {
@@ -243,16 +219,6 @@ func resourceArmStorageAccount() *schema.Resource {
 							Computed: true,
 						},
 					},
-				},
-			},
-
-			"tags": {
-				Type:         schema.TypeMap,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateAzureRMStorageAccountTags,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
 				},
 			},
 
@@ -565,6 +531,15 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -572,8 +547,8 @@ func resourceArmStorageAccount() *schema.Resource {
 func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []string, errors []error) {
 	tagsMap := v.(map[string]interface{})
 
-	if len(tagsMap) > 15 {
-		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to storage account ARM resource"))
+	if len(tagsMap) > 50 {
+		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to storage account ARM resource"))
 	}
 
 	for k, v := range tagsMap {
@@ -619,15 +594,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	accountKind := d.Get("account_kind").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -637,16 +609,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			Encryption: &storage.Encryption{
-				Services: &storage.EncryptionServices{
-					Blob: &storage.EncryptionService{
-						Enabled: utils.Bool(enableBlobEncryption),
-					},
-					File: &storage.EncryptionService{
-						Enabled: utils.Bool(enableFileEncryption),
-					}},
-				KeySource: storage.KeySource(storageAccountEncryptionSource),
-			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
@@ -674,7 +636,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
-			accessTier = blobStorageAccountDefaultAccessTier
+			accessTier = string(storage.Hot)
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
@@ -758,11 +720,24 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		if accountKind != string(storage.StorageV2) {
 			return fmt.Errorf("`static_website` is only supported for Storage V2.")
 		}
-		blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
 
 		staticWebsiteProps := expandStaticWebsiteProperties(val.([]interface{}))
 
-		if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+		if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
 		}
 	}
@@ -770,9 +745,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	return resourceArmStorageAccountRead(d, meta)
 }
 
-// resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
-// and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
-// available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -785,8 +757,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
-	locks.ByName(storageAccountName, iothub.IothubResourceName)
-	defer locks.UnlockByName(storageAccountName, iothub.IothubResourceName)
+	locks.ByName(storageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -845,40 +817,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		d.SetPartial("tags")
-	}
-
-	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-		encryptionSource := d.Get("account_encryption_source").(string)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					Services:  &storage.EncryptionServices{},
-					KeySource: storage.KeySource(encryptionSource),
-				},
-			},
-		}
-
-		if d.HasChange("enable_blob_encryption") {
-			enableEncryption := d.Get("enable_blob_encryption").(bool)
-			opts.Encryption.Services.Blob = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-
-			d.SetPartial("enable_blob_encryption")
-		}
-
-		if d.HasChange("enable_file_encryption") {
-			enableEncryption := d.Get("enable_file_encryption").(bool)
-			opts.Encryption.Services.File = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-			d.SetPartial("enable_file_encryption")
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
-		}
 	}
 
 	if d.HasChange("custom_domain") {
@@ -981,11 +919,24 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if accountKind != string(storage.StorageV2) {
 			return fmt.Errorf("`static_website` is only supported for Storage V2.")
 		}
-		blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
 
 		staticWebsiteProps := expandStaticWebsiteProperties(d.Get("static_website").([]interface{}))
 
-		if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+		if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
 		}
 
@@ -1064,18 +1015,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
-		}
-
-		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if blob := services.Blob; blob != nil {
-					d.Set("enable_blob_encryption", blob.Enabled)
-				}
-				if file := services.File; file != nil {
-					d.Set("enable_file_encryption", file.Enabled)
-				}
-			}
-			d.Set("account_encryption_source", string(encryption.KeySource))
 		}
 
 		// Computed
@@ -1191,9 +1130,19 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	// static website only supported on Storage V2
 	if resp.Kind == storage.StorageV2 {
-		blobAccountClient := storageClient.BlobAccountsClient
+		storageClient := meta.(*clients.Client).Storage
 
-		staticWebsiteProps, err := blobAccountClient.GetServiceProperties(ctx, name)
+		account, err := storageClient.FindAccount(ctx, name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", name, err)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
+
+		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, name)
 		if err != nil {
 			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
 				return fmt.Errorf("Error reading static website for AzureRM Storage Account %q: %+v", name, err)
@@ -1572,16 +1521,22 @@ func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceP
 		return properties
 	}
 
-	attr := input[0].(map[string]interface{})
-
 	properties.StaticWebsite.Enabled = true
 
-	if v, ok := attr["index_document"]; ok {
-		properties.StaticWebsite.IndexDocument = v.(string)
-	}
+	// @tombuildsstuff: this looks weird, doesn't it?
+	// Since the presence of this block signifies the website's enabled however all fields within it are optional
+	// TF Core returns a nil object when there's no keys defined within the block, rather than an empty map. As
+	// such this hack allows us to have a Static Website block with only Enabled configured, without the optional
+	// inner properties.
+	if val := input[0]; val != nil {
+		attr := val.(map[string]interface{})
+		if v, ok := attr["index_document"]; ok {
+			properties.StaticWebsite.IndexDocument = v.(string)
+		}
 
-	if v, ok := attr["error_404_document"]; ok {
-		properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		if v, ok := attr["error_404_document"]; ok {
+			properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		}
 	}
 
 	return properties
@@ -1865,22 +1820,6 @@ func ValidateArmStorageAccountName(v interface{}, _ string) (warnings []string, 
 		errors = append(errors, fmt.Errorf("name (%q) can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long", input))
 	}
 
-	return warnings, errors
-}
-
-func ValidateArmStorageAccountType(v interface{}, _ string) (warnings []string, errors []error) {
-	validAccountTypes := []string{"standard_lrs", "standard_zrs",
-		"standard_grs", "standard_ragrs", "premium_lrs"}
-
-	input := strings.ToLower(v.(string))
-
-	for _, valid := range validAccountTypes {
-		if valid == input {
-			return
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("Invalid storage account type %q", input))
 	return warnings, errors
 }
 

@@ -26,6 +26,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: outside of this pr make this private
+
 var IothubResourceName = "azurerm_iothub"
 
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {

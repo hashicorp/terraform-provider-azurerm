@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -26,6 +27,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -35,6 +37,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
@@ -45,6 +48,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
@@ -83,6 +87,7 @@ func SupportedServices() []common.ServiceRegistration {
 		databricks.Registration{},
 		datafactory.Registration{},
 		datalake.Registration{},
+		databasemigration.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
 		dns.Registration{},
@@ -92,6 +97,7 @@ func SupportedServices() []common.ServiceRegistration {
 		hdinsight.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},
+		iotcentral.Registration{},
 		keyvault.Registration{},
 		kusto.Registration{},
 		loganalytics.Registration{},
@@ -100,6 +106,7 @@ func SupportedServices() []common.ServiceRegistration {
 		maps.Registration{},
 		mariadb.Registration{},
 		media.Registration{},
+		mixedreality.Registration{},
 		monitor.Registration{},
 		msi.Registration{},
 		mssql.Registration{},
@@ -110,6 +117,7 @@ func SupportedServices() []common.ServiceRegistration {
 		policy.Registration{},
 		portal.Registration{},
 		postgres.Registration{},
+		powerbi.Registration{},
 		privatedns.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
