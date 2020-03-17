@@ -15,6 +15,7 @@ BUG FIXES:
 * `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
 * `azurerm_linux_virtual_machine` - updating the validation for `name` to allow periods [GH-5966]
 * `azurerm_linux_virtual_machine_scale_set` - updating the validation for `name` to allow periods [GH-5966]
+* `azurerm_storage_management_policy` - Fixed the use of single blob rule actions [GH-5803]
 
 ## 2.1.0 (March 11, 2020)
 
