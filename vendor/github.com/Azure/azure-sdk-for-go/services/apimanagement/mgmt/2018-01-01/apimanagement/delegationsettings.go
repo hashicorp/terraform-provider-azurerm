@@ -36,7 +36,9 @@ func NewDelegationSettingsClient(subscriptionID string) DelegationSettingsClient
 	return NewDelegationSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDelegationSettingsClientWithBaseURI creates an instance of the DelegationSettingsClient client.
+// NewDelegationSettingsClientWithBaseURI creates an instance of the DelegationSettingsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewDelegationSettingsClientWithBaseURI(baseURI string, subscriptionID string) DelegationSettingsClient {
 	return DelegationSettingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
