@@ -225,6 +225,9 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		profile.Count = utils.Int32(int32(count))
 	}
 
+	// Count must always be set (see #6094)
+	profile.Count = utils.Int32(int32(count))
+
 	if enableAutoScaling {
 		if maxCount > 0 {
 			profile.MaxCount = utils.Int32(int32(maxCount))
