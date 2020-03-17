@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAppConfigurationResource_free(t *testing.T) {
+func TestAccAppConfigurationResource_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,7 +33,7 @@ func TestAppConfigurationResource_free(t *testing.T) {
 	})
 }
 
-func TestAppConfigurationResource_standard(t *testing.T) {
+func TestAccAppConfigurationResource_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +52,7 @@ func TestAppConfigurationResource_standard(t *testing.T) {
 	})
 }
 
-func TestAppConfigurationResource_requiresImport(t *testing.T) {
+func TestAccAppConfigurationResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +71,7 @@ func TestAppConfigurationResource_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAppConfigurationResource_complete(t *testing.T) {
+func TestAccAppConfigurationResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -90,7 +90,7 @@ func TestAppConfigurationResource_complete(t *testing.T) {
 	})
 }
 
-func TestAppConfigurationResource_update(t *testing.T) {
+func TestAccAppConfigurationResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

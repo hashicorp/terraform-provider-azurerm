@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAppConfigurationDataSource_basic(t *testing.T) {
+func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
