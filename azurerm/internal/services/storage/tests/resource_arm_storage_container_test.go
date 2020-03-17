@@ -310,13 +310,12 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMStorageContainer_basicAzureADAuth(data acceptance.TestData) string {
 	template := testAccAzureRMStorageContainer_basic(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  storage_use_azuread = true
-}
-
-%s
-`, template)
+	testResource := strings.Replace(
+		template,
+		"features {}",
+		`features {}
+		 storage_use_azuread = true`, 1)
+	return testResource
 }
 
 func testAccAzureRMStorageContainer_requiresImport(data acceptance.TestData) string {
