@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -294,7 +296,7 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, serverName, name, err := parseArmMSSqlElasticPoolId(d.Id())
+	resGroup, serverName, name, err := parse.ParseArmMSSqlElasticPoolId(d.Id())
 	if err != nil {
 		return err
 	}
@@ -380,13 +382,4 @@ func flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerD
 	}
 
 	return []interface{}{perDatabaseSettings}
-}
-
-func parseArmMSSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
-	id, err := azure.ParseAzureResourceID(sqlElasticPoolId)
-	if err != nil {
-		return "", "", "", fmt.Errorf("[ERROR] Unable to parse SQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
-	}
-
-	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
 }

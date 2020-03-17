@@ -62,3 +62,12 @@ func MsSqlServerID(input string) (*MsSqlServerId, error) {
 
 	return &server, nil
 }
+
+func ParseArmMSSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
+	id, err := azure.ParseAzureResourceID(sqlElasticPoolId)
+	if err != nil {
+		return "", "", "", fmt.Errorf("[ERROR] Unable to parse SQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
+	}
+
+	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
+}

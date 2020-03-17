@@ -2,6 +2,8 @@ package mssql
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -22,13 +24,55 @@ func dataSourceArmMsSqlDatabase() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
-			"mssql_server_id": {
+			"sql_server_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.ValidateMsSqlServerID,
+			},
+
+			"collation": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
+			},
+
+			"elastic_pool_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"license_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"max_size_gb": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"read_replica_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"read_scale": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -42,7 +86,7 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	defer cancel()
 
 	name := d.Get("name").(string)
-	mssqlServerId := d.Get("mssql_server_id").(string)
+	mssqlServerId := d.Get("sql_server_id").(string)
 	serverId, err := parse.MsSqlServerID(mssqlServerId)
 	if err != nil {
 		return err
@@ -61,7 +105,25 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 		d.SetId(*resp.ID)
 	}
 	d.Set("name", name)
-	d.Set("mssql_server_id", mssqlServerId)
+	d.Set("sql_server_id", mssqlServerId)
+
+	if props := resp.DatabaseProperties; props != nil {
+		d.Set("collation", props.Collation)
+
+		if props.ElasticPoolID != nil {
+			d.Set("elastic_pool_id", props.ElasticPoolID)
+		}
+
+		d.Set("license_type", props.LicenseType)
+		d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
+
+		if props.ReadReplicaCount != nil {
+			d.Set("read_replica_count", props.ReadReplicaCount)
+		}
+		d.Set("read_scale", props.ReadScale)
+		d.Set("sku_name", props.CurrentServiceObjectiveName)
+		d.Set("zone_redundant", props.ZoneRedundant)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
