@@ -77,6 +77,13 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.RequestHeader(),
 				},
 
+				"request_method_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     deliveryruleconditions.RequestMethod(),
+				},
+
 				"request_scheme_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -193,6 +200,10 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 		for _, rhc := range rhcs {
 			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestHeader(rhc.(map[string]interface{})))
 		}
+	}
+
+	if rsc := rule["request_method_condition"].([]interface{}); len(rsc) > 0 {
+		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestMethod(rsc[0].(map[string]interface{})))
 	}
 
 	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
@@ -317,6 +328,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				}
 
 				res["request_body_condition"] = append(res["request_body_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRequestBody(condition))
+				continue
+			}
+
+			if condition, isRequestMethodCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); isRequestMethodCondition {
+				res["request_method_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestMethod(condition)}
 				continue
 			}
 
