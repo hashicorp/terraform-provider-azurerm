@@ -1007,13 +1007,13 @@ func testAccAzureRMHDInsightHadoopCluster_metastore(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_sql_server" "test"{
-  name                            = "acctestsql-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  administrator_login             = "sql_admin"
-  administrator_login_password    = "TerrAform123!"
-  version                         = "12.0"
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsql-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "sql_admin"
+  administrator_login_password = "TerrAform123!"
+  version                      = "12.0"
 }
 
 resource "azurerm_sql_database" "test" {
@@ -1079,7 +1079,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   hive_metastore {
-    server   = azurerm_sql_server.test.fully_qualified_domain_name
+    server        = azurerm_sql_server.test.fully_qualified_domain_name
     database_name = azurerm_sql_database.test.name
     username      = azurerm_sql_server.test.administrator_login
     password      = azurerm_sql_server.test.administrator_login_password

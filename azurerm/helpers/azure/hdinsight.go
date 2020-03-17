@@ -150,14 +150,13 @@ func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} 
 	username := vs["username"].(string)
 	password := vs["password"].(string)
 
-	config := map[string]interface{}{
+	return map[string]interface{}{
 		"gateway": map[string]interface{}{
 			"restAuthCredential.isEnabled": enabled,
 			"restAuthCredential.username":  username,
 			"restAuthCredential.password":  password,
 		},
 	}
-	return config
 }
 
 func ExpandHDInsightsMetastore(input []interface{}) map[string]interface{} {
@@ -184,7 +183,6 @@ func ExpandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 			"hive_hostname":                       server,
 		},
 	}
-
 }
 
 func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
@@ -216,7 +214,6 @@ func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
 }
 
 func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*string) []interface{} {
-
 	server := ""
 	if v, exists := env["hive_hostname"]; exists && v != nil {
 		server = *v
@@ -238,7 +235,6 @@ func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*str
 	}
 
 	if server != "" && database != "" {
-
 		return []interface{}{
 			map[string]interface{}{
 				"server":        server,
@@ -247,9 +243,9 @@ func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*str
 				"password":      password,
 			},
 		}
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 func SchemaHDInsightsStorageAccounts() *schema.Schema {
