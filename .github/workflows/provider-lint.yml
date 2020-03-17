@@ -1,0 +1,37 @@
+---
+name: PR lint
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  lintrest:
+    name: 'PR Linting - lintrest'
+    runs-on: docker
+    uses: jackofallops/action-tfprovider-linting
+    with:
+      providerName: terraform-provider-azurerm
+      lint-task: lintrest
+
+  tflint:
+    name: 'PR Linting - tflint'
+    runs-on: docker
+    uses: jackofallops/action-tfprovider-linting
+    with:
+      providerName: terraform-provider-azurerm
+      lint-task: tflint
+
+  website-lint:
+    name: 'PR Linting - website-lint'
+    runs-on: docker
+    uses: jackofallops/action-tfprovider-linting
+    with:
+      providerName: terraform-provider-azurerm
+      lint-task: website-lint
+
