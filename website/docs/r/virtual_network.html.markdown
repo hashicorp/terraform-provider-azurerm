@@ -53,14 +53,14 @@ resource "azurerm_virtual_network" "example" {
   }
 
   subnet {
-    name           = "subnet2"
-    address_prefix = "10.0.2.0/24"
+    name             = "subnet2"
+    address_prefixes = ["10.0.2.0/24"]
   }
 
   subnet {
-    name           = "subnet3"
-    address_prefix = "10.0.3.0/24"
-    security_group = azurerm_network_security_group.example.id
+    name             = "subnet3"
+    address_prefixes = ["10.0.3.0/24"]
+    security_group   = azurerm_network_security_group.example.id
   }
 
   tags = {
@@ -111,10 +111,14 @@ The `subnet` block supports:
 
 * `name` - (Required) The name of the subnet.
 
-* `address_prefix` - (Required) The address prefix to use for the subnet.
-
 * `security_group` - (Optional) The Network Security Group to associate with
     the subnet. (Referenced by `id`, ie. `azurerm_network_security_group.example.id`)
+
+* `address_prefix` - (Optional / **Deprecated in favour of `address_prefixes`**) The address prefix to use for the subnet.
+
+* `address_prefixes` - (Optional) The address prefixes to use for the subnet.
+
+-> **NOTE:** One of `address_prefix` or `address_prefixes` is required.
 
 ## Attributes Reference
 

@@ -32,6 +32,29 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceArmVirtualNetwork_basic_addressPrefixes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network", "test")
+
+	name := fmt.Sprintf("acctestvnet-%d", data.RandomInteger)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceArmVirtualNetwork_basic_addressPrefixes(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
+					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
+					resource.TestCheckResourceAttr(data.ResourceName, "dns_servers.0", "10.0.0.4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "address_spaces.0", "10.0.0.0/16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnets.0", "subnet1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network", "test")
 
@@ -83,6 +106,30 @@ resource "azurerm_virtual_network" "test" {
 data "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = azurerm_virtual_network.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccDataSourceArmVirtualNetwork_basic_addressPrefixes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest%d-n-rg"
+  location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_servers         = ["10.0.0.4"]
+  subnet {
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24", "10.0.2.0/24"]
+  }
+}
+data "azurerm_virtual_network" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "${azurerm_virtual_network.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

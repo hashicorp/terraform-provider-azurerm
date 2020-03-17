@@ -112,9 +112,21 @@ func resourceArmVirtualNetwork() *schema.Resource {
 						},
 
 						"address_prefix": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							// TODO Remove this in the next major version release
+							Deprecated: "Use the `address_prefixes` property instead.",
+						},
+
+						"address_prefixes": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 
 						"security_group": {
@@ -316,7 +328,36 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			}
 			log.Printf("[INFO] Completed GET of Subnet props ")
 
-			prefix := subnet["address_prefix"].(string)
+			var prefixSet int = 0
+			properties := network.SubnetPropertiesFormat{}
+			if value, ok := subnet["address_prefixes"]; ok {
+				var addressPrefixes []string
+				for _, item := range value.([]interface{}) {
+					addressPrefixes = append(addressPrefixes, item.(string))
+				}
+				properties.AddressPrefixes = &addressPrefixes
+				if len(addressPrefixes) > 0 {
+					prefixSet++
+				}
+			}
+			if value, ok := subnet["address_prefix"]; ok {
+				addressPrefix := value.(string)
+				properties.AddressPrefix = &addressPrefix
+				if len(addressPrefix) > 0 {
+					prefixSet++
+				}
+			}
+			if properties.AddressPrefixes != nil && len(*properties.AddressPrefixes) == 1 {
+				properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
+				properties.AddressPrefixes = nil
+			}
+			if prefixSet == 0 {
+				return nil, fmt.Errorf("one of `address_prefix` or `address_prefixes` must be set")
+			}
+			if prefixSet == 2 {
+				return nil, fmt.Errorf("only one of `address_prefix` or `address_prefixes` can be set")
+			}
+
 			secGroup := subnet["security_group"].(string)
 
 			// set the props from config and leave the rest intact
@@ -325,7 +366,8 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 				subnetObj.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{}
 			}
 
-			subnetObj.SubnetPropertiesFormat.AddressPrefix = &prefix
+			subnetObj.SubnetPropertiesFormat.AddressPrefixes = properties.AddressPrefixes
+			subnetObj.SubnetPropertiesFormat.AddressPrefix = properties.AddressPrefix
 
 			if secGroup != "" {
 				subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = &network.SecurityGroup{
@@ -408,6 +450,14 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
 			}
 
 			if props := subnet.SubnetPropertiesFormat; props != nil {
+				if prefixes := props.AddressPrefixes; prefixes != nil {
+					var addressPrefixes []interface{}
+					for _, prefix := range *prefixes {
+						addressPrefixes = append(addressPrefixes, prefix)
+					}
+					output["address_prefixes"] = addressPrefixes
+				}
+
 				if prefix := props.AddressPrefix; prefix != nil {
 					output["address_prefix"] = *prefix
 				}
@@ -443,6 +493,11 @@ func resourceAzureSubnetHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(m["name"].(string))
+		if v, ok := m["address_prefixes"]; ok {
+			for _, a := range v.([]interface{}) {
+				buf.WriteString(a.(string))
+			}
+		}
 		if v, ok := m["address_prefix"]; ok {
 			buf.WriteString(v.(string))
 		}
