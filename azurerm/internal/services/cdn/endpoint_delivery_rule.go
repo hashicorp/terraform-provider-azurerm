@@ -84,17 +84,23 @@ func EndpointDeliveryRule() *schema.Schema {
 					Elem:     deliveryruleconditions.RequestMethod(),
 				},
 
+				"request_scheme_condition": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem:     deliveryruleconditions.RequestScheme(),
+				},
+
 				"request_uri_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
 					Elem:     deliveryruleconditions.RequestURI(),
 				},
 
-				"request_scheme_condition": {
+				"url_file_extension_condition": {
 					Type:     schema.TypeList,
 					Optional: true,
-					MaxItems: 1,
-					Elem:     deliveryruleconditions.RequestScheme(),
+					Elem:     deliveryruleconditions.URLFileExtension(),
 				},
 
 				"cache_expiration_action": {
@@ -212,14 +218,20 @@ func expandDeliveryRuleConditions(rule map[string]interface{}) []cdn.BasicDelive
 		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestMethod(rsc[0].(map[string]interface{})))
 	}
 
+	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
+		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
+	}
+
 	if rucs := rule["request_uri_condition"].([]interface{}); len(rucs) > 0 {
 		for _, ruc := range rucs {
 			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestURI(ruc.(map[string]interface{})))
 		}
 	}
 
-	if rsc := rule["request_scheme_condition"].([]interface{}); len(rsc) > 0 {
-		conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionRequestScheme(rsc[0].(map[string]interface{})))
+	if ufecs := rule["url_file_extension_condition"].([]interface{}); len(ufecs) > 0 {
+		for _, ufec := range ufecs {
+			conditions = append(conditions, *deliveryruleconditions.ExpandArmCdnEndpointConditionURLFileExtension(ufec.(map[string]interface{})))
+		}
 	}
 
 	return conditions
@@ -348,6 +360,11 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				continue
 			}
 
+			if condition, isRequestSchemeCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); isRequestSchemeCondition {
+				res["request_scheme_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestScheme(condition)}
+				continue
+			}
+
 			if condition, isRequestURICondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); isRequestURICondition {
 				if _, ok := res["request_uri_condition"]; !ok {
 					res["request_uri_condition"] = []map[string]interface{}{}
@@ -357,8 +374,12 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 				continue
 			}
 
-			if condition, isRequestSchemeCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); isRequestSchemeCondition {
-				res["request_scheme_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestScheme(condition)}
+			if condition, isRequestURICondition := basicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); isRequestURICondition {
+				if _, ok := res["url_file_extension_condition"]; !ok {
+					res["url_file_extension_condition"] = []map[string]interface{}{}
+				}
+
+				res["url_file_extension_condition"] = append(res["url_file_extension_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileExtension(condition))
 				continue
 			}
 		}
