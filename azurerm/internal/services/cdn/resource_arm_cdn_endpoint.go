@@ -197,6 +197,8 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
+			"global_delivery_rule": EndpointGlobalDeliveryRule(),
+
 			"delivery_rule": EndpointDeliveryRule(),
 
 			"tags": tags.Schema(),
@@ -425,7 +427,10 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("Error setting `origin`: %+v", err)
 		}
 
-		deliveryRules := flattenArmCdnEndpointDeliveryPolicy(props.DeliveryPolicy)
+		globalDeliveryRules, deliveryRules := flattenArmCdnEndpointDeliveryPolicy(props.DeliveryPolicy)
+		if err := d.Set("global_delivery_rule", globalDeliveryRules); err != nil {
+			return fmt.Errorf("Error setting `global_delivery_rule`: %+v", err)
+		}
 		if err := d.Set("delivery_rule", deliveryRules); err != nil {
 			return fmt.Errorf("Error setting `delivery_rule`: %+v", err)
 		}
@@ -611,6 +616,15 @@ func expandArmCdnEndpointDeliveryPolicy(d *schema.ResourceData) (*cdn.EndpointPr
 		Rules:       &deliveryRules,
 	}
 
+	globalRules := d.Get("global_delivery_rule").([]interface{})
+	if len(globalRules) == 1 {
+		globRule, err := expandArmCdnEndpointGlobalDeliveryRule(globalRules[0].(map[string]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		deliveryRules = append(deliveryRules, *globRule)
+	}
+
 	rules := d.Get("delivery_rule").([]interface{})
 	if len(rules) == 0 {
 		return &deliveryPolicy, nil
@@ -627,15 +641,24 @@ func expandArmCdnEndpointDeliveryPolicy(d *schema.ResourceData) (*cdn.EndpointPr
 	return &deliveryPolicy, nil
 }
 
-func flattenArmCdnEndpointDeliveryPolicy(deliveryPolicy *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy) []interface{} {
+func flattenArmCdnEndpointDeliveryPolicy(deliveryPolicy *cdn.EndpointPropertiesUpdateParametersDeliveryPolicy) ([]interface{}, []interface{}) {
 	if deliveryPolicy == nil {
-		return nil
+		return nil, nil
 	}
 
-	deliveryRules := make([]interface{}, len(*deliveryPolicy.Rules))
-	for i, rule := range *deliveryPolicy.Rules {
-		deliveryRules[i] = flattenArmCdnEndpointDeliveryRule(&rule)
+	globalDeliveryRules := make([]interface{}, 0)
+	for _, rule := range *deliveryPolicy.Rules {
+		if *rule.Order == 0 {
+			globalDeliveryRules = append(globalDeliveryRules, flattenArmCdnEndpointGlobalDeliveryRule(&rule))
+		}
 	}
 
-	return deliveryRules
+	deliveryRules := make([]interface{}, 0)
+	for _, rule := range *deliveryPolicy.Rules {
+		if *rule.Order != 0 {
+			deliveryRules = append(deliveryRules, flattenArmCdnEndpointDeliveryRule(&rule))
+		}
+	}
+
+	return globalDeliveryRules, deliveryRules
 }

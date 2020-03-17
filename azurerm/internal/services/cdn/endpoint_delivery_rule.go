@@ -318,148 +318,160 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule *cdn.DeliveryRule) map[strin
 		res["order"] = *deliveryRule.Order
 	}
 
-	if deliveryRule.Conditions != nil {
-		for _, basicDeliveryRuleCondition := range *deliveryRule.Conditions {
-			if condition, isCookiesCondition := basicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); isCookiesCondition {
-				if _, ok := res["cookies_condition"]; !ok {
-					res["cookies_condition"] = []map[string]interface{}{}
-				}
+	flattenDeliveryRuleConditions(deliveryRule.Conditions, &res)
 
-				res["cookies_condition"] = append(res["cookies_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionCookies(condition))
-				continue
-			}
-
-			if condition, isHTTPVersionCondition := basicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); isHTTPVersionCondition {
-				if _, ok := res["http_version_condition"]; !ok {
-					res["http_version_condition"] = []map[string]interface{}{}
-				}
-
-				res["http_version_condition"] = append(res["http_version_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionHTTPVersion(condition))
-				continue
-			}
-
-			if condition, isDeviceCondition := basicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); isDeviceCondition {
-				res["device_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionDevice(condition)}
-				continue
-			}
-
-			if condition, isPostArgCondition := basicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); isPostArgCondition {
-				if _, ok := res["post_arg_condition"]; !ok {
-					res["post_arg_condition"] = []map[string]interface{}{}
-				}
-
-				res["post_arg_condition"] = append(res["post_arg_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionPostArg(condition))
-				continue
-			}
-
-			if condition, isQueryStringCondition := basicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); isQueryStringCondition {
-				if _, ok := res["query_string_condition"]; !ok {
-					res["query_string_condition"] = []map[string]interface{}{}
-				}
-
-				res["query_string_condition"] = append(res["query_string_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionQueryString(condition))
-				continue
-			}
-
-			if condition, isRemoteAddressCondition := basicDeliveryRuleCondition.AsDeliveryRuleRemoteAddressCondition(); isRemoteAddressCondition {
-				if _, ok := res["remote_address_condition"]; !ok {
-					res["remote_address_condition"] = []map[string]interface{}{}
-				}
-
-				res["remote_address_condition"] = append(res["remote_address_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRemoteAddress(condition))
-				continue
-			}
-
-			if condition, isRequestBodyCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); isRequestBodyCondition {
-				if _, ok := res["request_body_condition"]; !ok {
-					res["request_body_condition"] = []map[string]interface{}{}
-				}
-
-				res["request_body_condition"] = append(res["request_body_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRequestBody(condition))
-				continue
-			}
-
-			if condition, isRequestMethodCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); isRequestMethodCondition {
-				res["request_method_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestMethod(condition)}
-				continue
-			}
-
-			if condition, isRequestSchemeCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); isRequestSchemeCondition {
-				res["request_scheme_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestScheme(condition)}
-				continue
-			}
-
-			if condition, isRequestURICondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); isRequestURICondition {
-				if _, ok := res["request_uri_condition"]; !ok {
-					res["request_uri_condition"] = []map[string]interface{}{}
-				}
-
-				res["request_uri_condition"] = append(res["request_uri_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRequestURI(condition))
-				continue
-			}
-
-			if condition, isURLFileExtensionCondition := basicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); isURLFileExtensionCondition {
-				if _, ok := res["url_file_extension_condition"]; !ok {
-					res["url_file_extension_condition"] = []map[string]interface{}{}
-				}
-
-				res["url_file_extension_condition"] = append(res["url_file_extension_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileExtension(condition))
-				continue
-			}
-
-			if condition, isURLFileNameExtension := basicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); isURLFileNameExtension {
-				if _, ok := res["url_file_name_condition"]; !ok {
-					res["url_file_name_condition"] = []map[string]interface{}{}
-				}
-
-				res["url_file_name_condition"] = append(res["url_file_name_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileName(condition))
-				continue
-			}
-
-			if condition, isURLPathCondition := basicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); isURLPathCondition {
-				if _, ok := res["url_path_condition"]; !ok {
-					res["url_path_condition"] = []map[string]interface{}{}
-				}
-
-				res["url_path_condition"] = append(res["url_path_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLPath(condition))
-				continue
-			}
-		}
-	}
-
-	if deliveryRule.Actions != nil {
-		for _, basicDeliveryRuleAction := range *deliveryRule.Actions {
-			if action, isCacheExpirationAction := basicDeliveryRuleAction.AsDeliveryRuleCacheExpirationAction(); isCacheExpirationAction {
-				res["cache_expiration_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionCacheExpiration(action)}
-				continue
-			}
-
-			if action, isCacheKeyQueryStringAction := basicDeliveryRuleAction.AsDeliveryRuleCacheKeyQueryStringAction(); isCacheKeyQueryStringAction {
-				res["cache_key_query_string_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionCacheKeyQueryString(action)}
-				continue
-			}
-
-			if action, isModifyRequestHeaderAction := basicDeliveryRuleAction.AsDeliveryRuleRequestHeaderAction(); isModifyRequestHeaderAction {
-				res["modify_request_header_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionModifyRequestHeader(action)}
-				continue
-			}
-
-			if action, isModifyResponseHeaderAction := basicDeliveryRuleAction.AsDeliveryRuleResponseHeaderAction(); isModifyResponseHeaderAction {
-				res["modify_response_header_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionModifyResponseHeader(action)}
-				continue
-			}
-
-			if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
-				res["url_redirect_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionUrlRedirect(action)}
-				continue
-			}
-
-			if action, isURLRewriteAction := basicDeliveryRuleAction.AsURLRewriteAction(); isURLRewriteAction {
-				res["url_rewrite_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionURLRewrite(action)}
-				continue
-			}
-		}
-	}
+	flattenDeliveryRuleActions(deliveryRule.Actions, &res)
 
 	return res
+}
+
+func flattenDeliveryRuleActions(actions *[]cdn.BasicDeliveryRuleAction, res *map[string]interface{}) {
+	if actions == nil {
+		return
+	}
+
+	for _, basicDeliveryRuleAction := range *actions {
+		if action, isCacheExpirationAction := basicDeliveryRuleAction.AsDeliveryRuleCacheExpirationAction(); isCacheExpirationAction {
+			(*res)["cache_expiration_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionCacheExpiration(action)}
+			continue
+		}
+
+		if action, isCacheKeyQueryStringAction := basicDeliveryRuleAction.AsDeliveryRuleCacheKeyQueryStringAction(); isCacheKeyQueryStringAction {
+			(*res)["cache_key_query_string_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionCacheKeyQueryString(action)}
+			continue
+		}
+
+		if action, isModifyRequestHeaderAction := basicDeliveryRuleAction.AsDeliveryRuleRequestHeaderAction(); isModifyRequestHeaderAction {
+			(*res)["modify_request_header_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionModifyRequestHeader(action)}
+			continue
+		}
+
+		if action, isModifyResponseHeaderAction := basicDeliveryRuleAction.AsDeliveryRuleResponseHeaderAction(); isModifyResponseHeaderAction {
+			(*res)["modify_response_header_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionModifyResponseHeader(action)}
+			continue
+		}
+
+		if action, isURLRedirectAction := basicDeliveryRuleAction.AsURLRedirectAction(); isURLRedirectAction {
+			(*res)["url_redirect_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionUrlRedirect(action)}
+			continue
+		}
+
+		if action, isURLRewriteAction := basicDeliveryRuleAction.AsURLRewriteAction(); isURLRewriteAction {
+			(*res)["url_rewrite_action"] = []interface{}{deliveryruleactions.FlattenArmCdnEndpointActionURLRewrite(action)}
+			continue
+		}
+	}
+}
+
+func flattenDeliveryRuleConditions(conditions *[]cdn.BasicDeliveryRuleCondition, res *map[string]interface{}) {
+	if conditions == nil {
+		return
+	}
+
+	for _, basicDeliveryRuleCondition := range *conditions {
+		if condition, isCookiesCondition := basicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); isCookiesCondition {
+			if _, ok := (*res)["cookies_condition"]; !ok {
+				(*res)["cookies_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["cookies_condition"] = append((*res)["cookies_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionCookies(condition))
+			continue
+		}
+
+		if condition, isHTTPVersionCondition := basicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); isHTTPVersionCondition {
+			if _, ok := (*res)["http_version_condition"]; !ok {
+				(*res)["http_version_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["http_version_condition"] = append((*res)["http_version_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionHTTPVersion(condition))
+			continue
+		}
+
+		if condition, isDeviceCondition := basicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); isDeviceCondition {
+			(*res)["device_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionDevice(condition)}
+			continue
+		}
+
+		if condition, isPostArgCondition := basicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); isPostArgCondition {
+			if _, ok := (*res)["post_arg_condition"]; !ok {
+				(*res)["post_arg_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["post_arg_condition"] = append((*res)["post_arg_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionPostArg(condition))
+			continue
+		}
+
+		if condition, isQueryStringCondition := basicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); isQueryStringCondition {
+			if _, ok := (*res)["query_string_condition"]; !ok {
+				(*res)["query_string_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["query_string_condition"] = append((*res)["query_string_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionQueryString(condition))
+			continue
+		}
+
+		if condition, isRemoteAddressCondition := basicDeliveryRuleCondition.AsDeliveryRuleRemoteAddressCondition(); isRemoteAddressCondition {
+			if _, ok := (*res)["remote_address_condition"]; !ok {
+				(*res)["remote_address_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["remote_address_condition"] = append((*res)["remote_address_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRemoteAddress(condition))
+			continue
+		}
+
+		if condition, isRequestBodyCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); isRequestBodyCondition {
+			if _, ok := (*res)["request_body_condition"]; !ok {
+				(*res)["request_body_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["request_body_condition"] = append((*res)["request_body_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRequestBody(condition))
+			continue
+		}
+
+		if condition, isRequestMethodCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); isRequestMethodCondition {
+			(*res)["request_method_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestMethod(condition)}
+			continue
+		}
+
+		if condition, isRequestSchemeCondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); isRequestSchemeCondition {
+			(*res)["request_scheme_condition"] = []interface{}{deliveryruleconditions.FlattenArmCdnEndpointConditionRequestScheme(condition)}
+			continue
+		}
+
+		if condition, isRequestURICondition := basicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); isRequestURICondition {
+			if _, ok := (*res)["request_uri_condition"]; !ok {
+				(*res)["request_uri_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["request_uri_condition"] = append((*res)["request_uri_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionRequestURI(condition))
+			continue
+		}
+
+		if condition, isURLFileExtensionCondition := basicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); isURLFileExtensionCondition {
+			if _, ok := (*res)["url_file_extension_condition"]; !ok {
+				(*res)["url_file_extension_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["url_file_extension_condition"] = append((*res)["url_file_extension_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileExtension(condition))
+			continue
+		}
+
+		if condition, isURLFileNameExtension := basicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); isURLFileNameExtension {
+			if _, ok := (*res)["url_file_name_condition"]; !ok {
+				(*res)["url_file_name_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["url_file_name_condition"] = append((*res)["url_file_name_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLFileName(condition))
+			continue
+		}
+
+		if condition, isURLPathCondition := basicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); isURLPathCondition {
+			if _, ok := (*res)["url_path_condition"]; !ok {
+				(*res)["url_path_condition"] = []map[string]interface{}{}
+			}
+
+			(*res)["url_path_condition"] = append((*res)["url_path_condition"].([]map[string]interface{}), deliveryruleconditions.FlattenArmCdnEndpointConditionURLPath(condition))
+			continue
+		}
+	}
 }
