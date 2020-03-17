@@ -1,5 +1,9 @@
 ## 2.2.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_virtual_hub_connection` [GH-5951]
+
 IMPROVEMENTS:
 
 * `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
