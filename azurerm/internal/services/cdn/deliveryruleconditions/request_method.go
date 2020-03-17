@@ -45,22 +45,22 @@ func RequestMethod() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestMethod(hvc map[string]interface{}) *cdn.DeliveryRuleRequestMethodCondition {
+func ExpandArmCdnEndpointConditionRequestMethod(rmc map[string]interface{}) *cdn.DeliveryRuleRequestMethodCondition {
 	return &cdn.DeliveryRuleRequestMethodCondition{
 		Name: cdn.NameRequestMethod,
 		Parameters: &cdn.RequestMethodMatchConditionParameters{
 			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestMethodConditionParameters"),
-			Operator:        utils.String(hvc["operator"].(string)),
-			NegateCondition: utils.Bool(hvc["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(hvc["match_values"].(*schema.Set).List()),
+			Operator:        utils.String(rmc["operator"].(string)),
+			NegateCondition: utils.Bool(rmc["negate_condition"].(bool)),
+			MatchValues:     utils.ExpandStringSlice(rmc["match_values"].(*schema.Set).List()),
 		},
 	}
 }
 
-func FlattenArmCdnEndpointConditionRequestMethod(hvc *cdn.DeliveryRuleRequestMethodCondition) map[string]interface{} {
+func FlattenArmCdnEndpointConditionRequestMethod(rmc *cdn.DeliveryRuleRequestMethodCondition) map[string]interface{} {
 	res := make(map[string]interface{}, 1)
 
-	if params := hvc.Parameters; params != nil {
+	if params := rmc.Parameters; params != nil {
 		if params.Operator != nil {
 			res["operator"] = *params.Operator
 		}
