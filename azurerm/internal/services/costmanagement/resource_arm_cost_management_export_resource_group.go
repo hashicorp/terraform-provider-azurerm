@@ -91,23 +91,26 @@ func resourceArmCostManagementExportResourceGroup() *schema.Resource {
 						"storage_account_id": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"container_name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validateCostManagementExportContainerName,
 						},
 						"root_folder_path": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
 			},
 
-			"definition": {
+			"query": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Required: true,
@@ -179,7 +182,7 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 		Schedule:     schedule,
 		DeliveryInfo: expandExportDeliveryInfo(d.Get("delivery_info").([]interface{})),
 		Format:       costmanagement.Csv,
-		Definition:   expandExportDefinition(d.Get("definition").([]interface{})),
+		Definition:   expandExportQuery(d.Get("query").([]interface{})),
 	}
 
 	account := costmanagement.Export{
@@ -238,13 +241,19 @@ func resourceArmCostManagementExportResourceGroupRead(d *schema.ResourceData, me
 			d.Set("recurrence_period_start", recurrencePeriod.From.Format(time.RFC3339))
 			d.Set("recurrence_period_end", recurrencePeriod.To.Format(time.RFC3339))
 		}
+		status := false
+		if schedule.Status == costmanagement.Active {
+			status = true
+		}
+		d.Set("active", status)
+		d.Set("recurrence_type", schedule.Recurrence)
 	}
 	if err := d.Set("delivery_info", flattenExportDeliveryInfo(resp.DeliveryInfo)); err != nil {
 		return fmt.Errorf("setting `delivery_info`: %+v", err)
 	}
 
-	if err := d.Set("definition", flattenExportDefinition(resp.Definition)); err != nil {
-		return fmt.Errorf("setting `definition`: %+v", err)
+	if err := d.Set("query", flattenExportQuery(resp.Definition)); err != nil {
+		return fmt.Errorf("setting `query`: %+v", err)
 	}
 
 	return nil
@@ -307,7 +316,7 @@ func flattenExportDeliveryInfo(input *costmanagement.ExportDeliveryInfo) []inter
 	return []interface{}{attrs}
 }
 
-func expandExportDefinition(input []interface{}) *costmanagement.QueryDefinition {
+func expandExportQuery(input []interface{}) *costmanagement.QueryDefinition {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -321,7 +330,7 @@ func expandExportDefinition(input []interface{}) *costmanagement.QueryDefinition
 	return definitionInfo
 }
 
-func flattenExportDefinition(input *costmanagement.QueryDefinition) []interface{} {
+func flattenExportQuery(input *costmanagement.QueryDefinition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
