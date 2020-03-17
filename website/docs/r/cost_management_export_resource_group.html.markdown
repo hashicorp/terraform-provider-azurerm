@@ -51,7 +51,7 @@ resource "azurerm_cost_management_export_resource_group" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Cost Management Export. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Cost Management Export. Changing this forces a new resource to be created.
 
 * `resource_group_id` - (Required) The id of the resource group in which to export information.
 
@@ -63,25 +63,33 @@ The following arguments are supported:
 
 * `delivery_info` - (Required) A `delivery_info` block as defined below.
 
+* `query` - (Required) A `query` block as defined below.
+
+* `active` - (Optional) Is the cost management export active? Default is `true`.
+
 ---
 
 A `delivery_info` block supports the following:
 
-* `account_name` - (Required) Specifies the GitHub account name.
+* `storage_account_id` - (Required) The storage account id where exports will be delivered.
 
-* `branch_name` - (Required) Specifies the branch of the repository to get code from.
+* `container_name` - (Required) The name of the container where exports will be uploaded.
 
-* `git_url` - (Required) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com. Use https://github.com for open source repositories.
+* `root_folder_path` - (Required) The path of the directory where exports will be uploaded.
 
-* `repository_name` - (Required) Specifies the name of the git repository.
+---
 
-* `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
+A `query` block supports the following:
+
+* `type` - (Required) The type of the query.
+
+* `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `YearToDate`, `TheLastWeek`, `TheLastMonth`, `TheLastYear`, `Custom`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory.
+* `id` - The ID of the Cost Management Export.
 
 ## Timeouts
 
@@ -97,5 +105,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Cost Management Export for a Resource Group can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cost_management_export_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example
+terraform import azurerm_cost_management_export_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.CostManagement/exports/example
 ```
