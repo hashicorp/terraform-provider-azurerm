@@ -298,7 +298,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			endpoint.DeliveryPolicy = deliveryPolicy
 		} else {
 			if len(*deliveryPolicy.Rules) > 0 {
-				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Microsoft_Standard` sku is used. Profile sku:  %s", profile.Sku.Name)
+				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
 			}
 		}
 	}
@@ -390,7 +390,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			endpoint.DeliveryPolicy = deliveryPolicy
 		} else {
 			if len(*deliveryPolicy.Rules) > 0 {
-				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Microsoft_Standard` sku is used. Profile sku: %s", profile.Sku.Name)
+				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku: %s", profile.Sku.Name)
 			}
 		}
 	}
