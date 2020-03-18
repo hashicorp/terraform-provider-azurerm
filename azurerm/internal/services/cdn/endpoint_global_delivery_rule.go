@@ -74,7 +74,7 @@ func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.D
 }
 
 func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule *cdn.DeliveryRule) map[string]interface{} {
-	res := make(map[string]interface{}, 0)
+	res := make(map[string]interface{})
 
 	if deliveryRule == nil {
 		return res
