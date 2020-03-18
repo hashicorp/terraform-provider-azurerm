@@ -602,11 +602,11 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			},
 			data.ImportStep("service_principal.0.client_secret"),
 			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "managed_outbound_ip_count", "1"),
+				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "managed_outbound_ip_count", "\"1\""),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
 			},
@@ -1563,6 +1563,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku = "Standard"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1596,7 +1597,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
     load_balancer_profile {
-      "%s"   = "%s"
+      %s   = %s
     }
   }
 }
