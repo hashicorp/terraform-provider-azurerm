@@ -10,10 +10,12 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Data Source: * `azurerm_logic_app_workflow`  - expose computed field: `endpoint_configuration` [GH-5862]
 * `azurerm_application_gateway` - support for key vault SSL certificate via the `key_value_secret_id` property [GH-4366]
 * `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
-* `azurerm_sql_database` - support for the `extended_auditing_policy` property [GH-5049]
+* `azurerm_logic_app_workflow`  - expose computed field: `endpoint_configuration` [GH-5862]
 * `azurerm_linux_virtual_machine_scale_set` - support for `scale_in_policy` and `terminate_notification` [GH-5391]
+* `azurerm_sql_database` - support for the `extended_auditing_policy` property [GH-5049]
 * `azurerm_windows_virtual_machine_scale_set` - support for `scale_in_policy` and `terminate_notification` [GH-5391]
 
 BUG FIXES:
