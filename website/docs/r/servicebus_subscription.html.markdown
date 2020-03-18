@@ -90,7 +90,27 @@ The following arguments are supported:
 
 ### ISO8601 Format
 
-Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. Azure uses ISO 8601 as the supported format and it is documented here: [Azure REST - Subscriptions - Create Or Update](https://docs.microsoft.com/en-us/rest/api/servicebus/subscriptions/createorupdate#request-body). Example value: "P3DT0H0M0.0S" (for 3days)
+Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. Azure uses ISO 8601 as the supported format and it is documented here: [Azure REST - Subscriptions - Create Or Update](https://docs.microsoft.com/en-us/rest/api/servicebus/subscriptions/createorupdate#request-body).
+
+#### Examples:
+
+1. 3 Days
+    
+    "P3D" or
+    "P3DT0H0M0.0S"
+    
+1. 7 Days 6 Hours
+    
+    "P7DT6H"
+
+1. 9 Days 12 hours 30 minutes 10 seconds
+
+    "P9DT12H30M10S"
+
+1. 5 minutes
+
+    "PT5M"
+
 
 ## Attributes Reference
 
