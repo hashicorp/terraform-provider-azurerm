@@ -65,13 +65,13 @@ The following arguments are supported:
 * `max_delivery_count` - (Required) The maximum number of deliveries.
 
 * `auto_delete_on_idle` - (Optional) The idle interval after which the
-    Subscription is automatically deleted, minimum of 5 minutes. Provided in the [ISO8601](#ISO8601-format) format.
+    Subscription is automatically deleted, minimum of 5 minutes. Provided in the ISO8601 format.
 
 * `default_message_ttl` - (Optional) The TTL of messages sent to this Subscription,
-    if no TTL value is set on the message itself. Provided in the [ISO8601](#ISO8601-format) format.
+    if no TTL value is set on the message itself. Provided in the ISO8601 format.
 
 * `lock_duration` - (Optional) The lock duration for the subscription, maximum
-    supported value is 5 minutes. Defaults to 1 minute. Provided in the [ISO8601](#ISO8601-format) format.
+    supported value is 5 minutes. Defaults to 1 minute. Provided in the ISO8601 format.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls
     whether the Subscription has dead letter support when a message expires. Defaults
@@ -87,30 +87,6 @@ The following arguments are supported:
 * `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to.
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward Dead Letter messages to.
-
-### ISO8601 Format
-
-Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. Azure uses ISO 8601 as the supported format and it is documented here: [Azure REST - Subscriptions - Create Or Update](https://docs.microsoft.com/en-us/rest/api/servicebus/subscriptions/createorupdate#request-body).
-
-#### Examples:
-
-1. 3 Days
-    
-    "P3D" or
-    "P3DT0H0M0.0S"
-    
-1. 7 Days 6 Hours
-    
-    "P7DT6H"
-
-1. 9 Days 12 hours 30 minutes 10 seconds
-
-    "P9DT12H30M10S"
-
-1. 5 minutes
-
-    "PT5M"
-
 
 ## Attributes Reference
 
