@@ -65,15 +65,13 @@ The following arguments are supported:
 * `max_delivery_count` - (Required) The maximum number of deliveries.
 
 * `auto_delete_on_idle` - (Optional) The idle interval after which the
-    Subscription is automatically deleted, minimum of 5 minutes. Provided in the
-    [TimeSpan](#timespan-format) format.
+    Subscription is automatically deleted, minimum of 5 minutes. Provided in the [ISO8601](#ISO8601-format) format.
 
-* `default_message_ttl` - (Optional) The TTL of messages sent to this Subscription
-    in ISO8601 format, if no TTL value is set on the message itself.
-    format.
+* `default_message_ttl` - (Optional) The TTL of messages sent to this Subscription,
+    if no TTL value is set on the message itself. Provided in the [ISO8601](#ISO8601-format) format.
 
 * `lock_duration` - (Optional) The lock duration for the subscription, maximum
-    supported value is 5 minutes. Defaults to 1 minute.
+    supported value is 5 minutes. Defaults to 1 minute. Provided in the [ISO8601](#ISO8601-format) format.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls
     whether the Subscription has dead letter support when a message expires. Defaults
@@ -90,9 +88,9 @@ The following arguments are supported:
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward Dead Letter messages to.
 
-### TimeSpan Format
+### ISO8601 Format
 
-Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. The supported format is documented [here](https://docs.microsoft.com/cli/azure/servicebus/topic/subscription?view=azure-cli-latest#az-servicebus-topic-subscription-update). Example value: "P3DT0H0M0.0S" (for 3days)
+Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. Azure uses ISO 8601 as the supported format and it is documented here: [Azure REST - Subscriptions - Create Or Update](https://docs.microsoft.com/en-us/rest/api/servicebus/subscriptions/createorupdate#request-body). Example value: "P3DT0H0M0.0S" (for 3days)
 
 ## Attributes Reference
 
