@@ -60,7 +60,7 @@ func ValidateMsSqlDBMinCapacity(i interface{}, k string) (warnings []string, err
 
 func ValidateMsSqlDBSkuName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile(`(?i)(^((GP(_S)?|BC)_(Gen4|Gen5)_(2|4|6|8|10|12|14|16|18|20|24|32|40|80))|(HS_(Gen4|Gen5)_(1|2|3|4|5|6|7|8|9|10|16|24))|Basic|Standard|Premium|ElasticPool|S(0|1|2|3|4|6|7|9|12)|P(1|2|4|6|11|15)$)`),
-		`This is not a valid sku name. For example, a valid sku name is 'GP_Gen5_2','HS_Gen4_1','BC_Gen5_2', 'ElasticPool', 'Basic', 'Standard', 'Premium' and etc.`,
+		regexp.MustCompile(`(?i)(^((GP(_S)?|BC)_(Gen4|Gen5)_(2|4|6|8|10|12|14|16|18|20|24|32|40|80))|(HS_(Gen4|Gen5)_(1|2|3|4|5|6|7|8|9|10|16|24))|Basic|ElasticPool|S(0|1|2|3|4|6|7|9|12)|P(1|2|4|6|11|15)$)`),
+		`This is not a valid sku name. For example, a valid sku name is 'GP_Gen5_2','HS_Gen4_1','BC_Gen5_2', 'ElasticPool', 'Basic', 'S0', 'P1' and etc.`,
 	)
 }

@@ -31,11 +31,11 @@ output "database_id" {
 
 ## Argument Reference
 
-* `collation` - Specifies the collation of the database. 
+* `collation` - The collation of the database. 
 
-* `elastic_pool_id` - Specifies the id of the elastic pool containing this database.
+* `elastic_pool_id` - The id of the elastic pool containing this database.
 
-* `license_type` - Specifies the license type to apply for this database.
+* `license_type` - The license type to apply for this database.
 
 * `max_size_gb` - The max size of the database in gigabytes.
 
@@ -43,7 +43,7 @@ output "database_id" {
 
 * `read_scale` - If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica.
 
-* `sku_name` - Specifies the name of the sku of the database.
+* `sku_name` - The name of the sku of the database.
 
 * `zone_redundant` - Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 

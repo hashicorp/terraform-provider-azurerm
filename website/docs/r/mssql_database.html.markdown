@@ -37,7 +37,6 @@ resource "azurerm_mssql_database" "test" {
   license_type   = "LicenseIncluded"
   max_size_gb    = 4
   read_scale     = "Enabled"
-  sample_name    = "AdventureWorksLT"
   sku_name       = "BC_Gen5_2"
   zone_redundant = true
 
@@ -56,7 +55,7 @@ The following arguments are supported:
 
 * `sql_server_id` - (Required) The id of the Ms SQL Server on which to create the database. Changing this forces a new resource to be created.
 
-* `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of -1 means that automatic pause is disabled. 
+* `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of -1 means that automatic pause is disabled. This property is only settable for General Purpose Serverless databases.
 
 * `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. 
 
@@ -66,19 +65,19 @@ The following arguments are supported:
 
 * `license_type` - (Optional) Specifies the license type to apply for this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
-* `max_size_gb` - (Optional) The max size of the database in gigabytes.
+* `max_size_gb` - (Optional) The max size of the database in gigabytes. 
 
-* `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused.
+* `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for General Purpose Serverless databases.
 
-* `restore_point_in_time` - (Required) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database.
+* `restore_point_in_time` - (Required) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore`  databases.
 
-* `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. 
+* `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
 
-* `read_scale` - (Optional) If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. Possible values are `Enabled` and `Disabled`.
+* `read_scale` - (Optional) If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. Possible values are `Enabled` and `Disabled`. This property is only settable for Premium and Business Critical databases.
 
 * `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is `AdventureWorksLT`.
 
-* `sku_name` - (Optional) Specifies the name of the sku of the database. Changing this forces a new resource to be created. For example, `GP_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`, `Standard`, `Premium`, `S0`, `P2`.
+* `sku_name` - (Optional) Specifies the name of the sku of the database. Changing this forces a new resource to be created. For example, `GP_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` , and etc.
 
 * `source_database_id` - (Required) The id of the source database to be copied to create the new database.
 

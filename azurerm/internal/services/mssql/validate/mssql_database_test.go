@@ -77,7 +77,7 @@ func TestValidateMsSqlDBSkuName(t *testing.T) {
 		},
 		{
 			name:  "Valid Standard",
-			input: "Standard",
+			input: "S0",
 			valid: true,
 		},
 		{
@@ -87,7 +87,7 @@ func TestValidateMsSqlDBSkuName(t *testing.T) {
 		},
 		{
 			name:  "Valid Premium",
-			input: "Premium",
+			input: "P1",
 			valid: true,
 		},
 		{
