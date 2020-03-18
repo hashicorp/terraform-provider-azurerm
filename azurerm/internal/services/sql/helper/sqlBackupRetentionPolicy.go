@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SQLLongTermRetentionPolicy() *schema.Schema {
+func SqlLongTermRetentionPolicy() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -43,7 +43,7 @@ func SQLLongTermRetentionPolicy() *schema.Schema {
 	}
 }
 
-func SQLShortTermRetentionPolicy() *schema.Schema {
+func SqlShortTermRetentionPolicy() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -67,7 +67,7 @@ func SQLShortTermRetentionPolicy() *schema.Schema {
 	}
 }
 
-func ExpandSQLLongTermRetentionPolicyProperties(input []interface{}) *sql.LongTermRetentionPolicyProperties {
+func ExpandSqlLongTermRetentionPolicyProperties(input []interface{}) *sql.LongTermRetentionPolicyProperties {
 	LongTermRetentionPolicyProperties := sql.LongTermRetentionPolicyProperties{
 		WeeklyRetention:  utils.String("P0W"),
 		MonthlyRetention: utils.String("P0W"),
@@ -100,7 +100,7 @@ func ExpandSQLLongTermRetentionPolicyProperties(input []interface{}) *sql.LongTe
 	return &LongTermRetentionPolicyProperties
 }
 
-func ExpandSQLShortTermRetentionPolicyProperties(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
+func ExpandSqlShortTermRetentionPolicyProperties(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
 	ShortTermRetentionPolicyProperties := sql.BackupShortTermRetentionPolicyProperties{
 		RetentionDays: utils.Int32(1),
 	}
@@ -118,7 +118,7 @@ func ExpandSQLShortTermRetentionPolicyProperties(input []interface{}) *sql.Backu
 	return &ShortTermRetentionPolicyProperties
 }
 
-func FlattenSQLLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy) []interface{} {
+func FlattenSqlLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy) []interface{} {
 	if longTermRetentionPolicy == nil || longTermRetentionPolicy.LongTermRetentionPolicyProperties == nil {
 		return []interface{}{}
 	}
@@ -153,7 +153,7 @@ func FlattenSQLLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTe
 	}
 }
 
-func FlattenSQLShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy) []interface{} {
+func FlattenSqlShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy) []interface{} {
 	if shortTermRetentionPolicy == nil || shortTermRetentionPolicy.BackupShortTermRetentionPolicyProperties == nil {
 		return []interface{}{}
 	}

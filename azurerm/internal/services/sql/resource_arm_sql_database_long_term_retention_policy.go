@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSQLDatabaseLongTermRetentionPolicy() *schema.Resource {
+func resourceArmSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSQLDatabaseLongTermRetentionPolicyCreateUpdate,
-		Read:   resourceArmSQLDatabaseLongTermRetentionPolicyRead,
-		Update: resourceArmSQLDatabaseLongTermRetentionPolicyCreateUpdate,
-		Delete: resourceArmSQLDatabaseLongTermRetentionPolicyDelete,
+		Create: resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate,
+		Read:   resourceArmSqlDatabaseLongTermRetentionPolicyRead,
+		Update: resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate,
+		Delete: resourceArmSqlDatabaseLongTermRetentionPolicyDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -33,7 +33,7 @@ func resourceArmSQLDatabaseLongTermRetentionPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"backup_long_term_retention_policy": helper.SQLLongTermRetentionPolicy(),
+			"backup_long_term_retention_policy": helper.SqlLongTermRetentionPolicy(),
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -51,7 +51,7 @@ func resourceArmSQLDatabaseLongTermRetentionPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSQLDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -62,28 +62,28 @@ func resourceArmSQLDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.Resourc
 	shortTermPolicy := d.Get("backup_long_term_retention_policy").([]interface{})
 
 	backupLongTermPolicy := sql.BackupLongTermRetentionPolicy{
-		LongTermRetentionPolicyProperties: helper.ExpandSQLLongTermRetentionPolicyProperties(shortTermPolicy),
+		LongTermRetentionPolicyProperties: helper.ExpandSqlLongTermRetentionPolicyProperties(shortTermPolicy),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, databaseName, backupLongTermPolicy)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
+		return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Create/Update for SQL Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
 	}
 
 	response, err := client.Get(ctx, resourceGroup, serverName, databaseName)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for Database %q Long Term Policies (SQL Server %q ,Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
+		return fmt.Errorf("Error issuing get request for Database %q Long Term Policies (Sql Server %q ,Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
 	}
 	d.SetId(*response.ID)
 
-	return resourceArmSQLDatabaseLongTermRetentionPolicyRead(d, meta)
+	return resourceArmSqlDatabaseLongTermRetentionPolicyRead(d, meta)
 }
 
-func resourceArmSQLDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,10 +99,10 @@ func resourceArmSQLDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, m
 
 	backupLongTermPolicy, err := client.Get(ctx, resourceGroup, serverName, databaseName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Long Term Policies for Database %q (SQL Server %q ;Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
 	}
 
-	flattenedLongTermPolicy := helper.FlattenSQLLongTermRetentionPolicy(&backupLongTermPolicy)
+	flattenedLongTermPolicy := helper.FlattenSqlLongTermRetentionPolicy(&backupLongTermPolicy)
 	if err := d.Set("backup_long_term_retention_policy", flattenedLongTermPolicy); err != nil {
 		return fmt.Errorf("Error setting `backup_long_term_retention_policy`: %+v", err)
 	}
@@ -110,7 +110,7 @@ func resourceArmSQLDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmSQLDatabaseLongTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlDatabaseLongTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +136,7 @@ func resourceArmSQLDatabaseLongTermRetentionPolicyDelete(d *schema.ResourceData,
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, databaseName, backupLongTermPolicy)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
+		return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)

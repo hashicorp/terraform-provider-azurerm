@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSQLDatabaseShortTermRetentionPolicy() *schema.Resource {
+func resourceArmSqlDatabaseShortTermRetentionPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSQLDatabaseShortTermRetentionPolicyCreateUpdate,
-		Read:   resourceArmSQLDatabaseShortTermRetentionPolicyRead,
-		Update: resourceArmSQLDatabaseShortTermRetentionPolicyCreateUpdate,
-		Delete: resourceArmSQLDatabaseShortTermRetentionPolicyDelete,
+		Create: resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate,
+		Read:   resourceArmSqlDatabaseShortTermRetentionPolicyRead,
+		Update: resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate,
+		Delete: resourceArmSqlDatabaseShortTermRetentionPolicyDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -33,7 +33,7 @@ func resourceArmSQLDatabaseShortTermRetentionPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"backup_short_term_retention_policy": helper.SQLShortTermRetentionPolicy(),
+			"backup_short_term_retention_policy": helper.SqlShortTermRetentionPolicy(),
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -51,7 +51,7 @@ func resourceArmSQLDatabaseShortTermRetentionPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSQLDatabaseShortTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -62,28 +62,28 @@ func resourceArmSQLDatabaseShortTermRetentionPolicyCreateUpdate(d *schema.Resour
 	shortTermPolicy := d.Get("backup_short_term_retention_policy").([]interface{})
 
 	backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{
-		BackupShortTermRetentionPolicyProperties: helper.ExpandSQLShortTermRetentionPolicyProperties(shortTermPolicy),
+		BackupShortTermRetentionPolicyProperties: helper.ExpandSqlShortTermRetentionPolicyProperties(shortTermPolicy),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, databaseName, backupShortTermPolicy)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
+		return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Create/Update for SQL Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
 	}
 
 	response, err := client.Get(ctx, resourceGroup, serverName, databaseName)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for Database %q Short Term Policies (SQL Server %q ,Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
+		return fmt.Errorf("Error issuing get request for Database %q Short Term Policies (Sql Server %q ,Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
 	}
 	d.SetId(*response.ID)
 
-	return resourceArmSQLDatabaseShortTermRetentionPolicyRead(d, meta)
+	return resourceArmSqlDatabaseShortTermRetentionPolicyRead(d, meta)
 }
 
-func resourceArmSQLDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,10 +99,10 @@ func resourceArmSQLDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, 
 
 	backupShortTermPolicy, err := client.Get(ctx, resourceGroup, serverName, databaseName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Short Term Policies for Database %q (SQL Server %q ;Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
 	}
 
-	flattenedShortTermPolicy := helper.FlattenSQLShortTermRetentionPolicy(&backupShortTermPolicy)
+	flattenedShortTermPolicy := helper.FlattenSqlShortTermRetentionPolicy(&backupShortTermPolicy)
 	if err := d.Set("backup_short_term_retention_policy", flattenedShortTermPolicy); err != nil {
 		return fmt.Errorf("Error setting `backup_short_term_retention_policy`: %+v", err)
 	}
@@ -110,7 +110,7 @@ func resourceArmSQLDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmSQLDatabaseShortTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlDatabaseShortTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +133,7 @@ func resourceArmSQLDatabaseShortTermRetentionPolicyDelete(d *schema.ResourceData
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, databaseName, backupShortTermPolicy)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
+		return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
