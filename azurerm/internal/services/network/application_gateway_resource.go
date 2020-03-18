@@ -1267,19 +1267,10 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
-			"firewall_policy": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
+			"firewall_policy_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"custom_error_configuration": {
@@ -1443,10 +1434,9 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
 	}
 
-	if res, ok := d.GetOk("firewall_policy"); ok {
+	if res, ok := d.GetOk("firewall_policy_id"); ok {
 		vs := res.([]interface{})
-		v := vs[0].(map[string]interface{})
-		id := v["id"].(string)
+		id := vs[0].(string)
 		gateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
 			ID: &id,
 		}
@@ -1631,8 +1621,8 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
 		}
 
-		if setErr := d.Set("firewall_policy", flattenApplicationGatewayFirewallPolicy(props.FirewallPolicy)); setErr != nil {
-			return fmt.Errorf("Error setting `firewall_policy`: %+v", setErr)
+		if setErr := d.Set("firewall_policy_id", flattenApplicationGatewayFirewallPolicy(props.FirewallPolicy)); setErr != nil {
+			return fmt.Errorf("Error setting `firewall_policy_id`: %+v", setErr)
 		}
 	}
 
@@ -3636,22 +3626,14 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	return results
 }
 
-func flattenApplicationGatewayFirewallPolicy(input *network.SubResource) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
+func flattenApplicationGatewayFirewallPolicy(input *network.SubResource) string {
+	output := ""
 
-	output := make(map[string]interface{})
-
-	id := ""
 	if input.ID != nil {
-		id = *input.ID
+		output = *input.ID
 	}
-	output["id"] = id
-	results = append(results, output)
 
-	return results
+	return output
 }
 
 func expandApplicationGatewayFirewallDisabledRuleGroup(d []interface{}) *[]network.ApplicationGatewayFirewallDisabledRuleGroup {
