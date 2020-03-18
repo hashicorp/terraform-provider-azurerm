@@ -57,7 +57,7 @@ func RuleActionUrlRedirectQueryString() schema.SchemaValidateFunc {
 func RuleActionUrlRedirectFragment() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^([^#].*)?$"),
-		"The Url Redirect Path must start with a slash.",
+		"The Url Fragment must not start with a hash.",
 	)
 }
 

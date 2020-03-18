@@ -47,7 +47,7 @@ func URLRedirect() *schema.Resource {
 			"query_string": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.RuleActionUrlRedirectPath(),
+				ValidateFunc: validate.RuleActionUrlRedirectQueryString(),
 			},
 
 			"fragment": {
