@@ -50,36 +50,27 @@ resource "azurerm_servicebus_subscription" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the ServiceBus Subscription resource.
-    Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the ServiceBus Subscription resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) The name of the ServiceBus Namespace to create
-    this Subscription in. Changing this forces a new resource to be created.
+* `namespace_name` - (Required) The name of the ServiceBus Namespace to create this Subscription in. Changing this forces a new resource to be created.
 
-* `topic_name` - (Required) The name of the ServiceBus Topic to create
-    this Subscription in. Changing this forces a new resource to be created.
+* `topic_name` - (Required) The name of the ServiceBus Topic to create this Subscription in. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
 
 * `max_delivery_count` - (Required) The maximum number of deliveries.
 
-* `auto_delete_on_idle` - (Optional) ISO 8061 timeSpan idle interval after which the topic is automatically deleted. The minimum duration is 5 minutes.
+* `auto_delete_on_idle` - (Optional) The idle interval after which the topic is automatically deleted as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The minimum duration is `5` minutes or `P5M`.
 
-* `default_message_ttl` - (Optional) ISO 8061 Default message timespan to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
+* `default_message_ttl` - (Optional) The Default message timespan to live as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 
-* `lock_duration` - (Optional) ISO 8061 lock duration timespan for the subscription. The default value is 1 minute.
+* `lock_duration` - (Optional) The lock duration for the subscription as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations). The default value is `1` minute or `P1M`.
 
-* `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls
-    whether the Subscription has dead letter support when a message expires. Defaults
-    to false.
+* `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Subscription has dead letter support when a message expires. Defaults to `false`.
 
-* `enable_batched_operations` - (Optional) Boolean flag which controls whether the
-    Subscription supports batched operations. Defaults to false.
+* `enable_batched_operations` - (Optional) Boolean flag which controls whether the Subscription supports batched operations. Defaults to `false`.
 
-* `requires_session` - (Optional) Boolean flag which controls whether this Subscription
-    supports the concept of a session. Defaults to false. Changing this forces a
-    new resource to be created.
+* `requires_session` - (Optional) Boolean flag which controls whether this Subscription supports the concept of a session. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to.
 
