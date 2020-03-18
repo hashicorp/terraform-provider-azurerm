@@ -2952,6 +2952,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  ssl_certificate_name           = "${azurerm_virtual_network.test.name}-sslcert"
 }
 
 data "azurerm_client_config" "test" {}
@@ -3048,7 +3049,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_port {
     name = local.frontend_port_name
-    port = 80
+    port = 443
   }
 
   frontend_ip_configuration {
