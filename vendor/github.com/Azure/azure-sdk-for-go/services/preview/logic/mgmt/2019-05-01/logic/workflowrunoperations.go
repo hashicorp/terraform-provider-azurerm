@@ -88,7 +88,7 @@ func (client WorkflowRunOperationsClient) GetPreparer(ctx context.Context, resou
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

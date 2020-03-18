@@ -86,7 +86,7 @@ func (client IntegrationAccountsClient) CreateOrUpdatePreparer(ctx context.Conte
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client IntegrationAccountsClient) DeletePreparer(ctx context.Context, reso
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -241,7 +241,7 @@ func (client IntegrationAccountsClient) GetPreparer(ctx context.Context, resourc
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -264,86 +264,6 @@ func (client IntegrationAccountsClient) GetSender(req *http.Request) (*http.Resp
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client IntegrationAccountsClient) GetResponder(resp *http.Response) (result IntegrationAccount, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetCallbackURL gets the integration account callback URL.
-// Parameters:
-// resourceGroupName - the resource group name.
-// integrationAccountName - the integration account name.
-// parameters - the callback URL parameters.
-func (client IntegrationAccountsClient) GetCallbackURL(ctx context.Context, resourceGroupName string, integrationAccountName string, parameters GetCallbackURLParameters) (result CallbackURL, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountsClient.GetCallbackURL")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.GetCallbackURLPreparer(ctx, resourceGroupName, integrationAccountName, parameters)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "GetCallbackURL", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetCallbackURLSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "GetCallbackURL", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetCallbackURLResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "GetCallbackURL", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// GetCallbackURLPreparer prepares the GetCallbackURL request.
-func (client IntegrationAccountsClient) GetCallbackURLPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, parameters GetCallbackURLParameters) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"integrationAccountName": autorest.Encode("path", integrationAccountName),
-		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
-		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-06-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Logic/integrationAccounts/{integrationAccountName}/listCallbackUrl", pathParameters),
-		autorest.WithJSON(parameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetCallbackURLSender sends the GetCallbackURL request. The method will close the
-// http.Response Body if it receives an error.
-func (client IntegrationAccountsClient) GetCallbackURLSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
-}
-
-// GetCallbackURLResponder handles the response to the GetCallbackURL request. The method always
-// closes the http.Response Body.
-func (client IntegrationAccountsClient) GetCallbackURLResponder(resp *http.Response) (result CallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -398,7 +318,7 @@ func (client IntegrationAccountsClient) ListByResourceGroupPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -513,7 +433,7 @@ func (client IntegrationAccountsClient) ListBySubscriptionPreparer(ctx context.C
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -586,6 +506,86 @@ func (client IntegrationAccountsClient) ListBySubscriptionComplete(ctx context.C
 	return
 }
 
+// ListCallbackURL gets the integration account callback URL.
+// Parameters:
+// resourceGroupName - the resource group name.
+// integrationAccountName - the integration account name.
+// parameters - the callback URL parameters.
+func (client IntegrationAccountsClient) ListCallbackURL(ctx context.Context, resourceGroupName string, integrationAccountName string, parameters GetCallbackURLParameters) (result CallbackURL, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationAccountsClient.ListCallbackURL")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListCallbackURLPreparer(ctx, resourceGroupName, integrationAccountName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListCallbackURL", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListCallbackURLSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListCallbackURL", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListCallbackURLResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListCallbackURL", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListCallbackURLPreparer prepares the ListCallbackURL request.
+func (client IntegrationAccountsClient) ListCallbackURLPreparer(ctx context.Context, resourceGroupName string, integrationAccountName string, parameters GetCallbackURLParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"integrationAccountName": autorest.Encode("path", integrationAccountName),
+		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
+		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-05-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Logic/integrationAccounts/{integrationAccountName}/listCallbackUrl", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListCallbackURLSender sends the ListCallbackURL request. The method will close the
+// http.Response Body if it receives an error.
+func (client IntegrationAccountsClient) ListCallbackURLSender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// ListCallbackURLResponder handles the response to the ListCallbackURL request. The method always
+// closes the http.Response Body.
+func (client IntegrationAccountsClient) ListCallbackURLResponder(resp *http.Response) (result CallbackURL, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ListKeyVaultKeys gets the integration account's Key Vault keys.
 // Parameters:
 // resourceGroupName - the resource group name.
@@ -637,7 +637,7 @@ func (client IntegrationAccountsClient) ListKeyVaultKeysPreparer(ctx context.Con
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -724,7 +724,7 @@ func (client IntegrationAccountsClient) LogTrackingEventsPreparer(ctx context.Co
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -803,7 +803,7 @@ func (client IntegrationAccountsClient) RegenerateAccessKeyPreparer(ctx context.
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -883,7 +883,7 @@ func (client IntegrationAccountsClient) UpdatePreparer(ctx context.Context, reso
 		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

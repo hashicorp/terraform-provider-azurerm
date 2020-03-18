@@ -92,7 +92,7 @@ func (client WorkflowRunActionRequestHistoriesClient) GetPreparer(ctx context.Co
 		"workflowName":       autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -174,7 +174,7 @@ func (client WorkflowRunActionRequestHistoriesClient) ListPreparer(ctx context.C
 		"workflowName":      autorest.Encode("path", workflowName),
 	}
 
-	const APIVersion = "2016-06-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
