@@ -2,17 +2,27 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_app_configuration` [GH-6133]
+* **New Data Source:** `azurerm_powerbi_embedded` [GH-5152]
+* **New Resource:** `azurerm_cost_management_export_resource_group` [GH-6131]
+* **New Resource:** `azurerm_powerbi_embedded` [GH-5152]
 * **New Resource:** `azurerm_virtual_hub_connection` [GH-5951]
 
 IMPROVEMENTS:
 
+* Data Source: * `azurerm_logic_app_workflow`  - expose computed field: `endpoint_configuration` [GH-5862]
+* `azurerm_application_gateway` - support for key vault SSL certificate via the `key_value_secret_id` property [GH-4366]
 * `azurerm_function_app` - support for configuring `daily_memory_time_quota` [GH-6100]
+* `azurerm_logic_app_workflow`  - expose computed field: `endpoint_configuration` [GH-5862]
+* `azurerm_linux_virtual_machine_scale_set` - support for `scale_in_policy` and `terminate_notification` [GH-5391]
 * `azurerm_sql_database` - support for the `extended_auditing_policy` property [GH-5049]
+* `azurerm_windows_virtual_machine_scale_set` - support for `scale_in_policy` and `terminate_notification` [GH-5391]
 
 BUG FIXES:
 
-* Data Source: `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
-* `iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+* Data Source: `azurerm_iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
+* `azurerm_function_app` - Add `WEBSITE_CONTENT` & `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` for premium plans [GH-5761]
+* `azurerm_iothub_dps_shared_access_policy` - building the `primary_connection_string` and `secondary_connection_string` from the Service endpoint rather than the Devices endpoint [GH-6108]
 * `azurerm_linux_virtual_machine` - updating the validation for `name` to allow periods [GH-5966]
 * `azurerm_linux_virtual_machine_scale_set` - updating the validation for `name` to allow periods [GH-5966]
 * `azurerm_storage_management_policy` - Fixed the use of single blob rule actions [GH-5803]
