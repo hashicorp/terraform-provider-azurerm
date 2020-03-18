@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SQLLongTermRententionPolicy() *schema.Schema {
+func SQLLongTermRetentionPolicy() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -54,7 +54,6 @@ func SQLShortTermRetentionPolicy() *schema.Schema {
 				"retention_days": {
 					Type:     schema.TypeInt,
 					Optional: true,
-					// ValidateFunc: validation.IntBetween(0, 1000),
 					ValidateFunc: validation.IntInSlice([]int{
 						7,
 						14,
@@ -101,7 +100,25 @@ func ExpandSQLLongTermRetentionPolicyProperties(input []interface{}) *sql.LongTe
 	return &LongTermRetentionPolicyProperties
 }
 
-func FlattenSQLLongTermRetentionPolicyProperties(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy) []interface{} {
+func ExpandSQLShortTermRetentionPolicyProperties(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
+	ShortTermRetentionPolicyProperties := sql.BackupShortTermRetentionPolicyProperties{
+		RetentionDays: utils.Int32(1),
+	}
+
+	if len(input) == 0 {
+		return &ShortTermRetentionPolicyProperties
+	}
+
+	shortTermPolicies := input[0].(map[string]interface{})
+
+	if v, ok := shortTermPolicies["retention_days"]; ok {
+		ShortTermRetentionPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
+	}
+
+	return &ShortTermRetentionPolicyProperties
+}
+
+func FlattenSQLLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy) []interface{} {
 	if longTermRetentionPolicy == nil || longTermRetentionPolicy.LongTermRetentionPolicyProperties == nil {
 		return []interface{}{}
 	}
@@ -134,24 +151,6 @@ func FlattenSQLLongTermRetentionPolicyProperties(longTermRetentionPolicy *sql.Ba
 			"week_of_year":      weekOfYear,
 		},
 	}
-}
-
-func ExpandSQLShortTermRetentionPolicyProperties(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
-	ShortTermRetentionPolicyProperties := sql.BackupShortTermRetentionPolicyProperties{
-		RetentionDays: utils.Int32(1),
-	}
-
-	if len(input) == 0 {
-		return &ShortTermRetentionPolicyProperties
-	}
-
-	shortTermPolicies := input[0].(map[string]interface{})
-
-	if v, ok := shortTermPolicies["retention_days"]; ok {
-		ShortTermRetentionPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
-	}
-
-	return &ShortTermRetentionPolicyProperties
 }
 
 func FlattenSQLShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy) []interface{} {
