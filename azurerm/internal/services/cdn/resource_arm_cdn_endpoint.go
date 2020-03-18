@@ -207,9 +207,9 @@ func resourceArmCdnEndpoint() *schema.Resource {
 }
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.EndpointsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
+	endpointCreateCtx, endpointCreateCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer endpointCreateCancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
 
@@ -218,7 +218,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	profileName := d.Get("profile_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, profileName, name)
+		existing, err := endpointsClient.Get(endpointCreateCtx, resourceGroup, profileName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
@@ -247,11 +247,6 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
 	}
 
-	deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(d)
-	if err != nil {
-		return fmt.Errorf("Error expanding `delivery_policy`: %s", err)
-	}
-
 	endpoint := cdn.Endpoint{
 		Location: &location,
 		EndpointProperties: &cdn.EndpointProperties{
@@ -262,7 +257,6 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			IsCompressionEnabled:       &compressionEnabled,
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
-			DeliveryPolicy:             deliveryPolicy,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -285,16 +279,40 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		endpoint.EndpointProperties.Origins = &origins
 	}
 
-	future, err := client.Create(ctx, resourceGroup, profileName, name, endpoint)
+	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
+	profileGetCtx, profileGetCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer profileGetCancel()
+
+	profile, err := profilesClient.Get(profileGetCtx, resourceGroup, profileName)
+	if err != nil {
+		return fmt.Errorf("Error creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+	}
+
+	if profile.Sku != nil {
+		deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `global_delivery_rule` or `delivery_rule`: %s", err)
+		}
+
+		if profile.Sku.Name == cdn.StandardMicrosoft {
+			endpoint.DeliveryPolicy = deliveryPolicy
+		} else {
+			if len(*deliveryPolicy.Rules) > 0 {
+				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Microsoft_Standard` sku is used. Profile sku:  %s", profile.Sku.Name)
+			}
+		}
+	}
+
+	future, err := endpointsClient.Create(endpointCreateCtx, resourceGroup, profileName, name, endpoint)
 	if err != nil {
 		return fmt.Errorf("Error creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(endpointCreateCtx, endpointsClient.Client); err != nil {
 		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, profileName, name)
+	read, err := endpointsClient.Get(endpointCreateCtx, resourceGroup, profileName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
@@ -330,11 +348,6 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
 	}
 
-	deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(d)
-	if err != nil {
-		return fmt.Errorf("Error expanding `delivery_rule`: %s", err)
-	}
-
 	endpoint := cdn.EndpointUpdateParameters{
 		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
 			ContentTypesToCompress:     &contentTypes,
@@ -344,7 +357,6 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			IsCompressionEnabled:       utils.Bool(compressionEnabled),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(hostHeader),
-			DeliveryPolicy:             deliveryPolicy,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -357,6 +369,30 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	if probePath != "" {
 		endpoint.EndpointPropertiesUpdateParameters.ProbePath = utils.String(probePath)
+	}
+
+	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
+	profileGetCtx, profileGetCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer profileGetCancel()
+
+	profile, err := profilesClient.Get(profileGetCtx, id.ResourceGroup, id.ProfileName)
+	if err != nil {
+		return fmt.Errorf("Error creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
+	}
+
+	if profile.Sku != nil {
+		deliveryPolicy, err := expandArmCdnEndpointDeliveryPolicy(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `global_delivery_rule` or `delivery_rule`: %s", err)
+		}
+
+		if profile.Sku.Name == cdn.StandardMicrosoft {
+			endpoint.DeliveryPolicy = deliveryPolicy
+		} else {
+			if len(*deliveryPolicy.Rules) > 0 {
+				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Microsoft_Standard` sku is used. Profile sku: %s", profile.Sku.Name)
+			}
+		}
 	}
 
 	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
