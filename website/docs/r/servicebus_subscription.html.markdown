@@ -69,7 +69,7 @@ The following arguments are supported:
     [TimeSpan](#timespan-format) format.
 
 * `default_message_ttl` - (Optional) The TTL of messages sent to this Subscription
-    if no TTL value is set on the message itself. Provided in the ISO8601 [TimeSpan](#timespan-format)
+    in ISO8601 format, if no TTL value is set on the message itself.
     format.
 
 * `lock_duration` - (Optional) The lock duration for the subscription, maximum
