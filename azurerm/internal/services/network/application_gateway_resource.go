@@ -1434,9 +1434,8 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
 	}
 
-	if res, ok := d.GetOk("firewall_policy_id"); ok {
-		vs := res.([]interface{})
-		id := vs[0].(string)
+	if v, ok := d.GetOk("firewall_policy_id"); ok {
+		id := v.(string)
 		gateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
 			ID: &id,
 		}
@@ -1621,8 +1620,8 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
 		}
 
-		if setErr := d.Set("firewall_policy_id", flattenApplicationGatewayFirewallPolicy(props.FirewallPolicy)); setErr != nil {
-			return fmt.Errorf("Error setting `firewall_policy_id`: %+v", setErr)
+		if props.FirewallPolicy != nil {
+			d.Set("firewall_policy_id", props.FirewallPolicy.ID)
 		}
 	}
 
@@ -3624,16 +3623,6 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	results = append(results, output)
 
 	return results
-}
-
-func flattenApplicationGatewayFirewallPolicy(input *network.SubResource) string {
-	output := ""
-
-	if input.ID != nil {
-		output = *input.ID
-	}
-
-	return output
 }
 
 func expandApplicationGatewayFirewallDisabledRuleGroup(d []interface{}) *[]network.ApplicationGatewayFirewallDisabledRuleGroup {
