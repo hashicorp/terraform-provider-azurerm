@@ -20,7 +20,7 @@ type MsSqlServerId struct {
 func MsSqlDatabaseID(input string) (*MsSqlDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse MsSql Database ID %q: %+v", input, err)
+		return nil, fmt.Errorf("Unable to parse MsSql Database ID %q: %+v", input, err)
 	}
 
 	database := MsSqlDatabaseId{
@@ -45,7 +45,7 @@ func MsSqlDatabaseID(input string) (*MsSqlDatabaseId, error) {
 func MsSqlServerID(input string) (*MsSqlServerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse MsSql Server ID %q: %+v", input, err)
+		return nil, fmt.Errorf("Unable to parse MsSql Server ID %q: %+v", input, err)
 	}
 
 	server := MsSqlServerId{
@@ -66,7 +66,7 @@ func MsSqlServerID(input string) (*MsSqlServerId, error) {
 func ParseArmMSSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
 	id, err := azure.ParseAzureResourceID(sqlElasticPoolId)
 	if err != nil {
-		return "", "", "", fmt.Errorf("[ERROR] Unable to parse SQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
+		return "", "", "", fmt.Errorf("Unable to parse SQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
 	}
 
 	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil

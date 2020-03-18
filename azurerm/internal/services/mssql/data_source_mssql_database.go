@@ -95,10 +95,10 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Database %q (Resource Group %q, SQL Server %q) was not found", name, serverId.ResourceGroup, serverId.Name)
+			return fmt.Errorf("Database %q (Resource Group %q, SQL Server %q) was not found", name, serverId.ResourceGroup, serverId.Name)
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Database %s (Resource Group %q, SQL Server %q): %+v", name, serverId.ResourceGroup, serverId.Name, err)
+		return fmt.Errorf("Failure in making Read request on AzureRM Database %s (Resource Group %q, SQL Server %q): %+v", name, serverId.ResourceGroup, serverId.Name, err)
 	}
 
 	if id := resp.ID; id != nil {
