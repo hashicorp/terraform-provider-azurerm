@@ -100,9 +100,11 @@ The `geo_filter` block supports:
 
 * `country_codes` - (Required) A List of two letter country codes (e.g. `US`, `GB`) to be associated with this Geo Filter.
 
-* `global_delivery_rule` - (Optional) A `global_delivery_rule` block as defined below.
+-> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
 
-* `delivery_rule` - (Optional) A `delivery_rule` blocks as defined below.
+* `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
+
+* `delivery_rule` - (Optional) Rules for the rules engine. An endpoint can contain up until 4 of those rules that consist of conditions and actions. A `delivery_rule` blocks as defined below.
 
 ---
 
