@@ -2,8 +2,8 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_powerbi_embedded` [GH-5152]
 * **New Data Source:** `azurerm_app_configuration` [GH-6133]
+* **New Data Source:** `azurerm_powerbi_embedded` [GH-5152]
 * **New Resource:** `azurerm_cost_management_export_resource_group` [GH-6131]
 * **New Resource:** `azurerm_powerbi_embedded` [GH-5152]
 * **New Resource:** `azurerm_virtual_hub_connection` [GH-5951]
