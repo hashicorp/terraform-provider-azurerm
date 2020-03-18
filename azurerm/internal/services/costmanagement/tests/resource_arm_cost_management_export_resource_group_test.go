@@ -54,6 +54,13 @@ func TestAccAzureRMCostManagementExportResourceGroup_update(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				Config: testAccAzureRMCostManagementExportResourceGroup_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCostManagementExportResourceGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -121,7 +128,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cmerg-%d"
+  name     = "acctestRG-cm-%d"
   location = "%s"
 }
 
@@ -162,7 +169,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cmerg-%d"
+  name     = "acctestRG-cm-%d"
   location = "%s"
 }
 

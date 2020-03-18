@@ -169,17 +169,16 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 	if v := d.Get("active"); !v.(bool) {
 		status = costmanagement.Inactive
 	}
-	schedule := &costmanagement.ExportSchedule{
-		Recurrence: costmanagement.RecurrenceType(d.Get("recurrence_type").(string)),
-		RecurrencePeriod: &costmanagement.ExportRecurrencePeriod{
-			From: &date.Time{Time: from},
-			To:   &date.Time{Time: to},
-		},
-		Status: status,
-	}
 
 	properties := &costmanagement.ExportProperties{
-		Schedule:     schedule,
+		Schedule: &costmanagement.ExportSchedule{
+			Recurrence: costmanagement.RecurrenceType(d.Get("recurrence_type").(string)),
+			RecurrencePeriod: &costmanagement.ExportRecurrencePeriod{
+				From: &date.Time{Time: from},
+				To:   &date.Time{Time: to},
+			},
+			Status: status,
+		},
 		DeliveryInfo: expandExportDeliveryInfo(d.Get("delivery_info").([]interface{})),
 		Format:       costmanagement.Csv,
 		Definition:   expandExportQuery(d.Get("query").([]interface{})),
@@ -204,7 +203,7 @@ func resourceArmCostManagementExportResourceGroupCreateUpdate(d *schema.Resource
 
 	id := *resp.ID
 	// The ID is missing the prefix `/` which causes our uri parse to fail
-	if !strings.HasPrefix(*resp.ID, "/") {
+	if !strings.HasPrefix(id, "/") {
 		id = fmt.Sprintf("/%s", id)
 	}
 
