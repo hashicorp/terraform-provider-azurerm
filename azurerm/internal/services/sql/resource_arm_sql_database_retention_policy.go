@@ -32,12 +32,8 @@ func resourceArmSQLServerLongTermRetentionPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"backup_long_term_retention_policy": helper.SqlLongTermRententionPolicy(),
-			"backup_short_term_retention_policy": { // do a block?
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+			"backup_long_term_retention_policy":  helper.SQLLongTermRententionPolicy(),
+			"backup_short_term_retention_policy": helper.SQLShortTermRetentionPolicy(),
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,

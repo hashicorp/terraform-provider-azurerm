@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func SqlLongTermRententionPolicy() *schema.Schema {
+func SQLLongTermRententionPolicy() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -33,6 +33,24 @@ func SqlLongTermRententionPolicy() *schema.Schema {
 				},
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 				"week_of_year": {
+					Type:         schema.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(0, 1000),
+				},
+			},
+		},
+	}
+}
+
+func SQLShortTermRetentionPolicy() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				// RetentionDays - The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
+				"retention_days": {
 					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 1000),
