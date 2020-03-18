@@ -37,7 +37,9 @@ output "id" {
 
 * `location` - The Azure location where the resource exists.
 
-* `destination_account` - One or more `destination_account` block defined below.
+* `destination_managed_disk` - One or more `destination_managed_disk` block defined below.
+
+* `destination_storage_account` - One or more `destination_storage_account` block defined below.
 
 * `device_password` - The device password for unlocking DataBox Heavy.
 
@@ -47,13 +49,17 @@ output "id" {
 
 ---
 
-A `destination_account` block exports the following:
+A `destination_managed_disk` block exports the following:
 
-* `type` -The destination account type.
+* `resource_group_id` - The destination Resource Group Id where the Compute disks should be created.
 
-* `managed_disk_resource_group_id` - The destination Resource Group Id where the Compute disks should be created.
+* `staging_storage_account_id` - The Id of the storage account that can be used to copy the vhd for staging.
 
-* `managed_disk_staging_storage_account_id` - The Id of the storage account that can be used to copy the vhd for staging.
+* `share_password` - The share password to be shared by all shares in SA.
+
+---
+
+A `destination_storage_account` block exports the following:
 
 * `share_password` - The share password to be shared by all shares in SA.
 

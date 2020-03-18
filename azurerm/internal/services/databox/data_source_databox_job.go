@@ -32,16 +32,16 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"destination_account": {
+			"destination_managed_disk": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"managed_disk_resource_group_id": {
+						"resource_group_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"managed_disk_staging_storage_account_id": {
+						"staging_storage_account_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -49,11 +49,20 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"storage_account_id": {
+					},
+				},
+			},
+
+			"destination_storage_account": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"share_password": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"type": {
+						"storage_account_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -104,18 +113,30 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 			if v, ok := details.AsJobDetailsType(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("setting `destination_account`: %+v", err)
+				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
+				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
+					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
+				}
+				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
+					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
 			} else if v, ok := details.AsDiskJobDetails(); ok && v != nil {
-				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("setting `destination_account`: %+v", err)
+				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
+				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
+					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
+				}
+				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
+					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
 			} else if v, ok := details.AsHeavyJobDetails(); ok && v != nil {
 				d.Set("device_password", v.DevicePassword)
 
-				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("setting `destination_account`: %+v", err)
+				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
+				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
+					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
+				}
+				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
+					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
 			}
 		}

@@ -28,8 +28,7 @@ resource "azurerm_databox_job" "example" {
     phone_number = "+112345678912"
   }
 
-  destination_account {
-    type               = "StorageAccount"
+  destination_storage_account {
     storage_account_id = azurerm_storage_account.example.id
   }
 

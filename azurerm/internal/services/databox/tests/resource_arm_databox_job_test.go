@@ -105,7 +105,7 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.company_name", "Microsoft"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_2", "17 TOWNSEND ST"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_3", "18 TOWNSEND ST"),
-					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.zip_code_extension", "94107"),
+					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.postal_code_plus_four", "94107"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TEST"),
 				),
 			},
@@ -132,11 +132,30 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.company_name", "Intel"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_2", "6902 SUN STREET"),
 					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.street_address_3", "6903 SUN STREET"),
-					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.zip_code_extension", "92111"),
+					resource.TestCheckResourceAttr(data.ResourceName, "shipping_address.0.postal_code_plus_four", "92111"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TEST2"),
 				),
 			},
 			data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
+		},
+	})
+}
+
+func TestAccAzureRMDataBoxJob_withCustomerManaged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databox_job", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataBoxJob_withCustomerManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataBoxJobExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -209,8 +228,7 @@ resource "azurerm_databox_job" "test" {
     phone_number = "+11234567891"
   }
 
-  destination_account {
-    type               = "StorageAccount"
+  destination_storage_account {
     storage_account_id = azurerm_storage_account.test.id
   }
 
@@ -244,8 +262,7 @@ resource "azurerm_databox_job" "import" {
     phone_number = "+11234567891"
   }
 
-  destination_account {
-    type               = "StorageAccount"
+  destination_storage_account {
     storage_account_id = azurerm_storage_account.test.id
   }
 
@@ -302,29 +319,27 @@ resource "azurerm_databox_job" "test" {
     phone_extension = "123"
   }
 
-  destination_account {
-    type               = "StorageAccount"
+  destination_storage_account {
     storage_account_id = azurerm_storage_account.test2.id
     share_password     = "fddbc123123aa@"
   }
 
-  destination_account {
-    type                                    = "ManagedDisk"
-    managed_disk_resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
-    managed_disk_staging_storage_account_id = azurerm_storage_account.test.id
+  destination_managed_disk {
+    resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
+    staging_storage_account_id = azurerm_storage_account.test.id
   }
 
   shipping_address {
-    city               = "San Francisco"
-    country            = "US"
-    postal_code        = "94107"
-    state_or_province  = "CA"
-    street_address_1   = "16 TOWNSEND ST"
-    address_type       = "Commercial"
-    company_name       = "Microsoft"
-    street_address_2   = "17 TOWNSEND ST"
-    street_address_3   = "18 TOWNSEND ST"
-    zip_code_extension = "94107"
+    city                  = "San Francisco"
+    country               = "US"
+    postal_code           = "94107"
+    state_or_province     = "CA"
+    street_address_1      = "16 TOWNSEND ST"
+    address_type          = "Commercial"
+    company_name          = "Microsoft"
+    street_address_2      = "17 TOWNSEND ST"
+    street_address_3      = "18 TOWNSEND ST"
+    postal_code_plus_four = "94107"
   }
 
   expected_data_size_in_tb = 5
@@ -385,29 +400,27 @@ resource "azurerm_databox_job" "test" {
     phone_extension = "124"
   }
 
-  destination_account {
-    type               = "StorageAccount"
+  destination_storage_account {
     storage_account_id = azurerm_storage_account.test2.id
     share_password     = "fddbc123123aa@"
   }
 
-  destination_account {
-    type                                    = "ManagedDisk"
-    managed_disk_resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
-    managed_disk_staging_storage_account_id = azurerm_storage_account.test.id
+  destination_managed_disk {
+    resource_group_id          = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/TestManagedRG%s"
+    staging_storage_account_id = azurerm_storage_account.test.id
   }
 
   shipping_address {
-    city               = "San Diego"
-    country            = "US"
-    postal_code        = "92111"
-    state_or_province  = "CA"
-    street_address_1   = "6901 SUN STREET"
-    address_type       = "Residential"
-    company_name       = "Intel"
-    street_address_2   = "6902 SUN STREET"
-    street_address_3   = "6903 SUN STREET"
-    zip_code_extension = "92111"
+    city                  = "San Diego"
+    country               = "US"
+    postal_code           = "92111"
+    state_or_province     = "CA"
+    street_address_1      = "6901 SUN STREET"
+    address_type          = "Residential"
+    company_name          = "Intel"
+    street_address_2      = "6902 SUN STREET"
+    street_address_3      = "6903 SUN STREET"
+    postal_code_plus_four = "92111"
   }
 
   expected_data_size_in_tb = 5
@@ -428,6 +441,42 @@ resource "azurerm_databox_job" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMDataBoxJob_withCustomerManaged(data acceptance.TestData) string {
+	template := testAccAzureRMDataBoxJob_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_databox_job" "test" {
+  name                = "acctest-DataBox-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  contact_details {
+    name         = "DataBoxJobTester"
+    emails       = ["some.user@example.com"]
+    phone_number = "+11234567891"
+  }
+
+  destination_storage_account {
+    storage_account_id = azurerm_storage_account.test.id
+  }
+
+  shipping_address {
+    city              = "San Francisco"
+    country           = "US"
+    postal_code       = "94107"
+    state_or_province = "CA"
+    street_address_1  = "16 TOWNSEND ST"
+  }
+
+  preferred_shipment_type      = "CustomerManaged"
+  delivery_scheduled_date_time = "2020-04-01T05:30:00+05:30"
+
+  sku_name = "DataBox"
+}
+`, template, data.RandomString)
 }
 
 func testAccAzureRMDataBoxJob_template(data acceptance.TestData) string {

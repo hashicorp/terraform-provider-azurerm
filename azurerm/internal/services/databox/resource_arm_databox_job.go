@@ -1,12 +1,14 @@
 package databox
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/databox/mgmt/2019-09-01/databox"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -193,21 +195,14 @@ func resourceArmDataBoxJob() *schema.Resource {
 				}, false),
 			},
 
-			"destination_account": {
+			"destination_managed_disk": {
 				Type:     schema.TypeSet,
-				Required: true,
-				MaxItems: 10,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"managed_disk_resource_group_id": {
+						"resource_group_id": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-						"managed_disk_staging_storage_account_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
@@ -218,20 +213,33 @@ func resourceArmDataBoxJob() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"storage_account_id": {
+						"staging_storage_account_id": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(databox.DataDestinationTypeStorageAccount),
-								string(databox.DataDestinationTypeManagedDisk),
-							}, false),
+					},
+				},
+			},
+
+			"destination_storage_account": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"share_password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"storage_account_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -299,7 +307,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.DataBoxJobPostCode,
 						},
-						"zip_code_extension": {
+						"postal_code_plus_four": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.DataBoxJobPostCode,
@@ -367,7 +375,8 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	contactDetails := d.Get("contact_details").([]interface{})
 	deliveryType := d.Get("delivery_type").(string)
-	destinationAccount := d.Get("destination_account").(*schema.Set).List()
+	destinationManagedDisk := d.Get("destination_managed_disk").(*schema.Set).List()
+	destinationStorageAccount := d.Get("destination_storage_account").(*schema.Set).List()
 	devicePassword := d.Get("device_password").(string)
 	diskPassKey := d.Get("databox_disk_passkey").(string)
 	databoxPreferredDisk := d.Get("databox_preferred_disk").([]interface{})
@@ -400,11 +409,16 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	destinationAccountCount := len(destinationManagedDisk) + len(destinationStorageAccount)
+	if destinationAccountCount == 0 || destinationAccountCount > 10 {
+		return fmt.Errorf("`destination_managed_disk` and `destination_storage_account` must be between 1 and 10 (inclusive)")
+	}
+
 	switch skuName {
 	case string(databox.DataBox):
 		parameters.JobProperties.Details = &databox.JobDetailsType{
 			ContactDetails:              expandArmDataBoxJobContactDetails(contactDetails),
-			DestinationAccountDetails:   expandArmDataBoxJobDestinationAccount(destinationAccount),
+			DestinationAccountDetails:   expandArmDataBoxJobDestinationAccount(destinationManagedDisk, destinationStorageAccount),
 			DevicePassword:              utils.String(devicePassword),
 			ExpectedDataSizeInTerabytes: expectedDataSizeInTB,
 			Preferences: &databox.Preferences{
@@ -418,7 +432,7 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	case string(databox.DataBoxDisk):
 		parameters.JobProperties.Details = &databox.DiskJobDetails{
 			ContactDetails:              expandArmDataBoxJobContactDetails(contactDetails),
-			DestinationAccountDetails:   expandArmDataBoxJobDestinationAccount(destinationAccount),
+			DestinationAccountDetails:   expandArmDataBoxJobDestinationAccount(destinationManagedDisk, destinationStorageAccount),
 			ExpectedDataSizeInTerabytes: expectedDataSizeInTB,
 			Passkey:                     utils.String(diskPassKey),
 			Preferences: &databox.Preferences{
@@ -434,7 +448,7 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 		parameters.JobProperties.Details = &databox.HeavyJobDetails{
 			ContactDetails:              expandArmDataBoxJobContactDetails(contactDetails),
 			DevicePassword:              utils.String(devicePassword),
-			DestinationAccountDetails:   expandArmDataBoxJobDestinationAccount(destinationAccount),
+			DestinationAccountDetails:   expandArmDataBoxJobDestinationAccount(destinationManagedDisk, destinationStorageAccount),
 			ExpectedDataSizeInTerabytes: expectedDataSizeInTB,
 			Preferences: &databox.Preferences{
 				TransportPreferences: &databox.TransportPreferences{
@@ -506,8 +520,12 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("setting `contact_details`: %+v", err)
 				}
-				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("setting `destination_account`: %+v", err)
+				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
+				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
+					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
+				}
+				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
+					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
 				if v.Preferences != nil {
 					if v.Preferences.TransportPreferences != nil {
@@ -529,8 +547,12 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("setting `contact_details`: %+v", err)
 				}
-				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("setting `destination_account`: %+v", err)
+				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
+				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
+					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
+				}
+				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
+					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
 				if v.Preferences != nil {
 					if v.Preferences.TransportPreferences != nil {
@@ -551,8 +573,12 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("setting `contact_details`: %+v", err)
 				}
-				if err := d.Set("destination_account", flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)); err != nil {
-					return fmt.Errorf("setting `destination_account`: %+v", err)
+				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
+				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
+					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
+				}
+				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
+					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
 				if v.Preferences != nil {
 					if v.Preferences.TransportPreferences != nil {
@@ -653,32 +679,14 @@ func resourceArmDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("waiting for deleting DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	destinationAccount := d.Get("destination_account").(*schema.Set).List()
-	for _, item := range destinationAccount {
-		if item != nil {
-			v := item.(map[string]interface{})
-			dataDestinationType := v["type"].(string)
-			lockName := "DATABOX_SERVICE"
-			scope := ""
+	destinationManagedDisk := d.Get("destination_managed_disk").(*schema.Set).List()
+	if err := deleteManagementLock(ctx, lockClient, destinationManagedDisk, "ManagedDisk"); err != nil {
+		return fmt.Errorf("deleting Management Lock %+v", err)
+	}
 
-			switch dataDestinationType {
-			case string(databox.DataDestinationTypeStorageAccount):
-				scope = v["storage_account_id"].(string)
-			case string(databox.DataDestinationTypeManagedDisk):
-				scope = v["managed_disk_staging_storage_account_id"].(string)
-			}
-
-			if scope != "" {
-				resp, err := lockClient.DeleteByScope(ctx, scope, lockName)
-				if err != nil {
-					if utils.ResponseWasNotFound(resp) {
-						return nil
-					}
-
-					return fmt.Errorf("deleting Management Lock (Lock Name %q / Scope %q): %+v", lockName, scope, err)
-				}
-			}
-		}
+	destinationStorageAccount := d.Get("destination_storage_account").(*schema.Set).List()
+	if err := deleteManagementLock(ctx, lockClient, destinationStorageAccount, "StorageAccount"); err != nil {
+		return fmt.Errorf("deleting Management Lock %+v", err)
 	}
 
 	return nil
@@ -697,7 +705,7 @@ func expandArmDataBoxJobShippingAddress(input []interface{}) *databox.ShippingAd
 		StreetAddress1:  utils.String(v["street_address_1"].(string)),
 		StreetAddress2:  utils.String(v["street_address_2"].(string)),
 		StreetAddress3:  utils.String(v["street_address_3"].(string)),
-		ZipExtendedCode: utils.String(v["zip_code_extension"].(string)),
+		ZipExtendedCode: utils.String(v["postal_code_plus_four"].(string)),
 	}
 }
 
@@ -714,30 +722,28 @@ func expandArmDataBoxJobContactDetails(input []interface{}) *databox.ContactDeta
 	}
 }
 
-func expandArmDataBoxJobDestinationAccount(input []interface{}) *[]databox.BasicDestinationAccountDetails {
+func expandArmDataBoxJobDestinationAccount(destinationManagedDisk []interface{}, destinationStorageAccount []interface{}) *[]databox.BasicDestinationAccountDetails {
 	results := make([]databox.BasicDestinationAccountDetails, 0)
-	for _, item := range input {
+	for _, item := range destinationManagedDisk {
 		if item != nil {
 			v := item.(map[string]interface{})
-			dataDestinationType := v["type"].(string)
+			results = append(results, &databox.DestinationManagedDiskDetails{
+				DataDestinationType:     databox.DataDestinationTypeManagedDisk,
+				ResourceGroupID:         utils.String(v["resource_group_id"].(string)),
+				SharePassword:           utils.String(v["share_password"].(string)),
+				StagingStorageAccountID: utils.String(v["staging_storage_account_id"].(string)),
+			})
+		}
+	}
 
-			switch dataDestinationType {
-			case string(databox.DataDestinationTypeStorageAccount):
-				result := &databox.DestinationStorageAccountDetails{
-					DataDestinationType: databox.DataDestinationTypeBasicDestinationAccountDetails(dataDestinationType),
-					SharePassword:       utils.String(v["share_password"].(string)),
-					StorageAccountID:    utils.String(v["storage_account_id"].(string)),
-				}
-				results = append(results, result)
-			case string(databox.DataDestinationTypeManagedDisk):
-				result := &databox.DestinationManagedDiskDetails{
-					DataDestinationType:     databox.DataDestinationTypeBasicDestinationAccountDetails(dataDestinationType),
-					ResourceGroupID:         utils.String(v["managed_disk_resource_group_id"].(string)),
-					SharePassword:           utils.String(v["share_password"].(string)),
-					StagingStorageAccountID: utils.String(v["managed_disk_staging_storage_account_id"].(string)),
-				}
-				results = append(results, result)
-			}
+	for _, item := range destinationStorageAccount {
+		if item != nil {
+			v := item.(map[string]interface{})
+			results = append(results, &databox.DestinationStorageAccountDetails{
+				DataDestinationType: databox.DataDestinationTypeStorageAccount,
+				SharePassword:       utils.String(v["share_password"].(string)),
+				StorageAccountID:    utils.String(v["storage_account_id"].(string)),
+			})
 		}
 	}
 
@@ -855,50 +861,31 @@ func flattenArmDataBoxJobShippingAddress(input *databox.ShippingAddress) []inter
 	}
 
 	results = append(results, map[string]interface{}{
-		"address_type":       input.AddressType,
-		"city":               city,
-		"company_name":       companyName,
-		"country":            country,
-		"postal_code":        postalCode,
-		"state_or_province":  stateOrProvince,
-		"street_address_1":   streetAddress1,
-		"street_address_2":   streetAddress2,
-		"street_address_3":   streetAddress3,
-		"zip_code_extension": postalCodeExt,
+		"address_type":          input.AddressType,
+		"city":                  city,
+		"company_name":          companyName,
+		"country":               country,
+		"postal_code":           postalCode,
+		"state_or_province":     stateOrProvince,
+		"street_address_1":      streetAddress1,
+		"street_address_2":      streetAddress2,
+		"street_address_3":      streetAddress3,
+		"postal_code_plus_four": postalCodeExt,
 	})
 
 	return results
 }
 
-func flattenArmDataBoxJobDestinationAccount(input *[]databox.BasicDestinationAccountDetails) []interface{} {
-	results := make([]interface{}, 0)
+func flattenArmDataBoxJobDestinationAccount(input *[]databox.BasicDestinationAccountDetails) ([]interface{}, []interface{}) {
+	destinationManagedDisk := make([]interface{}, 0)
+	destinationStorageAccount := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return destinationManagedDisk, destinationStorageAccount
 	}
 
 	for _, item := range *input {
 		if item != nil {
-			if v, ok := item.AsDestinationStorageAccountDetails(); ok && v != nil {
-				dataDestinationType := v.DataDestinationType
-
-				sharePassword := ""
-				if v.SharePassword != nil {
-					sharePassword = *v.SharePassword
-				}
-
-				storageAccountID := ""
-				if v.StorageAccountID != nil {
-					storageAccountID = *v.StorageAccountID
-				}
-
-				results = append(results, map[string]interface{}{
-					"type":               dataDestinationType,
-					"share_password":     sharePassword,
-					"storage_account_id": storageAccountID,
-				})
-			} else if v, ok := item.AsDestinationManagedDiskDetails(); ok && v != nil {
-				dataDestinationType := v.DataDestinationType
-
+			if v, ok := item.AsDestinationManagedDiskDetails(); ok && v != nil {
 				resourceGroupID := ""
 				if v.ResourceGroupID != nil {
 					resourceGroupID = *v.ResourceGroupID
@@ -914,17 +901,31 @@ func flattenArmDataBoxJobDestinationAccount(input *[]databox.BasicDestinationAcc
 					stagingStorageAccountID = *v.StagingStorageAccountID
 				}
 
-				results = append(results, map[string]interface{}{
-					"type":                           dataDestinationType,
-					"managed_disk_resource_group_id": resourceGroupID,
-					"share_password":                 sharePassword,
-					"managed_disk_staging_storage_account_id": stagingStorageAccountID,
+				destinationManagedDisk = append(destinationManagedDisk, map[string]interface{}{
+					"resource_group_id":          resourceGroupID,
+					"share_password":             sharePassword,
+					"staging_storage_account_id": stagingStorageAccountID,
+				})
+			} else if v, ok := item.AsDestinationStorageAccountDetails(); ok && v != nil {
+				sharePassword := ""
+				if v.SharePassword != nil {
+					sharePassword = *v.SharePassword
+				}
+
+				storageAccountID := ""
+				if v.StorageAccountID != nil {
+					storageAccountID = *v.StorageAccountID
+				}
+
+				destinationStorageAccount = append(destinationStorageAccount, map[string]interface{}{
+					"share_password":     sharePassword,
+					"storage_account_id": storageAccountID,
 				})
 			}
 		}
 	}
 
-	return results
+	return destinationManagedDisk, destinationStorageAccount
 }
 
 func flattenArmDataBoxJobContactDetails(input *databox.ContactDetails) []interface{} {
@@ -1029,4 +1030,38 @@ func flattenArmDataBoxJobPreferredDisk(input map[string]*int32) []interface{} {
 	results = append(results, result)
 
 	return results
+}
+
+func deleteManagementLock(ctx context.Context, lockClient *locks.ManagementLocksClient, input []interface{}, destinationType string) error {
+	if len(input) == 0 {
+		return nil
+	}
+
+	for _, item := range input {
+		if item != nil {
+			v := item.(map[string]interface{})
+			lockName := "DATABOX_SERVICE"
+			scope := ""
+
+			switch destinationType {
+			case string(databox.DataDestinationTypeStorageAccount):
+				scope = v["storage_account_id"].(string)
+			case string(databox.DataDestinationTypeManagedDisk):
+				scope = v["staging_storage_account_id"].(string)
+			}
+
+			if scope != "" {
+				resp, err := lockClient.DeleteByScope(ctx, scope, lockName)
+				if err != nil {
+					if utils.ResponseWasNotFound(resp) {
+						return nil
+					}
+
+					return fmt.Errorf("(Lock Name %q / Scope %q): %+v", lockName, scope, err)
+				}
+			}
+		}
+	}
+
+	return nil
 }

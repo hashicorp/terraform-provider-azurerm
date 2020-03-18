@@ -74,8 +74,6 @@ The following arguments are supported:
 
 * `contact_details` - (Required) One or more `contact_details` block defined below.
 
-* `destination_account` - (Required) One or more `destination_account` block defined below.
-
 * `preferred_shipment_type` - (Required) Specified shipment logistics type that the customer preferred. Possible values include: `CustomerManaged` and `MicrosoftManaged`. Changing this forces a new resource to be created.
 
 * `shipping_address` - (Required) One or more `shipping_address` block defined below.
@@ -91,6 +89,10 @@ The following arguments are supported:
 * `delivery_scheduled_date_time` - (Optional) Specified the delivery scheduled date time. Changing this forces a new resource to be created.
 
 * `delivery_type` - (Optional) Specified the delivery type of Job. Possible values include: `NonScheduled` and `Scheduled`. Changing this forces a new resource to be created.
+
+* `destination_managed_disk` - (Optional) One or more `destination_managed_disk` block defined below.
+
+* `destination_storage_account` - (Optional) One or more `destination_storage_account` block defined below.
 
 * `device_password` - (Optional) Specified the device password for unlocking DataBox Heavy. Changing this forces a new resource to be created.
 
@@ -140,17 +142,21 @@ An `notification_preference` block supports the following:
 
 ---
 
-An `destination_account` block supports the following:
+An `destination_managed_disk` block supports the following:
 
-* `type` - (Required) Specified the destination account type. Possible values include: `DataDestinationTypeManagedDisk`, `DataDestinationTypeStorageAccount`. Changing this forces a new resource to be created.
+* `resource_group_id` - (Required) Specified the destination Resource Group Id where the Compute disks should be created. Changing this forces a new resource to be created.
 
-* `managed_disk_resource_group_id` - (Optional) Specified the destination Resource Group Id where the Compute disks should be created. Changing this forces a new resource to be created.
+* `staging_storage_account_id` - (Required) Specified arm id of the storage account that can be used to copy the vhd for staging. Changing this forces a new resource to be created.
 
 * `share_password` - (Optional) Specified the share password to be shared by all shares in SA. Changing this forces a new resource to be created.
 
-* `managed_disk_staging_storage_account_id` - (Optional) Specified arm id of the storage account that can be used to copy the vhd for staging. Changing this forces a new resource to be created.
+---
 
-* `storage_account_id` - (Optional) Specified arm id of the destination where the data has to be moved. Changing this forces a new resource to be created.
+An `destination_storage_account` block supports the following:
+
+* `storage_account_id` - (Required) Specified arm id of the destination where the data has to be moved. Changing this forces a new resource to be created.
+
+* `share_password` - (Optional) Specified the share password to be shared by all shares in SA. Changing this forces a new resource to be created.
 
 ---
 
@@ -174,7 +180,7 @@ An `shipping_address` block supports the following:
 
 * `street_address_3` - (Optional) Specified the Street Address line 3.
 
-* `zip_code_extension` - (Optional) Specified the extended portal code.
+* `postal_code_plus_four` - (Optional) Specified the extended portal code.
 
 ---
 
