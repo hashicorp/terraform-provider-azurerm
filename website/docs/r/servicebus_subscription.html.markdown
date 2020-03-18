@@ -64,14 +64,11 @@ The following arguments are supported:
 
 * `max_delivery_count` - (Required) The maximum number of deliveries.
 
-* `auto_delete_on_idle` - (Optional) The idle interval after which the
-    Subscription is automatically deleted, minimum of 5 minutes. Provided in the ISO8601 format.
+* `auto_delete_on_idle` - (Optional) ISO 8061 timeSpan idle interval after which the topic is automatically deleted. The minimum duration is 5 minutes.
 
-* `default_message_ttl` - (Optional) The TTL of messages sent to this Subscription,
-    if no TTL value is set on the message itself. Provided in the ISO8601 format.
+* `default_message_ttl` - (Optional) ISO 8061 Default message timespan to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 
-* `lock_duration` - (Optional) The lock duration for the subscription, maximum
-    supported value is 5 minutes. Defaults to 1 minute. Provided in the ISO8601 format.
+* `lock_duration` - (Optional) ISO 8061 lock duration timespan for the subscription. The default value is 1 minute.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls
     whether the Subscription has dead letter support when a message expires. Defaults
