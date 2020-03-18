@@ -392,7 +392,7 @@ A `ssl_certificate` block supports the following:
 
 * `password` - (Optional) Password for the pfx file specified in data.  Required if `data` is set.
 
-* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need enable soft delete for keyvault to use this feature. Required if `data` is not set.
+* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
 
 ---
 
