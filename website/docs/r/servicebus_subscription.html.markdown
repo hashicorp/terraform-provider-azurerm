@@ -92,7 +92,7 @@ The following arguments are supported:
 
 ### TimeSpan Format
 
-Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. The supported format is documented [here](https://docs.microsoft.com/en-us/cli/azure/servicebus/topic/subscription?view=azure-cli-latest#az-servicebus-topic-subscription-update). Example value: "P3DT0H0M0.0S" (for 3days)
+Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. The supported format is documented [here](https://docs.microsoft.com/cli/azure/servicebus/topic/subscription?view=azure-cli-latest#az-servicebus-topic-subscription-update). Example value: "P3DT0H0M0.0S" (for 3days)
 
 ## Attributes Reference
 
