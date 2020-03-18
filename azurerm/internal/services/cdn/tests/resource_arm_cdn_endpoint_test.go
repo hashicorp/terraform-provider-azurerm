@@ -812,10 +812,10 @@ resource "azurerm_cdn_endpoint" "test" {
   }
 
   global_delivery_rule {
-	cache_expiration_action {
-	  behavior = "Override"
-	  duration = "5.04:44:23"
-	}
+    cache_expiration_action {
+      behavior = "Override"
+      duration = "5.04:44:23"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -855,16 +855,16 @@ resource "azurerm_cdn_endpoint" "test" {
   }
 
   global_delivery_rule {
-	cache_expiration_action {
-	  behavior = "SetIfMissing"
-	  duration = "12.04:11:22"
-	}
+    cache_expiration_action {
+      behavior = "SetIfMissing"
+      duration = "12.04:11:22"
+    }
 
-	modify_response_header_action {
-	  action = "Overwrite"
+    modify_response_header_action {
+      action = "Overwrite"
       name   = "Content-Type"
-	  value  = "application/json"
-	}
+      value  = "application/json"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -943,13 +943,13 @@ resource "azurerm_cdn_endpoint" "test" {
     name  = "http2https"
     order = 1
 
-	request_scheme_condition {
-	  match_values = ["HTTP"]
-	}
+    request_scheme_condition {
+      match_values = ["HTTP"]
+    }
 
     url_redirect_action {
       redirect_type = "Found"
-      protocol		= "Https"
+      protocol      = "Https"
     }
   }
 }
@@ -993,14 +993,14 @@ resource "azurerm_cdn_endpoint" "test" {
     name  = "http2https"
     order = 1
 
-	request_scheme_condition {
+    request_scheme_condition {
       negate_condition = true
-	  match_values 	   = ["HTTPS"]
-	}
+      match_values     = ["HTTPS"]
+    }
 
     url_redirect_action {
       redirect_type = "Found"
-      protocol		= "Https"
+      protocol      = "Https"
     }
   }
 }
@@ -1044,14 +1044,14 @@ resource "azurerm_cdn_endpoint" "test" {
     name  = "http2https"
     order = 1
 
-	request_scheme_condition {
+    request_scheme_condition {
       negate_condition = true
-	  match_values 	   = ["HTTPS"]
-	}
+      match_values     = ["HTTPS"]
+    }
 
     url_redirect_action {
       redirect_type = "Found"
-      protocol		= "Https"
+      protocol      = "Https"
     }
   }
 
@@ -1059,13 +1059,13 @@ resource "azurerm_cdn_endpoint" "test" {
     name  = "test"
     order = 2
 
-	device_condition {
-	  match_values = ["Mobile"]
-	}
+    device_condition {
+      match_values = ["Mobile"]
+    }
 
     modify_response_header_action {
       action = "Delete"
-      name 	 = "Content-Language"
+      name   = "Content-Language"
     }
   }
 }
