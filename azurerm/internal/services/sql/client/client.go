@@ -17,6 +17,7 @@ type Client struct {
 	VirtualNetworkRulesClient                *sql.VirtualNetworkRulesClient
 	ExtendedServerBlobAuditingPoliciesClient *sql.ExtendedServerBlobAuditingPoliciesClient
 	BackupLongTermRetentionPoliciesClient    *v3sql.BackupLongTermRetentionPoliciesClient
+	BackupShortTermRetentionPoliciesClient   *v3sql.BackupShortTermRetentionPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -51,6 +52,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	BackupLongTermRetentionPoliciesClient := v3sql.NewBackupLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&BackupLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	BackupShortTermRetentionPoliciesClient := v3sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BackupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DatabasesClient:                          &DatabasesClient,
 		DatabaseThreatDetectionPoliciesClient:    &DatabaseThreatDetectionPoliciesClient,
@@ -62,5 +66,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		VirtualNetworkRulesClient:                &VirtualNetworkRulesClient,
 		ExtendedServerBlobAuditingPoliciesClient: &ExtendedServerBlobAuditingPoliciesClient,
 		BackupLongTermRetentionPoliciesClient:    &BackupLongTermRetentionPoliciesClient,
+		BackupShortTermRetentionPoliciesClient:   &BackupShortTermRetentionPoliciesClient,
 	}
 }
