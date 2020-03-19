@@ -35,7 +35,9 @@ func NewDomainRegistrationProviderClient(subscriptionID string) DomainRegistrati
 	return NewDomainRegistrationProviderClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDomainRegistrationProviderClientWithBaseURI creates an instance of the DomainRegistrationProviderClient client.
+// NewDomainRegistrationProviderClientWithBaseURI creates an instance of the DomainRegistrationProviderClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewDomainRegistrationProviderClientWithBaseURI(baseURI string, subscriptionID string) DomainRegistrationProviderClient {
 	return DomainRegistrationProviderClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -93,8 +95,7 @@ func (client DomainRegistrationProviderClient) ListOperationsPreparer(ctx contex
 // ListOperationsSender sends the ListOperations request. The method will close the
 // http.Response Body if it receives an error.
 func (client DomainRegistrationProviderClient) ListOperationsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListOperationsResponder handles the response to the ListOperations request. The method always

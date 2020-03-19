@@ -59,7 +59,7 @@ func resourceApplicationPassword() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringLenBetween(1, 863), // Encrypted secret cannot be empty and can be at most 1024 bytes.
 			},
 
 			"start_date": {
@@ -67,7 +67,7 @@ func resourceApplicationPassword() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"end_date": {
@@ -76,7 +76,7 @@ func resourceApplicationPassword() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"end_date_relative"},
-				ValidateFunc:  validation.ValidateRFC3339TimeString,
+				ValidateFunc:  validation.IsRFC3339Time,
 			},
 
 			"end_date_relative": {

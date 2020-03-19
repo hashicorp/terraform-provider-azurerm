@@ -38,7 +38,9 @@ func NewElasticPoolOperationsClient(subscriptionID string) ElasticPoolOperations
 	return NewElasticPoolOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewElasticPoolOperationsClientWithBaseURI creates an instance of the ElasticPoolOperationsClient client.
+// NewElasticPoolOperationsClientWithBaseURI creates an instance of the ElasticPoolOperationsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewElasticPoolOperationsClientWithBaseURI(baseURI string, subscriptionID string) ElasticPoolOperationsClient {
 	return ElasticPoolOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -107,8 +109,7 @@ func (client ElasticPoolOperationsClient) CancelPreparer(ctx context.Context, re
 // CancelSender sends the Cancel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ElasticPoolOperationsClient) CancelSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CancelResponder handles the response to the Cancel request. The method always
@@ -186,8 +187,7 @@ func (client ElasticPoolOperationsClient) ListByElasticPoolPreparer(ctx context.
 // ListByElasticPoolSender sends the ListByElasticPool request. The method will close the
 // http.Response Body if it receives an error.
 func (client ElasticPoolOperationsClient) ListByElasticPoolSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByElasticPoolResponder handles the response to the ListByElasticPool request. The method always

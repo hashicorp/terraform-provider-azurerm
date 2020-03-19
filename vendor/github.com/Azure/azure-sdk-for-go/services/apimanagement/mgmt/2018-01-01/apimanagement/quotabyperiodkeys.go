@@ -36,7 +36,9 @@ func NewQuotaByPeriodKeysClient(subscriptionID string) QuotaByPeriodKeysClient {
 	return NewQuotaByPeriodKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewQuotaByPeriodKeysClientWithBaseURI creates an instance of the QuotaByPeriodKeysClient client.
+// NewQuotaByPeriodKeysClientWithBaseURI creates an instance of the QuotaByPeriodKeysClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewQuotaByPeriodKeysClientWithBaseURI(baseURI string, subscriptionID string) QuotaByPeriodKeysClient {
 	return QuotaByPeriodKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

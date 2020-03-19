@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	analysisServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/client"
@@ -147,6 +148,8 @@ type Client struct {
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
 
 func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
+	autorest.Count429AsRetry = false
+
 	client.Features = o.Features
 	client.StopContext = ctx
 
