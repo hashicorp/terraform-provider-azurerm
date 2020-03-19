@@ -36,7 +36,9 @@ func NewDataLakeStoreAccountsClient(subscriptionID string) DataLakeStoreAccounts
 	return NewDataLakeStoreAccountsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDataLakeStoreAccountsClientWithBaseURI creates an instance of the DataLakeStoreAccountsClient client.
+// NewDataLakeStoreAccountsClientWithBaseURI creates an instance of the DataLakeStoreAccountsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewDataLakeStoreAccountsClientWithBaseURI(baseURI string, subscriptionID string) DataLakeStoreAccountsClient {
 	return DataLakeStoreAccountsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -109,8 +111,7 @@ func (client DataLakeStoreAccountsClient) AddPreparer(ctx context.Context, resou
 // AddSender sends the Add request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataLakeStoreAccountsClient) AddSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // AddResponder handles the response to the Add request. The method always
@@ -187,8 +188,7 @@ func (client DataLakeStoreAccountsClient) DeletePreparer(ctx context.Context, re
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataLakeStoreAccountsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -265,8 +265,7 @@ func (client DataLakeStoreAccountsClient) GetPreparer(ctx context.Context, resou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataLakeStoreAccountsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -382,8 +381,7 @@ func (client DataLakeStoreAccountsClient) ListByAccountPreparer(ctx context.Cont
 // ListByAccountSender sends the ListByAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataLakeStoreAccountsClient) ListByAccountSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAccountResponder handles the response to the ListByAccount request. The method always

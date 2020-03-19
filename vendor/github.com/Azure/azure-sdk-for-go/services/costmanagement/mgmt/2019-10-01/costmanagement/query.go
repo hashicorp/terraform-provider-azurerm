@@ -36,7 +36,8 @@ func NewQueryClient(subscriptionID string) QueryClient {
 	return NewQueryClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewQueryClientWithBaseURI creates an instance of the QueryClient client.
+// NewQueryClientWithBaseURI creates an instance of the QueryClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewQueryClientWithBaseURI(baseURI string, subscriptionID string) QueryClient {
 	return QueryClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -55,9 +56,11 @@ func NewQueryClientWithBaseURI(baseURI string, subscriptionID string) QueryClien
 // '/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}' for
 // billingProfile scope,
 // 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/billingProfiles/{billingProfileId}/invoiceSections/{invoiceSectionId}'
-// for invoiceSection scope, and
+// for invoiceSection scope,
 // 'providers/Microsoft.Billing/billingAccounts/{billingAccountId}/customers/{customerId}' specific for
-// partners.
+// partners, 'providers/Microsoft.CostManagement/ExternalSubscriptions/{externalSubscriptionId}' for linked
+// account and 'providers/Microsoft.CostManagement/externalBillingAccounts/{externalBillingAccountId}' for
+// consolidated account
 // parameters - parameters supplied to the CreateOrUpdate Query Config operation.
 func (client QueryClient) Usage(ctx context.Context, scope string, parameters QueryDefinition) (result QueryResult, err error) {
 	if tracing.IsEnabled() {
@@ -148,8 +151,7 @@ func (client QueryClient) UsagePreparer(ctx context.Context, scope string, param
 // UsageSender sends the Usage request. The method will close the
 // http.Response Body if it receives an error.
 func (client QueryClient) UsageSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // UsageResponder handles the response to the Usage request. The method always

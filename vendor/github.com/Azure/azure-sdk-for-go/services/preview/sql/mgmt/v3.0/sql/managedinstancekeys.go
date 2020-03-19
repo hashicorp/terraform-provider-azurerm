@@ -37,7 +37,9 @@ func NewManagedInstanceKeysClient(subscriptionID string) ManagedInstanceKeysClie
 	return NewManagedInstanceKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagedInstanceKeysClientWithBaseURI creates an instance of the ManagedInstanceKeysClient client.
+// NewManagedInstanceKeysClientWithBaseURI creates an instance of the ManagedInstanceKeysClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewManagedInstanceKeysClientWithBaseURI(baseURI string, subscriptionID string) ManagedInstanceKeysClient {
 	return ManagedInstanceKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,9 +105,8 @@ func (client ManagedInstanceKeysClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceKeysClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceKeysCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -183,9 +184,8 @@ func (client ManagedInstanceKeysClient) DeletePreparer(ctx context.Context, reso
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceKeysClient) DeleteSender(req *http.Request) (future ManagedInstanceKeysDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -268,8 +268,7 @@ func (client ManagedInstanceKeysClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceKeysClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -351,8 +350,7 @@ func (client ManagedInstanceKeysClient) ListByInstancePreparer(ctx context.Conte
 // ListByInstanceSender sends the ListByInstance request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceKeysClient) ListByInstanceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstanceResponder handles the response to the ListByInstance request. The method always

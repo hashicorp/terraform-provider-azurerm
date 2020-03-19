@@ -36,7 +36,8 @@ func NewProductAPIClient(subscriptionID string) ProductAPIClient {
 	return NewProductAPIClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProductAPIClientWithBaseURI creates an instance of the ProductAPIClient client.
+// NewProductAPIClientWithBaseURI creates an instance of the ProductAPIClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProductAPIClientWithBaseURI(baseURI string, subscriptionID string) ProductAPIClient {
 	return ProductAPIClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
