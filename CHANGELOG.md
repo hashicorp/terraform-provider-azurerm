@@ -12,6 +12,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_analysis_server` - switching the `ipv4_firewall_rule` block to a Set rather than a List to handle this being unordered [GH-6179]
 * `azurerm_policy_definition` - fixing a bug when parsing the Management Group ID [GH-5981]
 * `azurerm_postgresql_server` - updating the validation for the `name` field [GH-6064]
 
