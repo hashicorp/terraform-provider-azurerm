@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,7 +32,6 @@ func resourceArmSqlDatabaseShortTermRetentionPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"backup_short_term_retention_policy": helper.SqlShortTermRetentionPolicy(),
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -41,6 +39,12 @@ func resourceArmSqlDatabaseShortTermRetentionPolicy() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
+			// RetentionDays - The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
+			"retention_days": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(7, 35),
+			},
 			"server_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -59,10 +63,17 @@ func resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate(d *schema.Resour
 	databaseName := d.Get("database_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-	shortTermPolicy := d.Get("backup_short_term_retention_policy").([]interface{})
+
+	backupShortTermPolicyProps := sql.BackupShortTermRetentionPolicyProperties{
+		RetentionDays: utils.Int32(7),
+	}
+
+	if v, ok := d.GetOk("retention_days"); ok {
+		backupShortTermPolicyProps.RetentionDays = utils.Int32(int32(v.(int)))
+	}
 
 	backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{
-		BackupShortTermRetentionPolicyProperties: helper.ExpandSqlShortTermRetentionPolicyProperties(shortTermPolicy),
+		BackupShortTermRetentionPolicyProperties: &backupShortTermPolicyProps,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, databaseName, backupShortTermPolicy)
@@ -102,9 +113,11 @@ func resourceArmSqlDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, 
 		return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
 	}
 
-	flattenedShortTermPolicy := helper.FlattenSqlShortTermRetentionPolicy(&backupShortTermPolicy)
-	if err := d.Set("backup_short_term_retention_policy", flattenedShortTermPolicy); err != nil {
-		return fmt.Errorf("Error setting `backup_short_term_retention_policy`: %+v", err)
+	if backupShortTermPolicy.RetentionDays != nil {
+		retentionDays := *backupShortTermPolicy.RetentionDays
+		if err := d.Set("retention_days", retentionDays); err != nil {
+			return fmt.Errorf("Error setting `retention_days`: %+v", err)
+		}
 	}
 
 	d.Set("database_name", databaseName)

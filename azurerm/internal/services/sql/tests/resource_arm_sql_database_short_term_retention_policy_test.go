@@ -153,9 +153,7 @@ resource "azurerm_sql_database_short_term_retention_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_sql_server.test.name
 
-  backup_short_term_retention_policy {
-    retention_days = 7
-  }
+	retention_days = 7
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -170,9 +168,7 @@ resource "azurerm_sql_database_short_term_retention_policy" "import" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_sql_server.test.name
 
-  backup_short_term_retention_policy {
-    retention_days = 7
-  }
+	retention_days = 7
 }
 `, testAccAzureRMSqlDatabaseShortTermPolicy_basic(data))
 }

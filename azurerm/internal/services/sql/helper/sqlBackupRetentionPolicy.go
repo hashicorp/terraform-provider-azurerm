@@ -95,24 +95,6 @@ func ExpandSqlLongTermRetentionPolicyProperties(input []interface{}) *sql.LongTe
 	return &LongTermRetentionPolicyProperties
 }
 
-func ExpandSqlShortTermRetentionPolicyProperties(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
-	ShortTermRetentionPolicyProperties := sql.BackupShortTermRetentionPolicyProperties{
-		RetentionDays: utils.Int32(1),
-	}
-
-	if len(input) == 0 {
-		return &ShortTermRetentionPolicyProperties
-	}
-
-	shortTermPolicies := input[0].(map[string]interface{})
-
-	if v, ok := shortTermPolicies["retention_days"]; ok {
-		ShortTermRetentionPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
-	}
-
-	return &ShortTermRetentionPolicyProperties
-}
-
 func FlattenSqlLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermRetentionPolicy) []interface{} {
 	if longTermRetentionPolicy == nil || longTermRetentionPolicy.LongTermRetentionPolicyProperties == nil {
 		return []interface{}{}
@@ -144,23 +126,6 @@ func FlattenSqlLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTe
 			"monthly_retention": monthlyRetention,
 			"yearly_retention":  yearlyRetention,
 			"week_of_year":      weekOfYear,
-		},
-	}
-}
-
-func FlattenSqlShortTermRetentionPolicy(shortTermRetentionPolicy *sql.BackupShortTermRetentionPolicy) []interface{} {
-	if shortTermRetentionPolicy == nil || shortTermRetentionPolicy.BackupShortTermRetentionPolicyProperties == nil {
-		return []interface{}{}
-	}
-
-	var retentionDays int32
-	if shortTermRetentionPolicy.RetentionDays != nil {
-		retentionDays = *shortTermRetentionPolicy.RetentionDays
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"retention_days": retentionDays,
 		},
 	}
 }

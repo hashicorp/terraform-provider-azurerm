@@ -43,9 +43,7 @@ resource "azurerm_sql_database_short_term_retention_policy" "example" {
   resource_group_name = azurerm_resource_group.example.name
   server_name         = azurerm_sql_server.example.name
 
-  backup_short_term_retention_policy {
-    retention_days = 7
-  }
+  retention_days = 7
 }
 ```
 
@@ -58,10 +56,6 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which database resides.  This must be the same as Database Server resource group currently.
 
 * `server_name` - (Required) The name of the associated SQL Server.
-
-* `backup_short_term_retention_policy` - (Required) A Database short term retention policy block as documented below.
-
-`backup_short_term_retention_policy` supports the following:
 
 * `retention_days` - (Required) Point In Time Restore configuration. Value has to be between `7` and `35`.
 
