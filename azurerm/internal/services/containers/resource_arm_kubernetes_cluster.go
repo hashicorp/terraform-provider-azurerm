@@ -236,7 +236,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 								string(containerservice.LoadBalancer),
 								string(containerservice.UserDefinedRouting),
 							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"load_balancer_profile": {
