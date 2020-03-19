@@ -26,6 +26,7 @@ type Client struct {
 	ManagementPoliciesClient storage.ManagementPoliciesClient
 	BlobServicesClient       storage.BlobServicesClient
 	CachesClient             *storagecache.CachesClient
+	SubscriptionId           string
 
 	environment   az.Environment
 	storageAdAuth *autorest.Authorizer
@@ -55,6 +56,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		ManagementPoliciesClient: managementPoliciesClient,
 		BlobServicesClient:       blobServicesClient,
 		CachesClient:             &cachesClient,
+		SubscriptionId:           options.SubscriptionId,
 		environment:              options.Environment,
 	}
 
