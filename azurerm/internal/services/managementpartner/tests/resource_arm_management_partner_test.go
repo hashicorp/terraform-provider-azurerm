@@ -138,7 +138,7 @@ func testCheckAzureRMManagementPartnerDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMManagementPartner_basic() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -146,7 +146,7 @@ provider "azurerm" {
 resource "azurerm_management_partner" "test" {
   partner_id = "6080810"
 }
-`)
+`
 }
 
 func testAccAzureRMManagementPartner_requiresImport() string {
@@ -160,7 +160,7 @@ resource "azurerm_management_partner" "import" {
 }
 
 func testAccAzureRMManagementPartner_update() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -168,5 +168,5 @@ provider "azurerm" {
 resource "azurerm_management_partner" "test" {
   partner_id = "6080830"
 }
-`)
+`
 }

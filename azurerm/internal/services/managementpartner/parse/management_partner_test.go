@@ -16,16 +16,6 @@ func TestManagementPartnerId(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "No PartnerId Segment",
-			Input:    "/providers/Microsoft.ManagementPartner/",
-			Expected: nil,
-		},
-		{
-			Name:     "No PartnerId Value",
-			Input:    "/providers/Microsoft.ManagementPartner/partners/",
-			Expected: nil,
-		},
-		{
 			Name:  "Completed",
 			Input: "/providers/Microsoft.ManagementPartner/partners/5127255",
 			Expected: &ManagementPartnerId{
