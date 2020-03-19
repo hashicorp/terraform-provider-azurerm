@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
@@ -1388,6 +1389,52 @@ type PolicyStatesQueryResults struct {
 	OdataCount *int32 `json:"@odata.count,omitempty"`
 	// Value - Query results.
 	Value *[]PolicyState `json:"value,omitempty"`
+}
+
+// PolicyStatesTriggerResourceGroupEvaluationFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type PolicyStatesTriggerResourceGroupEvaluationFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PolicyStatesTriggerResourceGroupEvaluationFuture) Result(client PolicyStatesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesTriggerResourceGroupEvaluationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("policyinsights.PolicyStatesTriggerResourceGroupEvaluationFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// PolicyStatesTriggerSubscriptionEvaluationFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type PolicyStatesTriggerSubscriptionEvaluationFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PolicyStatesTriggerSubscriptionEvaluationFuture) Result(client PolicyStatesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesTriggerSubscriptionEvaluationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("policyinsights.PolicyStatesTriggerSubscriptionEvaluationFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // PolicyTrackedResource policy tracked resource record.

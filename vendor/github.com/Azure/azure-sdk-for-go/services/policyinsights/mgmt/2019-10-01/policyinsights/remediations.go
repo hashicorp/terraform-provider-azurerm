@@ -36,7 +36,8 @@ func NewRemediationsClient() RemediationsClient {
 	return NewRemediationsClientWithBaseURI(DefaultBaseURI)
 }
 
-// NewRemediationsClientWithBaseURI creates an instance of the RemediationsClient client.
+// NewRemediationsClientWithBaseURI creates an instance of the RemediationsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRemediationsClientWithBaseURI(baseURI string) RemediationsClient {
 	return RemediationsClient{NewWithBaseURI(baseURI)}
 }
@@ -101,8 +102,7 @@ func (client RemediationsClient) CancelAtManagementGroupPreparer(ctx context.Con
 // CancelAtManagementGroupSender sends the CancelAtManagementGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CancelAtManagementGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CancelAtManagementGroupResponder handles the response to the CancelAtManagementGroup request. The method always
@@ -177,8 +177,7 @@ func (client RemediationsClient) CancelAtResourcePreparer(ctx context.Context, r
 // CancelAtResourceSender sends the CancelAtResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CancelAtResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CancelAtResourceResponder handles the response to the CancelAtResource request. The method always
@@ -255,8 +254,7 @@ func (client RemediationsClient) CancelAtResourceGroupPreparer(ctx context.Conte
 // CancelAtResourceGroupSender sends the CancelAtResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CancelAtResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CancelAtResourceGroupResponder handles the response to the CancelAtResourceGroup request. The method always
@@ -331,8 +329,7 @@ func (client RemediationsClient) CancelAtSubscriptionPreparer(ctx context.Contex
 // CancelAtSubscriptionSender sends the CancelAtSubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CancelAtSubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CancelAtSubscriptionResponder handles the response to the CancelAtSubscription request. The method always
@@ -414,8 +411,7 @@ func (client RemediationsClient) CreateOrUpdateAtManagementGroupPreparer(ctx con
 // CreateOrUpdateAtManagementGroupSender sends the CreateOrUpdateAtManagementGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CreateOrUpdateAtManagementGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CreateOrUpdateAtManagementGroupResponder handles the response to the CreateOrUpdateAtManagementGroup request. The method always
@@ -496,8 +492,7 @@ func (client RemediationsClient) CreateOrUpdateAtResourcePreparer(ctx context.Co
 // CreateOrUpdateAtResourceSender sends the CreateOrUpdateAtResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CreateOrUpdateAtResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CreateOrUpdateAtResourceResponder handles the response to the CreateOrUpdateAtResource request. The method always
@@ -580,8 +575,7 @@ func (client RemediationsClient) CreateOrUpdateAtResourceGroupPreparer(ctx conte
 // CreateOrUpdateAtResourceGroupSender sends the CreateOrUpdateAtResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CreateOrUpdateAtResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateAtResourceGroupResponder handles the response to the CreateOrUpdateAtResourceGroup request. The method always
@@ -662,8 +656,7 @@ func (client RemediationsClient) CreateOrUpdateAtSubscriptionPreparer(ctx contex
 // CreateOrUpdateAtSubscriptionSender sends the CreateOrUpdateAtSubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) CreateOrUpdateAtSubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateAtSubscriptionResponder handles the response to the CreateOrUpdateAtSubscription request. The method always
@@ -739,8 +732,7 @@ func (client RemediationsClient) DeleteAtManagementGroupPreparer(ctx context.Con
 // DeleteAtManagementGroupSender sends the DeleteAtManagementGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) DeleteAtManagementGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // DeleteAtManagementGroupResponder handles the response to the DeleteAtManagementGroup request. The method always
@@ -815,8 +807,7 @@ func (client RemediationsClient) DeleteAtResourcePreparer(ctx context.Context, r
 // DeleteAtResourceSender sends the DeleteAtResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) DeleteAtResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // DeleteAtResourceResponder handles the response to the DeleteAtResource request. The method always
@@ -893,8 +884,7 @@ func (client RemediationsClient) DeleteAtResourceGroupPreparer(ctx context.Conte
 // DeleteAtResourceGroupSender sends the DeleteAtResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) DeleteAtResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteAtResourceGroupResponder handles the response to the DeleteAtResourceGroup request. The method always
@@ -969,8 +959,7 @@ func (client RemediationsClient) DeleteAtSubscriptionPreparer(ctx context.Contex
 // DeleteAtSubscriptionSender sends the DeleteAtSubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) DeleteAtSubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteAtSubscriptionResponder handles the response to the DeleteAtSubscription request. The method always
@@ -1046,8 +1035,7 @@ func (client RemediationsClient) GetAtManagementGroupPreparer(ctx context.Contex
 // GetAtManagementGroupSender sends the GetAtManagementGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) GetAtManagementGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetAtManagementGroupResponder handles the response to the GetAtManagementGroup request. The method always
@@ -1122,8 +1110,7 @@ func (client RemediationsClient) GetAtResourcePreparer(ctx context.Context, reso
 // GetAtResourceSender sends the GetAtResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) GetAtResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetAtResourceResponder handles the response to the GetAtResource request. The method always
@@ -1200,8 +1187,7 @@ func (client RemediationsClient) GetAtResourceGroupPreparer(ctx context.Context,
 // GetAtResourceGroupSender sends the GetAtResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) GetAtResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetAtResourceGroupResponder handles the response to the GetAtResourceGroup request. The method always
@@ -1276,8 +1262,7 @@ func (client RemediationsClient) GetAtSubscriptionPreparer(ctx context.Context, 
 // GetAtSubscriptionSender sends the GetAtSubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) GetAtSubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetAtSubscriptionResponder handles the response to the GetAtSubscription request. The method always
@@ -1365,8 +1350,7 @@ func (client RemediationsClient) ListDeploymentsAtManagementGroupPreparer(ctx co
 // ListDeploymentsAtManagementGroupSender sends the ListDeploymentsAtManagementGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListDeploymentsAtManagementGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListDeploymentsAtManagementGroupResponder handles the response to the ListDeploymentsAtManagementGroup request. The method always
@@ -1490,8 +1474,7 @@ func (client RemediationsClient) ListDeploymentsAtResourcePreparer(ctx context.C
 // ListDeploymentsAtResourceSender sends the ListDeploymentsAtResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListDeploymentsAtResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListDeploymentsAtResourceResponder handles the response to the ListDeploymentsAtResource request. The method always
@@ -1617,8 +1600,7 @@ func (client RemediationsClient) ListDeploymentsAtResourceGroupPreparer(ctx cont
 // ListDeploymentsAtResourceGroupSender sends the ListDeploymentsAtResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListDeploymentsAtResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListDeploymentsAtResourceGroupResponder handles the response to the ListDeploymentsAtResourceGroup request. The method always
@@ -1742,8 +1724,7 @@ func (client RemediationsClient) ListDeploymentsAtSubscriptionPreparer(ctx conte
 // ListDeploymentsAtSubscriptionSender sends the ListDeploymentsAtSubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListDeploymentsAtSubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListDeploymentsAtSubscriptionResponder handles the response to the ListDeploymentsAtSubscription request. The method always
@@ -1870,8 +1851,7 @@ func (client RemediationsClient) ListForManagementGroupPreparer(ctx context.Cont
 // ListForManagementGroupSender sends the ListForManagementGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListForManagementGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListForManagementGroupResponder handles the response to the ListForManagementGroup request. The method always
@@ -1997,8 +1977,7 @@ func (client RemediationsClient) ListForResourcePreparer(ctx context.Context, re
 // ListForResourceSender sends the ListForResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListForResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListForResourceResponder handles the response to the ListForResource request. The method always
@@ -2126,8 +2105,7 @@ func (client RemediationsClient) ListForResourceGroupPreparer(ctx context.Contex
 // ListForResourceGroupSender sends the ListForResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListForResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListForResourceGroupResponder handles the response to the ListForResourceGroup request. The method always
@@ -2253,8 +2231,7 @@ func (client RemediationsClient) ListForSubscriptionPreparer(ctx context.Context
 // ListForSubscriptionSender sends the ListForSubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client RemediationsClient) ListForSubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListForSubscriptionResponder handles the response to the ListForSubscription request. The method always
