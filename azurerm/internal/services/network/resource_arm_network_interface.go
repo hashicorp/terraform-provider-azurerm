@@ -47,7 +47,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": azure.SchemaLocationOptional(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
