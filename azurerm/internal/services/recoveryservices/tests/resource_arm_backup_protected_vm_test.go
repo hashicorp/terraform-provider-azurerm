@@ -29,7 +29,7 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ //vault cannot be deleted unless we unregister all backups
+			{ // vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
@@ -58,7 +58,7 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedVm_requiresImport),
-			{ //vault cannot be deleted unless we unregister all backups
+			{ // vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
@@ -82,7 +82,7 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ //vault cannot be deleted unless we unregister all backups
+			{ // vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_additionalVault(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
@@ -196,7 +196,7 @@ func testCheckAzureRMBackupProtectedVmExists(resourceName string) resource.TestC
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
 		vmId := rs.Primary.Attributes["source_vm_id"]
 
-		//get VM name from id
+		// get VM name from id
 		parsedVmId, err := azure.ParseAzureResourceID(vmId)
 		if err != nil {
 			return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)

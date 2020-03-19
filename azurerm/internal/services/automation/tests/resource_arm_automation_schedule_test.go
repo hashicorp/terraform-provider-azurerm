@@ -54,8 +54,8 @@ func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
 func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
-	//the API returns the time in the timezone we pass in
-	//it also seems to strip seconds, hijack the RFC3339 format to have 0s there
+	// the API returns the time in the timezone we pass in
+	// it also seems to strip seconds, hijack the RFC3339 format to have 0s there
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
@@ -76,8 +76,8 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
-	//the API returns the time in the timezone we pass in
-	//it also seems to strip seconds, hijack the RFC3339 format to have 0s there
+	// the API returns the time in the timezone we pass in
+	// it also seems to strip seconds, hijack the RFC3339 format to have 0s there
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 

@@ -36,7 +36,8 @@ func NewProductAPIClient(subscriptionID string) ProductAPIClient {
 	return NewProductAPIClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProductAPIClientWithBaseURI creates an instance of the ProductAPIClient client.
+// NewProductAPIClientWithBaseURI creates an instance of the ProductAPIClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProductAPIClientWithBaseURI(baseURI string, subscriptionID string) ProductAPIClient {
 	return ProductAPIClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -369,10 +370,10 @@ func (client ProductAPIClient) ListByProduct(ctx context.Context, resourceGroupN
 				{Target: "productID", Name: validation.Pattern, Rule: `(^[\w]+$)|(^[\w][\w\-]+[\w]$)`, Chain: nil}}},
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}},
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}},
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("apimanagement.ProductAPIClient", "ListByProduct", err.Error())
 	}
 

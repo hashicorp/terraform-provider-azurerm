@@ -48,13 +48,13 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
 	displayNameContains := strings.ToLower(d.Get("display_name_contains").(string))
 
-	//ListComplete returns an iterator struct
+	// ListComplete returns an iterator struct
 	results, err := subClient.ListComplete(ctx)
 	if err != nil {
 		return fmt.Errorf("Error listing subscriptions: %+v", err)
 	}
 
-	//iterate across each subscriptions and append them to slice
+	// iterate across each subscriptions and append them to slice
 	subscriptions := make([]map[string]interface{}, 0)
 	for results.NotDone() {
 		val := results.Value()
@@ -86,18 +86,18 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("Error going to next subscriptions value: %+v", err)
 		}
 
-		//check if the display name prefix matches the given input
+		// check if the display name prefix matches the given input
 		if displayNamePrefix != "" {
 			if !strings.HasPrefix(strings.ToLower(s["display_name"].(string)), displayNamePrefix) {
-				//the display name does not match the given prefix
+				// the display name does not match the given prefix
 				continue
 			}
 		}
 
-		//check if the display name matches the 'contains' comparison
+		// check if the display name matches the 'contains' comparison
 		if displayNameContains != "" {
 			if !strings.Contains(strings.ToLower(s["display_name"].(string)), displayNameContains) {
-				//the display name does not match the contains check
+				// the display name does not match the contains check
 				continue
 			}
 		}

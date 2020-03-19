@@ -187,7 +187,27 @@ func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancer_emptyIPAddress(data),
+				Config: testAccAzureRMLoadBalancer_emptyPrivateIPAddress(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists(data.ResourceName, &lb),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_ip_configuration.0.private_ip_address"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	var lb network.LoadBalancer
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_privateIPAddress(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists(data.ResourceName, &lb),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_ip_configuration.0.private_ip_address"),
@@ -261,7 +281,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -303,7 +323,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -328,7 +348,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -351,7 +371,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -394,7 +414,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -432,7 +452,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -464,7 +484,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -488,14 +508,14 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancer_emptyIPAddress(data acceptance.TestData) string {
+func testAccAzureRMLoadBalancer_emptyPrivateIPAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-lb-%d"
   location = "%s"
 }
 
@@ -523,6 +543,48 @@ resource "azurerm_lb" "test" {
     name                          = "Internal"
     private_ip_address_allocation = "Dynamic"
     private_ip_address            = ""
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMLoadBalancer_privateIPAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Basic"
+
+  frontend_ip_configuration {
+    name                          = "Internal"
+    private_ip_address_allocation = "Static"
+    private_ip_address_version    = "IPv4"
+    private_ip_address            = "10.0.2.7"
     subnet_id                     = azurerm_subnet.test.id
   }
 }

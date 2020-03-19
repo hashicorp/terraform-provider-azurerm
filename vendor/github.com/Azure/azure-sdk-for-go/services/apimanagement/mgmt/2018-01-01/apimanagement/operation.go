@@ -36,7 +36,8 @@ func NewOperationClient(subscriptionID string) OperationClient {
 	return NewOperationClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewOperationClientWithBaseURI creates an instance of the OperationClient client.
+// NewOperationClientWithBaseURI creates an instance of the OperationClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewOperationClientWithBaseURI(baseURI string, subscriptionID string) OperationClient {
 	return OperationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -79,10 +80,10 @@ func (client OperationClient) ListByTags(ctx context.Context, resourceGroupName 
 				{Target: "apiid", Name: validation.Pattern, Rule: `^[^*#&+:<>?]+$`, Chain: nil}}},
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}},
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}},
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("apimanagement.OperationClient", "ListByTags", err.Error())
 	}
 

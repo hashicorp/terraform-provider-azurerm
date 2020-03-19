@@ -102,6 +102,8 @@ func PossibleAssetStorageEncryptionFormatValues() []AssetStorageEncryptionFormat
 type ContentKeyPolicyFairPlayRentalAndLeaseKeyType string
 
 const (
+	// DualExpiry Dual expiry for offline rental.
+	DualExpiry ContentKeyPolicyFairPlayRentalAndLeaseKeyType = "DualExpiry"
 	// PersistentLimited Content key can be persisted and the valid duration is limited by the Rental Duration
 	// value
 	PersistentLimited ContentKeyPolicyFairPlayRentalAndLeaseKeyType = "PersistentLimited"
@@ -116,7 +118,7 @@ const (
 
 // PossibleContentKeyPolicyFairPlayRentalAndLeaseKeyTypeValues returns an array of possible values for the ContentKeyPolicyFairPlayRentalAndLeaseKeyType const type.
 func PossibleContentKeyPolicyFairPlayRentalAndLeaseKeyTypeValues() []ContentKeyPolicyFairPlayRentalAndLeaseKeyType {
-	return []ContentKeyPolicyFairPlayRentalAndLeaseKeyType{PersistentLimited, PersistentUnlimited, Undefined, Unknown}
+	return []ContentKeyPolicyFairPlayRentalAndLeaseKeyType{DualExpiry, PersistentLimited, PersistentUnlimited, Undefined, Unknown}
 }
 
 // ContentKeyPolicyPlayReadyContentType enumerates the values for content key policy play ready content type.
@@ -243,6 +245,13 @@ const (
 	// will remain 720p at best, and will start at rates lower than 3 Mbps. The output will have video and
 	// audio in separate MP4 files, which is optimal for adaptive streaming.
 	AdaptiveStreaming EncoderNamedPreset = "AdaptiveStreaming"
+	// ContentAwareEncoding Produces a set of GOP-aligned MP4s by using content-aware encoding. Given any input
+	// content, the service performs an initial lightweight analysis of the input content, and uses the results
+	// to determine the optimal number of layers, appropriate bitrate and resolution settings for delivery by
+	// adaptive streaming. This preset is particularly effective for low and medium complexity videos, where
+	// the output files will be at lower bitrates but at a quality that still delivers a good experience to
+	// viewers. The output will contain MP4 files with video and audio interleaved.
+	ContentAwareEncoding EncoderNamedPreset = "ContentAwareEncoding"
 	// ContentAwareEncodingExperimental Exposes an experimental preset for content-aware encoding. Given any
 	// input content, the service attempts to automatically determine the optimal number of layers, appropriate
 	// bitrate and resolution settings for delivery by adaptive streaming. The underlying algorithms will
@@ -270,7 +279,7 @@ const (
 
 // PossibleEncoderNamedPresetValues returns an array of possible values for the EncoderNamedPreset const type.
 func PossibleEncoderNamedPresetValues() []EncoderNamedPreset {
-	return []EncoderNamedPreset{AACGoodQualityAudio, AdaptiveStreaming, ContentAwareEncodingExperimental, H264MultipleBitrate1080p, H264MultipleBitrate720p, H264MultipleBitrateSD, H264SingleBitrate1080p, H264SingleBitrate720p, H264SingleBitrateSD}
+	return []EncoderNamedPreset{AACGoodQualityAudio, AdaptiveStreaming, ContentAwareEncoding, ContentAwareEncodingExperimental, H264MultipleBitrate1080p, H264MultipleBitrate720p, H264MultipleBitrateSD, H264SingleBitrate1080p, H264SingleBitrate720p, H264SingleBitrateSD}
 }
 
 // EncryptionScheme enumerates the values for encryption scheme.
@@ -2106,8 +2115,10 @@ type BasicAudioAnalyzerPreset interface {
 // including speech transcription. Currently, the preset supports processing of content with a single audio
 // track.
 type AudioAnalyzerPreset struct {
-	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  The list of supported languages are English ('en-US' and 'en-GB'), Spanish ('es-ES' and 'es-MX'), French ('fr-FR'), Italian ('it-IT'), Japanese ('ja-JP'), Portuguese ('pt-BR'), Chinese ('zh-CN'), German ('de-DE'), Arabic ('ar-EG' and 'ar-SY'), Russian ('ru-RU'), Hindi ('hi-IN'), and Korean ('ko-KR'). If you know the language of your content, it is recommended that you specify it. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. This language detection feature currently supports English, Chinese, French, German, Italian, Japanese, Spanish, Russian, and Portuguese. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'."
+	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
 	AudioLanguage *string `json:"audioLanguage,omitempty"`
+	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
+	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
 	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
@@ -2155,6 +2166,9 @@ func (aap AudioAnalyzerPreset) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if aap.AudioLanguage != nil {
 		objectMap["audioLanguage"] = aap.AudioLanguage
+	}
+	if aap.ExperimentalOptions != nil {
+		objectMap["experimentalOptions"] = aap.ExperimentalOptions
 	}
 	if aap.OdataType != "" {
 		objectMap["@odata.type"] = aap.OdataType
@@ -2271,7 +2285,7 @@ func (ao AudioOverlay) AsBasicOverlay() (BasicOverlay, bool) {
 // BuiltInStandardEncoderPreset describes a built-in preset for encoding the input video with the Standard
 // Encoder.
 type BuiltInStandardEncoderPreset struct {
-	// PresetName - The built-in preset to be used for encoding videos. Possible values include: 'H264SingleBitrateSD', 'H264SingleBitrate720p', 'H264SingleBitrate1080p', 'AdaptiveStreaming', 'AACGoodQualityAudio', 'ContentAwareEncodingExperimental', 'H264MultipleBitrate1080p', 'H264MultipleBitrate720p', 'H264MultipleBitrateSD'
+	// PresetName - The built-in preset to be used for encoding videos. Possible values include: 'H264SingleBitrateSD', 'H264SingleBitrate720p', 'H264SingleBitrate1080p', 'AdaptiveStreaming', 'AACGoodQualityAudio', 'ContentAwareEncodingExperimental', 'ContentAwareEncoding', 'H264MultipleBitrate1080p', 'H264MultipleBitrate720p', 'H264MultipleBitrateSD'
 	PresetName EncoderNamedPreset `json:"presetName,omitempty"`
 	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
@@ -3028,10 +3042,12 @@ type ContentKeyPolicyFairPlayConfiguration struct {
 	FairPlayPfxPassword *string `json:"fairPlayPfxPassword,omitempty"`
 	// FairPlayPfx - The Base64 representation of FairPlay certificate in PKCS 12 (pfx) format (including private key).
 	FairPlayPfx *string `json:"fairPlayPfx,omitempty"`
-	// RentalAndLeaseKeyType - The rental and lease key type. Possible values include: 'Unknown', 'Undefined', 'PersistentUnlimited', 'PersistentLimited'
+	// RentalAndLeaseKeyType - The rental and lease key type. Possible values include: 'Unknown', 'Undefined', 'DualExpiry', 'PersistentUnlimited', 'PersistentLimited'
 	RentalAndLeaseKeyType ContentKeyPolicyFairPlayRentalAndLeaseKeyType `json:"rentalAndLeaseKeyType,omitempty"`
 	// RentalDuration - The rental duration. Must be greater than or equal to 0.
 	RentalDuration *int64 `json:"rentalDuration,omitempty"`
+	// OfflineRentalConfiguration - Offline rental policy
+	OfflineRentalConfiguration *ContentKeyPolicyFairPlayOfflineRentalConfiguration `json:"offlineRentalConfiguration,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
 }
@@ -3054,6 +3070,9 @@ func (ckpfpc ContentKeyPolicyFairPlayConfiguration) MarshalJSON() ([]byte, error
 	}
 	if ckpfpc.RentalDuration != nil {
 		objectMap["rentalDuration"] = ckpfpc.RentalDuration
+	}
+	if ckpfpc.OfflineRentalConfiguration != nil {
+		objectMap["offlineRentalConfiguration"] = ckpfpc.OfflineRentalConfiguration
 	}
 	if ckpfpc.OdataType != "" {
 		objectMap["@odata.type"] = ckpfpc.OdataType
@@ -3094,6 +3113,14 @@ func (ckpfpc ContentKeyPolicyFairPlayConfiguration) AsContentKeyPolicyConfigurat
 // AsBasicContentKeyPolicyConfiguration is the BasicContentKeyPolicyConfiguration implementation for ContentKeyPolicyFairPlayConfiguration.
 func (ckpfpc ContentKeyPolicyFairPlayConfiguration) AsBasicContentKeyPolicyConfiguration() (BasicContentKeyPolicyConfiguration, bool) {
 	return &ckpfpc, true
+}
+
+// ContentKeyPolicyFairPlayOfflineRentalConfiguration ...
+type ContentKeyPolicyFairPlayOfflineRentalConfiguration struct {
+	// PlaybackDurationSeconds - Playback duration
+	PlaybackDurationSeconds *int64 `json:"playbackDurationSeconds,omitempty"`
+	// StorageDurationSeconds - Storage duration
+	StorageDurationSeconds *int64 `json:"storageDurationSeconds,omitempty"`
 }
 
 // ContentKeyPolicyOpenRestriction represents an open restriction. License or key will be delivered on
@@ -4506,6 +4533,8 @@ type EnvelopeEncryption struct {
 type FaceDetectorPreset struct {
 	// Resolution - Specifies the maximum resolution at which your video is analyzed. The default behavior is "SourceResolution," which will keep the input video at its original resolution when analyzed. Using "StandardDefinition" will resize input videos to standard definition while preserving the appropriate aspect ratio. It will only resize if the video is of higher resolution. For example, a 1920x1080 input would be scaled to 640x360 before processing. Switching to "StandardDefinition" will reduce the time it takes to process high resolution video. It may also reduce the cost of using this component (see https://azure.microsoft.com/en-us/pricing/details/media-services/#analytics for details). However, faces that end up being too small in the resized video may not be detected. Possible values include: 'SourceResolution', 'StandardDefinition'
 	Resolution AnalysisResolution `json:"resolution,omitempty"`
+	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
+	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
 	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
@@ -4516,6 +4545,9 @@ func (fdp FaceDetectorPreset) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if fdp.Resolution != "" {
 		objectMap["resolution"] = fdp.Resolution
+	}
+	if fdp.ExperimentalOptions != nil {
+		objectMap["experimentalOptions"] = fdp.ExperimentalOptions
 	}
 	if fdp.OdataType != "" {
 		objectMap["@odata.type"] = fdp.OdataType
@@ -6250,6 +6282,10 @@ type JobOutput struct {
 	Progress *int32 `json:"progress,omitempty"`
 	// Label - A label that is assigned to a JobOutput in order to help uniquely identify it. This is useful when your Transform has more than one TransformOutput, whereby your Job has more than one JobOutput. In such cases, when you submit the Job, you will add two or more JobOutputs, in the same order as TransformOutputs in the Transform. Subsequently, when you retrieve the Job, either through events or on a GET request, you can use the label to easily identify the JobOutput. If a label is not provided, a default value of '{presetName}_{outputIndex}' will be used, where the preset name is the name of the preset in the corresponding TransformOutput and the output index is the relative index of the this JobOutput within the Job. Note that this index is the same as the relative index of the corresponding TransformOutput within its Transform.
 	Label *string `json:"label,omitempty"`
+	// StartTime - READ-ONLY; The UTC date and time at which this Job Output began processing.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - READ-ONLY; The UTC date and time at which this Job Output finished processing.
+	EndTime *date.Time `json:"endTime,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeJobOutput', 'OdataTypeMicrosoftMediaJobOutputAsset'
 	OdataType OdataTypeBasicJobOutput `json:"@odata.type,omitempty"`
 }
@@ -6331,6 +6367,10 @@ type JobOutputAsset struct {
 	Progress *int32 `json:"progress,omitempty"`
 	// Label - A label that is assigned to a JobOutput in order to help uniquely identify it. This is useful when your Transform has more than one TransformOutput, whereby your Job has more than one JobOutput. In such cases, when you submit the Job, you will add two or more JobOutputs, in the same order as TransformOutputs in the Transform. Subsequently, when you retrieve the Job, either through events or on a GET request, you can use the label to easily identify the JobOutput. If a label is not provided, a default value of '{presetName}_{outputIndex}' will be used, where the preset name is the name of the preset in the corresponding TransformOutput and the output index is the relative index of the this JobOutput within the Job. Note that this index is the same as the relative index of the corresponding TransformOutput within its Transform.
 	Label *string `json:"label,omitempty"`
+	// StartTime - READ-ONLY; The UTC date and time at which this Job Output began processing.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - READ-ONLY; The UTC date and time at which this Job Output finished processing.
+	EndTime *date.Time `json:"endTime,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeJobOutput', 'OdataTypeMicrosoftMediaJobOutputAsset'
 	OdataType OdataTypeBasicJobOutput `json:"@odata.type,omitempty"`
 }
@@ -6384,6 +6424,10 @@ type JobProperties struct {
 	Priority Priority `json:"priority,omitempty"`
 	// CorrelationData - Customer provided key, value pairs that will be returned in Job and JobOutput state events.
 	CorrelationData map[string]*string `json:"correlationData"`
+	// StartTime - READ-ONLY; The UTC date and time at which this Job began processing.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// EndTime - READ-ONLY; The UTC date and time at which this Job finished processing.
+	EndTime *date.Time `json:"endTime,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for JobProperties.
@@ -6483,6 +6527,24 @@ func (jp *JobProperties) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				jp.CorrelationData = correlationData
+			}
+		case "startTime":
+			if v != nil {
+				var startTime date.Time
+				err = json.Unmarshal(*v, &startTime)
+				if err != nil {
+					return err
+				}
+				jp.StartTime = &startTime
+			}
+		case "endTime":
+			if v != nil {
+				var endTime date.Time
+				err = json.Unmarshal(*v, &endTime)
+				if err != nil {
+					return err
+				}
+				jp.EndTime = &endTime
 			}
 		}
 	}
@@ -10896,8 +10958,10 @@ func (vVar Video) AsBasicCodec() (BasicCodec, bool) {
 type VideoAnalyzerPreset struct {
 	// InsightsToExtract - Defines the type of insights that you want the service to generate. The allowed values are 'AudioInsightsOnly', 'VideoInsightsOnly', and 'AllInsights'. The default is AllInsights. If you set this to AllInsights and the input is audio only, then only audio insights are generated. Similarly if the input is video only, then only video insights are generated. It is recommended that you not use AudioInsightsOnly if you expect some of your inputs to be video only; or use VideoInsightsOnly if you expect some of your inputs to be audio only. Your Jobs in such conditions would error out. Possible values include: 'AudioInsightsOnly', 'VideoInsightsOnly', 'AllInsights'
 	InsightsToExtract InsightsType `json:"insightsToExtract,omitempty"`
-	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  The list of supported languages are English ('en-US' and 'en-GB'), Spanish ('es-ES' and 'es-MX'), French ('fr-FR'), Italian ('it-IT'), Japanese ('ja-JP'), Portuguese ('pt-BR'), Chinese ('zh-CN'), German ('de-DE'), Arabic ('ar-EG' and 'ar-SY'), Russian ('ru-RU'), Hindi ('hi-IN'), and Korean ('ko-KR'). If you know the language of your content, it is recommended that you specify it. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. This language detection feature currently supports English, Chinese, French, German, Italian, Japanese, Spanish, Russian, and Portuguese. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'."
+	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
 	AudioLanguage *string `json:"audioLanguage,omitempty"`
+	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
+	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
 	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
 }
@@ -10911,6 +10975,9 @@ func (vap VideoAnalyzerPreset) MarshalJSON() ([]byte, error) {
 	}
 	if vap.AudioLanguage != nil {
 		objectMap["audioLanguage"] = vap.AudioLanguage
+	}
+	if vap.ExperimentalOptions != nil {
+		objectMap["experimentalOptions"] = vap.ExperimentalOptions
 	}
 	if vap.OdataType != "" {
 		objectMap["@odata.type"] = vap.OdataType

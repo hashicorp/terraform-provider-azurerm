@@ -52,7 +52,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
 			// But to prevent potential state migration in the future, let's stick to use Set now
 
-			//lintignore:S018
+			// lintignore:S018
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -397,7 +397,7 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlert
 
 			actions = append(actions, insights.MetricAlertAction{
 				ActionGroupID:     utils.String(agID),
-				WebhookProperties: props,
+				WebHookProperties: props,
 			})
 		}
 	}
@@ -466,7 +466,7 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 		}
 
 		props := make(map[string]string)
-		for pk, pv := range action.WebhookProperties {
+		for pk, pv := range action.WebHookProperties {
 			if pv != nil {
 				props[pk] = *pv
 			}

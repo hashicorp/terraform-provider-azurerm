@@ -33,16 +33,6 @@ resource "azurerm_cosmosdb_mongo_collection" "example" {
   default_ttl_seconds = "777"
   shard_key           = "uniqueKey"
   throughput          = 400
-
-  indexes {
-    key    = "aKey"
-    unique = false
-  }
-
-  indexes {
-    key    = "uniqueKey"
-    unique = true
-  }
 }
 ```
 

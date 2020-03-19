@@ -22,7 +22,7 @@ if ${error}; then
   echo "$ find azurerm | egrep \"_test.go\" | sort | while read f; do terrafmt fmt -f \$f; done"
   echo ""
   echo "on windows:"
-  echo "$ Get-ChildItem -Path . -Recurse -Filter \"_test.go\" | foreach {terrafmt fmt -f $.name}"
+  echo "$ Get-ChildItem -Path . -Recurse -Filter \"*_test.go\" | foreach {terrafmt fmt -f $_.fullName}"
   echo ""
   exit 1
 fi

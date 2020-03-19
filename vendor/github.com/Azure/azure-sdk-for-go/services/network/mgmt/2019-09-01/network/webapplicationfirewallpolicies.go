@@ -37,7 +37,8 @@ func NewWebApplicationFirewallPoliciesClient(subscriptionID string) WebApplicati
 }
 
 // NewWebApplicationFirewallPoliciesClientWithBaseURI creates an instance of the WebApplicationFirewallPoliciesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewWebApplicationFirewallPoliciesClientWithBaseURI(baseURI string, subscriptionID string) WebApplicationFirewallPoliciesClient {
 	return WebApplicationFirewallPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -66,10 +67,10 @@ func (client WebApplicationFirewallPoliciesClient) CreateOrUpdate(ctx context.Co
 				Chain: []validation.Constraint{{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings.MaxRequestBodySizeInKb", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings.MaxRequestBodySizeInKb", Name: validation.InclusiveMaximum, Rule: int64(128), Chain: nil},
-							{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings.MaxRequestBodySizeInKb", Name: validation.InclusiveMinimum, Rule: 8, Chain: nil},
+							{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings.MaxRequestBodySizeInKb", Name: validation.InclusiveMinimum, Rule: int64(8), Chain: nil},
 						}},
 						{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings.FileUploadLimitInMb", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings.FileUploadLimitInMb", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.PolicySettings.FileUploadLimitInMb", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil}}},
 					}},
 					{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.ManagedRules", Name: validation.Null, Rule: true,
 						Chain: []validation.Constraint{{Target: "parameters.WebApplicationFirewallPolicyPropertiesFormat.ManagedRules.ManagedRuleSets", Name: validation.Null, Rule: true, Chain: nil}}},
@@ -125,8 +126,7 @@ func (client WebApplicationFirewallPoliciesClient) CreateOrUpdatePreparer(ctx co
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebApplicationFirewallPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -202,9 +202,8 @@ func (client WebApplicationFirewallPoliciesClient) DeletePreparer(ctx context.Co
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebApplicationFirewallPoliciesClient) DeleteSender(req *http.Request) (future WebApplicationFirewallPoliciesDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -290,8 +289,7 @@ func (client WebApplicationFirewallPoliciesClient) GetPreparer(ctx context.Conte
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebApplicationFirewallPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -366,8 +364,7 @@ func (client WebApplicationFirewallPoliciesClient) ListPreparer(ctx context.Cont
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebApplicationFirewallPoliciesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -476,8 +473,7 @@ func (client WebApplicationFirewallPoliciesClient) ListAllPreparer(ctx context.C
 // ListAllSender sends the ListAll request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebApplicationFirewallPoliciesClient) ListAllSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListAllResponder handles the response to the ListAll request. The method always
