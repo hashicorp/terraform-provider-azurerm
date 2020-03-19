@@ -212,6 +212,8 @@ github.com/terraform-providers/terraform-provider-azuread v0.8.0 h1:ZcF5f+F3tFBK
 github.com/terraform-providers/terraform-provider-azuread v0.8.0/go.mod h1:7RxccROJFJZmxJpmbRTHA+mn6U/s7UnVeEbOHLX6CQU=
 github.com/tombuildsstuff/giovanni v0.9.0 h1:N1hvKYEZbuji8c8QyFJlEsgrTckcAyx3ccwxR2IPf/8=
 github.com/tombuildsstuff/giovanni v0.9.0/go.mod h1:WwPhFP2+WnhJzvPYDnsyBab2wOIksMX6xm+Tg+jVvKw=
+github.com/tombuildsstuff/giovanni v0.10.0 h1:XqZBPVD2hETa30FFdMz/zVfnidMnUrIMMmKIH7hWnWA=
+github.com/tombuildsstuff/giovanni v0.10.0/go.mod h1:WwPhFP2+WnhJzvPYDnsyBab2wOIksMX6xm+Tg+jVvKw=
 github.com/tombuildsstuff/go-autorest v14.0.1-0.20200317095413-f2d2d0252c3c+incompatible h1:H+ytGDYKp8E7Mb0GBK3LMaJd9O2lUo2Cmb4sTMHM3N8=
 github.com/tombuildsstuff/go-autorest v14.0.1-0.20200317095413-f2d2d0252c3c+incompatible/go.mod h1:OVwh0+NZeL2RTqclVEX+p20Qys7Ihpd52PD0eqFDXtY=
 github.com/tombuildsstuff/go-autorest/autorest v0.10.1-0.20200317095413-f2d2d0252c3c h1:9KiivLYWWeGGT2jzfB5T5Tj/gsSWf1KgbDwD9H7rrWM=
