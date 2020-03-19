@@ -42,3 +42,12 @@ func ValidateMsSqlElasticPoolName(i interface{}, k string) (_ []string, errors [
 
 	return nil, errors
 }
+
+// Provides very basic validation for Long term retention policies ISO 8601 format e.g. `P5W`, `P1Y`, `P12M`, `P3650D`
+func ValidateLongTermRetentionPoliciesIsoFormat(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^P[0-9]*[YMWD]`); !m {
+		errors = append(regexErrs, fmt.Errorf(`%q has to be a valid Duration format, starting with "P" and ending with either of the letters "YMWD"`))
+	}
+
+	return nil, errors
+}

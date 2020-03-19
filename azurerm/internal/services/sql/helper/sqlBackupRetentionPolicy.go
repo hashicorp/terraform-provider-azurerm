@@ -4,39 +4,40 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func SqlLongTermRetentionPolicy() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format. 1-520 weeks (P520W) P520D
+				// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format. 1-520 weeks
 				"weekly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 				},
-				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format. 4-520 weeks P520W P120M
+				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format. 4-520 weeks
 				"monthly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // Validate ISO8601 at least 1 month (4 weeks/ 30 days?)
+					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 				},
-				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format. 52-520 weeks P52W P5Y
+				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format. 52-520 weeks
 				"yearly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty, // Validate ISO8601 at least 1 year (12 months/52 weeks/365 days)
+					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 				},
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format. 1-52
 				"week_of_year": {
 					Type:         schema.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 52),
+					ValidateFunc: validation.IntBetween(1, 52),
 				},
 			},
 		},
