@@ -106,6 +106,11 @@ func resourceArmStorageShare() *schema.Resource {
 				},
 			},
 
+			"resource_manager_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -226,6 +231,9 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("acl", flattenStorageShareACLs(acls)); err != nil {
 		return fmt.Errorf("Error flattening `acl`: %+v", err)
 	}
+
+	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, id.ShareName)
+	d.Set("resource_manager_id", resourceManagerId)
 
 	return nil
 }
