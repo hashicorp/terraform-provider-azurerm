@@ -4,6 +4,7 @@ require (
 	github.com/Azure/azure-sdk-for-go v40.3.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.10.0
 	github.com/Azure/go-autorest/autorest/date v0.2.0
+	github.com/bflad/tfproviderlint v0.12.0
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.1.1
@@ -13,13 +14,14 @@ require (
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/go-version v1.2.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/terraform-plugin-sdk v1.6.0
+	github.com/hashicorp/terraform-plugin-sdk v1.7.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	github.com/terraform-providers/terraform-provider-azuread v0.8.0
 	github.com/tombuildsstuff/giovanni v0.9.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20191009170851-d66e71096ffb
+	golang.org/x/tools v0.0.0-20200216192241-b320d3a0f5a2
 	gopkg.in/yaml.v2 v2.2.2
 )
 
