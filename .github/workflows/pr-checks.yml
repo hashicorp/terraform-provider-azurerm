@@ -22,4 +22,5 @@ jobs:
       - uses: actions/setup-go@v1.1.2
         with:
           go-version: 1.13.8
+      - run: make tools
       - run: make ${{ matrix.maketask }}
