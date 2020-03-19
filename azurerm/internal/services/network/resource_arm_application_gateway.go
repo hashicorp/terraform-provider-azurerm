@@ -3044,6 +3044,7 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			ApplicationGatewayRedirectConfigurationPropertiesFormat: &network.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 				RedirectType:       network.ApplicationGatewayRedirectType(redirectType),
 				IncludeQueryString: utils.Bool(includeQueryString),
+				IncludePath:        utils.Bool(includePath),
 			},
 		}
 
@@ -3055,16 +3056,11 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			return nil, fmt.Errorf("Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
 		}
 
-		if targetUrl != "" && includePath {
-			return nil, fmt.Errorf("`include_path` is not a valid option when `target_url` is set")
-		}
-
 		if targetListenerName != "" {
 			targetListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, targetListenerName)
 			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetListener = &network.SubResource{
 				ID: utils.String(targetListenerID),
 			}
-			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludePath = utils.Bool(includePath)
 		}
 
 		if targetUrl != "" {
