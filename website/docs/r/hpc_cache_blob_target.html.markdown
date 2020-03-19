@@ -3,12 +3,12 @@ subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hpc_cache_blob_target"
 description: |-
-  Manages a HPC Cache Blob Target.
+  Manages a Blob Target within a HPC Cache.
 ---
 
-# azurerm_hpc_cache
+# azurerm_hpc_cache_blob_target
 
-Manages a HPC Cache Blob Target.
+Manages a Blob Target within a HPC Cache.
 
 ## Example Usage
 
@@ -74,7 +74,7 @@ resource "azurerm_hpc_cache_blob_target" "example" {
   name                 = "examplehpccblobtarget"
   resource_group_name  = azurerm_resource_group.example.name
   cache_name           = azurerm_hpc_cache.example.name
-  storage_container_id = azurerm_storage_container.example.id
+  storage_container_id = azurerm_storage_container.example.resource_manager_id
   namespace_path       = "/blob_storage"
 }
 ```
@@ -83,21 +83,23 @@ resource "azurerm_hpc_cache_blob_target" "example" {
 
 The following arguments are supported:
 
+* `cache_name` - (Required) The name HPC Cache, which the HPC Cache Blob Target will be added to. Changing this forces a new resource to be created.
+
 * `name` - (Required) The name of the HPC Cache Blob Target. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the HPC Cache Blob Target. Changing this forces a new resource to be created.
 
-* `cache_name` - (Required) The name HPC Cache, which the HPC Cache Blob Target will be added to. Changing this forces a new resource to be created.
-
-* `storage_container_id` - (Required) The ID of the Storage Container used as the HPC Cache Blob Target. Changing this forces a new resource to be created.
-
 * `namespace_path` - (Required) The client-facing file path of the HPC Cache Blob Target.
+
+* `storage_container_id` - (Required) The Resource Manager ID of the Storage Container used as the HPC Cache Blob Target. Changing this forces a new resource to be created.
+
+-> **Note:** This is the Resource Manager ID of the Storage Container, rather than the regular ID - and can be accessed on the `azurerm_storage_container` Data Source/Resource as `resource_manager_id`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The `id` of the HPC Cache Blob Target.
+* `id` - The ID of the HPC Cache Blob Target.
 
 ## Timeouts
 
@@ -110,8 +112,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-HPC Caches Blob Target can be imported using the `resource id`, e.g.
+Blob Targets within an HPC Cache can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hpc_cache_blob_target.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroupName/providers/Microsoft.StorageCache/caches/cacheName/storageTargets/targetName
+terraform import azurerm_hpc_cache_blob_target.example terraform import azurerm_hpc_cache_blob_target.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StorageCache/caches/cache1/storageTargets/target1
 ```
