@@ -36,7 +36,8 @@ func NewLoggerClient(subscriptionID string) LoggerClient {
 	return NewLoggerClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLoggerClientWithBaseURI creates an instance of the LoggerClient client.
+// NewLoggerClientWithBaseURI creates an instance of the LoggerClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLoggerClientWithBaseURI(baseURI string, subscriptionID string) LoggerClient {
 	return LoggerClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

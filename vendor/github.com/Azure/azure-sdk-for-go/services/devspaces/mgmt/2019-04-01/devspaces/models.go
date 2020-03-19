@@ -395,6 +395,8 @@ type ControllerProperties struct {
 	HostSuffix *string `json:"hostSuffix,omitempty"`
 	// DataPlaneFqdn - READ-ONLY; DNS name for accessing DataPlane services
 	DataPlaneFqdn *string `json:"dataPlaneFqdn,omitempty"`
+	// TargetContainerHostAPIServerFqdn - READ-ONLY; DNS of the target container host's API server
+	TargetContainerHostAPIServerFqdn *string `json:"targetContainerHostApiServerFqdn,omitempty"`
 	// TargetContainerHostResourceID - Resource ID of the target container host
 	TargetContainerHostResourceID *string `json:"targetContainerHostResourceId,omitempty"`
 	// TargetContainerHostCredentialsBase64 - Credentials of the target container host (base64).

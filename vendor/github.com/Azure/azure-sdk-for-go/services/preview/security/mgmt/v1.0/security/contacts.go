@@ -36,7 +36,8 @@ func NewContactsClient(subscriptionID string, ascLocation string) ContactsClient
 	return NewContactsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewContactsClientWithBaseURI creates an instance of the ContactsClient client.
+// NewContactsClientWithBaseURI creates an instance of the ContactsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewContactsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) ContactsClient {
 	return ContactsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
@@ -111,8 +112,7 @@ func (client ContactsClient) CreatePreparer(ctx context.Context, securityContact
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContactsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -192,8 +192,7 @@ func (client ContactsClient) DeletePreparer(ctx context.Context, securityContact
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContactsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -272,8 +271,7 @@ func (client ContactsClient) GetPreparer(ctx context.Context, securityContactNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContactsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -351,8 +349,7 @@ func (client ContactsClient) ListPreparer(ctx context.Context) (*http.Request, e
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContactsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -472,8 +469,7 @@ func (client ContactsClient) UpdatePreparer(ctx context.Context, securityContact
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContactsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
