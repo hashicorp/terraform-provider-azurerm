@@ -1,0 +1,25 @@
+---
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  lintrest:
+    name: 'PR lintrest task'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        maketask: [ 'lintrest', 'tflint', 'test', 'depscheck', 'website-lint', 'webssite-test' ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1.1.2
+          with:
+            go-version: 1.13.8
+      - run: make ${{ matrix.maketask }}
