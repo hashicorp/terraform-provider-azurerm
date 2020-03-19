@@ -26,10 +26,10 @@ func resourceArmSqlDatabaseShortTermRetentionPolicy() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(5 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -107,9 +107,14 @@ func resourceArmSqlDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, 
 		return fmt.Errorf("Error setting `backup_short_term_retention_policy`: %+v", err)
 	}
 
+	d.Set("database_name", databaseName)
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("server_name", serverName)
+
 	return nil
 }
 
+// Default value for PITR is 7 days, therefore on delete we just set the defaults back
 func resourceArmSqlDatabaseShortTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -127,11 +132,11 @@ func resourceArmSqlDatabaseShortTermRetentionPolicyDelete(d *schema.ResourceData
 	// Update to default values for removal
 	backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{
 		BackupShortTermRetentionPolicyProperties: &sql.BackupShortTermRetentionPolicyProperties{
-			RetentionDays: utils.Int32(1),
+			RetentionDays: utils.Int32(7),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, databaseName, backupShortTermPolicy)
+	future, err := client.Update(ctx, resourceGroup, serverName, databaseName, backupShortTermPolicy)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverName, databaseName, resourceGroup, err)
 	}

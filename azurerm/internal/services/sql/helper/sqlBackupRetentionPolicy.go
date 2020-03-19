@@ -46,21 +46,15 @@ func SqlLongTermRetentionPolicy() *schema.Schema {
 func SqlShortTermRetentionPolicy() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
+		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				// RetentionDays - The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 				"retention_days": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					ValidateFunc: validation.IntInSlice([]int{
-						7,
-						14,
-						21,
-						28,
-						35,
-					}),
+					Type:         schema.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(7, 35),
 				},
 			},
 		},

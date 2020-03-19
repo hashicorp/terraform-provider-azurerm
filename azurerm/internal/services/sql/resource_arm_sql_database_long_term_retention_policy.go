@@ -26,10 +26,10 @@ func resourceArmSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(5 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -106,6 +106,10 @@ func resourceArmSqlDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, m
 	if err := d.Set("backup_long_term_retention_policy", flattenedLongTermPolicy); err != nil {
 		return fmt.Errorf("Error setting `backup_long_term_retention_policy`: %+v", err)
 	}
+
+	d.Set("database_name", databaseName)
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("server_name", serverName)
 
 	return nil
 }
