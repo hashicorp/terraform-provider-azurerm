@@ -244,6 +244,19 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 				Default:  false,
 			},
 
+			"scale_in_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.Default),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Default),
+					string(compute.NewestVM),
+					string(compute.OldestVM),
+				}, false),
+			},
+
+			"terminate_notification": VirtualMachineScaleSetTerminateNotificationSchema(),
+
 			"zones": azure.SchemaZones(),
 
 			// Computed
@@ -437,6 +450,12 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("terminate_notification"); ok {
+		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+	}
+
+	scaleInPolicy := d.Get("scale_in_policy").(string)
+
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
 		Sku: &compute.Sku{
@@ -456,6 +475,9 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 			SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
 			VirtualMachineProfile:                  &virtualMachineProfile,
 			UpgradePolicy:                          &upgradePolicy,
+			ScaleInPolicy: &compute.ScaleInPolicy{
+				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
+			},
 		},
 		Zones: zones,
 	}
@@ -676,6 +698,18 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
+	if d.HasChange("scale_in_policy") {
+		scaleInPolicy := d.Get("scale_in_policy").(string)
+		updateProps.ScaleInPolicy = &compute.ScaleInPolicy{
+			Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
+		}
+	}
+
+	if d.HasChange("terminate_notification") {
+		notificationRaw := d.Get("terminate_notification").([]interface{})
+		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+	}
+
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
 		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
@@ -814,6 +848,14 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 		}
 	}
 
+	rule := string(compute.Default)
+	if props.ScaleInPolicy != nil {
+		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
+			rule = string((*rules)[0])
+		}
+	}
+	d.Set("scale_in_policy", rule)
+
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
 			return fmt.Errorf("Error setting `boot_diagnostics`: %+v", err)
@@ -896,6 +938,12 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 				healthProbeId = *nwProfile.HealthProbe.ID
 			}
 			d.Set("health_probe_id", healthProbeId)
+		}
+
+		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
+			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+				return fmt.Errorf("Error setting `terminate_notification`: %+v", err)
+			}
 		}
 	}
 
