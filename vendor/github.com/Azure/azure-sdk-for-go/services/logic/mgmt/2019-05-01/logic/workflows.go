@@ -952,9 +952,8 @@ func (client WorkflowsClient) MovePreparer(ctx context.Context, resourceGroupNam
 // MoveSender sends the Move request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowsClient) MoveSender(req *http.Request) (future WorkflowsMoveFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1193,8 +1192,7 @@ func (client WorkflowsClient) ValidateByLocationPreparer(ctx context.Context, re
 // ValidateByLocationSender sends the ValidateByLocation request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowsClient) ValidateByLocationSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ValidateByLocationResponder handles the response to the ValidateByLocation request. The method always
@@ -1272,8 +1270,7 @@ func (client WorkflowsClient) ValidateByResourceGroupPreparer(ctx context.Contex
 // ValidateByResourceGroupSender sends the ValidateByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowsClient) ValidateByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ValidateByResourceGroupResponder handles the response to the ValidateByResourceGroup request. The method always
