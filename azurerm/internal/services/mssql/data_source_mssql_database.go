@@ -29,10 +29,10 @@ func dataSourceArmMsSqlDatabase() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
-			"sql_server_id": {
+			"server_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ValidateMsSqlServerID,
+				ValidateFunc: validate.MsSqlServerID,
 			},
 
 			"collation": {
@@ -86,7 +86,7 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	defer cancel()
 
 	name := d.Get("name").(string)
-	mssqlServerId := d.Get("sql_server_id").(string)
+	mssqlServerId := d.Get("server_id").(string)
 	serverId, err := parse.MsSqlServerID(mssqlServerId)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 		d.SetId(*resp.ID)
 	}
 	d.Set("name", name)
-	d.Set("sql_server_id", mssqlServerId)
+	d.Set("server_id", mssqlServerId)
 
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("collation", props.Collation)

@@ -6,7 +6,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 )
 
-func ValidateMsSqlElasticPoolID(i interface{}, k string) (warnings []string, errors []error) {
+func MsSqlElasticPoolID(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -16,7 +16,7 @@ func ValidateMsSqlElasticPoolID(i interface{}, k string) (warnings []string, err
 		return warnings, errors
 	}
 
-	if _, _, _, err := parse.ParseArmMSSqlElasticPoolId(v); err != nil {
+	if _, _, _, err := parse.MSSqlElasticPoolId(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Elastic Pool resource id: %v", k, err))
 	}
 

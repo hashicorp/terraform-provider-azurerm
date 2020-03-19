@@ -40,6 +40,7 @@ func TestAccDataSourceAzureRMMsSqlDatabase_complete(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
+					resource.TestCheckResourceAttr(data.ResourceName, "max_size_gb", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
@@ -95,8 +96,8 @@ func testAccDataSourceAzureRMMsSqlDatabase_basic(data acceptance.TestData) strin
 %s
 
 data "azurerm_mssql_database" "test" {
-  name          = azurerm_mssql_database.test.name
-  sql_server_id = azurerm_sql_server.test.id
+  name      = azurerm_mssql_database.test.name
+  server_id = azurerm_sql_server.test.id
 }
 
 `, template)
@@ -108,8 +109,8 @@ func testAccDataSourceAzureRMMsSqlDatabase_complete(data acceptance.TestData) st
 %s
 
 data "azurerm_mssql_database" "test" {
-  name          = azurerm_mssql_database.test.name
-  sql_server_id = azurerm_sql_server.test.id
+  name      = azurerm_mssql_database.test.name
+  server_id = azurerm_sql_server.test.id
 }
 
 `, template)
@@ -121,8 +122,8 @@ func testAccDataSourceAzureRMMsSqlDatabase_elasticPool(data acceptance.TestData)
 %s
 
 data "azurerm_mssql_database" "test" {
-  name          = azurerm_mssql_database.test.name
-  sql_server_id = azurerm_sql_server.test.id
+  name      = azurerm_mssql_database.test.name
+  server_id = azurerm_sql_server.test.id
 }
 
 `, template)
@@ -134,8 +135,8 @@ func testAccDataSourceAzureRMMsSqlDatabase_BC(data acceptance.TestData) string {
 %s
 
 data "azurerm_mssql_database" "test" {
-  name          = azurerm_mssql_database.test.name
-  sql_server_id = azurerm_sql_server.test.id
+  name      = azurerm_mssql_database.test.name
+  server_id = azurerm_sql_server.test.id
 }
 
 `, template)

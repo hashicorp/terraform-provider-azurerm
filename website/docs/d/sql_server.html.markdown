@@ -18,7 +18,7 @@ data "azurerm_sql_server" "example" {
   resource_group_name = "example-resources"
 }
 
-output "sql_server_id" {
+output "server_id" {
   value = data.azurerm_sql_server.example.id
 }
 ```

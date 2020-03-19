@@ -14,8 +14,8 @@ Use this data source to access information about an existing SQL database.
 
 ```hcl
 data "azurerm_mssql_database" "example" {
-  name          = "example-mssql-db"
-  sql_server_id = "example-mssql-server-id"
+  name      = "example-mssql-db"
+  server_id = "example-mssql-server-id"
 }
 
 output "database_id" {
@@ -27,9 +27,9 @@ output "database_id" {
 
 * `name` - The name of the Ms SQL Database.
 
-* `sql_server_id` - The id of the Ms SQL Server on which to create the database.
+* `server_id` - The id of the Ms SQL Server on which to create the database.
 
-## Argument Reference
+## Attribute Reference
 
 * `collation` - The collation of the database. 
 

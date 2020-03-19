@@ -36,10 +36,10 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -50,18 +50,18 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
-			"sql_server_id": {
+			"server_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateMsSqlServerID,
+				ValidateFunc: validate.MsSqlServerID,
 			},
 
 			"auto_pause_delay_in_minutes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.ValidateMsSqlDatabaseAutoPauseDelay,
+				ValidateFunc: validate.MsSqlDatabaseAutoPauseDelay,
 			},
 
 			//recovery is not support in version 2017-10-01-preview
@@ -97,7 +97,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateMsSqlElasticPoolID,
+				ValidateFunc: validate.MsSqlElasticPoolID,
 			},
 
 			"license_type": {
@@ -121,7 +121,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.ValidateMsSqlDBMinCapacity,
+				ValidateFunc: validate.MsSqlDBMinCapacity,
 			},
 
 			"restore_point_in_time": {
@@ -162,17 +162,18 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"sku_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true,
 				ForceNew:         true,
-				ValidateFunc:     validate.ValidateMsSqlDBSkuName(),
+				Computed:         true,
+				ValidateFunc:     validate.MsSqlDBSkuName(),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"source_database_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validate.ValidateMsSqlDatabaseID,
+				ValidateFunc: validate.MsSqlDatabaseID,
 			},
 
 			"zone_redundant": {
@@ -194,7 +195,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	log.Printf("[INFO] preparing arguments for MsSql Database creation.")
 
 	name := d.Get("name").(string)
-	sqlServerId := d.Get("sql_server_id").(string)
+	sqlServerId := d.Get("server_id").(string)
 	serverId, _ := parse.MsSqlServerID(sqlServerId)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -236,6 +237,9 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("create_mode"); ok {
+		if _, ok := d.GetOk("source_database_id"); (v.(string) == string(sql.CreateModeCopy) || v.(string) == string(sql.CreateModePointInTimeRestore) || v.(string) == string(sql.CreateModeRestore) || v.(string) == string(sql.CreateModeSecondary)) && !ok {
+			return fmt.Errorf("'source_database_id' is required for create_mode %s", v.(string))
+		}
 		params.DatabaseProperties.CreateMode = sql.CreateMode(v.(string))
 	}
 
@@ -260,6 +264,9 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
+		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(sql.CreateModePointInTimeRestore) {
+			return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(sql.CreateModePointInTimeRestore))
+		}
 		restorePointInTime, _ := time.Parse(time.RFC3339, v.(string))
 		params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
 	}
@@ -340,7 +347,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil || *serverResp.ID == "" {
 		return fmt.Errorf("Failure in making Read request on MsSql Server  %q (Resource Group %q): %s", databaseId.MsSqlServer, databaseId.ResourceGroup, err)
 	}
-	d.Set("sql_server_id", serverResp.ID)
+	d.Set("server_id", serverResp.ID)
 
 	if props := resp.DatabaseProperties; props != nil {
 		if props.AutoPauseDelay != nil {
