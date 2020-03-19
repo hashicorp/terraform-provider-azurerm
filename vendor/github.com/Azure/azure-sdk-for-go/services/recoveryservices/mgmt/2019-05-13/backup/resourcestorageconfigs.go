@@ -102,8 +102,7 @@ func (client ResourceStorageConfigsClient) GetPreparer(ctx context.Context, vaul
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceStorageConfigsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -182,8 +181,7 @@ func (client ResourceStorageConfigsClient) PatchPreparer(ctx context.Context, va
 // PatchSender sends the Patch request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceStorageConfigsClient) PatchSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // PatchResponder handles the response to the Patch request. The method always
@@ -261,8 +259,7 @@ func (client ResourceStorageConfigsClient) UpdatePreparer(ctx context.Context, v
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceStorageConfigsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

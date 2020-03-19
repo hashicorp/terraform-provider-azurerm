@@ -26,7 +26,9 @@ import (
 	"net/http"
 )
 
-// LocationBasedPerformanceTierClient is the mariaDB Client
+// LocationBasedPerformanceTierClient is the the Microsoft Azure management API provides create, read, update, and
+// delete functionality for Azure MariaDB resources including servers, databases, firewall rules, VNET rules, log files
+// and configurations with new business model.
 type LocationBasedPerformanceTierClient struct {
 	BaseClient
 }
@@ -107,8 +109,7 @@ func (client LocationBasedPerformanceTierClient) ListPreparer(ctx context.Contex
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client LocationBasedPerformanceTierClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always

@@ -108,8 +108,7 @@ func (client SyncGroupsClient) CancelSyncPreparer(ctx context.Context, resourceG
 // CancelSyncSender sends the CancelSync request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) CancelSyncSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CancelSyncResponder handles the response to the CancelSync request. The method always
@@ -186,9 +185,8 @@ func (client SyncGroupsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) CreateOrUpdateSender(req *http.Request) (future SyncGroupsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -268,9 +266,8 @@ func (client SyncGroupsClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) DeleteSender(req *http.Request) (future SyncGroupsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -355,8 +352,7 @@ func (client SyncGroupsClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -436,8 +432,7 @@ func (client SyncGroupsClient) ListByDatabasePreparer(ctx context.Context, resou
 // ListByDatabaseSender sends the ListByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
@@ -556,8 +551,7 @@ func (client SyncGroupsClient) ListHubSchemasPreparer(ctx context.Context, resou
 // ListHubSchemasSender sends the ListHubSchemas request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) ListHubSchemasSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListHubSchemasResponder handles the response to the ListHubSchemas request. The method always
@@ -686,8 +680,7 @@ func (client SyncGroupsClient) ListLogsPreparer(ctx context.Context, resourceGro
 // ListLogsSender sends the ListLogs request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) ListLogsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListLogsResponder handles the response to the ListLogs request. The method always
@@ -799,8 +792,7 @@ func (client SyncGroupsClient) ListSyncDatabaseIdsPreparer(ctx context.Context, 
 // ListSyncDatabaseIdsSender sends the ListSyncDatabaseIds request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) ListSyncDatabaseIdsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSyncDatabaseIdsResponder handles the response to the ListSyncDatabaseIds request. The method always
@@ -912,9 +904,8 @@ func (client SyncGroupsClient) RefreshHubSchemaPreparer(ctx context.Context, res
 // RefreshHubSchemaSender sends the RefreshHubSchema request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) RefreshHubSchemaSender(req *http.Request) (future SyncGroupsRefreshHubSchemaFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -999,8 +990,7 @@ func (client SyncGroupsClient) TriggerSyncPreparer(ctx context.Context, resource
 // TriggerSyncSender sends the TriggerSync request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) TriggerSyncSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // TriggerSyncResponder handles the response to the TriggerSync request. The method always
@@ -1077,9 +1067,8 @@ func (client SyncGroupsClient) UpdatePreparer(ctx context.Context, resourceGroup
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncGroupsClient) UpdateSender(req *http.Request) (future SyncGroupsUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

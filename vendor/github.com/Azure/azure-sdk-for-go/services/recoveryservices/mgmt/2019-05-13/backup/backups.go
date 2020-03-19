@@ -111,8 +111,7 @@ func (client BackupsClient) TriggerPreparer(ctx context.Context, vaultName strin
 // TriggerSender sends the Trigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client BackupsClient) TriggerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // TriggerResponder handles the response to the Trigger request. The method always

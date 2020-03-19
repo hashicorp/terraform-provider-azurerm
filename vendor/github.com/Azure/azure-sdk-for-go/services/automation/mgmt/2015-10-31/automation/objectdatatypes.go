@@ -114,8 +114,7 @@ func (client ObjectDataTypesClient) ListFieldsByModuleAndTypePreparer(ctx contex
 // ListFieldsByModuleAndTypeSender sends the ListFieldsByModuleAndType request. The method will close the
 // http.Response Body if it receives an error.
 func (client ObjectDataTypesClient) ListFieldsByModuleAndTypeSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListFieldsByModuleAndTypeResponder handles the response to the ListFieldsByModuleAndType request. The method always
@@ -201,8 +200,7 @@ func (client ObjectDataTypesClient) ListFieldsByTypePreparer(ctx context.Context
 // ListFieldsByTypeSender sends the ListFieldsByType request. The method will close the
 // http.Response Body if it receives an error.
 func (client ObjectDataTypesClient) ListFieldsByTypeSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListFieldsByTypeResponder handles the response to the ListFieldsByType request. The method always

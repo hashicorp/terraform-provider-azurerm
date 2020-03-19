@@ -105,9 +105,8 @@ func (client ReplicationProtectionContainerMappingsClient) CreatePreparer(ctx co
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainerMappingsClient) CreateSender(req *http.Request) (future ReplicationProtectionContainerMappingsCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -189,9 +188,8 @@ func (client ReplicationProtectionContainerMappingsClient) DeletePreparer(ctx co
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainerMappingsClient) DeleteSender(req *http.Request) (future ReplicationProtectionContainerMappingsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -275,8 +273,7 @@ func (client ReplicationProtectionContainerMappingsClient) GetPreparer(ctx conte
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainerMappingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -350,8 +347,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListPreparer(ctx cont
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainerMappingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -467,8 +463,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProt
 // ListByReplicationProtectionContainersSender sends the ListByReplicationProtectionContainers request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProtectionContainersSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationProtectionContainersResponder handles the response to the ListByReplicationProtectionContainers request. The method always
@@ -579,9 +574,8 @@ func (client ReplicationProtectionContainerMappingsClient) PurgePreparer(ctx con
 // PurgeSender sends the Purge request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainerMappingsClient) PurgeSender(req *http.Request) (future ReplicationProtectionContainerMappingsPurgeFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -662,9 +656,8 @@ func (client ReplicationProtectionContainerMappingsClient) UpdatePreparer(ctx co
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationProtectionContainerMappingsClient) UpdateSender(req *http.Request) (future ReplicationProtectionContainerMappingsUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

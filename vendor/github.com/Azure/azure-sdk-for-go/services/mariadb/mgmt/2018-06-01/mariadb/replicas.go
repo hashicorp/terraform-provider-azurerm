@@ -26,7 +26,9 @@ import (
 	"net/http"
 )
 
-// ReplicasClient is the mariaDB Client
+// ReplicasClient is the the Microsoft Azure management API provides create, read, update, and delete functionality for
+// Azure MariaDB resources including servers, databases, firewall rules, VNET rules, log files and configurations with
+// new business model.
 type ReplicasClient struct {
 	BaseClient
 }
@@ -112,8 +114,7 @@ func (client ReplicasClient) ListByServerPreparer(ctx context.Context, resourceG
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicasClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

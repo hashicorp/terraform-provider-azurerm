@@ -114,9 +114,8 @@ func (client ManagedInstanceAdministratorsClient) CreateOrUpdatePreparer(ctx con
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAdministratorsClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceAdministratorsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -193,9 +192,8 @@ func (client ManagedInstanceAdministratorsClient) DeletePreparer(ctx context.Con
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAdministratorsClient) DeleteSender(req *http.Request) (future ManagedInstanceAdministratorsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -277,8 +275,7 @@ func (client ManagedInstanceAdministratorsClient) GetPreparer(ctx context.Contex
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAdministratorsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -356,8 +353,7 @@ func (client ManagedInstanceAdministratorsClient) ListByInstancePreparer(ctx con
 // ListByInstanceSender sends the ListByInstance request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceAdministratorsClient) ListByInstanceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstanceResponder handles the response to the ListByInstance request. The method always

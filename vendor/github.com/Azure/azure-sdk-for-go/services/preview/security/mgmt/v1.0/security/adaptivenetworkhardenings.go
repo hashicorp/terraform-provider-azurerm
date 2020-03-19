@@ -120,9 +120,8 @@ func (client AdaptiveNetworkHardeningsClient) EnforcePreparer(ctx context.Contex
 // EnforceSender sends the Enforce request. The method will close the
 // http.Response Body if it receives an error.
 func (client AdaptiveNetworkHardeningsClient) EnforceSender(req *http.Request) (future AdaptiveNetworkHardeningsEnforceFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -219,8 +218,7 @@ func (client AdaptiveNetworkHardeningsClient) GetPreparer(ctx context.Context, r
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AdaptiveNetworkHardeningsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -312,8 +310,7 @@ func (client AdaptiveNetworkHardeningsClient) ListByExtendedResourcePreparer(ctx
 // ListByExtendedResourceSender sends the ListByExtendedResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client AdaptiveNetworkHardeningsClient) ListByExtendedResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByExtendedResourceResponder handles the response to the ListByExtendedResource request. The method always

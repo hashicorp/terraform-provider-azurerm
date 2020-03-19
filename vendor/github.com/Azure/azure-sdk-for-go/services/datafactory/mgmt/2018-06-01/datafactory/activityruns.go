@@ -123,8 +123,7 @@ func (client ActivityRunsClient) QueryByPipelineRunPreparer(ctx context.Context,
 // QueryByPipelineRunSender sends the QueryByPipelineRun request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityRunsClient) QueryByPipelineRunSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // QueryByPipelineRunResponder handles the response to the QueryByPipelineRun request. The method always

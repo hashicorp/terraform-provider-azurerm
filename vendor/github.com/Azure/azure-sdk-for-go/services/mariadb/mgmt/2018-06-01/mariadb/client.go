@@ -1,6 +1,8 @@
 // Package mariadb implements the Azure ARM Mariadb service API version 2018-06-01.
 //
-// MariaDB Client
+// The Microsoft Azure management API provides create, read, update, and delete functionality for Azure MariaDB
+// resources including servers, databases, firewall rules, VNET rules, log files and configurations with new business
+// model.
 package mariadb
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
@@ -124,9 +126,8 @@ func (client BaseClient) CreateRecommendedActionSessionPreparer(ctx context.Cont
 // CreateRecommendedActionSessionSender sends the CreateRecommendedActionSession request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CreateRecommendedActionSessionSender(req *http.Request) (future CreateRecommendedActionSessionFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

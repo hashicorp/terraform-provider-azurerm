@@ -26,7 +26,9 @@ import (
 	"net/http"
 )
 
-// WaitStatisticsClient is the mariaDB Client
+// WaitStatisticsClient is the the Microsoft Azure management API provides create, read, update, and delete
+// functionality for Azure MariaDB resources including servers, databases, firewall rules, VNET rules, log files and
+// configurations with new business model.
 type WaitStatisticsClient struct {
 	BaseClient
 }
@@ -114,8 +116,7 @@ func (client WaitStatisticsClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WaitStatisticsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -211,8 +212,7 @@ func (client WaitStatisticsClient) ListByServerPreparer(ctx context.Context, res
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client WaitStatisticsClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

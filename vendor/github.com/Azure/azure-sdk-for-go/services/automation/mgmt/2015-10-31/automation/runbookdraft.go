@@ -113,8 +113,7 @@ func (client RunbookDraftClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -200,8 +199,7 @@ func (client RunbookDraftClient) GetContentPreparer(ctx context.Context, resourc
 // GetContentSender sends the GetContent request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) GetContentSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetContentResponder handles the response to the GetContent request. The method always
@@ -280,9 +278,8 @@ func (client RunbookDraftClient) PublishPreparer(ctx context.Context, resourceGr
 // PublishSender sends the Publish request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) PublishSender(req *http.Request) (future RunbookDraftPublishFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -369,9 +366,8 @@ func (client RunbookDraftClient) ReplaceContentPreparer(ctx context.Context, res
 // ReplaceContentSender sends the ReplaceContent request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) ReplaceContentSender(req *http.Request) (future RunbookDraftReplaceContentFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -462,8 +458,7 @@ func (client RunbookDraftClient) UndoEditPreparer(ctx context.Context, resourceG
 // UndoEditSender sends the UndoEdit request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) UndoEditSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UndoEditResponder handles the response to the UndoEdit request. The method always

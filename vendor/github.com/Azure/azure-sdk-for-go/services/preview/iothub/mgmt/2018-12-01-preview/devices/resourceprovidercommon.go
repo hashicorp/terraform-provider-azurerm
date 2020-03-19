@@ -97,8 +97,7 @@ func (client ResourceProviderCommonClient) GetSubscriptionQuotaPreparer(ctx cont
 // GetSubscriptionQuotaSender sends the GetSubscriptionQuota request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceProviderCommonClient) GetSubscriptionQuotaSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSubscriptionQuotaResponder handles the response to the GetSubscriptionQuota request. The method always

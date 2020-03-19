@@ -112,8 +112,7 @@ func (client QueryKeysClient) CreatePreparer(ctx context.Context, resourceGroupN
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client QueryKeysClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -200,8 +199,7 @@ func (client QueryKeysClient) DeletePreparer(ctx context.Context, resourceGroupN
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client QueryKeysClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -284,8 +282,7 @@ func (client QueryKeysClient) ListBySearchServicePreparer(ctx context.Context, r
 // ListBySearchServiceSender sends the ListBySearchService request. The method will close the
 // http.Response Body if it receives an error.
 func (client QueryKeysClient) ListBySearchServiceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySearchServiceResponder handles the response to the ListBySearchService request. The method always
@@ -369,8 +366,7 @@ func (client QueryKeysClient) ListBySearchServiceGetPreparer(ctx context.Context
 // ListBySearchServiceGetSender sends the ListBySearchServiceGet request. The method will close the
 // http.Response Body if it receives an error.
 func (client QueryKeysClient) ListBySearchServiceGetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySearchServiceGetResponder handles the response to the ListBySearchServiceGet request. The method always

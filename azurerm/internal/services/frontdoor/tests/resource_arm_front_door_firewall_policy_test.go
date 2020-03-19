@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,7 +87,7 @@ func TestAccAzureRMFrontDoorFirewallPolicy_validateName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := frontdoor.ValidateFrontDoorWAFName(tc.Input, tc.Name)
+		_, errors := validate.FrontDoorWAFName(tc.Input, tc.Name)
 
 		hasError := len(errors) > 0
 

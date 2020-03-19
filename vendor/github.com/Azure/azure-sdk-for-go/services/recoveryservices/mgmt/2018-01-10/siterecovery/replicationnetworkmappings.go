@@ -104,9 +104,8 @@ func (client ReplicationNetworkMappingsClient) CreatePreparer(ctx context.Contex
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworkMappingsClient) CreateSender(req *http.Request) (future ReplicationNetworkMappingsCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -185,9 +184,8 @@ func (client ReplicationNetworkMappingsClient) DeletePreparer(ctx context.Contex
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworkMappingsClient) DeleteSender(req *http.Request) (future ReplicationNetworkMappingsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -271,8 +269,7 @@ func (client ReplicationNetworkMappingsClient) GetPreparer(ctx context.Context, 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworkMappingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -346,8 +343,7 @@ func (client ReplicationNetworkMappingsClient) ListPreparer(ctx context.Context)
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworkMappingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -463,8 +459,7 @@ func (client ReplicationNetworkMappingsClient) ListByReplicationNetworksPreparer
 // ListByReplicationNetworksSender sends the ListByReplicationNetworks request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworkMappingsClient) ListByReplicationNetworksSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationNetworksResponder handles the response to the ListByReplicationNetworks request. The method always
@@ -578,9 +573,8 @@ func (client ReplicationNetworkMappingsClient) UpdatePreparer(ctx context.Contex
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworkMappingsClient) UpdateSender(req *http.Request) (future ReplicationNetworkMappingsUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

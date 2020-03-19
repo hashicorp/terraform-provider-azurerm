@@ -112,9 +112,8 @@ func (client StreamingJobsClient) CreateOrReplacePreparer(ctx context.Context, s
 // CreateOrReplaceSender sends the CreateOrReplace request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) CreateOrReplaceSender(req *http.Request) (future StreamingJobsCreateOrReplaceFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -190,9 +189,8 @@ func (client StreamingJobsClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) DeleteSender(req *http.Request) (future StreamingJobsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -280,8 +278,7 @@ func (client StreamingJobsClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -361,8 +358,7 @@ func (client StreamingJobsClient) ListPreparer(ctx context.Context, expand strin
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -482,8 +478,7 @@ func (client StreamingJobsClient) ListByResourceGroupPreparer(ctx context.Contex
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -597,9 +592,8 @@ func (client StreamingJobsClient) StartPreparer(ctx context.Context, resourceGro
 // StartSender sends the Start request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) StartSender(req *http.Request) (future StreamingJobsStartFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -675,9 +669,8 @@ func (client StreamingJobsClient) StopPreparer(ctx context.Context, resourceGrou
 // StopSender sends the Stop request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) StopSender(req *http.Request) (future StreamingJobsStopFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -771,8 +764,7 @@ func (client StreamingJobsClient) UpdatePreparer(ctx context.Context, streamingJ
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

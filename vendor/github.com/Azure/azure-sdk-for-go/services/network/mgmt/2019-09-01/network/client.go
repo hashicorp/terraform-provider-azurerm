@@ -116,8 +116,7 @@ func (client BaseClient) CheckDNSNameAvailabilityPreparer(ctx context.Context, l
 // CheckDNSNameAvailabilitySender sends the CheckDNSNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CheckDNSNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckDNSNameAvailabilityResponder handles the response to the CheckDNSNameAvailability request. The method always
@@ -190,9 +189,8 @@ func (client BaseClient) DeleteBastionShareableLinkPreparer(ctx context.Context,
 // DeleteBastionShareableLinkSender sends the DeleteBastionShareableLink request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) DeleteBastionShareableLinkSender(req *http.Request) (future DeleteBastionShareableLinkFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -276,8 +274,7 @@ func (client BaseClient) DisconnectActiveSessionsPreparer(ctx context.Context, r
 // DisconnectActiveSessionsSender sends the DisconnectActiveSessions request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) DisconnectActiveSessionsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DisconnectActiveSessionsResponder handles the response to the DisconnectActiveSessions request. The method always
@@ -388,9 +385,8 @@ func (client BaseClient) GeneratevirtualwanvpnserverconfigurationvpnprofilePrepa
 // GeneratevirtualwanvpnserverconfigurationvpnprofileSender sends the Generatevirtualwanvpnserverconfigurationvpnprofile request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) GeneratevirtualwanvpnserverconfigurationvpnprofileSender(req *http.Request) (future GeneratevirtualwanvpnserverconfigurationvpnprofileFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -465,9 +461,8 @@ func (client BaseClient) GetActiveSessionsPreparer(ctx context.Context, resource
 // GetActiveSessionsSender sends the GetActiveSessions request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) GetActiveSessionsSender(req *http.Request) (future GetActiveSessionsFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -504,8 +499,7 @@ func (client BaseClient) getActiveSessionsNextResults(ctx context.Context, lastR
 		return
 	}
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.BaseClient", "getActiveSessionsNextResults", resp, "Failure sending next results request")
 	}
@@ -594,8 +588,7 @@ func (client BaseClient) GetBastionShareableLinkPreparer(ctx context.Context, re
 // GetBastionShareableLinkSender sends the GetBastionShareableLink request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) GetBastionShareableLinkSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetBastionShareableLinkResponder handles the response to the GetBastionShareableLink request. The method always
@@ -705,9 +698,8 @@ func (client BaseClient) PutBastionShareableLinkPreparer(ctx context.Context, re
 // PutBastionShareableLinkSender sends the PutBastionShareableLink request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) PutBastionShareableLinkSender(req *http.Request) (future PutBastionShareableLinkFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -744,8 +736,7 @@ func (client BaseClient) putBastionShareableLinkNextResults(ctx context.Context,
 		return
 	}
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	resp, err = client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.BaseClient", "putBastionShareableLinkNextResults", resp, "Failure sending next results request")
 	}
@@ -830,8 +821,7 @@ func (client BaseClient) SupportedSecurityProvidersPreparer(ctx context.Context,
 // SupportedSecurityProvidersSender sends the SupportedSecurityProviders request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) SupportedSecurityProvidersSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SupportedSecurityProvidersResponder handles the response to the SupportedSecurityProviders request. The method always

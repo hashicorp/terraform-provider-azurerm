@@ -93,8 +93,7 @@ func (client GlobalAdministratorClient) ElevateAccessPreparer(ctx context.Contex
 // ElevateAccessSender sends the ElevateAccess request. The method will close the
 // http.Response Body if it receives an error.
 func (client GlobalAdministratorClient) ElevateAccessSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ElevateAccessResponder handles the response to the ElevateAccess request. The method always

@@ -93,8 +93,7 @@ func (client GeographicHierarchiesClient) GetDefaultPreparer(ctx context.Context
 // GetDefaultSender sends the GetDefault request. The method will close the
 // http.Response Body if it receives an error.
 func (client GeographicHierarchiesClient) GetDefaultSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetDefaultResponder handles the response to the GetDefault request. The method always

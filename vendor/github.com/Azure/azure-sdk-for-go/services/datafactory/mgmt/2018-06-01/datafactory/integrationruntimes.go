@@ -125,8 +125,7 @@ func (client IntegrationRuntimesClient) CreateLinkedIntegrationRuntimePreparer(c
 // CreateLinkedIntegrationRuntimeSender sends the CreateLinkedIntegrationRuntime request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) CreateLinkedIntegrationRuntimeSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateLinkedIntegrationRuntimeResponder handles the response to the CreateLinkedIntegrationRuntime request. The method always
@@ -231,8 +230,7 @@ func (client IntegrationRuntimesClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -326,8 +324,7 @@ func (client IntegrationRuntimesClient) DeletePreparer(ctx context.Context, reso
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -426,8 +423,7 @@ func (client IntegrationRuntimesClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -522,8 +518,7 @@ func (client IntegrationRuntimesClient) GetConnectionInfoPreparer(ctx context.Co
 // GetConnectionInfoSender sends the GetConnectionInfo request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetConnectionInfoSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetConnectionInfoResponder handles the response to the GetConnectionInfo request. The method always
@@ -618,8 +613,7 @@ func (client IntegrationRuntimesClient) GetMonitoringDataPreparer(ctx context.Co
 // GetMonitoringDataSender sends the GetMonitoringData request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetMonitoringDataSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMonitoringDataResponder handles the response to the GetMonitoringData request. The method always
@@ -713,8 +707,7 @@ func (client IntegrationRuntimesClient) GetStatusPreparer(ctx context.Context, r
 // GetStatusSender sends the GetStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetStatusResponder handles the response to the GetStatus request. The method always
@@ -808,8 +801,7 @@ func (client IntegrationRuntimesClient) ListAuthKeysPreparer(ctx context.Context
 // ListAuthKeysSender sends the ListAuthKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) ListAuthKeysSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListAuthKeysResponder handles the response to the ListAuthKeys request. The method always
@@ -898,8 +890,7 @@ func (client IntegrationRuntimesClient) ListByFactoryPreparer(ctx context.Contex
 // ListByFactorySender sends the ListByFactory request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) ListByFactorySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByFactoryResponder handles the response to the ListByFactory request. The method always
@@ -1033,8 +1024,7 @@ func (client IntegrationRuntimesClient) RegenerateAuthKeyPreparer(ctx context.Co
 // RegenerateAuthKeySender sends the RegenerateAuthKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) RegenerateAuthKeySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateAuthKeyResponder handles the response to the RegenerateAuthKey request. The method always
@@ -1133,8 +1123,7 @@ func (client IntegrationRuntimesClient) RemoveLinksPreparer(ctx context.Context,
 // RemoveLinksSender sends the RemoveLinks request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) RemoveLinksSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RemoveLinksResponder handles the response to the RemoveLinks request. The method always
@@ -1221,9 +1210,8 @@ func (client IntegrationRuntimesClient) StartPreparer(ctx context.Context, resou
 // StartSender sends the Start request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future IntegrationRuntimesStartFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1316,9 +1304,8 @@ func (client IntegrationRuntimesClient) StopPreparer(ctx context.Context, resour
 // StopSender sends the Stop request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future IntegrationRuntimesStopFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1419,8 +1406,7 @@ func (client IntegrationRuntimesClient) SyncCredentialsPreparer(ctx context.Cont
 // SyncCredentialsSender sends the SyncCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) SyncCredentialsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SyncCredentialsResponder handles the response to the SyncCredentials request. The method always
@@ -1516,8 +1502,7 @@ func (client IntegrationRuntimesClient) UpdatePreparer(ctx context.Context, reso
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -1611,8 +1596,7 @@ func (client IntegrationRuntimesClient) UpgradePreparer(ctx context.Context, res
 // UpgradeSender sends the Upgrade request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) UpgradeSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpgradeResponder handles the response to the Upgrade request. The method always

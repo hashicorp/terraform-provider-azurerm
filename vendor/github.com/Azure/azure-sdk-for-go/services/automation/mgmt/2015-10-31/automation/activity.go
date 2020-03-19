@@ -114,8 +114,7 @@ func (client ActivityClient) GetPreparer(ctx context.Context, resourceGroupName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -202,8 +201,7 @@ func (client ActivityClient) ListByModulePreparer(ctx context.Context, resourceG
 // ListByModuleSender sends the ListByModule request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityClient) ListByModuleSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByModuleResponder handles the response to the ListByModule request. The method always

@@ -107,8 +107,7 @@ func (client ContainerClient) ExecuteCommandPreparer(ctx context.Context, resour
 // ExecuteCommandSender sends the ExecuteCommand request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerClient) ExecuteCommandSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteCommandResponder handles the response to the ExecuteCommand request. The method always
@@ -191,8 +190,7 @@ func (client ContainerClient) ListLogsPreparer(ctx context.Context, resourceGrou
 // ListLogsSender sends the ListLogs request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerClient) ListLogsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListLogsResponder handles the response to the ListLogs request. The method always

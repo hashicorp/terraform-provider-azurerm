@@ -109,8 +109,7 @@ func (client UsagesClient) ListByInstancePoolPreparer(ctx context.Context, resou
 // ListByInstancePoolSender sends the ListByInstancePool request. The method will close the
 // http.Response Body if it receives an error.
 func (client UsagesClient) ListByInstancePoolSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstancePoolResponder handles the response to the ListByInstancePool request. The method always

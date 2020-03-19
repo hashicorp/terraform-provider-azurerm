@@ -110,9 +110,8 @@ func (client ManagedInstanceTdeCertificatesClient) CreatePreparer(ctx context.Co
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceTdeCertificatesClient) CreateSender(req *http.Request) (future ManagedInstanceTdeCertificatesCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

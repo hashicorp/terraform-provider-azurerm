@@ -26,7 +26,9 @@ import (
 	"net/http"
 )
 
-// ConfigurationsClient is the mariaDB Client
+// ConfigurationsClient is the the Microsoft Azure management API provides create, read, update, and delete
+// functionality for Azure MariaDB resources including servers, databases, firewall rules, VNET rules, log files and
+// configurations with new business model.
 type ConfigurationsClient struct {
 	BaseClient
 }
@@ -111,9 +113,8 @@ func (client ConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConfigurationsClient) CreateOrUpdateSender(req *http.Request) (future ConfigurationsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -206,8 +207,7 @@ func (client ConfigurationsClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConfigurationsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -293,8 +293,7 @@ func (client ConfigurationsClient) ListByServerPreparer(ctx context.Context, res
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConfigurationsClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

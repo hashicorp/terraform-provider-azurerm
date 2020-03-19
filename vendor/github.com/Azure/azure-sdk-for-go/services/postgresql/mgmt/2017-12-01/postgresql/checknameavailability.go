@@ -60,6 +60,8 @@ func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvail
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: nameAvailabilityRequest,
 			Constraints: []validation.Constraint{{Target: "nameAvailabilityRequest.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("postgresql.CheckNameAvailabilityClient", "Execute", err.Error())
@@ -110,8 +112,7 @@ func (client CheckNameAvailabilityClient) ExecutePreparer(ctx context.Context, n
 // ExecuteSender sends the Execute request. The method will close the
 // http.Response Body if it receives an error.
 func (client CheckNameAvailabilityClient) ExecuteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteResponder handles the response to the Execute request. The method always

@@ -276,6 +276,23 @@ func PossibleEnforcementMode1Values() []EnforcementMode1 {
 	return []EnforcementMode1{EnforcementMode1Audit, EnforcementMode1Enforce, EnforcementMode1None}
 }
 
+// EnforcementSupport enumerates the values for enforcement support.
+type EnforcementSupport string
+
+const (
+	// NotSupported ...
+	NotSupported EnforcementSupport = "NotSupported"
+	// Supported ...
+	Supported EnforcementSupport = "Supported"
+	// Unknown ...
+	Unknown EnforcementSupport = "Unknown"
+)
+
+// PossibleEnforcementSupportValues returns an array of possible values for the EnforcementSupport const type.
+func PossibleEnforcementSupportValues() []EnforcementSupport {
+	return []EnforcementSupport{NotSupported, Supported, Unknown}
+}
+
 // EventSource enumerates the values for event source.
 type EventSource string
 
@@ -8258,6 +8275,8 @@ type VMRecommendation struct {
 	// RecommendationAction - Possible values include: 'RecommendationActionRecommended', 'RecommendationActionAdd', 'RecommendationActionRemove'
 	RecommendationAction RecommendationAction `json:"recommendationAction,omitempty"`
 	ResourceID           *string              `json:"resourceId,omitempty"`
+	// EnforcementSupport - Possible values include: 'Supported', 'NotSupported', 'Unknown'
+	EnforcementSupport EnforcementSupport `json:"enforcementSupport,omitempty"`
 }
 
 // WorkspaceSetting configures where to store the OMS agent data for workspaces under a scope

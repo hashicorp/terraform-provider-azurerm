@@ -26,7 +26,9 @@ import (
 	"net/http"
 )
 
-// LocationBasedRecommendedActionSessionsResultClient is the mariaDB Client
+// LocationBasedRecommendedActionSessionsResultClient is the the Microsoft Azure management API provides create, read,
+// update, and delete functionality for Azure MariaDB resources including servers, databases, firewall rules, VNET
+// rules, log files and configurations with new business model.
 type LocationBasedRecommendedActionSessionsResultClient struct {
 	BaseClient
 }
@@ -111,8 +113,7 @@ func (client LocationBasedRecommendedActionSessionsResultClient) ListPreparer(ct
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client LocationBasedRecommendedActionSessionsResultClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always

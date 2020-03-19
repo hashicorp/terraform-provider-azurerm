@@ -109,8 +109,7 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationPrepa
 // ListByConfigurationSender sends the ListByConfiguration request. The method will close the
 // http.Response Body if it receives an error.
 func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByConfigurationResponder handles the response to the ListByConfiguration request. The method always

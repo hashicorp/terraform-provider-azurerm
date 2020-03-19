@@ -116,8 +116,7 @@ func (client PricingsClient) CreateOrUpdateResourceGroupPricingPreparer(ctx cont
 // CreateOrUpdateResourceGroupPricingSender sends the CreateOrUpdateResourceGroupPricing request. The method will close the
 // http.Response Body if it receives an error.
 func (client PricingsClient) CreateOrUpdateResourceGroupPricingSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResourceGroupPricingResponder handles the response to the CreateOrUpdateResourceGroupPricing request. The method always
@@ -204,8 +203,7 @@ func (client PricingsClient) GetResourceGroupPricingPreparer(ctx context.Context
 // GetResourceGroupPricingSender sends the GetResourceGroupPricing request. The method will close the
 // http.Response Body if it receives an error.
 func (client PricingsClient) GetResourceGroupPricingSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResourceGroupPricingResponder handles the response to the GetResourceGroupPricing request. The method always
@@ -286,8 +284,7 @@ func (client PricingsClient) GetSubscriptionPricingPreparer(ctx context.Context,
 // GetSubscriptionPricingSender sends the GetSubscriptionPricing request. The method will close the
 // http.Response Body if it receives an error.
 func (client PricingsClient) GetSubscriptionPricingSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSubscriptionPricingResponder handles the response to the GetSubscriptionPricing request. The method always
@@ -365,8 +362,7 @@ func (client PricingsClient) ListPreparer(ctx context.Context) (*http.Request, e
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client PricingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -489,8 +485,7 @@ func (client PricingsClient) ListByResourceGroupPreparer(ctx context.Context, re
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client PricingsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -610,8 +605,7 @@ func (client PricingsClient) UpdateSubscriptionPricingPreparer(ctx context.Conte
 // UpdateSubscriptionPricingSender sends the UpdateSubscriptionPricing request. The method will close the
 // http.Response Body if it receives an error.
 func (client PricingsClient) UpdateSubscriptionPricingSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateSubscriptionPricingResponder handles the response to the UpdateSubscriptionPricing request. The method always

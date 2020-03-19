@@ -122,8 +122,7 @@ func (client BaseClient) CheckDomainAvailabilityPreparer(ctx context.Context, pa
 // CheckDomainAvailabilitySender sends the CheckDomainAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CheckDomainAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckDomainAvailabilityResponder handles the response to the CheckDomainAvailability request. The method always
@@ -208,8 +207,7 @@ func (client BaseClient) CheckSkuAvailabilityPreparer(ctx context.Context, locat
 // CheckSkuAvailabilitySender sends the CheckSkuAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CheckSkuAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckSkuAvailabilityResponder handles the response to the CheckSkuAvailability request. The method always

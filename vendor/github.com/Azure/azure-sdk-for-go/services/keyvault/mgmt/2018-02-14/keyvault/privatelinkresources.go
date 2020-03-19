@@ -110,8 +110,7 @@ func (client PrivateLinkResourcesClient) ListByVaultPreparer(ctx context.Context
 // ListByVaultSender sends the ListByVault request. The method will close the
 // http.Response Body if it receives an error.
 func (client PrivateLinkResourcesClient) ListByVaultSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByVaultResponder handles the response to the ListByVault request. The method always

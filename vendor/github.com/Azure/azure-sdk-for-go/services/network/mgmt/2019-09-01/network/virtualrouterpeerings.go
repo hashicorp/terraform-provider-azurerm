@@ -115,9 +115,8 @@ func (client VirtualRouterPeeringsClient) CreateOrUpdatePreparer(ctx context.Con
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualRouterPeeringsClient) CreateOrUpdateSender(req *http.Request) (future VirtualRouterPeeringsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -194,9 +193,8 @@ func (client VirtualRouterPeeringsClient) DeletePreparer(ctx context.Context, re
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualRouterPeeringsClient) DeleteSender(req *http.Request) (future VirtualRouterPeeringsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -278,8 +276,7 @@ func (client VirtualRouterPeeringsClient) GetPreparer(ctx context.Context, resou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualRouterPeeringsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -356,8 +353,7 @@ func (client VirtualRouterPeeringsClient) ListPreparer(ctx context.Context, reso
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualRouterPeeringsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always

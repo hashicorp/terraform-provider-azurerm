@@ -99,6 +99,8 @@ func PossibleEntityStatusValues() []EntityStatus {
 type SkuNameEnum string
 
 const (
+	// CapacityReservation ...
+	CapacityReservation SkuNameEnum = "CapacityReservation"
 	// Free ...
 	Free SkuNameEnum = "Free"
 	// PerGB2018 ...
@@ -115,7 +117,7 @@ const (
 
 // PossibleSkuNameEnumValues returns an array of possible values for the SkuNameEnum const type.
 func PossibleSkuNameEnumValues() []SkuNameEnum {
-	return []SkuNameEnum{Free, PerGB2018, PerNode, Premium, Standalone, Standard}
+	return []SkuNameEnum{CapacityReservation, Free, PerGB2018, PerNode, Premium, Standalone, Standard}
 }
 
 // DataSource datasources under OMS Workspace.
@@ -1291,7 +1293,7 @@ type SharedKeys struct {
 
 // Sku the SKU (tier) of a workspace.
 type Sku struct {
-	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'PerNode', 'PerGB2018', 'Standalone'
+	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'PerNode', 'PerGB2018', 'Standalone', 'CapacityReservation'
 	Name SkuNameEnum `json:"name,omitempty"`
 }
 
