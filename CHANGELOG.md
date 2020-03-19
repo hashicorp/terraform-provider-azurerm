@@ -5,6 +5,10 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v40.3.0` [GH-6134]
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.8.0` [GH-6134]
 
+BUG FIXES:
+
+* `azurerm_policy_definition` - fixing a bug when parsing the Management Group ID [GH-5981]
+
 ## 2.2.0 (March 18, 2020)
 
 FEATURES:
