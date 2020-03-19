@@ -20,6 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v1.1.2
-          with:
-            go-version: 1.13.8
+        with:
+          go-version: 1.13.8
       - run: make ${{ matrix.maketask }}
