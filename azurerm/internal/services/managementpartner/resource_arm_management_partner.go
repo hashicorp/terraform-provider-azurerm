@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementpartner/parse"
@@ -39,7 +39,7 @@ func resourceArmManagementPartner() *schema.Resource {
 			"partner_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"partner_name": {
@@ -97,6 +97,15 @@ func resourceArmManagementPartnerUpdate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("Error updating Management Partner %q: %+v", partnerId, err)
 	}
+
+	resp, err := client.Get(ctx, partnerId)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Management Partner %q: %+v", partnerId, err)
+	}
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("Cannot read Management Partner %q ID", partnerId)
+	}
+	d.SetId(*resp.ID)
 
 	return resourceArmManagementPartnerRead(d, meta)
 }

@@ -154,7 +154,7 @@ func testAccAzureRMManagementPartner_requiresImport() string {
 %s
 
 resource "azurerm_management_partner" "import" {
-  partner_id = "${azurerm_management_partner.test.partner_id}"
+  partner_id = azurerm_management_partner.test.partner_id
 }
 `, testAccAzureRMManagementPartner_basic())
 }
