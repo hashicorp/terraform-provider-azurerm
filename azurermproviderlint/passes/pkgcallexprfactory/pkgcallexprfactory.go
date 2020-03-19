@@ -67,9 +67,3 @@ func BuildAnalyzer(pkg, f string) *analysis.Analyzer {
 func encodeAnalyzer(pkg, f string) string {
 	return fmt.Sprintf("%s.%s", pkg, f)
 }
-
-func decodeAnalyzer(k string) (pkg, f string) {
-	// do no error handling since the invocation is under control
-	l := strings.Split(k, ".")
-	return l[0], l[1]
-}

@@ -13,7 +13,7 @@ import (
 const Doc = `check for fmt.Errorf() using "Error" prefix
 
 The AZURERMR001 analyzer reports when a fmt.Errorf() call contains the
-beginning string "Error". This is redundent in context of terraform provider
+beginning string "Error". This is redundant in context of terraform provider
 since terraform itself already print an "[Error]" prefix at the beginning of 
 error message.
 `
