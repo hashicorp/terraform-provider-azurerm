@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestParseVirtualHubConnection(t *testing.T) {
+func TestManagementPartnerId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
@@ -37,7 +37,7 @@ func TestParseVirtualHubConnection(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseManagementPartnerID(v.Input)
+		actual, err := ManagementPartnerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

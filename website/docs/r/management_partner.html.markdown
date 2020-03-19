@@ -13,6 +13,10 @@ Manages a Management Partner.
 ## Management Partner Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_partner" "example" {
   partner_id = 6080810
 }
@@ -22,7 +26,7 @@ resource "azurerm_management_partner" "example" {
 
 The following arguments are supported:
 
-* `partner_id` - (Required) The ID of the Management Partner.
+* `partner_id` - (Required) Specifies the ID of the Management Partner.
 
 ---
 

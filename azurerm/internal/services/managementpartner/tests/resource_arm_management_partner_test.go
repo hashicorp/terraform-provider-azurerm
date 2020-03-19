@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementpartner/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -91,14 +92,17 @@ func testCheckAzureRMManagementPartnerExists(resourceName string) resource.TestC
 			return fmt.Errorf("Management Partner not found: %s", resourceName)
 		}
 
-		partnerId := rs.Primary.Attributes["partner_id"]
+		id, err := parse.ManagementPartnerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagementPartner.PartnerClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, partnerId); err != nil {
+		if resp, err := client.Get(ctx, id.PartnerId); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Management Partner %q does not exist", partnerId)
+				return fmt.Errorf("Bad: Management Partner %q does not exist", id.PartnerId)
 			}
 			return fmt.Errorf("Bad: Get on ManagementPartner.PartnerClient: %+v", err)
 		}
@@ -116,9 +120,12 @@ func testCheckAzureRMManagementPartnerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		partnerId := rs.Primary.Attributes["partner_id"]
+		id, err := parse.ManagementPartnerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, partnerId); err != nil {
+		if resp, err := client.Get(ctx, id.PartnerId); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on ManagementPartner.PartnerClient: %+v", err)
 			}
