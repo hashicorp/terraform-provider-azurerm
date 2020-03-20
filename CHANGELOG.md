@@ -1,9 +1,25 @@
 ## 2.3.0 (Unreleased)
 
+
+FEATURES:
+
+* **New Resource:** `azurerm_hpc_cache_blob_target` [GH-6035]
+
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v40.3.0` [GH-6134]
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.8.0` [GH-6134]
+* dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.10.0` [GH-6169]
+* Data Source `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
+* `azurerm_automation_schedule` - adding validation for the timezone field [GH-5759]
+* `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
+* `azurerm_storage_share` - exposing the `resource_manager_id` field [GH-6170]
+
+BUG FIXES:
+
+* `azurerm_analysis_server` - switching the `ipv4_firewall_rule` block to a Set rather than a List to handle this being unordered [GH-6179]
+* `azurerm_policy_definition` - fixing a bug when parsing the Management Group ID [GH-5981]
+* `azurerm_postgresql_server` - updating the validation for the `name` field [GH-6064]
 
 ## 2.2.0 (March 18, 2020)
 

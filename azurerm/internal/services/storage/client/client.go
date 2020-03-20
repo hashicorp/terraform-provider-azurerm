@@ -26,6 +26,8 @@ type Client struct {
 	ManagementPoliciesClient storage.ManagementPoliciesClient
 	BlobServicesClient       storage.BlobServicesClient
 	CachesClient             *storagecache.CachesClient
+	StorageTargetsClient     *storagecache.StorageTargetsClient
+	SubscriptionId           string
 
 	environment   az.Environment
 	storageAdAuth *autorest.Authorizer
@@ -47,6 +49,9 @@ func NewClient(options *common.ClientOptions) *Client {
 	cachesClient := storagecache.NewCachesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&cachesClient.Client, options.ResourceManagerAuthorizer)
 
+	storageTargetsClient := storagecache.NewStorageTargetsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&storageTargetsClient.Client, options.ResourceManagerAuthorizer)
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
@@ -55,6 +60,8 @@ func NewClient(options *common.ClientOptions) *Client {
 		ManagementPoliciesClient: managementPoliciesClient,
 		BlobServicesClient:       blobServicesClient,
 		CachesClient:             &cachesClient,
+		SubscriptionId:           options.SubscriptionId,
+		StorageTargetsClient:     &storageTargetsClient,
 		environment:              options.Environment,
 	}
 
