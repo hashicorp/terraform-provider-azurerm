@@ -45,28 +45,28 @@ func resourceArmSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
-			// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format. 1-520 weeks
+			// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
 			"weekly_retention": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "PT0S",
 				ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 			},
-			// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format. 4-520 weeks
+			// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 			"monthly_retention": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "PT0S",
 				ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 			},
-			// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format. 52-520 weeks
+			// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 			"yearly_retention": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "PT0S",
 				ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 			},
-			// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format. 1-52
+			// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 			"week_of_year": {
 				Type:         schema.TypeInt,
 				Optional:     true,
