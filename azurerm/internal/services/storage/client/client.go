@@ -29,6 +29,7 @@ type Client struct {
 	CachesClient             *storagecache.CachesClient
 	StorageTargetsClient     *storagecache.StorageTargetsClient
 	SubscriptionId           string
+	StorageUseAzureAD        bool
 
 	environment   az.Environment
 	storageAdAuth *autorest.Authorizer
@@ -72,6 +73,7 @@ func NewClient(options *common.ClientOptions) *Client {
 
 	if options.StorageUseAzureAD {
 		client.storageAdAuth = &options.StorageAuthorizer
+		client.StorageUseAzureAD = true
 	}
 
 	return &client
