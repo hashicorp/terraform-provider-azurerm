@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,7 +32,6 @@ func resourceArmSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"backup_long_term_retention_policy": helper.SqlLongTermRetentionPolicy(),
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -47,6 +45,34 @@ func resourceArmSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
+			// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format. 1-520 weeks
+			"weekly_retention": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT0S",
+				ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
+			},
+			// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format. 4-520 weeks
+			"monthly_retention": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT0S",
+				ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
+			},
+			// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format. 52-520 weeks
+			"yearly_retention": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT0S",
+				ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
+			},
+			// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format. 1-52
+			"week_of_year": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      0,
+				ValidateFunc: validation.IntBetween(1, 52),
+			},
 		},
 	}
 }
@@ -59,10 +85,32 @@ func resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.Resourc
 	databaseName := d.Get("database_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-	shortTermPolicy := d.Get("backup_long_term_retention_policy").([]interface{})
+
+	backupLongTermPolicyProps := sql.LongTermRetentionPolicyProperties{
+		WeeklyRetention:  utils.String("PT0S"),
+		MonthlyRetention: utils.String("PT0S"),
+		YearlyRetention:  utils.String("PT0S"),
+		WeekOfYear:       utils.Int32(0),
+	}
+
+	if v, ok := d.GetOk("weekly_retention"); ok {
+		backupLongTermPolicyProps.WeeklyRetention = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("monthly_retention"); ok {
+		backupLongTermPolicyProps.MonthlyRetention = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("yearly_retention"); ok {
+		backupLongTermPolicyProps.YearlyRetention = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("week_of_year"); ok {
+		backupLongTermPolicyProps.WeekOfYear = utils.Int32(int32(v.(int)))
+	}
 
 	backupLongTermPolicy := sql.BackupLongTermRetentionPolicy{
-		LongTermRetentionPolicyProperties: helper.ExpandSqlLongTermRetentionPolicyProperties(shortTermPolicy),
+		LongTermRetentionPolicyProperties: &backupLongTermPolicyProps,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, databaseName, backupLongTermPolicy)
@@ -78,6 +126,7 @@ func resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.Resourc
 	if err != nil {
 		return fmt.Errorf("Error issuing get request for Database %q Long Term Policies (Sql Server %q ,Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
 	}
+
 	d.SetId(*response.ID)
 
 	return resourceArmSqlDatabaseLongTermRetentionPolicyRead(d, meta)
@@ -102,9 +151,32 @@ func resourceArmSqlDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, m
 		return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", databaseName, serverName, resourceGroup, err)
 	}
 
-	flattenedLongTermPolicy := helper.FlattenSqlLongTermRetentionPolicy(&backupLongTermPolicy)
-	if err := d.Set("backup_long_term_retention_policy", flattenedLongTermPolicy); err != nil {
-		return fmt.Errorf("Error setting `backup_long_term_retention_policy`: %+v", err)
+	if backupLongTermPolicy.WeeklyRetention != nil {
+		weeklyRetention := *backupLongTermPolicy.WeeklyRetention
+		if err := d.Set("weekly_retention", weeklyRetention); err != nil {
+			return fmt.Errorf("Error setting `weekly_retention`: %+v", err)
+		}
+	}
+
+	if backupLongTermPolicy.MonthlyRetention != nil {
+		monthlyRetention := *backupLongTermPolicy.MonthlyRetention
+		if err := d.Set("monthly_retention", monthlyRetention); err != nil {
+			return fmt.Errorf("Error setting `monthly_retention`: %+v", err)
+		}
+	}
+
+	if backupLongTermPolicy.YearlyRetention != nil {
+		yearlyRetention := *backupLongTermPolicy.YearlyRetention
+		if err := d.Set("yearly_retention", yearlyRetention); err != nil {
+			return fmt.Errorf("Error setting `yearly_retention`: %+v", err)
+		}
+	}
+
+	if backupLongTermPolicy.WeekOfYear != nil {
+		weekOfYear := *backupLongTermPolicy.WeekOfYear
+		if err := d.Set("week_of_year", weekOfYear); err != nil {
+			return fmt.Errorf("Error setting `week_of_year`: %+v", err)
+		}
 	}
 
 	d.Set("database_name", databaseName)
@@ -131,9 +203,9 @@ func resourceArmSqlDatabaseLongTermRetentionPolicyDelete(d *schema.ResourceData,
 	// Update to default values for removal
 	backupLongTermPolicy := sql.BackupLongTermRetentionPolicy{
 		LongTermRetentionPolicyProperties: &sql.LongTermRetentionPolicyProperties{
-			WeeklyRetention:  utils.String("P0W"),
-			MonthlyRetention: utils.String("P0W"),
-			YearlyRetention:  utils.String("P0W"),
+			WeeklyRetention:  utils.String("PT0S"),
+			MonthlyRetention: utils.String("PT0S"),
+			YearlyRetention:  utils.String("PT0S"),
 			WeekOfYear:       utils.Int32(1),
 		},
 	}

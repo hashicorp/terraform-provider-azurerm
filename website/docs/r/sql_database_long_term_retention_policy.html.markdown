@@ -43,12 +43,10 @@ resource "azurerm_sql_database_long_term_retention_policy" "example" {
   resource_group_name = azurerm_resource_group.example.name
   server_name         = azurerm_sql_server.example.name
 
-  backup_long_term_retention_policy {
-    weekly_retention  = "P1W"
-    monthly_retention = "P1M"
-    yearly_retention  = "P1Y"
-    week_of_year      = 1
-  }
+  weekly_retention  = "P1W"
+  monthly_retention = "P1M"
+  yearly_retention  = "P1Y"
+  week_of_year      = 1
 }
 ```
 
@@ -61,10 +59,6 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which database resides.  This must be the same as Database Server resource group currently.
 
 * `server_name` - (Required) The name of the associated SQL Server.
-
-* `backup_long_term_retention_policy` - (Required) A Database long term retention policy block as documented below.
-
-`backup_long_term_retention_policy` supports the following:
 
 * `weekly_retention` - (Optional) The weekly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 520 weeks. e.g. `P1Y`, `P1M`, `P1W` or `P7D`.
 

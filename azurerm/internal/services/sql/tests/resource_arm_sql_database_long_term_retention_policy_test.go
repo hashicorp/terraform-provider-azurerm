@@ -153,12 +153,10 @@ resource "azurerm_sql_database_long_term_retention_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_sql_server.test.name
 
-  backup_long_term_retention_policy {
-    weekly_retention  = "P1W"
-    monthly_retention = "P1M"
-    yearly_retention  = "P1Y"
-    week_of_year      = 1
-  }
+	weekly_retention  = "P1W"
+	monthly_retention = "P1M"
+	yearly_retention  = "P1Y"
+	week_of_year      = 1
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -173,12 +171,10 @@ resource "azurerm_sql_database_long_term_retention_policy" "import" {
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_sql_server.test.name
 
-  backup_long_term_retention_policy {
-    weekly_retention  = "P1W"
-    monthly_retention = "P1M"
-    yearly_retention  = "P1Y"
-    week_of_year      = 1
-  }
+	weekly_retention  = "P1W"
+	monthly_retention = "P1M"
+	yearly_retention  = "P1Y"
+	week_of_year      = 1
 }
 `, testAccAzureRMSqlDatabaseLongTermPolicy_basic(data))
 }
