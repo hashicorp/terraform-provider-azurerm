@@ -453,7 +453,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports { 
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -500,7 +500,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports { 
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -548,7 +548,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports { 
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -589,7 +589,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports { 
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -619,7 +619,7 @@ resource "azurerm_container_group" "import" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports { 
+    ports {
       port     = 80
       protocol = "TCP"
     }
