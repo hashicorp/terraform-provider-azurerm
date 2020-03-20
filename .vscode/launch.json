@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch test function example",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            // Update this path with the integration test you'd like to debug
+            "program": "${workspaceRoot}/azurerm/internal/services/storage/tests/data_source_storage_account_test.go",
+            "args": [
+                "-test.v",
+                "-test.run",
+                "TestAccDataSourceAzureRMStorageAccount_basic"
+            ],
+            // Copy the `example.private.env` file in `./vscode` to `private.env` and fill in the required values
+            "envFile": "${workspaceRoot}/.vscode/private.env",
+            // View the `Debug Console` output in terminal for results
+            "showLog": true
+        },
+    ]
+}
