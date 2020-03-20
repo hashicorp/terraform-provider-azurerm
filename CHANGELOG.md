@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.10.0` [GH-6169]
 * Data Source `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_automation_schedule` - adding validation for the timezone field [GH-5759]
+* `azurerm_public_ip`: can now be dynamic for ipv6 addresses [GH-6140]
 * `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_storage_share` - exposing the `resource_manager_id` field [GH-6170]
 
