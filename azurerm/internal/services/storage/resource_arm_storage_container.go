@@ -94,10 +94,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	accountName := d.Get("storage_account_name").(string)
 
 	accessLevelRaw := d.Get("container_access_type").(string)
-	accessLevel, err := expandAzureStorageContainerAccessLevel(accessLevelRaw)
-	if err != nil {
-		return fmt.Errorf("Invalid container public access Account %q for Container %q: %s", accountName, containerName, err)
-	}
+	accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := expandAzureMetaData(metaDataRaw)
@@ -168,10 +165,7 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[DEBUG] Computing the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 	accessLevelRaw := d.Get("container_access_type").(string)
-	accessLevel, err := expandAzureStorageContainerAccessLevel(accessLevelRaw)
-	if err != nil {
-		return fmt.Errorf("Invalid public access for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
-	}
+	accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
 
 	log.Printf("[DEBUG] Computing the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
@@ -228,10 +222,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
 
-	accessLevel, err := flattenAzureStorageContainerAccessLevel(props.PublicAccess)
-	if err != nil {
-		return fmt.Errorf("Error retrieving public access Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
-	}
+	accessLevel := flattenAzureStorageContainerAccessLevel(props.PublicAccess)
 
 	d.Set("container_access_type", accessLevel)
 
@@ -275,33 +266,34 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandAzureStorageContainerAccessLevel(input string) (storage.PublicAccess, error) {
+func expandAzureStorageContainerAccessLevel(input string) storage.PublicAccess {
 	switch input {
 	case "private":
-		return storage.PublicAccessNone, nil
+		return storage.PublicAccessNone
 	case "container":
-		return storage.PublicAccessContainer, nil
+		return storage.PublicAccessContainer
 	case "blob":
-		return storage.PublicAccessBlob, nil
+		return storage.PublicAccessBlob
 	default:
-		return "", fmt.Errorf("%s", input)
+		return storage.PublicAccess(input)
 	}
 }
 
-func flattenAzureStorageContainerAccessLevel(input storage.PublicAccess) (string, error) {
+func flattenAzureStorageContainerAccessLevel(input storage.PublicAccess) string {
 	switch input {
 	case storage.PublicAccessNone:
-		return "private", nil
+		return "private"
 	case storage.PublicAccessContainer:
-		return "container", nil
+		return "container"
 	case storage.PublicAccessBlob:
-		return "blob", nil
+		return "blob"
 	default:
-		return "", fmt.Errorf("%s", input)
+		return string(input)
 	}
 }
 
 func getAzureResourceID(baseUri, accountName, containerName string) string {
+	// For backford compatible, generate resource ID in the same way as giovanni's.
 	domain := parsers.GetBlobEndpoint(baseUri, accountName)
 	return fmt.Sprintf("%s/%s", domain, containerName)
 }
