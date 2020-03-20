@@ -73,7 +73,7 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 	client := storageClient.BlobContainersClient
 
-	d.SetId(getResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName))
+	d.SetId(getAzureResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName))
 
 	props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
@@ -88,13 +88,13 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("storage_account_name", accountName)
 
-	accessLevel, err := flattenStorageContainerAccessLevel(props.PublicAccess)
+	accessLevel, err := flattenAzureStorageContainerAccessLevel(props.PublicAccess)
 	if err != nil {
 		return fmt.Errorf("Error setting access level: %+v", err)
 	}
 	d.Set("container_access_type", accessLevel)
 
-	if err := d.Set("metadata", flattenMetaData(props.Metadata)); err != nil {
+	if err := d.Set("metadata", flattenAzureMetaData(props.Metadata)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
 	}
 
