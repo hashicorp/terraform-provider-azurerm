@@ -1,5 +1,10 @@
 ## 2.3.0 (Unreleased)
 
+
+FEATURES:
+
+* **New Resource:** `azurerm_hpc_cache_blob_target` [GH-6035]
+
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v40.3.0` [GH-6134]
