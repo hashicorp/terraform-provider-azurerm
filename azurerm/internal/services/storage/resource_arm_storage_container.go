@@ -189,25 +189,61 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	azureClient := storageClient.BlobContainersClient
-
-	log.Printf("[DEBUG] Computing the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 	accessLevelRaw := d.Get("container_access_type").(string)
-	accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
-
-	log.Printf("[DEBUG] Computing the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	metaData := expandAzureMetaData(metaDataRaw)
 
-	if d.HasChange("container_access_type") || d.HasChange("metadata") {
-		input := storage.BlobContainer{
+	azureClient := storageClient.BlobContainersClient
+	giovanniClient, err := storageClient.ContainersClient(ctx, *account)
+	if err != nil {
+		return fmt.Errorf("Error building Containers Client: %s", err)
+	}
+
+	if storageClient.StorageUseAzureAD {
+		log.Printf("[DEBUG] Computing the Azure Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+		accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
+
+		log.Printf("[DEBUG] Computing the Azure MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+		metaData := expandAzureMetaData(metaDataRaw)
+
+		blobContainer := storage.BlobContainer{
 			ContainerProperties: &storage.ContainerProperties{
 				PublicAccess: accessLevel,
 				Metadata:     metaData,
 			},
 		}
-		if _, err := azureClient.Update(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, input); err != nil {
-			return fmt.Errorf("Error updating Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+
+		err := updateBlobContainerByAzure(ctx, azureClient, account.ResourceGroup, id.AccountName, id.ContainerName, blobContainer, d)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Printf("[DEBUG] Computing the Giovanni Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+		accessLevel := expandGiovanniStorageContainerAccessLevel(accessLevelRaw)
+
+		log.Printf("[DEBUG] Computing the Giovanni MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+		metaData := ExpandMetaData(metaDataRaw)
+
+		err := updateBlobContainerByGiovanni(ctx, *giovanniClient, account.ResourceGroup, id.AccountName, id.ContainerName, metaData, accessLevel, d)
+		if err != nil {
+			log.Printf("[DEBUG] Computing the Azure Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+			accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
+
+			log.Printf("[DEBUG] Computing the Azure MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+			metaData := expandAzureMetaData(metaDataRaw)
+
+			blobContainer := storage.BlobContainer{
+				ContainerProperties: &storage.ContainerProperties{
+					PublicAccess: accessLevel,
+					Metadata:     metaData,
+				},
+			}
+
+			err := updateBlobContainerByAzure(ctx, azureClient, account.ResourceGroup, id.AccountName, id.ContainerName, blobContainer, d)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -493,5 +529,13 @@ func readBlobContainerByGiovanni(ctx context.Context, gvnClient containers.Clien
 	}
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
+	return nil
+}
+
+func updateBlobContainerByAzure(ctx context.Context, azClient storage.BlobContainersClient, resourceGroup, accountName, containerName string, blobContainer storage.BlobContainer, d *schema.ResourceData) error {
+	return nil
+}
+
+func updateBlobContainerByGiovanni(ctx context.Context, gvnClient containers.Client, resourceGroup, accountName, containerName string, metaData map[string]string, accessLevel containers.AccessLevel, d *schema.ResourceData) error {
 	return nil
 }
