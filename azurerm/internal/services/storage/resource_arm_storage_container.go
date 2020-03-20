@@ -284,6 +284,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	} else {
 		// Give Azure a try when giovanni fails
 		err := readBlobContainerByGiovanni(ctx, *giovanniClient, account.ResourceGroup, id.AccountName, id.ContainerName, d)
+		log.Printf("[WARN] Error reading Container %q (Storage Account %q / Resource Group %q) with Giovanni client: %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 		if err != nil {
 			err := readBlobContainerByAzure(ctx, azureClient, account.ResourceGroup, id.AccountName, id.ContainerName, d)
 			if err != nil {
@@ -533,9 +534,35 @@ func readBlobContainerByGiovanni(ctx context.Context, gvnClient containers.Clien
 }
 
 func updateBlobContainerByAzure(ctx context.Context, azClient storage.BlobContainersClient, resourceGroup, accountName, containerName string, blobContainer storage.BlobContainer, d *schema.ResourceData) error {
+	if d.HasChange("container_access_type") || d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating Container properties %q (Storage Account %q / Resource Group %q) with Azure..", containerName, accountName, resourceGroup)
+		_, err := azClient.Update(ctx, resourceGroup, accountName, containerName, blobContainer)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func updateBlobContainerByGiovanni(ctx context.Context, gvnClient containers.Client, resourceGroup, accountName, containerName string, metaData map[string]string, accessLevel containers.AccessLevel, d *schema.ResourceData) error {
+	if d.HasChange("container_access_type") {
+		log.Printf("[DEBUG] Updating the Access Control for Container %q (Storage Account %q / Resource Group %q) with Giovanni..", containerName, accountName, resourceGroup)
+
+		if _, err := gvnClient.SetAccessControl(ctx, accountName, containerName, accessLevel); err != nil {
+			return fmt.Errorf("Error updating the Access Control for Container %q (Storage Account %q / Resource Group %q) with Giovanni: %s", containerName, accountName, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q) with Giovanni", containerName, accountName, resourceGroup)
+	}
+
+	if d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q) with Giovanni ..", containerName, accountName, resourceGroup)
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaData := ExpandMetaData(metaDataRaw)
+
+		if _, err := gvnClient.SetMetaData(ctx, accountName, containerName, metaData); err != nil {
+			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q) with Giovanni: %s", containerName, accountName, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q) with Giovanni", containerName, accountName, resourceGroup)
+	}
 	return nil
 }
