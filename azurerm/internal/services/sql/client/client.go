@@ -7,17 +7,18 @@ import (
 )
 
 type Client struct {
-	DatabasesClient                          *sql.DatabasesClient
-	DatabaseThreatDetectionPoliciesClient    *sql.DatabaseThreatDetectionPoliciesClient
-	ElasticPoolsClient                       *sql.ElasticPoolsClient
-	FirewallRulesClient                      *sql.FirewallRulesClient
-	FailoverGroupsClient                     *sql.FailoverGroupsClient
-	ServersClient                            *sql.ServersClient
-	ServerAzureADAdministratorsClient        *sql.ServerAzureADAdministratorsClient
-	VirtualNetworkRulesClient                *sql.VirtualNetworkRulesClient
-	ExtendedServerBlobAuditingPoliciesClient *sql.ExtendedServerBlobAuditingPoliciesClient
-	BackupLongTermRetentionPoliciesClient    *v3sql.BackupLongTermRetentionPoliciesClient
-	BackupShortTermRetentionPoliciesClient   *v3sql.BackupShortTermRetentionPoliciesClient
+	DatabasesClient                            *sql.DatabasesClient
+	DatabaseThreatDetectionPoliciesClient      *sql.DatabaseThreatDetectionPoliciesClient
+	ElasticPoolsClient                         *sql.ElasticPoolsClient
+	FirewallRulesClient                        *sql.FirewallRulesClient
+	FailoverGroupsClient                       *sql.FailoverGroupsClient
+	ServersClient                              *sql.ServersClient
+	ServerAzureADAdministratorsClient          *sql.ServerAzureADAdministratorsClient
+	VirtualNetworkRulesClient                  *sql.VirtualNetworkRulesClient
+	ExtendedDatabaseBlobAuditingPoliciesClient *sql.ExtendedDatabaseBlobAuditingPoliciesClient
+	ExtendedServerBlobAuditingPoliciesClient   *sql.ExtendedServerBlobAuditingPoliciesClient
+	BackupLongTermRetentionPoliciesClient      *v3sql.BackupLongTermRetentionPoliciesClient
+	BackupShortTermRetentionPoliciesClient     *v3sql.BackupShortTermRetentionPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -46,6 +47,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	VirtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	ExtendedDatabaseBlobAuditingPoliciesClient := sql.NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExtendedDatabaseBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	ExtendedServerBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClient(o.SubscriptionId)
 	o.ConfigureClient(&ExtendedServerBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -56,16 +60,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&BackupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatabasesClient:                          &DatabasesClient,
-		DatabaseThreatDetectionPoliciesClient:    &DatabaseThreatDetectionPoliciesClient,
-		ElasticPoolsClient:                       &ElasticPoolsClient,
-		FailoverGroupsClient:                     &FailoverGroupsClient,
-		FirewallRulesClient:                      &FirewallRulesClient,
-		ServersClient:                            &ServersClient,
-		ServerAzureADAdministratorsClient:        &ServerAzureADAdministratorsClient,
-		VirtualNetworkRulesClient:                &VirtualNetworkRulesClient,
-		ExtendedServerBlobAuditingPoliciesClient: &ExtendedServerBlobAuditingPoliciesClient,
-		BackupLongTermRetentionPoliciesClient:    &BackupLongTermRetentionPoliciesClient,
-		BackupShortTermRetentionPoliciesClient:   &BackupShortTermRetentionPoliciesClient,
+		DatabasesClient:                            &DatabasesClient,
+		DatabaseThreatDetectionPoliciesClient:      &DatabaseThreatDetectionPoliciesClient,
+		ElasticPoolsClient:                         &ElasticPoolsClient,
+		FailoverGroupsClient:                       &FailoverGroupsClient,
+		FirewallRulesClient:                        &FirewallRulesClient,
+		ServersClient:                              &ServersClient,
+		ServerAzureADAdministratorsClient:          &ServerAzureADAdministratorsClient,
+		VirtualNetworkRulesClient:                  &VirtualNetworkRulesClient,
+		ExtendedDatabaseBlobAuditingPoliciesClient: &ExtendedDatabaseBlobAuditingPoliciesClient,
+		ExtendedServerBlobAuditingPoliciesClient:   &ExtendedServerBlobAuditingPoliciesClient,
+		BackupLongTermRetentionPoliciesClient:      &BackupLongTermRetentionPoliciesClient,
+		BackupShortTermRetentionPoliciesClient:     &BackupShortTermRetentionPoliciesClient,
 	}
 }

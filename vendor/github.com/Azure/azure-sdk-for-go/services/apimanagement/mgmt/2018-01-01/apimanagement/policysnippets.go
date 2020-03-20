@@ -36,7 +36,8 @@ func NewPolicySnippetsClient(subscriptionID string) PolicySnippetsClient {
 	return NewPolicySnippetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPolicySnippetsClientWithBaseURI creates an instance of the PolicySnippetsClient client.
+// NewPolicySnippetsClientWithBaseURI creates an instance of the PolicySnippetsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPolicySnippetsClientWithBaseURI(baseURI string, subscriptionID string) PolicySnippetsClient {
 	return PolicySnippetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

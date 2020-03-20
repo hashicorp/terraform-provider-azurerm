@@ -72,6 +72,7 @@ func Provider() terraform.ResourceProvider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"azuread_application":       dataApplication(),
 			"azuread_domains":           dataDomains(),
+			"azuread_client_config":     dataClientConfig(),
 			"azuread_group":             dataGroup(),
 			"azuread_groups":            dataGroups(),
 			"azuread_service_principal": dataServicePrincipal(),
@@ -120,7 +121,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureAD Client: %s", err)
 		}
 
-		client, err := getArmClient(config, p.TerraformVersion)
+		client, err := getArmClient(config, p.TerraformVersion, p.StopContext())
 		if err != nil {
 			return nil, err
 		}

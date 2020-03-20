@@ -36,7 +36,9 @@ func NewNotificationRecipientEmailClient(subscriptionID string) NotificationReci
 	return NewNotificationRecipientEmailClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewNotificationRecipientEmailClientWithBaseURI creates an instance of the NotificationRecipientEmailClient client.
+// NewNotificationRecipientEmailClientWithBaseURI creates an instance of the NotificationRecipientEmailClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewNotificationRecipientEmailClientWithBaseURI(baseURI string, subscriptionID string) NotificationRecipientEmailClient {
 	return NotificationRecipientEmailClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

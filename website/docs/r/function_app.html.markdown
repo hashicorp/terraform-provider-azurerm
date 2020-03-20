@@ -121,6 +121,8 @@ The following arguments are supported:
 
 * `version` - (Optional) The runtime version associated with the Function App. Defaults to `~1`.
 
+* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
+
 * `site_config` - (Optional) A `site_config` object as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.

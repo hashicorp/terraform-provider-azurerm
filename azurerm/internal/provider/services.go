@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
@@ -48,6 +49,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
@@ -83,6 +85,7 @@ func SupportedServices() []common.ServiceRegistration {
 		compute.Registration{},
 		containers.Registration{},
 		cosmos.Registration{},
+		costmanagement.Registration{},
 		databricks.Registration{},
 		datafactory.Registration{},
 		datalake.Registration{},
@@ -116,6 +119,7 @@ func SupportedServices() []common.ServiceRegistration {
 		policy.Registration{},
 		portal.Registration{},
 		postgres.Registration{},
+		powerbi.Registration{},
 		privatedns.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},

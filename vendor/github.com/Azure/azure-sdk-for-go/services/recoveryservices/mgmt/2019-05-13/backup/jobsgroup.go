@@ -35,7 +35,8 @@ func NewJobsGroupClient(subscriptionID string) JobsGroupClient {
 	return NewJobsGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobsGroupClientWithBaseURI creates an instance of the JobsGroupClient client.
+// NewJobsGroupClientWithBaseURI creates an instance of the JobsGroupClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewJobsGroupClientWithBaseURI(baseURI string, subscriptionID string) JobsGroupClient {
 	return JobsGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -104,8 +105,7 @@ func (client JobsGroupClient) ExportPreparer(ctx context.Context, vaultName stri
 // ExportSender sends the Export request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobsGroupClient) ExportSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExportResponder handles the response to the Export request. The method always
