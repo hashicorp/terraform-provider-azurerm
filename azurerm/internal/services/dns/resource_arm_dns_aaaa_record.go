@@ -57,7 +57,7 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.IsIPAddress,
+					ValidateFunc: validation.IsIPv6Address,
 				},
 				Set:           azure.HashIPv6Address,
 				ConflictsWith: []string{"target_resource_id"},
