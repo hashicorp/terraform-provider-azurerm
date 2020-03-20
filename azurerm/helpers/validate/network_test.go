@@ -42,7 +42,7 @@ func TestCIDR(t *testing.T) {
 		})
 	}
 }
-/Users/kt/hashi/tf/azure/azurerm/azurerm/helpers/validate/network_test.go:87:
+
 func TestIPv4Address(t *testing.T) {
 	cases := []struct {
 		IP     string
