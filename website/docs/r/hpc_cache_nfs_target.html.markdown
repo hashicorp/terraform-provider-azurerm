@@ -3,12 +3,12 @@ subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hpc_cache_nfs_target"
 description: |-
-  Manages a HPC Cache NFS Target.
+  Manages a NFS Target within a HPC Cache .
 ---
 
-# azurerm_hpc_cache
+# azurerm_hpc_cache_nfs_target
 
-Manages a HPC Cache NFS Target.
+Manages a NFS Target within a HPC Cache .
 
 ## Example Usage
 
@@ -155,7 +155,7 @@ A `namespace_junction` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The `id` of the HPC Cache NFS Target.
+* `id` - The ID of the HPC Cache NFS Target.
 
 ## Timeouts
 
@@ -168,8 +168,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-HPC Cache NFS Target can be imported using the `resource id`, e.g.
+NFS Target within a HPC Cache can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hpc_cache_blob_target.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroupName/providers/Microsoft.StorageCache/caches/cacheName/storageTargets/targetName
+terraform import azurerm_hpc_cache_blob_target.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StorageCache/caches/cache1/storageTargets/target1
 ```
