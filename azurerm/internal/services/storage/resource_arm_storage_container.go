@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -94,10 +95,12 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	accountName := d.Get("storage_account_name").(string)
 
 	accessLevelRaw := d.Get("container_access_type").(string)
-	accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
+	azureAccessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
+	giovanniAccessLevel := expandGiovanniStorageContainerAccessLevel(accessLevelRaw)
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	metaData := expandAzureMetaData(metaDataRaw)
+	azureMetaData := expandAzureMetaData(metaDataRaw)
+	giovanniMetaData := ExpandMetaData(metaDataRaw)
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
@@ -116,27 +119,52 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	id := giovanniClient.GetResourceID(accountName, containerName)
 
 	if features.ShouldResourcesBeImported() {
-		existing, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q): %+v", containerName, accountName, account.ResourceGroup, err)
+		if storageClient.StorageUseAzureAD {
+			err := checkContainerExistenceByAzure(azureClient, ctx, account.ResourceGroup, accountName, containerName, id)
+			if err != nil {
+				return err
+			}
+		} else {
+			// When checking with giovanni and failed, give Azure client a try.
+			// TODO
+			// Do not check it when error is an import error.
+			err := checkContainerExistenceByGiovanni(*giovanniClient, ctx, account.ResourceGroup, accountName, containerName, id)
+			if err != nil {
+				err := checkContainerExistenceByAzure(azureClient, ctx, account.ResourceGroup, accountName, containerName, id)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_container", id)
-		}
 	}
 
 	log.Printf("[INFO] Creating Container %q in Storage Account %q", containerName, accountName)
-	input := storage.BlobContainer{
+	blobContainer := storage.BlobContainer{
 		ContainerProperties: &storage.ContainerProperties{
-			PublicAccess: accessLevel,
-			Metadata:     metaData,
+			PublicAccess: azureAccessLevel,
+			Metadata:     azureMetaData,
 		},
 	}
-	if _, err := azureClient.Create(ctx, account.ResourceGroup, accountName, containerName, input); err != nil {
-		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+	input := containers.CreateInput{
+		AccessLevel: giovanniAccessLevel,
+		MetaData:    giovanniMetaData,
+	}
+
+	if storageClient.StorageUseAzureAD {
+		err := createBlobContainerByAzure(ctx, azureClient, account.ResourceGroup, accountName, containerName, blobContainer)
+		if err != nil {
+			return err
+		}
+	} else {
+		// When creating with giovanni and failed, give Azure client a try.
+		err := createBlobContainerByGiovanni(ctx, giovanniClient, accountName, containerName, input)
+		if err != nil {
+			err := createBlobContainerByAzure(ctx, azureClient, account.ResourceGroup, accountName, containerName, blobContainer)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	d.SetId(id)
@@ -325,7 +353,7 @@ func flattenAzureStorageContainerAccessLevel(input storage.PublicAccess) string 
 }
 
 func getAzureResourceID(baseUri, accountName, containerName string) string {
-	// For backford compatible, generate resource ID in the same way as giovanni's.
+	// For backforward compatible, generate resource ID in the same way as giovanni's.
 	domain := parsers.GetBlobEndpoint(baseUri, accountName)
 	return fmt.Sprintf("%s/%s", domain, containerName)
 }
@@ -369,4 +397,45 @@ func flattenGiovanniStorageContainerAccessLevel(input containers.AccessLevel) st
 	}
 
 	return string(input)
+}
+
+func checkContainerExistenceByAzure(azClient storage.BlobContainersClient, ctx context.Context, resourceGroup, accountName, containerName, id string) error {
+	existing, err := azClient.Get(ctx, resourceGroup, accountName, containerName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q) with Azure BlobContainersClient: %+v", containerName, accountName, resourceGroup, err)
+		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_container", id)
+	}
+
+	return nil
+}
+
+func checkContainerExistenceByGiovanni(gvnClient containers.Client, ctx context.Context, resourceGroup, accountName, containerName, id string) error {
+	existing, err := gvnClient.GetProperties(ctx, accountName, containerName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q) with Giovanni ContainersClient: %+v", containerName, accountName, resourceGroup, err)
+		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_container", id)
+	}
+	return nil
+}
+
+func createBlobContainerByAzure(ctx context.Context, azClient storage.BlobContainersClient, resourceGroup, accountName, containerName string, blobContainer storage.BlobContainer) error {
+	_, err := azClient.Create(ctx, resourceGroup, accountName, containerName, blobContainer)
+
+	return err
+}
+
+func createBlobContainerByGiovanni(ctx context.Context, gvnClient *containers.Client, accountName, containerName string, input containers.CreateInput) error {
+	_, err := gvnClient.Create(ctx, accountName, containerName, input)
+
+	return err
 }
