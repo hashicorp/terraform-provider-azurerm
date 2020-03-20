@@ -92,10 +92,7 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("storage_account_name", accountName)
 
-	accessLevel, err := flattenAzureStorageContainerAccessLevel(props.PublicAccess)
-	if err != nil {
-		return fmt.Errorf("Error setting access level: %+v", err)
-	}
+	accessLevel := flattenAzureStorageContainerAccessLevel(props.PublicAccess)
 	d.Set("container_access_type", accessLevel)
 
 	if err := d.Set("metadata", flattenAzureMetaData(props.Metadata)); err != nil {
