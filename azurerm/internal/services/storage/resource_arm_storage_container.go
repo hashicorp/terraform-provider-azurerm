@@ -266,6 +266,27 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
+func getAzureBlobContainerProperties(accessLevelRaw string, metaDataRaw map[string]interface{}) (*storage.BlobContainer, error) {
+	// For backward compatibility, raw access value has to be converted.
+	// expandAzureStorageContainerAccessLevel will an empty string if it cannot find a value
+	// that maps to a storage.PublicAccess value.
+	// Therefore, if parsed value is an empty string, we are facing an error.
+	// It does not seem to be a good way, but it is the cost to use switch.
+	accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
+	if string(accessLevel) == "" {
+		return nil, fmt.Errorf("Error parse %q to a Azure blob container access level")
+	}
+
+	metaData := expandAzureMetaData(metaDataRaw)
+
+	return &storage.BlobContainer{
+		ContainerProperties: &storage.ContainerProperties{
+			PublicAccess: accessLevel,
+			Metadata:     metaData,
+		},
+	}, nil
+}
+
 func expandAzureStorageContainerAccessLevel(input string) storage.PublicAccess {
 	switch input {
 	case "private":
@@ -275,7 +296,7 @@ func expandAzureStorageContainerAccessLevel(input string) storage.PublicAccess {
 	case "blob":
 		return storage.PublicAccessBlob
 	default:
-		return storage.PublicAccess(input)
+		return storage.PublicAccess("")
 	}
 }
 
