@@ -11,13 +11,14 @@ type ManagementPartnerId struct {
 
 func ManagementPartnerID(input string) (*ManagementPartnerId, error) {
 	// /providers/Microsoft.ManagementPartner/partners/5127255
-	segments := strings.Split(input, "/")
-	if len(segments) != 5 {
-		return nil, fmt.Errorf("Expected there to be 5 segments but got %d", len(segments))
+	segments := strings.Split(input, "/providers/Microsoft.ManagementPartner/partners/")
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Failure determining target resource ID, resource ID in unexpected format: %q", input)
 	}
 
-	id := ManagementPartnerId{
-		PartnerId: segments[4],
+	partnerId := segments[1]
+	managementPartnerID := ManagementPartnerId{
+		PartnerId: partnerId,
 	}
-	return &id, nil
+	return &managementPartnerID, nil
 }
