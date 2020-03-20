@@ -235,21 +235,31 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	azureClient := storageClient.BlobContainersClient
-
-	props, err := azureClient.Get(ctx, account.ResourceGroup, id.AccountName, id.ContainerName)
+	giovanniClient, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, account.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
+		return fmt.Errorf("Error building Containers Client: %s", err)
+	}
 
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	if storageClient.StorageUseAzureAD {
+		err := readBlobContainerByAzure(ctx, azureClient, account.ResourceGroup, id.AccountName, id.ContainerName, d)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Give Azure a try when giovanni fails
+		err := readBlobContainerByGiovanni(ctx, *giovanniClient, account.ResourceGroup, id.AccountName, id.ContainerName, d)
+		if err != nil {
+			err := readBlobContainerByAzure(ctx, azureClient, account.ResourceGroup, id.AccountName, id.ContainerName, d)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	d.Set("name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
 
+<<<<<<< HEAD
 	accessLevel := flattenAzureStorageContainerAccessLevel(props.PublicAccess)
 
 	d.Set("container_access_type", accessLevel)
@@ -264,6 +274,8 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, id.ContainerName)
 	d.Set("resource_manager_id", resourceManagerId)
 
+=======
+>>>>>>> Read props by Giovanni and/or Azure
 	return nil
 }
 
@@ -438,4 +450,48 @@ func createBlobContainerByGiovanni(ctx context.Context, gvnClient *containers.Cl
 	_, err := gvnClient.Create(ctx, accountName, containerName, input)
 
 	return err
+}
+
+func readBlobContainerByAzure(ctx context.Context, azClient storage.BlobContainersClient, resourceGroup, accountName, containerName string, d *schema.ResourceData) error {
+	props, err := azClient.Get(ctx, resourceGroup, accountName, containerName)
+	if err != nil {
+		if utils.ResponseWasNotFound(props.Response) {
+			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", containerName, accountName, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, resourceGroup, err)
+	}
+
+	d.Set("container_access_type", flattenAzureStorageContainerAccessLevel(props.PublicAccess))
+
+	if err := d.Set("metadata", flattenAzureMetaData(props.Metadata)); err != nil {
+		return fmt.Errorf("Error setting `metadata`: %+v", err)
+	}
+	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
+	d.Set("has_legal_hold", props.HasLegalHold)
+	return nil
+}
+
+func readBlobContainerByGiovanni(ctx context.Context, gvnClient containers.Client, resourceGroup, accountName, containerName string, d *schema.ResourceData) error {
+	props, err := gvnClient.GetProperties(ctx, accountName, containerName)
+	if err != nil {
+		if utils.ResponseWasNotFound(props.Response) {
+			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", containerName, accountName, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, resourceGroup, err)
+	}
+
+	d.Set("container_access_type", flattenGiovanniStorageContainerAccessLevel(props.AccessLevel))
+
+	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("Error setting `metadata`: %+v", err)
+	}
+	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
+	d.Set("has_legal_hold", props.HasLegalHold)
+	return nil
 }
