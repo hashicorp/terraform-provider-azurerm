@@ -80,10 +80,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"private_ip_address": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsIPAddress,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.Any(
+								validation.IsIPAddress,
+								validation.StringIsEmpty,
+							),
 						},
 
 						"private_ip_address_version": {
