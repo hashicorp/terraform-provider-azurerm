@@ -3,7 +3,6 @@ package mssql
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
@@ -83,14 +82,11 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[a-zA-Z0-9_]+$`),
-					`This collation is not valid.`,
-				),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.MsSqlDBCollation(),
 			},
 
 			"elastic_pool_id": {

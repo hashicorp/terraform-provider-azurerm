@@ -244,28 +244,28 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, serverName, name, err := parseArmMsSqlElasticPoolId(d.Id())
+	elasticPool, err := parse.MSSqlElasticPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, resGroup, serverName, name)
+	resp, err := client.Get(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on MsSql Elastic Pool %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on MsSql Elastic Pool %s: %s", elasticPool.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", elasticPool.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("server_name", serverName)
+	d.Set("server_name", elasticPool.MsSqlServer)
 
 	if err := d.Set("sku", flattenAzureRmMsSqlElasticPoolSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
@@ -295,22 +295,13 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, serverName, name, err := parse.MSSqlElasticPoolId(d.Id())
+	elasticPool, err := parse.MSSqlElasticPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, resGroup, serverName, name)
+	_, err = client.Delete(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
 	return err
-}
-
-func parseArmMsSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
-	id, err := azure.ParseAzureResourceID(sqlElasticPoolId)
-	if err != nil {
-		return "", "", "", fmt.Errorf("[ERROR] Unable to parse MsSQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
-	}
-
-	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
 }
 
 func expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *sql.ElasticPoolPerDatabaseSettings {

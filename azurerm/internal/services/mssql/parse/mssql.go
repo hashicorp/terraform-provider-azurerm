@@ -17,6 +17,12 @@ type MsSqlServerId struct {
 	ResourceGroup string
 }
 
+type MsSqlElasticPoolId struct {
+	Name          string
+	MsSqlServer   string
+	ResourceGroup string
+}
+
 func MsSqlDatabaseID(input string) (*MsSqlDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -63,11 +69,27 @@ func MsSqlServerID(input string) (*MsSqlServerId, error) {
 	return &server, nil
 }
 
-func MSSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
-	id, err := azure.ParseAzureResourceID(sqlElasticPoolId)
+func MSSqlElasticPoolID(input string) (*MsSqlElasticPoolId, error) {
+	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return "", "", "", fmt.Errorf("Unable to parse SQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
+		return nil, fmt.Errorf("Unable to parse MsSql Elastic Pool ID %q: %+v", input, err)
 	}
 
-	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
+	elasticPool := MsSqlElasticPoolId{
+		ResourceGroup: id.ResourceGroup,
+	}
+
+	if elasticPool.MsSqlServer, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+
+	if elasticPool.Name, err = id.PopSegment("elasticPools"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &elasticPool, nil
 }
