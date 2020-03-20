@@ -36,7 +36,8 @@ func NewNetworkStatusClient(subscriptionID string) NetworkStatusClient {
 	return NewNetworkStatusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewNetworkStatusClientWithBaseURI creates an instance of the NetworkStatusClient client.
+// NewNetworkStatusClientWithBaseURI creates an instance of the NetworkStatusClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewNetworkStatusClientWithBaseURI(baseURI string, subscriptionID string) NetworkStatusClient {
 	return NetworkStatusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
