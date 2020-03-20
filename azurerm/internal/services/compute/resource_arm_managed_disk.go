@@ -361,6 +361,17 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("disk_encryption_set_id") {
+		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			diskUpdate.Encryption = &compute.Encryption{
+				Type:                compute.EncryptionAtRestWithCustomerKey,
+				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+			}
+		} else {
+			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+		}
+	}
+
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
 	if disk.ManagedBy != nil {
 		virtualMachine, err := ParseVirtualMachineID(*disk.ManagedBy)
