@@ -287,6 +287,17 @@ func getAzureBlobContainerProperties(accessLevelRaw string, metaDataRaw map[stri
 	}, nil
 }
 
+func getGiovanniBlobContainerProperties(accessLevelRaw string, metaDataRaw map[string]interface{}) containers.CreateInput {
+	accessLevel := expandGiovanniStorageContainerAccessLevel(accessLevelRaw)
+
+	metaData := ExpandMetaData(metaDataRaw)
+
+	return containers.CreateInput{
+		AccessLevel: accessLevel,
+		MetaData:    metaData,
+	}
+}
+
 func expandAzureStorageContainerAccessLevel(input string) storage.PublicAccess {
 	switch input {
 	case "private":
@@ -338,4 +349,24 @@ func flattenAzureMetaData(input map[string]*string) map[string]interface{} {
 	}
 
 	return output
+}
+
+func expandGiovanniStorageContainerAccessLevel(input string) containers.AccessLevel {
+	// for historical reasons, "private" above is an empty string in the API
+	// so the enum doesn't 1:1 match. You could argue the SDK should handle this
+	// but this is suitable for now
+	if input == "private" {
+		return containers.Private
+	}
+
+	return containers.AccessLevel(input)
+}
+
+func flattenGiovanniStorageContainerAccessLevel(input containers.AccessLevel) string {
+	// for historical reasons, "private" above is an empty string in the API
+	if input == containers.Private {
+		return "private"
+	}
+
+	return string(input)
 }
