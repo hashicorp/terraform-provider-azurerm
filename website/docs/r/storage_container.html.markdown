@@ -59,6 +59,8 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?
 
+* `resource_manager_id` - The Resource Manager ID of this Storage Container.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
