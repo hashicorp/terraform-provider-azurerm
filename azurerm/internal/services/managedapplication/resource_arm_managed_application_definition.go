@@ -6,14 +6,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplication/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplication/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -73,11 +70,10 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 			},
 
 			"create_ui_definition": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
-				ConflictsWith:    []string{"package_file_uri"},
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsJSON,
+				ConflictsWith: []string{"package_file_uri"},
 			},
 
 			"description": {
@@ -92,9 +88,10 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 				ValidateFunc: validate.ManagedApplicationDefinitionDisplayName,
 			},
 
-			"enabled": {
+			"package_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"lock_level": {
@@ -109,17 +106,16 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 			},
 
 			"main_template": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
-				ConflictsWith:    []string{"package_file_uri"},
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsJSON,
+				ConflictsWith: []string{"package_file_uri"},
 			},
 
 			"package_file_uri": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.IsURLWithHTTPS,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 
 			"tags": tags.Schema(),
@@ -129,17 +125,17 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 
 func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failure checking for present of existing Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("failure checking for present of existing Managed Application Definition Name %q (Resource Group %q): %+v", name, resourceGroupName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -151,7 +147,7 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 	authorizations := d.Get("authorization").(*schema.Set).List()
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
-	enabled := d.Get("enabled").(bool)
+	packageEnabled := d.Get("package_enabled").(bool)
 	lockLevel := d.Get("lock_level").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -161,7 +157,7 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 			Authorizations: expandArmManagedApplicationDefinitionAuthorization(authorizations),
 			Description:    utils.String(description),
 			DisplayName:    utils.String(displayName),
-			IsEnabled:      utils.Bool(enabled),
+			IsEnabled:      utils.Bool(packageEnabled),
 			LockLevel:      managedapplications.ApplicationLockLevel(lockLevel),
 		},
 		Tags: tags.Expand(t),
@@ -175,24 +171,28 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 		parameters.MainTemplate = utils.String(v.(string))
 	}
 
+	if (parameters.CreateUIDefinition != nil && parameters.MainTemplate == nil) || (parameters.CreateUIDefinition == nil && parameters.MainTemplate != nil) {
+		return fmt.Errorf("`create_ui_definition` and `main_template` should be set or not set together")
+	}
+
 	if v, ok := d.GetOk("package_file_uri"); ok {
 		parameters.PackageFileURI = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Failure creating Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failure creating Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Failure waiting for creation of Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failure waiting for creation of Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-		return fmt.Errorf("Failure retrieving Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failure retrieving Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read Managed Application Definition (Managed Application Definition Name %q / Resource Group %q) ID", name, resourceGroupName)
+		return fmt.Errorf("cannot read Managed Application Definition %q (Resource Group %q) ID", name, resourceGroupName)
 	}
 	d.SetId(*resp.ID)
 
@@ -216,7 +216,7 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Failure reading Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failure reading Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -226,11 +226,11 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 	}
 	if props := resp.ApplicationDefinitionProperties; props != nil {
 		if err := d.Set("authorization", flattenArmManagedApplicationDefinitionAuthorization(props.Authorizations)); err != nil {
-			return fmt.Errorf("Failure setting `authorization`: %+v", err)
+			return fmt.Errorf("failure setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("enabled", props.IsEnabled)
+		d.Set("package_enabled", props.IsEnabled)
 		d.Set("lock_level", string(props.LockLevel))
 	}
 	if v, ok := d.GetOk("create_ui_definition"); ok {
@@ -258,13 +258,11 @@ func resourceArmManagedApplicationDefinitionDelete(d *schema.ResourceData, meta 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Failure deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failure deleting Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Failure waiting for deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+		return fmt.Errorf("failure waiting for deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

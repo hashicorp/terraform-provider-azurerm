@@ -10,7 +10,7 @@ description: |-
 
 Uses this data source to access information about an existing Managed Application Definition.
 
-## Managed Application Definition Usage
+## Example Usage
 
 ```hcl
 provider "azurerm" {
@@ -49,7 +49,7 @@ The following attributes are exported:
 
 * `display_name` - The managed application definition display name.
 
-* `enabled` - The value indicating whether the package is enabled or not.
+* `package_enabled` - Is enabled on this package?
 
 * `lock_level` - The managed application lock level.
 

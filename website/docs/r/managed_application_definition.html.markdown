@@ -10,7 +10,7 @@ description: |-
 
 Manages a Managed Application Definition.
 
-## Managed Application Definition Usage
+## Example Usage
 
 ```hcl
 provider "azurerm" {
@@ -52,15 +52,15 @@ The following arguments are supported:
 
 * `authorization` - (Required) One or more `authorization` block defined below.
 
+* `lock_level` - (Required) Specifies the managed application lock level. Valid values include `CanNotDelete`, `None`, `ReadOnly`. Changing this forces a new resource to be created.
+
 * `create_ui_definition` - (Optional) Specifies the createUiDefinition json for the backing template with Microsoft.Solutions/applications resource.
 
 * `display_name` - (Optional) Specifies the managed application definition display name.
 
 * `description` - (Optional) Specifies the managed application definition description.
 
-* `enabled` - (Optional) Specifies the value indicating whether the package is enabled or not.
-
-* `lock_level` - (Optional) Specifies the managed application lock level. Valid values include `CanNotDelete`, `None`, `ReadOnly`. Changing this forces a new resource to be created.
+* `package_enabled` - (Optional) Is enabled for this package? Defaults to `true`.
 
 * `main_template` - (Optional) Specifies the inline main template json which has resources to be provisioned.
 

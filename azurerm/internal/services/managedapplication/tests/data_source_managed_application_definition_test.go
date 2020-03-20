@@ -12,8 +12,9 @@ func TestAccDataSourceAzureRMManagedApplicationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_application_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMManagedApplicationDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceManagedApplicationDefinition_basic(data),

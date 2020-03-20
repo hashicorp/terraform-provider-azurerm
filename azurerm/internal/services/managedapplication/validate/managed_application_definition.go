@@ -15,7 +15,7 @@ func ManagedApplicationDefinitionID(i interface{}, k string) (warnings []string,
 	}
 
 	if _, err := parse.ManagedApplicationDefinitionID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+		errors = append(errors, fmt.Errorf("cannot parse %q as a resource id: %v", k, err))
 		return
 	}
 
@@ -35,7 +35,7 @@ func ManagedApplicationDefinitionName(v interface{}, k string) (warnings []strin
 func ManagedApplicationDefinitionDisplayName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^[\s\S]{4,60}$`).MatchString(value) {
+	if len(value) < 4 && len(value) > 60 {
 		errors = append(errors, fmt.Errorf("%q must be between 4 and 60 characters in length.", k))
 	}
 
@@ -45,7 +45,7 @@ func ManagedApplicationDefinitionDisplayName(v interface{}, k string) (warnings 
 func ManagedApplicationDefinitionDescription(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^[\s\S]{0,200}$`).MatchString(value) {
+	if len(value) > 200 {
 		errors = append(errors, fmt.Errorf("%q should not exceed 200 characters in length.", k))
 	}
 

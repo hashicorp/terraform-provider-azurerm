@@ -51,10 +51,7 @@ func TestAccAzureRMManagedApplicationDefinition_requiresImport(t *testing.T) {
 					testCheckAzureRMManagedApplicationDefinitionExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMManagedApplicationDefinition_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_managed_application_definition"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMManagedApplicationDefinition_requiresImport),
 		},
 	})
 }
@@ -92,7 +89,7 @@ func TestAccAzureRMManagedApplicationDefinition_update(t *testing.T) {
 					testCheckAzureRMManagedApplicationDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "TestManagedApplicationDefinition"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Managed Application Definition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
@@ -103,7 +100,7 @@ func TestAccAzureRMManagedApplicationDefinition_update(t *testing.T) {
 					testCheckAzureRMManagedApplicationDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "UpdatedTestManagedApplicationDefinition"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Updated Test Managed Application Definition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
@@ -178,10 +175,10 @@ resource "azurerm_managed_application_definition" "test" {
   package_file_uri    = "https://github.com/Azure/azure-managedapp-samples/raw/master/Managed Application Sample Packages/201-managed-storage-account/managedstorage.zip"
   display_name        = "TestManagedApplicationDefinition"
   description         = "Test Managed Application Definition"
-  enabled             = false
+  package_enabled     = false
 
   authorization {
-    service_principal_id = "${data.azurerm_client_config.current.object_id}"
+    service_principal_id = data.azurerm_client_config.current.object_id
     role_definition_id   = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
@@ -193,9 +190,9 @@ func testAccAzureRMManagedApplicationDefinition_requiresImport(data acceptance.T
 %s
 
 resource "azurerm_managed_application_definition" "import" {
-  name                = "${azurerm_managed_application_definition.test.name}"
-  location            = "${azurerm_managed_application_definition.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_managed_application_definition.test.name
+  location            = azurerm_managed_application_definition.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, testAccAzureRMManagedApplicationDefinition_basic(data))
 }
@@ -206,13 +203,14 @@ func testAccAzureRMManagedApplicationDefinition_complete(data acceptance.TestDat
 %s
 
 resource "azurerm_managed_application_definition" "test" {
-  name                 = "acctestAppDef%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  lock_level           = "ReadOnly"
-  display_name         = "UpdatedTestManagedApplicationDefinition"
-  description          = "Updated Test Managed Application Definition"
-  enabled              = true
+  name                = "acctestAppDef%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  lock_level          = "ReadOnly"
+  display_name        = "UpdatedTestManagedApplicationDefinition"
+  description         = "Updated Test Managed Application Definition"
+  package_enabled     = true
+
   create_ui_definition = <<CREATE_UI_DEFINITION
     {
       "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
@@ -302,8 +300,8 @@ resource "azurerm_managed_application_definition" "test" {
     }
   MAIN_TEMPLATE
   authorization {
-    service_principal_id = "${data.azurerm_client_config.current.object_id}"
-    role_definition_id   = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+    service_principal_id = data.azurerm_client_config.current.object_id
+    role_definition_id   = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
   tags = {
     ENV = "Test"
