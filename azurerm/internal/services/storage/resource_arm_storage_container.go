@@ -109,11 +109,11 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
-	client := storageClient.BlobContainersClient
+	azureClient := storageClient.BlobContainersClient
 
 	id := getAzureResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName)
 	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
+		existing, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q): %+v", containerName, accountName, account.ResourceGroup, err)
@@ -132,7 +132,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 			Metadata:     metaData,
 		},
 	}
-	if _, err := client.Create(ctx, account.ResourceGroup, accountName, containerName, input); err != nil {
+	if _, err := azureClient.Create(ctx, account.ResourceGroup, accountName, containerName, input); err != nil {
 		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
 	}
 
@@ -158,7 +158,7 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client := storageClient.BlobContainersClient
+	azureClient := storageClient.BlobContainersClient
 
 	log.Printf("[DEBUG] Computing the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 	accessLevelRaw := d.Get("container_access_type").(string)
@@ -178,7 +178,7 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 				Metadata:     metaData,
 			},
 		}
-		if _, err := client.Update(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, input); err != nil {
+		if _, err := azureClient.Update(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, input); err != nil {
 			return fmt.Errorf("Error updating Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 		}
 	}
@@ -206,9 +206,9 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	client := storageClient.BlobContainersClient
+	azureClient := storageClient.BlobContainersClient
 
-	props, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.ContainerName)
+	props, err := azureClient.Get(ctx, account.ResourceGroup, id.AccountName, id.ContainerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
 			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, account.ResourceGroup)
@@ -260,9 +260,9 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client := storageClient.BlobContainersClient
+	azureClient := storageClient.BlobContainersClient
 
-	if _, err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.ContainerName); err != nil {
+	if _, err := azureClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.ContainerName); err != nil {
 		return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 

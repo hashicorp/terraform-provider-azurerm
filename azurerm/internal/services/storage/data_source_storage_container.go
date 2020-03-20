@@ -71,11 +71,11 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Account %q for Storage Container %q", accountName, containerName)
 	}
 
-	client := storageClient.BlobContainersClient
+	azureClient := storageClient.BlobContainersClient
 
 	d.SetId(getAzureResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName))
 
-	props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
+	props, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
 			return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
