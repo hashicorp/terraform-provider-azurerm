@@ -94,6 +94,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 		"scaling": {
 			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
 			"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
+			"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
 			"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
 			"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
 			"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,

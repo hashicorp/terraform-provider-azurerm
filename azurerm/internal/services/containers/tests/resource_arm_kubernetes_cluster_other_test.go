@@ -155,7 +155,7 @@ func testAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_autoScaling(t *testing.T) {
+func testAccAzureRMKubernetesCluster_autoScalingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
