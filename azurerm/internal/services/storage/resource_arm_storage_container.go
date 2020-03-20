@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
@@ -110,8 +111,13 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	azureClient := storageClient.BlobContainersClient
+	giovanniClient, err := storageClient.ContainersClient(ctx, *account)
+	if err != nil {
+		return fmt.Errorf("Error building Containers Client: %s", err)
+	}
 
-	id := getAzureResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName)
+	id := giovanniClient.GetResourceID(accountName, containerName)
+
 	if features.ShouldResourcesBeImported() {
 		existing, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
@@ -145,7 +151,7 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseContainerID(d.Id())
+	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,7 +197,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseContainerID(d.Id())
+	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -247,7 +253,7 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseContainerID(d.Id())
+	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
 		return err
 	}

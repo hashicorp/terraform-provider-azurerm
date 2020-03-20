@@ -72,8 +72,12 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 	}
 
 	azureClient := storageClient.BlobContainersClient
+	giovanniClient, err := storageClient.ContainersClient(ctx, *account)
+	if err != nil {
+		return fmt.Errorf("Error building Containers Client: %s", err)
+	}
 
-	d.SetId(getAzureResourceID(meta.(*clients.Client).Account.Environment.StorageEndpointSuffix, accountName, containerName))
+	d.SetId(giovanniClient.GetResourceID(accountName, containerName))
 
 	props, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
