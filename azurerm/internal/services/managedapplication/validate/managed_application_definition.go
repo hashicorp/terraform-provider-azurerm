@@ -35,7 +35,7 @@ func ManagedApplicationDefinitionName(v interface{}, k string) (warnings []strin
 func ManagedApplicationDefinitionDisplayName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if len(value) < 4 && len(value) > 60 {
+	if len(value) < 4 || len(value) > 60 {
 		errors = append(errors, fmt.Errorf("%q must be between 4 and 60 characters in length.", k))
 	}
 

@@ -113,18 +113,18 @@ func TestManagedApplicationDefinitionDisplayName(t *testing.T) {
 			expected: true,
 		},
 		{
-			// 63 chars
+			// 59 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefg",
 			expected: true,
 		},
 		{
-			// 64 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh",
+			// 60 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefga",
 			expected: true,
 		},
 		{
-			// 65 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghi",
+			// 61 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgaa",
 			expected: false,
 		},
 	}
