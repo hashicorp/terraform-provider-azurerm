@@ -36,7 +36,9 @@ func NewMongoDBResourcesClient(subscriptionID string) MongoDBResourcesClient {
 	return NewMongoDBResourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMongoDBResourcesClientWithBaseURI creates an instance of the MongoDBResourcesClient client.
+// NewMongoDBResourcesClientWithBaseURI creates an instance of the MongoDBResourcesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewMongoDBResourcesClientWithBaseURI(baseURI string, subscriptionID string) MongoDBResourcesClient {
 	return MongoDBResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -120,9 +122,8 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBCollectionPreparer(ctx c
 // CreateUpdateMongoDBCollectionSender sends the CreateUpdateMongoDBCollection request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) CreateUpdateMongoDBCollectionSender(req *http.Request) (future MongoDBResourcesCreateUpdateMongoDBCollectionFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -220,9 +221,8 @@ func (client MongoDBResourcesClient) CreateUpdateMongoDBDatabasePreparer(ctx con
 // CreateUpdateMongoDBDatabaseSender sends the CreateUpdateMongoDBDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) CreateUpdateMongoDBDatabaseSender(req *http.Request) (future MongoDBResourcesCreateUpdateMongoDBDatabaseFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -313,9 +313,8 @@ func (client MongoDBResourcesClient) DeleteMongoDBCollectionPreparer(ctx context
 // DeleteMongoDBCollectionSender sends the DeleteMongoDBCollection request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) DeleteMongoDBCollectionSender(req *http.Request) (future MongoDBResourcesDeleteMongoDBCollectionFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -403,9 +402,8 @@ func (client MongoDBResourcesClient) DeleteMongoDBDatabasePreparer(ctx context.C
 // DeleteMongoDBDatabaseSender sends the DeleteMongoDBDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) DeleteMongoDBDatabaseSender(req *http.Request) (future MongoDBResourcesDeleteMongoDBDatabaseFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -501,8 +499,7 @@ func (client MongoDBResourcesClient) GetMongoDBCollectionPreparer(ctx context.Co
 // GetMongoDBCollectionSender sends the GetMongoDBCollection request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) GetMongoDBCollectionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMongoDBCollectionResponder handles the response to the GetMongoDBCollection request. The method always
@@ -595,8 +592,7 @@ func (client MongoDBResourcesClient) GetMongoDBCollectionThroughputPreparer(ctx 
 // GetMongoDBCollectionThroughputSender sends the GetMongoDBCollectionThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) GetMongoDBCollectionThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMongoDBCollectionThroughputResponder handles the response to the GetMongoDBCollectionThroughput request. The method always
@@ -687,8 +683,7 @@ func (client MongoDBResourcesClient) GetMongoDBDatabasePreparer(ctx context.Cont
 // GetMongoDBDatabaseSender sends the GetMongoDBDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) GetMongoDBDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMongoDBDatabaseResponder handles the response to the GetMongoDBDatabase request. The method always
@@ -779,8 +774,7 @@ func (client MongoDBResourcesClient) GetMongoDBDatabaseThroughputPreparer(ctx co
 // GetMongoDBDatabaseThroughputSender sends the GetMongoDBDatabaseThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) GetMongoDBDatabaseThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMongoDBDatabaseThroughputResponder handles the response to the GetMongoDBDatabaseThroughput request. The method always
@@ -870,8 +864,7 @@ func (client MongoDBResourcesClient) ListMongoDBCollectionsPreparer(ctx context.
 // ListMongoDBCollectionsSender sends the ListMongoDBCollections request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) ListMongoDBCollectionsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListMongoDBCollectionsResponder handles the response to the ListMongoDBCollections request. The method always
@@ -959,8 +952,7 @@ func (client MongoDBResourcesClient) ListMongoDBDatabasesPreparer(ctx context.Co
 // ListMongoDBDatabasesSender sends the ListMongoDBDatabases request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) ListMongoDBDatabasesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListMongoDBDatabasesResponder handles the response to the ListMongoDBDatabases request. The method always
@@ -1055,9 +1047,8 @@ func (client MongoDBResourcesClient) UpdateMongoDBCollectionThroughputPreparer(c
 // UpdateMongoDBCollectionThroughputSender sends the UpdateMongoDBCollectionThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) UpdateMongoDBCollectionThroughputSender(req *http.Request) (future MongoDBResourcesUpdateMongoDBCollectionThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1155,9 +1146,8 @@ func (client MongoDBResourcesClient) UpdateMongoDBDatabaseThroughputPreparer(ctx
 // UpdateMongoDBDatabaseThroughputSender sends the UpdateMongoDBDatabaseThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client MongoDBResourcesClient) UpdateMongoDBDatabaseThroughputSender(req *http.Request) (future MongoDBResourcesUpdateMongoDBDatabaseThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

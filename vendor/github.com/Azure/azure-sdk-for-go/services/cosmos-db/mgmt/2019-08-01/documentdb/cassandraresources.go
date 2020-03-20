@@ -36,7 +36,9 @@ func NewCassandraResourcesClient(subscriptionID string) CassandraResourcesClient
 	return NewCassandraResourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCassandraResourcesClientWithBaseURI creates an instance of the CassandraResourcesClient client.
+// NewCassandraResourcesClientWithBaseURI creates an instance of the CassandraResourcesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewCassandraResourcesClientWithBaseURI(baseURI string, subscriptionID string) CassandraResourcesClient {
 	return CassandraResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -118,9 +120,8 @@ func (client CassandraResourcesClient) CreateUpdateCassandraKeyspacePreparer(ctx
 // CreateUpdateCassandraKeyspaceSender sends the CreateUpdateCassandraKeyspace request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) CreateUpdateCassandraKeyspaceSender(req *http.Request) (future CassandraResourcesCreateUpdateCassandraKeyspaceFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -220,9 +221,8 @@ func (client CassandraResourcesClient) CreateUpdateCassandraTablePreparer(ctx co
 // CreateUpdateCassandraTableSender sends the CreateUpdateCassandraTable request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) CreateUpdateCassandraTableSender(req *http.Request) (future CassandraResourcesCreateUpdateCassandraTableFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -311,9 +311,8 @@ func (client CassandraResourcesClient) DeleteCassandraKeyspacePreparer(ctx conte
 // DeleteCassandraKeyspaceSender sends the DeleteCassandraKeyspace request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) DeleteCassandraKeyspaceSender(req *http.Request) (future CassandraResourcesDeleteCassandraKeyspaceFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -403,9 +402,8 @@ func (client CassandraResourcesClient) DeleteCassandraTablePreparer(ctx context.
 // DeleteCassandraTableSender sends the DeleteCassandraTable request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) DeleteCassandraTableSender(req *http.Request) (future CassandraResourcesDeleteCassandraTableFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -500,8 +498,7 @@ func (client CassandraResourcesClient) GetCassandraKeyspacePreparer(ctx context.
 // GetCassandraKeyspaceSender sends the GetCassandraKeyspace request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) GetCassandraKeyspaceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCassandraKeyspaceResponder handles the response to the GetCassandraKeyspace request. The method always
@@ -592,8 +589,7 @@ func (client CassandraResourcesClient) GetCassandraKeyspaceThroughputPreparer(ct
 // GetCassandraKeyspaceThroughputSender sends the GetCassandraKeyspaceThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) GetCassandraKeyspaceThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCassandraKeyspaceThroughputResponder handles the response to the GetCassandraKeyspaceThroughput request. The method always
@@ -685,8 +681,7 @@ func (client CassandraResourcesClient) GetCassandraTablePreparer(ctx context.Con
 // GetCassandraTableSender sends the GetCassandraTable request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) GetCassandraTableSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCassandraTableResponder handles the response to the GetCassandraTable request. The method always
@@ -779,8 +774,7 @@ func (client CassandraResourcesClient) GetCassandraTableThroughputPreparer(ctx c
 // GetCassandraTableThroughputSender sends the GetCassandraTableThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) GetCassandraTableThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCassandraTableThroughputResponder handles the response to the GetCassandraTableThroughput request. The method always
@@ -868,8 +862,7 @@ func (client CassandraResourcesClient) ListCassandraKeyspacesPreparer(ctx contex
 // ListCassandraKeyspacesSender sends the ListCassandraKeyspaces request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) ListCassandraKeyspacesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListCassandraKeyspacesResponder handles the response to the ListCassandraKeyspaces request. The method always
@@ -959,8 +952,7 @@ func (client CassandraResourcesClient) ListCassandraTablesPreparer(ctx context.C
 // ListCassandraTablesSender sends the ListCassandraTables request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) ListCassandraTablesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListCassandraTablesResponder handles the response to the ListCassandraTables request. The method always
@@ -1053,9 +1045,8 @@ func (client CassandraResourcesClient) UpdateCassandraKeyspaceThroughputPreparer
 // UpdateCassandraKeyspaceThroughputSender sends the UpdateCassandraKeyspaceThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) UpdateCassandraKeyspaceThroughputSender(req *http.Request) (future CassandraResourcesUpdateCassandraKeyspaceThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1155,9 +1146,8 @@ func (client CassandraResourcesClient) UpdateCassandraTableThroughputPreparer(ct
 // UpdateCassandraTableThroughputSender sends the UpdateCassandraTableThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client CassandraResourcesClient) UpdateCassandraTableThroughputSender(req *http.Request) (future CassandraResourcesUpdateCassandraTableThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

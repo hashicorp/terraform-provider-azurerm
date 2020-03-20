@@ -36,7 +36,8 @@ func NewSQLResourcesClient(subscriptionID string) SQLResourcesClient {
 	return NewSQLResourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSQLResourcesClientWithBaseURI creates an instance of the SQLResourcesClient client.
+// NewSQLResourcesClientWithBaseURI creates an instance of the SQLResourcesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSQLResourcesClientWithBaseURI(baseURI string, subscriptionID string) SQLResourcesClient {
 	return SQLResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -127,9 +128,8 @@ func (client SQLResourcesClient) CreateUpdateSQLContainerPreparer(ctx context.Co
 // CreateUpdateSQLContainerSender sends the CreateUpdateSQLContainer request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) CreateUpdateSQLContainerSender(req *http.Request) (future SQLResourcesCreateUpdateSQLContainerFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -227,9 +227,8 @@ func (client SQLResourcesClient) CreateUpdateSQLDatabasePreparer(ctx context.Con
 // CreateUpdateSQLDatabaseSender sends the CreateUpdateSQLDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) CreateUpdateSQLDatabaseSender(req *http.Request) (future SQLResourcesCreateUpdateSQLDatabaseFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -331,9 +330,8 @@ func (client SQLResourcesClient) CreateUpdateSQLStoredProcedurePreparer(ctx cont
 // CreateUpdateSQLStoredProcedureSender sends the CreateUpdateSQLStoredProcedure request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) CreateUpdateSQLStoredProcedureSender(req *http.Request) (future SQLResourcesCreateUpdateSQLStoredProcedureFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -435,9 +433,8 @@ func (client SQLResourcesClient) CreateUpdateSQLTriggerPreparer(ctx context.Cont
 // CreateUpdateSQLTriggerSender sends the CreateUpdateSQLTrigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) CreateUpdateSQLTriggerSender(req *http.Request) (future SQLResourcesCreateUpdateSQLTriggerFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -540,9 +537,8 @@ func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunctionPreparer(ctx 
 // CreateUpdateSQLUserDefinedFunctionSender sends the CreateUpdateSQLUserDefinedFunction request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunctionSender(req *http.Request) (future SQLResourcesCreateUpdateSQLUserDefinedFunctionFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -633,9 +629,8 @@ func (client SQLResourcesClient) DeleteSQLContainerPreparer(ctx context.Context,
 // DeleteSQLContainerSender sends the DeleteSQLContainer request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) DeleteSQLContainerSender(req *http.Request) (future SQLResourcesDeleteSQLContainerFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -723,9 +718,8 @@ func (client SQLResourcesClient) DeleteSQLDatabasePreparer(ctx context.Context, 
 // DeleteSQLDatabaseSender sends the DeleteSQLDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) DeleteSQLDatabaseSender(req *http.Request) (future SQLResourcesDeleteSQLDatabaseFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -817,9 +811,8 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedurePreparer(ctx context.Co
 // DeleteSQLStoredProcedureSender sends the DeleteSQLStoredProcedure request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) DeleteSQLStoredProcedureSender(req *http.Request) (future SQLResourcesDeleteSQLStoredProcedureFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -911,9 +904,8 @@ func (client SQLResourcesClient) DeleteSQLTriggerPreparer(ctx context.Context, r
 // DeleteSQLTriggerSender sends the DeleteSQLTrigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) DeleteSQLTriggerSender(req *http.Request) (future SQLResourcesDeleteSQLTriggerFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1005,9 +997,8 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionPreparer(ctx contex
 // DeleteSQLUserDefinedFunctionSender sends the DeleteSQLUserDefinedFunction request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionSender(req *http.Request) (future SQLResourcesDeleteSQLUserDefinedFunctionFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1103,8 +1094,7 @@ func (client SQLResourcesClient) GetSQLContainerPreparer(ctx context.Context, re
 // GetSQLContainerSender sends the GetSQLContainer request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) GetSQLContainerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSQLContainerResponder handles the response to the GetSQLContainer request. The method always
@@ -1197,8 +1187,7 @@ func (client SQLResourcesClient) GetSQLContainerThroughputPreparer(ctx context.C
 // GetSQLContainerThroughputSender sends the GetSQLContainerThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) GetSQLContainerThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSQLContainerThroughputResponder handles the response to the GetSQLContainerThroughput request. The method always
@@ -1288,8 +1277,7 @@ func (client SQLResourcesClient) GetSQLDatabasePreparer(ctx context.Context, res
 // GetSQLDatabaseSender sends the GetSQLDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) GetSQLDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSQLDatabaseResponder handles the response to the GetSQLDatabase request. The method always
@@ -1380,8 +1368,7 @@ func (client SQLResourcesClient) GetSQLDatabaseThroughputPreparer(ctx context.Co
 // GetSQLDatabaseThroughputSender sends the GetSQLDatabaseThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) GetSQLDatabaseThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSQLDatabaseThroughputResponder handles the response to the GetSQLDatabaseThroughput request. The method always
@@ -1475,8 +1462,7 @@ func (client SQLResourcesClient) GetSQLStoredProcedurePreparer(ctx context.Conte
 // GetSQLStoredProcedureSender sends the GetSQLStoredProcedure request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) GetSQLStoredProcedureSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSQLStoredProcedureResponder handles the response to the GetSQLStoredProcedure request. The method always
@@ -1570,8 +1556,7 @@ func (client SQLResourcesClient) GetSQLTriggerPreparer(ctx context.Context, reso
 // GetSQLTriggerSender sends the GetSQLTrigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) GetSQLTriggerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSQLTriggerResponder handles the response to the GetSQLTrigger request. The method always
@@ -1665,8 +1650,7 @@ func (client SQLResourcesClient) GetSQLUserDefinedFunctionPreparer(ctx context.C
 // GetSQLUserDefinedFunctionSender sends the GetSQLUserDefinedFunction request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) GetSQLUserDefinedFunctionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSQLUserDefinedFunctionResponder handles the response to the GetSQLUserDefinedFunction request. The method always
@@ -1756,8 +1740,7 @@ func (client SQLResourcesClient) ListSQLContainersPreparer(ctx context.Context, 
 // ListSQLContainersSender sends the ListSQLContainers request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) ListSQLContainersSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSQLContainersResponder handles the response to the ListSQLContainers request. The method always
@@ -1845,8 +1828,7 @@ func (client SQLResourcesClient) ListSQLDatabasesPreparer(ctx context.Context, r
 // ListSQLDatabasesSender sends the ListSQLDatabases request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) ListSQLDatabasesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSQLDatabasesResponder handles the response to the ListSQLDatabases request. The method always
@@ -1930,7 +1912,7 @@ func (client SQLResourcesClient) ListSQLStoredProceduresPreparer(ctx context.Con
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/storedProcedures/", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/storedProcedures", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1938,8 +1920,7 @@ func (client SQLResourcesClient) ListSQLStoredProceduresPreparer(ctx context.Con
 // ListSQLStoredProceduresSender sends the ListSQLStoredProcedures request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) ListSQLStoredProceduresSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSQLStoredProceduresResponder handles the response to the ListSQLStoredProcedures request. The method always
@@ -2023,7 +2004,7 @@ func (client SQLResourcesClient) ListSQLTriggersPreparer(ctx context.Context, re
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/triggers/", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/triggers", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2031,8 +2012,7 @@ func (client SQLResourcesClient) ListSQLTriggersPreparer(ctx context.Context, re
 // ListSQLTriggersSender sends the ListSQLTriggers request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) ListSQLTriggersSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSQLTriggersResponder handles the response to the ListSQLTriggers request. The method always
@@ -2116,7 +2096,7 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctionsPreparer(ctx context
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/userDefinedFunctions/", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/userDefinedFunctions", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -2124,8 +2104,7 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctionsPreparer(ctx context
 // ListSQLUserDefinedFunctionsSender sends the ListSQLUserDefinedFunctions request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) ListSQLUserDefinedFunctionsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSQLUserDefinedFunctionsResponder handles the response to the ListSQLUserDefinedFunctions request. The method always
@@ -2219,9 +2198,8 @@ func (client SQLResourcesClient) UpdateSQLContainerThroughputPreparer(ctx contex
 // UpdateSQLContainerThroughputSender sends the UpdateSQLContainerThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) UpdateSQLContainerThroughputSender(req *http.Request) (future SQLResourcesUpdateSQLContainerThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -2318,9 +2296,8 @@ func (client SQLResourcesClient) UpdateSQLDatabaseThroughputPreparer(ctx context
 // UpdateSQLDatabaseThroughputSender sends the UpdateSQLDatabaseThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client SQLResourcesClient) UpdateSQLDatabaseThroughputSender(req *http.Request) (future SQLResourcesUpdateSQLDatabaseThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

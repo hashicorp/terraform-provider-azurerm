@@ -36,7 +36,9 @@ func NewGremlinResourcesClient(subscriptionID string) GremlinResourcesClient {
 	return NewGremlinResourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewGremlinResourcesClientWithBaseURI creates an instance of the GremlinResourcesClient client.
+// NewGremlinResourcesClientWithBaseURI creates an instance of the GremlinResourcesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewGremlinResourcesClientWithBaseURI(baseURI string, subscriptionID string) GremlinResourcesClient {
 	return GremlinResourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -118,9 +120,8 @@ func (client GremlinResourcesClient) CreateUpdateGremlinDatabasePreparer(ctx con
 // CreateUpdateGremlinDatabaseSender sends the CreateUpdateGremlinDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) CreateUpdateGremlinDatabaseSender(req *http.Request) (future GremlinResourcesCreateUpdateGremlinDatabaseFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -227,9 +228,8 @@ func (client GremlinResourcesClient) CreateUpdateGremlinGraphPreparer(ctx contex
 // CreateUpdateGremlinGraphSender sends the CreateUpdateGremlinGraph request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) CreateUpdateGremlinGraphSender(req *http.Request) (future GremlinResourcesCreateUpdateGremlinGraphFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -318,9 +318,8 @@ func (client GremlinResourcesClient) DeleteGremlinDatabasePreparer(ctx context.C
 // DeleteGremlinDatabaseSender sends the DeleteGremlinDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) DeleteGremlinDatabaseSender(req *http.Request) (future GremlinResourcesDeleteGremlinDatabaseFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -410,9 +409,8 @@ func (client GremlinResourcesClient) DeleteGremlinGraphPreparer(ctx context.Cont
 // DeleteGremlinGraphSender sends the DeleteGremlinGraph request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) DeleteGremlinGraphSender(req *http.Request) (future GremlinResourcesDeleteGremlinGraphFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -507,8 +505,7 @@ func (client GremlinResourcesClient) GetGremlinDatabasePreparer(ctx context.Cont
 // GetGremlinDatabaseSender sends the GetGremlinDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) GetGremlinDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetGremlinDatabaseResponder handles the response to the GetGremlinDatabase request. The method always
@@ -599,8 +596,7 @@ func (client GremlinResourcesClient) GetGremlinDatabaseThroughputPreparer(ctx co
 // GetGremlinDatabaseThroughputSender sends the GetGremlinDatabaseThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) GetGremlinDatabaseThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetGremlinDatabaseThroughputResponder handles the response to the GetGremlinDatabaseThroughput request. The method always
@@ -692,8 +688,7 @@ func (client GremlinResourcesClient) GetGremlinGraphPreparer(ctx context.Context
 // GetGremlinGraphSender sends the GetGremlinGraph request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) GetGremlinGraphSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetGremlinGraphResponder handles the response to the GetGremlinGraph request. The method always
@@ -786,8 +781,7 @@ func (client GremlinResourcesClient) GetGremlinGraphThroughputPreparer(ctx conte
 // GetGremlinGraphThroughputSender sends the GetGremlinGraphThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) GetGremlinGraphThroughputSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetGremlinGraphThroughputResponder handles the response to the GetGremlinGraphThroughput request. The method always
@@ -875,8 +869,7 @@ func (client GremlinResourcesClient) ListGremlinDatabasesPreparer(ctx context.Co
 // ListGremlinDatabasesSender sends the ListGremlinDatabases request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) ListGremlinDatabasesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListGremlinDatabasesResponder handles the response to the ListGremlinDatabases request. The method always
@@ -966,8 +959,7 @@ func (client GremlinResourcesClient) ListGremlinGraphsPreparer(ctx context.Conte
 // ListGremlinGraphsSender sends the ListGremlinGraphs request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) ListGremlinGraphsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListGremlinGraphsResponder handles the response to the ListGremlinGraphs request. The method always
@@ -1060,9 +1052,8 @@ func (client GremlinResourcesClient) UpdateGremlinDatabaseThroughputPreparer(ctx
 // UpdateGremlinDatabaseThroughputSender sends the UpdateGremlinDatabaseThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) UpdateGremlinDatabaseThroughputSender(req *http.Request) (future GremlinResourcesUpdateGremlinDatabaseThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1161,9 +1152,8 @@ func (client GremlinResourcesClient) UpdateGremlinGraphThroughputPreparer(ctx co
 // UpdateGremlinGraphThroughputSender sends the UpdateGremlinGraphThroughput request. The method will close the
 // http.Response Body if it receives an error.
 func (client GremlinResourcesClient) UpdateGremlinGraphThroughputSender(req *http.Request) (future GremlinResourcesUpdateGremlinGraphThroughputFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
