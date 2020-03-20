@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -150,6 +151,34 @@ func testAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_autoScaling(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_autoScalingEnabled(data, clientId, clientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_autoScalingEnabledUpdate(data, clientId, clientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+				ExpectError: regexp.MustCompile("cannot change `node_count` when `enable_auto_scaling` is set to `true`"),
+			},
 		},
 	})
 }
@@ -361,7 +390,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -386,6 +415,74 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
+func testAccAzureRMKubernetesCluster_autoScalingEnabled(data acceptance.TestData, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                = "default"
+    node_count          = 2
+    vm_size             = "Standard_DS2_v2"
+    enable_auto_scaling = true
+    max_count           = 10
+    min_count           = 1
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_autoScalingEnabledUpdate(data acceptance.TestData, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                = "default"
+    node_count          = 1
+    vm_size             = "Standard_DS2_v2"
+    enable_auto_scaling = true
+    max_count           = 10
+    min_count           = 1
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+}
+
 func testAccAzureRMKubernetesCluster_basicVMSSConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -393,7 +490,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -449,7 +546,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -489,7 +586,7 @@ func testAccAzureRMKubernetesCluster_nodeLabelsConfig(data acceptance.TestData, 
 	labelsStr := strings.Join(labelsSlice, "\n")
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -523,7 +620,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -557,7 +654,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -589,7 +686,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -624,7 +721,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -659,7 +756,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 
@@ -699,7 +796,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-aks-%d"
   location = "%s"
 }
 

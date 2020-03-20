@@ -532,7 +532,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -550,7 +550,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	agentProfiles, err := ExpandDefaultNodePool(d)
 	if err != nil {
-		return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
+		return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 	}
 
 	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
@@ -618,20 +618,20 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for creation of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+		return fmt.Errorf("cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -669,11 +669,11 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		}
 		future, err := clusterClient.ResetServicePrincipalProfile(ctx, id.ResourceGroup, id.Name, params)
 		if err != nil {
-			return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", id.Name, id.ResourceGroup)
 	}
@@ -681,10 +681,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	// we need to conditionally update the cluster
 	existing, err := clusterClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if existing.ManagedClusterProperties == nil {
-		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
@@ -695,7 +695,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		props := existing.ManagedClusterProperties
 		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
 		if props.EnableRBAC == nil {
-			return fmt.Errorf("Error reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
+			return fmt.Errorf("reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
 		}
 		rbacRaw := d.Get("role_based_access_control").([]interface{})
 		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
@@ -707,11 +707,11 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			log.Printf("[DEBUG] Updating the RBAC AAD profile")
 			future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.Name, *props.AadProfile)
 			if err != nil {
-				return fmt.Errorf("Error updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-				return fmt.Errorf("Error waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
 			}
 		} else {
 			updateCluster = true
@@ -782,11 +782,11 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
 		if err != nil {
-			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	}
@@ -797,17 +797,17 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 		agentProfiles, err := ExpandDefaultNodePool(d)
 		if err != nil {
-			return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
+			return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 		}
 
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *agentProfile.Name, agentProfile)
 		if err != nil {
-			return fmt.Errorf("Error updating Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated Default Node Pool.")
 	}
@@ -816,10 +816,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("kubernetes_version") {
 		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 		if existing.ManagedClusterProperties == nil {
-			return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 		}
 
 		kubernetesVersion := d.Get("kubernetes_version").(string)
@@ -828,11 +828,11 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 		future, err := clusterClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
 		if err != nil {
-			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
@@ -861,12 +861,12 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.Name, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -887,7 +887,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
 			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
-				return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
+				return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 			}
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
@@ -895,53 +895,53 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 
 		addonProfiles := FlattenKubernetesAddOnProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
-			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
+			return fmt.Errorf("setting `addon_profile`: %+v", err)
 		}
 
 		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
 		if err != nil {
-			return fmt.Errorf("Error flattening `default_node_pool`: %+v", err)
+			return fmt.Errorf("flattening `default_node_pool`: %+v", err)
 		}
 		if err := d.Set("default_node_pool", flattenedDefaultNodePool); err != nil {
-			return fmt.Errorf("Error setting `default_node_pool`: %+v", err)
+			return fmt.Errorf("setting `default_node_pool`: %+v", err)
 		}
 
 		linuxProfile := flattenKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
-			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+			return fmt.Errorf("setting `linux_profile`: %+v", err)
 		}
 
 		networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
 		if err := d.Set("network_profile", networkProfile); err != nil {
-			return fmt.Errorf("Error setting `network_profile`: %+v", err)
+			return fmt.Errorf("setting `network_profile`: %+v", err)
 		}
 
 		roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props, d)
 		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
-			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
+			return fmt.Errorf("setting `role_based_access_control`: %+v", err)
 		}
 
 		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(props.ServicePrincipalProfile, d)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
-			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+			return fmt.Errorf("setting `service_principal`: %+v", err)
 		}
 
 		windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
 		if err := d.Set("windows_profile", windowsProfile); err != nil {
-			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
+			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
 		// adminProfile is only available for RBAC enabled clusters with AAD
 		if props.AadProfile != nil {
 			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.Name, "clusterAdmin")
 			if err != nil {
-				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
 			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
-				return fmt.Errorf("Error setting `kube_admin_config`: %+v", err)
+				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
 		} else {
 			d.Set("kube_admin_config_raw", "")
@@ -950,13 +950,13 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if err := d.Set("identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(profile)
 	d.Set("kube_config_raw", kubeConfigRaw)
 	if err := d.Set("kube_config", kubeConfig); err != nil {
-		return fmt.Errorf("Error setting `kube_config`: %+v", err)
+		return fmt.Errorf("setting `kube_config`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -974,11 +974,11 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -1166,7 +1166,7 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 	}
 
 	if strings.ToLower(loadBalancerType) != "standard" {
-		return nil, fmt.Errorf("Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
+		return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
 	}
 
 	config := d[0].(map[string]interface{})

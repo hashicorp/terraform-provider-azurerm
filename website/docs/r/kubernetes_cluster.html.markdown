@@ -217,6 +217,8 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 * `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
 
+-> **NOTE:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `0` or removed from the configuration file.
+
 ---
 
 A `http_application_routing` block supports the following:

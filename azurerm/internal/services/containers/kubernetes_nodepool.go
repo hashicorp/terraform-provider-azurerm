@@ -210,33 +210,32 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	maxCount := raw["max_count"].(int)
 	minCount := raw["min_count"].(int)
 
-	// Count must be set for the initial creation when using AutoScaling but cannot be updated
-	autoScaledCluster := enableAutoScaling && d.IsNewResource()
-
-	// however it must always be sent for manually scaled clusters
-	manuallyScaledCluster := !enableAutoScaling && (d.IsNewResource() || d.HasChange("default_node_pool.0.node_count"))
-
-	if autoScaledCluster || manuallyScaledCluster {
-		// users creating an auto-scaled cluster may not set the `node_count` field - if so use `min_count`
-		if count == 0 && autoScaledCluster {
-			count = minCount
-		}
-
-		profile.Count = utils.Int32(int32(count))
-	}
-
-	// Count must always be set (see #6094)
+	// Count must always be set (see #6094), RP behavior has changed
+	// since the API version upgrade in v2.1.0 making Count required
+	// for all create/update requests
 	profile.Count = utils.Int32(int32(count))
 
 	if enableAutoScaling {
+		// Count must be set for the initial creation when using AutoScaling but cannot be updated
+		if d.HasChange("default_node_pool.0.node_count") && !d.IsNewResource() {
+			return nil, fmt.Errorf("cannot change `node_count` when `enable_auto_scaling` is set to `true`")
+		}
+
 		if maxCount > 0 {
 			profile.MaxCount = utils.Int32(int32(maxCount))
+			if maxCount < count {
+				return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `enable_auto_scaling` is set to `true`", count, maxCount)
+			}
 		} else {
 			return nil, fmt.Errorf("`max_count` must be configured when `enable_auto_scaling` is set to `true`")
 		}
 
 		if minCount > 0 {
 			profile.MinCount = utils.Int32(int32(minCount))
+
+			if minCount > count {
+				return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `enable_auto_scaling` is set to `true`", count, minCount)
+			}
 		} else {
 			return nil, fmt.Errorf("`min_count` must be configured when `enable_auto_scaling` is set to `true`")
 		}
@@ -245,7 +244,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 			return nil, fmt.Errorf("`max_count` must be >= `min_count`")
 		}
 	} else if minCount > 0 || maxCount > 0 {
-		return nil, fmt.Errorf("`max_count` and `min_count` must be set to `0` when enable_auto_scaling is set to `false`")
+		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `0` when `enable_auto_scaling` is set to `false`", maxCount, minCount)
 	}
 
 	return &[]containerservice.ManagedClusterAgentPoolProfile{
