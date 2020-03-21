@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_public_ip`: can now be dynamic for ipv6 addresses [GH-6140]
 * `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_storage_share` - exposing the `resource_manager_id` field [GH-6170]
+* `azurerm_traffic_manager_profile` - support for the `custom_header` property [GH-5923]
 
 BUG FIXES:
 
