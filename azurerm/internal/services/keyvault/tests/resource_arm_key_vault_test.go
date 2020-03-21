@@ -1005,10 +1005,6 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_storage_account" "test%d" {
   name                     = "testsa%s%d"
   resource_group_name      = azurerm_resource_group.test.name
