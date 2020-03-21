@@ -2023,7 +2023,7 @@ resource "azurerm_public_ip" "teststd" {
 }
 
 resource "azurerm_web_application_firewall_policy" "testfwp" {
-  name = "acctest-fwp-%[2]d"
+  name                = "acctest-fwp-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
