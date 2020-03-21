@@ -314,10 +314,10 @@ resource "azurerm_traffic_manager_profile" "test" {
       "100-101",
       "301-303",
     ]
-    
+
     custom_header {
-    	name  = "foo"
-	value = "bar"
+      name  = "foo"
+      value = "bar"
     }
 
     protocol = "tcp"
@@ -361,10 +361,10 @@ resource "azurerm_traffic_manager_profile" "test" {
     expected_status_code_ranges = [
       "302-304",
     ]
-    
+
     custom_header {
-    	name  = "foo2"
-	value = "bar2"
+      name  = "foo2"
+      value = "bar2"
     }
 
     protocol = "https"
