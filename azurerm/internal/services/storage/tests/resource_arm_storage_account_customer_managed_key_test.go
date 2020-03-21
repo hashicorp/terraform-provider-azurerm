@@ -207,8 +207,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 
 func testAccAzureRMStorageAccountCustomerManagedKey_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
 provider "azurerm" {
   features {
     key_vault {
@@ -216,6 +214,8 @@ provider "azurerm" {
     }
   }
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

@@ -205,6 +205,10 @@ resource "azurerm_mariadb_configuration" "test" {
 
 func testAccAzureRMMariaDbConfiguration_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -215,12 +219,7 @@ resource "azurerm_mariadb_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200

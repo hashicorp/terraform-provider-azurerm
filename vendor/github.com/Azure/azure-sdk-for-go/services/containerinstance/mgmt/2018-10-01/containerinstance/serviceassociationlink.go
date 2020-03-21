@@ -35,7 +35,9 @@ func NewServiceAssociationLinkClient(subscriptionID string) ServiceAssociationLi
 	return NewServiceAssociationLinkClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServiceAssociationLinkClientWithBaseURI creates an instance of the ServiceAssociationLinkClient client.
+// NewServiceAssociationLinkClientWithBaseURI creates an instance of the ServiceAssociationLinkClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewServiceAssociationLinkClientWithBaseURI(baseURI string, subscriptionID string) ServiceAssociationLinkClient {
 	return ServiceAssociationLinkClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +105,7 @@ func (client ServiceAssociationLinkClient) DeletePreparer(ctx context.Context, r
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceAssociationLinkClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always

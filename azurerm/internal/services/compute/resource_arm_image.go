@@ -243,16 +243,16 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	//either source VM or storage profile can be specified, but not both
+	// either source VM or storage profile can be specified, but not both
 	if sourceVM.ID == nil {
-		//if both sourceVM and storageProfile are empty, return an error
+		// if both sourceVM and storageProfile are empty, return an error
 		if storageProfile.OsDisk == nil && len(*storageProfile.DataDisks) == 0 {
 			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
 		}
 
 		properties.StorageProfile = &storageProfile
 	} else {
-		//creating an image from source VM
+		// creating an image from source VM
 		properties.SourceVirtualMachine = &sourceVM
 	}
 
@@ -312,7 +312,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	//either source VM or storage profile can be specified, but not both
+	// either source VM or storage profile can be specified, but not both
 	if resp.SourceVirtualMachine != nil {
 		d.Set("source_virtual_machine_id", resp.SourceVirtualMachine.ID)
 	} else if resp.StorageProfile != nil {

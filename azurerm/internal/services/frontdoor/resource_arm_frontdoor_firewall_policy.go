@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -41,7 +42,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.FrontDoorWAFName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -85,7 +86,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"custom_block_response_body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: ValidateCustomBlockResponseBody,
+				ValidateFunc: validate.FrontdoorCustomBlockResponseBody,
 			},
 
 			"custom_rule": {

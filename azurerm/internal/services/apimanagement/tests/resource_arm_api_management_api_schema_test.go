@@ -134,7 +134,7 @@ func testAccAzureRMApiManagementApiSchema_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_api_management_api_schema" "import" {
-  api_name            = azurerm_api_management_api_schema.test.name
+  api_name            = azurerm_api_management_api_schema.test.api_name
   api_management_name = azurerm_api_management_api_schema.test.api_management_name
   resource_group_name = azurerm_api_management_api_schema.test.resource_group_name
   schema_id           = azurerm_api_management_api_schema.test.schema_id
@@ -146,6 +146,10 @@ resource "azurerm_api_management_api_schema" "import" {
 
 func testAccAzureRMApiManagementApiSchema_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

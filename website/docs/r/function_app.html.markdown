@@ -109,6 +109,10 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
+* `os_type` - (Optional) A string indicating the Operating System type for this function app. 
+
+~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
+
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
 * `enabled` - (Optional) Is the Function App enabled?
@@ -116,6 +120,8 @@ The following arguments are supported:
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `version` - (Optional) The runtime version associated with the Function App. Defaults to `~1`.
+
+* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 

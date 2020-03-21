@@ -242,6 +242,10 @@ resource "azurerm_app_service_plan" "test" {
 
 func testAccAzureRMAppServiceEnvironment_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

@@ -154,7 +154,7 @@ func testAccAzureRMLogicAppTriggerHttpRequest_basic(data acceptance.TestData) st
 
 resource "azurerm_logic_app_trigger_http_request" "test" {
   name         = "some-http-trigger"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
   schema       = "{}"
 }
 `, template)
@@ -166,9 +166,9 @@ func testAccAzureRMLogicAppTriggerHttpRequest_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_logic_app_trigger_http_request" "import" {
-  name         = "${azurerm_logic_app_trigger_http_request.test.name}"
-  logic_app_id = "${azurerm_logic_app_trigger_http_request.test.logic_app_id}"
-  schema       = "${azurerm_logic_app_trigger_http_request.test.schema}"
+  name         = azurerm_logic_app_trigger_http_request.test.name
+  logic_app_id = azurerm_logic_app_trigger_http_request.test.logic_app_id
+  schema       = azurerm_logic_app_trigger_http_request.test.schema
 }
 `, template)
 }
@@ -180,7 +180,7 @@ func testAccAzureRMLogicAppTriggerHttpRequest_fullSchema(data acceptance.TestDat
 
 resource "azurerm_logic_app_trigger_http_request" "test" {
   name         = "some-http-trigger"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
 
   schema = <<SCHEMA
 {
@@ -192,6 +192,7 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
     }
 }
 SCHEMA
+
 }
 `, template)
 }
@@ -203,7 +204,7 @@ func testAccAzureRMLogicAppTriggerHttpRequest_method(data acceptance.TestData) s
 
 resource "azurerm_logic_app_trigger_http_request" "test" {
   name         = "some-http-trigger"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = azurerm_logic_app_workflow.test.id
   schema       = "{}"
   method       = "PUT"
 }
@@ -217,7 +218,7 @@ func testAccAzureRMLogicAppTriggerHttpRequest_relativePath(data acceptance.TestD
 
 resource "azurerm_logic_app_trigger_http_request" "test" {
   name          = "some-http-trigger"
-  logic_app_id  = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id  = azurerm_logic_app_workflow.test.id
   schema        = "{}"
   method        = "POST"
   relative_path = "customers/{id}"
@@ -227,6 +228,10 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
 
 func testAccAzureRMLogicAppTriggerHttpRequest_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -234,8 +239,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_logic_app_workflow" "test" {
   name                = "acctestlaw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

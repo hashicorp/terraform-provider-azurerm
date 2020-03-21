@@ -13,7 +13,6 @@ Manages a Traffic Manager Profile to which multiple endpoints can be attached.
 
 ## Example Usage
 
-
 ```hcl
 resource "random_id" "server" {
   keepers = {
@@ -57,39 +56,31 @@ resource "azurerm_traffic_manager_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual network. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the Traffic Manager profile. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the virtual network.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager profile.
 
-* `profile_status` - (Optional) The status of the profile, can be set to either
-    `Enabled` or `Disabled`. Defaults to `Enabled`.
+* `profile_status` - (Optional) The status of the profile, can be set to either `Enabled` or `Disabled`. Defaults to `Enabled`.
 
 * `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic, possible values are:
-    - `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
-    - `MultiValue`- All healthy Endpoints are returned.  MultiValue routing method works only if all the endpoints of type ‘External’ and are specified as IPv4 or IPv6 addresses.
-    - `Performance` - Traffic is routed via the User's closest Endpoint
-    - `Priority` - Traffic is routed to the Endpoint with the lowest `priority` value.
-    - `Subnet` - Traffic is routed based on a mapping of sets of end-user IP address ranges to a specific Endpoint within a Traffic Manager profile.
-    - `Weighted` - Traffic is spread across Endpoints proportional to their `weight` value.
+  * `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
+  * `MultiValue` - All healthy Endpoints are returned.  MultiValue routing method works only if all the endpoints of type ‘External’ and are specified as IPv4 or IPv6 addresses.
+  * `Performance` - Traffic is routed via the User's closest Endpoint
+  * `Priority` - Traffic is routed to the Endpoint with the lowest `priority` value.
+  * `Subnet` - Traffic is routed based on a mapping of sets of end-user IP address ranges to a specific Endpoint within a Traffic Manager profile.
+  * `Weighted` - Traffic is spread across Endpoints proportional to their `weight` value.
 
-* `dns_config` - (Required) This block specifies the DNS configuration of the
-    Profile, it supports the fields documented below.
+* `dns_config` - (Required) This block specifies the DNS configuration of the Profile, it supports the fields documented below.
 
-* `monitor_config` - (Required) This block specifies the Endpoint monitoring
-    configuration for the Profile, it supports the fields documented below.
+* `monitor_config` - (Required) This block specifies the Endpoint monitoring configuration for the Profile, it supports the fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The `dns_config` block supports:
 
-* `relative_name` - (Required) The relative domain name, this is combined with
-    the domain name used by Traffic Manager to form the FQDN which is exported
-    as documented below. Changing this forces a new resource to be created.
+* `relative_name` - (Required) The relative domain name, this is combined with the domain name used by Traffic Manager to form the FQDN which is exported as documented below. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The TTL value of the Profile used by Local DNS resolvers
-    and clients.
+* `ttl` - (Required) The TTL value of the Profile used by Local DNS resolvers and clients.
 
 The `monitor_config` block supports:
 

@@ -36,7 +36,8 @@ func NewSignUpSettingsClient(subscriptionID string) SignUpSettingsClient {
 	return NewSignUpSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSignUpSettingsClientWithBaseURI creates an instance of the SignUpSettingsClient client.
+// NewSignUpSettingsClientWithBaseURI creates an instance of the SignUpSettingsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSignUpSettingsClientWithBaseURI(baseURI string, subscriptionID string) SignUpSettingsClient {
 	return SignUpSettingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

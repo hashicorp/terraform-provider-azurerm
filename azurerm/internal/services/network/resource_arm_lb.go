@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -81,10 +80,23 @@ func resourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"private_ip_address": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.IPv4AddressOrEmpty,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.Any(
+								validation.IsIPAddress,
+								validation.StringIsEmpty,
+							),
+						},
+
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(network.IPv4),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.IPv4),
+								string(network.IPv6),
+							}, false),
 						},
 
 						"public_ip_address_id": {
@@ -330,6 +342,8 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 			properties.PrivateIPAddress = &v
 		}
 
+		properties.PrivateIPAddressVersion = network.IPVersion(data["private_ip_address_version"].(string))
+
 		if v := data["public_ip_address_id"].(string); v != "" {
 			properties.PublicIPAddress = &network.PublicIPAddress{
 				ID: &v,
@@ -394,6 +408,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 			if pip := props.PrivateIPAddress; pip != nil {
 				ipConfig["private_ip_address"] = *pip
+			}
+
+			if props.PrivateIPAddressVersion != "" {
+				ipConfig["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
 			}
 
 			if pip := props.PublicIPAddress; pip != nil {

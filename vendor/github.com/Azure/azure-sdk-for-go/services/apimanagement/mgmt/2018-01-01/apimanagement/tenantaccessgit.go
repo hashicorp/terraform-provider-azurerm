@@ -36,7 +36,8 @@ func NewTenantAccessGitClient(subscriptionID string) TenantAccessGitClient {
 	return NewTenantAccessGitClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTenantAccessGitClientWithBaseURI creates an instance of the TenantAccessGitClient client.
+// NewTenantAccessGitClientWithBaseURI creates an instance of the TenantAccessGitClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTenantAccessGitClientWithBaseURI(baseURI string, subscriptionID string) TenantAccessGitClient {
 	return TenantAccessGitClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

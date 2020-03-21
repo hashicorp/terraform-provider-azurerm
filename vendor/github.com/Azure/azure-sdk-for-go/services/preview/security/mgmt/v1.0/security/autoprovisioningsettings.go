@@ -36,7 +36,9 @@ func NewAutoProvisioningSettingsClient(subscriptionID string, ascLocation string
 	return NewAutoProvisioningSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAutoProvisioningSettingsClientWithBaseURI creates an instance of the AutoProvisioningSettingsClient client.
+// NewAutoProvisioningSettingsClientWithBaseURI creates an instance of the AutoProvisioningSettingsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewAutoProvisioningSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AutoProvisioningSettingsClient {
 	return AutoProvisioningSettingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
@@ -108,8 +110,7 @@ func (client AutoProvisioningSettingsClient) CreatePreparer(ctx context.Context,
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoProvisioningSettingsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -189,8 +190,7 @@ func (client AutoProvisioningSettingsClient) GetPreparer(ctx context.Context, se
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoProvisioningSettingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -268,8 +268,7 @@ func (client AutoProvisioningSettingsClient) ListPreparer(ctx context.Context) (
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoProvisioningSettingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always

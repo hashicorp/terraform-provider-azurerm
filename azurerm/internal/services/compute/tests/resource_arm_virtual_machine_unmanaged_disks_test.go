@@ -187,8 +187,8 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 	})
 }
 
-//This is a regression test around https://github.com/hashicorp/terraform/issues/6517
-//Because we use CreateUpdate, we were sending an empty password on update requests
+// This is a regression test around https://github.com/hashicorp/terraform/issues/6517
+// Because we use CreateUpdate, we were sending an empty password on update requests
 func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
@@ -596,6 +596,10 @@ func TestAccAzureRMVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -604,33 +608,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -641,15 +645,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -687,6 +691,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_destroyVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -695,33 +703,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -732,7 +740,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -740,6 +748,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -792,7 +804,6 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_blob" "test" {
   name = "datadisk1.vhd"
 
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
 
@@ -849,6 +860,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -857,33 +872,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -894,15 +909,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -988,6 +1003,10 @@ resource "azurerm_virtual_machine" "mirror" {
 
 func testAccAzureRMVirtualMachine_machineNameBeforeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -996,33 +1015,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1033,15 +1052,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "acctvm-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_D1_v2"
   delete_os_disk_on_termination = true
 
@@ -1079,6 +1098,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1092,33 +1115,33 @@ resource "azurerm_resource_group" "test-sa" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test-sa.name}"
-  location                 = "${azurerm_resource_group.test-sa.location}"
+  resource_group_name      = azurerm_resource_group.test-sa.name
+  location                 = azurerm_resource_group.test-sa.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1129,15 +1152,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -1186,6 +1209,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1199,33 +1226,33 @@ resource "azurerm_resource_group" "test-sa" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test-sa.name}"
-  location                 = "${azurerm_resource_group.test-sa.location}"
+  resource_group_name      = azurerm_resource_group.test-sa.name
+  location                 = azurerm_resource_group.test-sa.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1236,7 +1263,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1244,6 +1271,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1252,33 +1283,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1289,7 +1320,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1297,6 +1328,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMVirtualMachine_withDataDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1305,33 +1340,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1342,15 +1377,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -1396,6 +1431,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1404,33 +1443,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1441,15 +1480,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -1485,6 +1524,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_updatedLinuxMachine(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1493,33 +1536,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1530,15 +1573,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D2_v2"
 
   storage_image_reference {
@@ -1570,6 +1613,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicWindowsMachine(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1578,33 +1625,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1615,15 +1662,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -1656,6 +1703,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_windowsUnattendedConfig(data acceptance.TestData, vmSize string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1664,33 +1715,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1701,15 +1752,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "%s"
 
   storage_image_reference {
@@ -1748,6 +1799,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_diagnosticsProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1756,33 +1811,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1793,15 +1848,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -1826,7 +1881,7 @@ resource "azurerm_virtual_machine" "test" {
 
   boot_diagnostics {
     enabled     = true
-    storage_uri = "${azurerm_storage_account.test.primary_blob_endpoint}"
+    storage_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
 
   os_profile_windows_config {
@@ -1840,6 +1895,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_winRMConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1848,33 +1907,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1885,15 +1944,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -1927,6 +1986,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_withAvailabilitySet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1935,33 +1998,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -1972,23 +2035,23 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "availabilityset%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "acctvm-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_D1_v2"
-  availability_set_id           = "${azurerm_availability_set.test.id}"
+  availability_set_id           = azurerm_availability_set.test.id
   delete_os_disk_on_termination = true
 
   storage_image_reference {
@@ -2020,6 +2083,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_updateAvailabilitySet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2028,33 +2095,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2065,23 +2132,23 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "updatedAvailabilitySet%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "acctvm-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_D1_v2"
-  availability_set_id           = "${azurerm_availability_set.test.id}"
+  availability_set_id           = azurerm_availability_set.test.id
   delete_os_disk_on_termination = true
 
   storage_image_reference {
@@ -2113,6 +2180,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_updateMachineName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2121,33 +2192,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2158,15 +2229,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "acctvm-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_D1_v2"
   delete_os_disk_on_termination = true
 
@@ -2199,6 +2270,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2207,33 +2282,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2244,15 +2319,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "acctvm-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_D1_v2"
   delete_os_disk_on_termination = true
 
@@ -2291,6 +2366,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2299,33 +2378,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2336,15 +2415,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "acctvm-%d"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_D1_v2"
   delete_os_disk_on_termination = true
 
@@ -2383,6 +2462,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2391,33 +2474,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2428,15 +2511,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -2474,6 +2557,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_plan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2482,33 +2569,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2519,15 +2606,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {
@@ -2571,6 +2658,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_linuxMachineWithSSH(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2579,48 +2670,48 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn%s"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm%s"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -2658,6 +2749,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2666,48 +2761,48 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn%s"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm%s"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -2740,6 +2835,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2748,45 +2847,45 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_network_interface" "test2" {
   name                = "acctni2-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration2"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2797,16 +2896,16 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                         = "acctvm-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  network_interface_ids        = ["${azurerm_network_interface.test.id}", "${azurerm_network_interface.test2.id}"]
-  primary_network_interface_id = "${azurerm_network_interface.test.id}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  network_interface_ids        = [azurerm_network_interface.test.id, azurerm_network_interface.test2.id]
+  primary_network_interface_id = azurerm_network_interface.test.id
   vm_size                      = "Standard_A3"
 
   storage_image_reference {
@@ -2844,6 +2943,10 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_destroy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2852,33 +2955,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2889,7 +2992,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -2897,6 +3000,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -2905,33 +3012,33 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -2942,15 +3049,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_F2"
 
   storage_os_disk {

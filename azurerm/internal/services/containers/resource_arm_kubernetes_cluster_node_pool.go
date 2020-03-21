@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -54,6 +55,8 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
+			"tags": tags.Schema(),
+
 			"vm_size": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -83,7 +86,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"max_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"max_pods": {
@@ -96,7 +99,16 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"min_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
+			},
+
+			"node_labels": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"node_taints": {
@@ -191,12 +203,14 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
 	osType := d.Get("os_type").(string)
+	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:             containerservice.OSType(osType),
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Tags:               tags.Expand(t),
 		Type:               containerservice.VirtualMachineScaleSets,
 		VMSize:             containerservice.VMSizeTypes(vmSize),
 
@@ -211,6 +225,11 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if maxPods := int32(d.Get("max_pods").(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
+	}
+
+	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
+	if nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw); len(nodeLabels) > 0 {
+		profile.NodeLabels = nodeLabels
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
@@ -291,23 +310,20 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	clusterName := id.ClusterName
-	name := id.Name
 
 	d.Partial(true)
 
-	log.Printf("[DEBUG] Retrieving existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", name, clusterName, resourceGroup)
-	existing, err := client.Get(ctx, resourceGroup, clusterName, name)
+	log.Printf("[DEBUG] Retrieving existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", name, clusterName, resourceGroup)
+			return fmt.Errorf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", id.Name, id.ClusterName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", name, clusterName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 	if existing.ManagedClusterAgentPoolProfileProperties == nil {
-		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `properties` was nil", name, clusterName, resourceGroup)
+		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `properties` was nil", id.Name, id.ClusterName, id.ResourceGroup)
 	}
 
 	props := existing.ManagedClusterAgentPoolProfileProperties
@@ -318,7 +334,7 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		enableAutoScaling = *props.EnableAutoScaling
 	}
 
-	log.Printf("[DEBUG] Determining delta for existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", name, clusterName, resourceGroup)
+	log.Printf("[DEBUG] Determining delta for existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)
 
 	// delta patching
 	if d.HasChange("availability_zones") {
@@ -354,6 +370,11 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		props.NodeTaints = nodeTaints
 	}
 
+	if d.HasChange("tags") {
+		t := d.Get("tags").(map[string]interface{})
+		props.Tags = tags.Expand(t)
+	}
+
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
 	maxCount := 0
 	if props.MaxCount != nil {
@@ -378,15 +399,15 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("`max_count` and `min_count` must be set to `0` when enable_auto_scaling is set to `false`")
 	}
 
-	log.Printf("[DEBUG] Updating existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", name, clusterName, resourceGroup)
+	log.Printf("[DEBUG] Updating existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)
 	existing.ManagedClusterAgentPoolProfileProperties = props
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, existing)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.Name, existing)
 	if err != nil {
-		return fmt.Errorf("Error updating Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", name, clusterName, resourceGroup, err)
+		return fmt.Errorf("Error updating Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", name, clusterName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
 	d.Partial(false)
@@ -404,34 +425,31 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	clusterName := id.ClusterName
-	name := id.Name
 
 	// if the parent cluster doesn't exist then the node pool won't
-	cluster, err := clustersClient.Get(ctx, resourceGroup, clusterName)
+	cluster, err := clustersClient.Get(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(cluster.Response) {
-			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", clusterName, resourceGroup)
+			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.ClusterName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
-	resp, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
+	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q - removing from state!", name, clusterName, resourceGroup)
+			log.Printf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q - removing from state!", id.Name, id.ClusterName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", name, clusterName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
+	d.Set("name", id.Name)
 	d.Set("kubernetes_cluster_id", cluster.ID)
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
@@ -466,6 +484,10 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		}
 		d.Set("node_count", count)
 
+		if err := d.Set("node_labels", props.NodeLabels); err != nil {
+			return fmt.Errorf("Error setting `node_labels`: %+v", err)
+		}
+
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("Error setting `node_taints`: %+v", err)
 		}
@@ -480,7 +502,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("vm_size", string(props.VMSize))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {

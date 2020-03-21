@@ -27,6 +27,8 @@ func TestAccDataSourceAzureRMRedisCache_standard(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_port", "6380"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
 				),
 			},
 		},
@@ -39,8 +41,8 @@ func testAccDataSourceAzureRMRedisCache_standardWithDataSource(data acceptance.T
 %s
 
 data "azurerm_redis_cache" "test" {
-  name                = "${azurerm_redis_cache.test.name}"
-  resource_group_name = "${azurerm_redis_cache.test.resource_group_name}"
+  name                = azurerm_redis_cache.test.name
+  resource_group_name = azurerm_redis_cache.test.resource_group_name
 }
 `, config)
 }

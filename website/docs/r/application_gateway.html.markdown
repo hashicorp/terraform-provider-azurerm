@@ -219,7 +219,7 @@ A `backend_http_settings` block supports the following:
 
 * `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
 
-* `probe_name` - (Required) The name of an associated HTTP Probe.
+* `probe_name` - (Optional) The name of an associated HTTP Probe.
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
@@ -380,7 +380,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10, optional if `autoscale_configuration` is set
+* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
 
 ---
 
@@ -388,9 +388,11 @@ A `ssl_certificate` block supports the following:
 
 * `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
 
-* `data` - (Required) PFX certificate.
+* `data` - (Optional) PFX certificate. Required if `key_vault_secret_id` is not set.
 
-* `password` - (Required) Password for the pfx file specified in data.
+* `password` - (Optional) Password for the pfx file specified in data.  Required if `data` is set.
+
+* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
 
 ---
 

@@ -120,6 +120,10 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 
 func testAccAzureRMAPIManagementCertificate_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -127,8 +131,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
@@ -136,9 +140,9 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data                = "${filebase64("testdata/keyvaultcert.pfx")}"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  data                = filebase64("testdata/keyvaultcert.pfx")
   password            = ""
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -150,11 +154,11 @@ func testAccAzureRMAPIManagementCertificate_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_api_management_certificate" "import" {
-  name                = "${azurerm_api_management_certificate.test.name}"
-  api_management_name = "${azurerm_api_management_certificate.test.api_management_name}"
-  resource_group_name = "${azurerm_api_management_certificate.test.resource_group_name}"
-  data                = "${azurerm_api_management_certificate.test.data}"
-  password            = "${azurerm_api_management_certificate.test.password}"
+  name                = azurerm_api_management_certificate.test.name
+  api_management_name = azurerm_api_management_certificate.test.api_management_name
+  resource_group_name = azurerm_api_management_certificate.test.resource_group_name
+  data                = azurerm_api_management_certificate.test.data
+  password            = azurerm_api_management_certificate.test.password
 }
 `, template)
 }

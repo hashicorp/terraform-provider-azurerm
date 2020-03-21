@@ -301,7 +301,7 @@ func parsePolicyDefinitionNameFromId(id string) (string, error) {
 }
 
 func parseManagementGroupIdFromPolicyId(id string) string {
-	r, _ := regexp.Compile("managementgroups/(.+)/providers/.*$")
+	r, _ := regexp.Compile("managementGroups/(.+)/providers/.*$")
 
 	if r.MatchString(id) {
 		parms := r.FindAllStringSubmatch(id, -1)[0]
@@ -334,7 +334,7 @@ func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{})
 		return []*schema.ResourceData{d}, nil
 	}
 
-	//import a subscription based policy as before
+	// import a subscription based policy as before
 	return schema.ImportStatePassthrough(d, meta)
 }
 

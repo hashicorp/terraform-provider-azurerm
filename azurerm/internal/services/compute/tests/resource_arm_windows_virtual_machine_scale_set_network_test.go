@@ -623,6 +623,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func testAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationGateway(data acceptance.TestData) string {
 	name := testAccAzureRMWindowsVirtualMachineScaleSet_vmName(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1051,7 +1055,6 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "test"
-  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }

@@ -36,7 +36,8 @@ func NewAPISchemaClient(subscriptionID string) APISchemaClient {
 	return NewAPISchemaClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAPISchemaClientWithBaseURI creates an instance of the APISchemaClient client.
+// NewAPISchemaClientWithBaseURI creates an instance of the APISchemaClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAPISchemaClientWithBaseURI(baseURI string, subscriptionID string) APISchemaClient {
 	return APISchemaClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

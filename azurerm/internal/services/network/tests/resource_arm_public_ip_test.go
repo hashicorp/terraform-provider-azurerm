@@ -112,7 +112,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
+func TestAccAzureRMPublicIpStatic_standard_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -121,9 +121,13 @@ func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6"),
-				ExpectError: regexp.MustCompile("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp"),
+				Config: testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv6"),
+				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -168,6 +172,7 @@ func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	ipVersion := "IPv4"
@@ -500,6 +505,10 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 
 func testAccAzureRMPublicIPStatic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -507,8 +516,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -519,16 +528,20 @@ func testAccAzureRMPublicIPStatic_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_public_ip" "import" {
-  name                = "${azurerm_public_ip.test.name}"
-  location            = "${azurerm_public_ip.test.location}"
-  resource_group_name = "${azurerm_public_ip.test.resource_group_name}"
-  allocation_method   = "${azurerm_public_ip.test.allocation_method}"
+  name                = azurerm_public_ip.test.name
+  location            = azurerm_public_ip.test.location
+  resource_group_name = azurerm_public_ip.test.resource_group_name
+  allocation_method   = azurerm_public_ip.test.allocation_method
 }
 `, testAccAzureRMPublicIPStatic_basic(data))
 }
 
 func testAccAzureRMPublicIPStatic_withZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -536,8 +549,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   zones               = ["1"]
 }
@@ -546,6 +559,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_basic_withDNSLabel(data acceptance.TestData, dnsNameLabel string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -553,8 +570,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "%s"
 }
@@ -563,6 +580,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -570,8 +591,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   ip_version          = "%s"
 }
@@ -580,6 +601,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -587,8 +612,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
@@ -597,6 +622,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standardPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -604,23 +633,27 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  public_ip_prefix_id = "${azurerm_public_ip_prefix.test.id}"
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMPublicIPStatic_standardPrefixWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -628,17 +661,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  public_ip_prefix_id = "${azurerm_public_ip_prefix.test.id}"
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 
   tags = {
     environment = "Production"
@@ -650,6 +683,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standardPrefixWithTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -657,17 +694,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip_prefix" "test" {
   name                = "acctestpublicipprefix-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  public_ip_prefix_id = "${azurerm_public_ip_prefix.test.id}"
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 
   tags = {
     environment = "staging"
@@ -678,6 +715,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_standard_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -685,8 +726,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   ip_version          = "%s"
   sku                 = "Standard"
@@ -696,6 +737,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -703,8 +748,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "acctest-%d"
 }
@@ -713,6 +758,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_idleTimeout(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -720,8 +769,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                    = "acctestpublicip-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
@@ -730,6 +779,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPDynamic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -737,8 +790,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -746,6 +799,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPDynamic_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -753,8 +810,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
 
   ip_version = "%s"
@@ -764,6 +821,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -771,8 +832,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 
   tags = {
@@ -785,6 +846,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -792,8 +857,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 
   tags = {
@@ -805,6 +870,10 @@ resource "azurerm_public_ip" "test" {
 
 func testAccAzureRMPublicIPStatic_canLabelBe63(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -812,8 +881,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   allocation_method = "Static"
   domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"

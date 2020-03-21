@@ -31,13 +31,13 @@ func TestAccDataSourceAzureRMBackupPolicyVm_basic(t *testing.T) {
 
 func testAccDataSourceBackupPolicyVm_basic(data acceptance.TestData) string {
 	template := testAccAzureRMBackupProtectionPolicyVM_basicDaily(data)
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 data "azurerm_backup_policy_vm" "test" {
   name                = "${azurerm_backup_policy_vm.test.name}"
-  recovery_vault_name = "${azurerm_backup_vault.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_backup_policy_vm.test.recovery_vault_name}"
+  resource_group_name = "${azurerm_backup_policy_vm.test.resource_group_name}"
 }
 `, template)
 }

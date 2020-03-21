@@ -21,6 +21,10 @@ func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
@@ -55,8 +59,8 @@ func testAccDataSourceAzureRMLogicAppWorkflow_basic(data acceptance.TestData) st
 %s
 
 data "azurerm_logic_app_workflow" "test" {
-  name                = "${azurerm_logic_app_workflow.test.name}"
-  resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
+  name                = azurerm_logic_app_workflow.test.name
+  resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
 `, r)
 }
@@ -67,8 +71,8 @@ func testAccDataSourceAzureRMLogicAppWorkflow_tags(data acceptance.TestData) str
 %s
 
 data "azurerm_logic_app_workflow" "test" {
-  name                = "${azurerm_logic_app_workflow.test.name}"
-  resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
+  name                = azurerm_logic_app_workflow.test.name
+  resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
 `, r)
 }

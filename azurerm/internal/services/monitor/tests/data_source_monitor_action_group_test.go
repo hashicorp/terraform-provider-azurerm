@@ -138,6 +138,10 @@ func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 
 func testAccDataSourceArmMonitorActionGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -145,19 +149,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 data "azurerm_monitor_action_group" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_monitor_action_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_monitor_action_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceArmMonitorActionGroup_disabledBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -165,20 +173,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
   enabled             = false
 }
 
 data "azurerm_monitor_action_group" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_monitor_action_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_monitor_action_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccDataSourceArmMonitorActionGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -284,20 +296,18 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an test runbook"
-  runbook_type        = "PowerShellWorkflow"
+  name                    = "Get-AzureVMTutorial"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is an test runbook"
+  runbook_type            = "PowerShellWorkflow"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
