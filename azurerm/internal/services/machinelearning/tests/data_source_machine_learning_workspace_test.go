@@ -19,6 +19,7 @@ func TestAccDataSourceAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 				Config: testAccDataSourceMachineLearningWorkspace_basic(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
+			data.ImportStep(),
 		},
 	})
 }

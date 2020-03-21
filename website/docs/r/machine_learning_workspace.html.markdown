@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `friendly_name` - (Optional) Friendly name for this Machine Learning Workspace.
 
-* `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Basic` for a basic workspace or `Enterprise` for a feature rich workspace. Default to `Basic`.
+* `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Basic` for a basic workspace or `Enterprise` for a feature rich workspace. Defaults to `Basic`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 

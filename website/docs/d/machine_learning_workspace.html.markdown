@@ -10,6 +10,19 @@ description: |-
 
 Use this data source to access information about an existing Machine Learning Workspace.
 
+# Example Usage
+
+```hcl
+data "azurerm_machine_learning_workspace" "existing" {
+  name                = "example-workspace"
+  resource_group_name = "example-resources"
+}
+
+output "id" {
+  value = azurerm_machine_learning_workspace.existing.id
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:

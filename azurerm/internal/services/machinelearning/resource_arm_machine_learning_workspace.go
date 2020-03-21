@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/validate"
@@ -152,16 +151,14 @@ func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for existing AML Workspace %q (Resource Group %q): %s", name, resGroup, err)
-			}
+	existing, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for existing AML Workspace %q (Resource Group %q): %s", name, resGroup, err)
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_machine_learning_workspace", *existing.ID)
-		}
+	}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_machine_learning_workspace", *existing.ID)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -301,21 +298,18 @@ func resourceArmMachineLearningWorkspaceUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if d.HasChange("description") {
-		description := d.Get("description").(string)
-		update.WorkspacePropertiesUpdateParameters.Description = &description
+		update.WorkspacePropertiesUpdateParameters.Description = utils.String(d.Get("description").(string))
 	}
 
 	if d.HasChange("friendly_name") {
-		friendlyName := d.Get("friendly_name").(string)
-		update.WorkspacePropertiesUpdateParameters.FriendlyName = &friendlyName
+		update.WorkspacePropertiesUpdateParameters.FriendlyName = utils.String(d.Get("friendly_name").(string))
 	}
 
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	_, err = client.Update(ctx, id.ResourceGroup, id.Name, update)
-	if err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
 		return fmt.Errorf("Error updating Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -332,8 +326,7 @@ func resourceArmMachineLearningWorkspaceDelete(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("Error deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
