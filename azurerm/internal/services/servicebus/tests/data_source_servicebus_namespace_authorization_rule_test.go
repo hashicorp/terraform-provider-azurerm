@@ -19,7 +19,7 @@ func TestAccDataSourceAzureRMServiceBusNamespaceRule_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMServiceBusNamespaceAuthorizationRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),

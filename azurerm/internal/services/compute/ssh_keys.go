@@ -143,7 +143,7 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 		if pubKey.Type() != ssh.KeyAlgoRSA {
 			return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by Azure")}
 		} else {
-			//check length - held at bytes 20 and 21 for ssh-rsa
+			// check length - held at bytes 20 and 21 for ssh-rsa
 			sizeRaw := []byte{byteStr[20], byteStr[21]}
 			sizeDec := binary.BigEndian.Uint16(sizeRaw)
 			if sizeDec < 257 {

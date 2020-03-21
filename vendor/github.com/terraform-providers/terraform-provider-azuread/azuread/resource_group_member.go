@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
@@ -81,7 +82,7 @@ func resourceGroupMemberRead(d *schema.ResourceData, meta interface{}) error {
 
 	if memberObjectID == "" {
 		d.SetId("")
-		return fmt.Errorf("Azure AD Group Member not found - groupObjectId:%q / memberObjectId:%q", id.GroupId, id.MemberId)
+		return nil
 	}
 
 	d.Set("group_object_id", id.GroupId)

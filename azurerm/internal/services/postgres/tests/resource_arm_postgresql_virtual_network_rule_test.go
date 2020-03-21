@@ -59,8 +59,8 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
-	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(acctest-SN1-%d)$|(acctest-SN[^2]-%d)$", data.RandomInteger, data.RandomInteger))  //subnet 1 but not 2
-	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(acctest-SN2-%d)$|(acctest-SN-[^1]%d)$", data.RandomInteger, data.RandomInteger)) //subnet 2 but not 1
+	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(acctest-SN1-%d)$|(acctest-SN[^2]-%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
+	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(acctest-SN2-%d)$|(acctest-SN-[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -215,8 +215,8 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDisappears(resourceName string)
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
-			//If the error is that the resource we want to delete does not exist in the first
-			//place (404), then just return with no error.
+			// If the error is that the resource we want to delete does not exist in the first
+			// place (404), then just return with no error.
 			if response.WasNotFound(future.Response()) {
 				return nil
 			}
@@ -225,7 +225,7 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDisappears(resourceName string)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			//Same deal as before. Just in case.
+			// Same deal as before. Just in case.
 			if response.WasNotFound(future.Response()) {
 				return nil
 			}
@@ -533,22 +533,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VNET-%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctest-SN-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctestpostgresqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -566,9 +566,9 @@ resource "azurerm_postgresql_server" "test" {
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
   name                                 = "acctestpostgresqlvnetrule%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_postgresql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.test.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_postgresql_server.test.name
+  subnet_id                            = azurerm_subnet.test.id
   ignore_missing_vnet_service_endpoint = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

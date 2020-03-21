@@ -35,7 +35,8 @@ func NewOutputsClient(subscriptionID string) OutputsClient {
 	return NewOutputsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewOutputsClientWithBaseURI creates an instance of the OutputsClient client.
+// NewOutputsClientWithBaseURI creates an instance of the OutputsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewOutputsClientWithBaseURI(baseURI string, subscriptionID string) OutputsClient {
 	return OutputsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -119,8 +120,7 @@ func (client OutputsClient) CreateOrReplacePreparer(ctx context.Context, output 
 // CreateOrReplaceSender sends the CreateOrReplace request. The method will close the
 // http.Response Body if it receives an error.
 func (client OutputsClient) CreateOrReplaceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrReplaceResponder handles the response to the CreateOrReplace request. The method always
@@ -199,8 +199,7 @@ func (client OutputsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client OutputsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -278,8 +277,7 @@ func (client OutputsClient) GetPreparer(ctx context.Context, resourceGroupName s
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client OutputsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -363,8 +361,7 @@ func (client OutputsClient) ListByStreamingJobPreparer(ctx context.Context, reso
 // ListByStreamingJobSender sends the ListByStreamingJob request. The method will close the
 // http.Response Body if it receives an error.
 func (client OutputsClient) ListByStreamingJobSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByStreamingJobResponder handles the response to the ListByStreamingJob request. The method always
@@ -483,9 +480,8 @@ func (client OutputsClient) TestPreparer(ctx context.Context, resourceGroupName 
 // TestSender sends the Test request. The method will close the
 // http.Response Body if it receives an error.
 func (client OutputsClient) TestSender(req *http.Request) (future OutputsTestFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -582,8 +578,7 @@ func (client OutputsClient) UpdatePreparer(ctx context.Context, output Output, r
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client OutputsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

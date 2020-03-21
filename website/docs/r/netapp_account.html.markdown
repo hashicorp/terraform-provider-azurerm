@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `active_directory` - (Optional) A `active_directory` block as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 The `active_directory` block supports the following:

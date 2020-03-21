@@ -58,6 +58,11 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 						},
 
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"public_ip_address_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -182,6 +187,10 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 
 			if pip := props.PrivateIPAddress; pip != nil {
 				ipConfig["private_ip_address"] = *pip
+			}
+
+			if props.PrivateIPAddressVersion != "" {
+				ipConfig["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
 			}
 
 			if pip := props.PublicIPAddress; pip != nil && pip.ID != nil {

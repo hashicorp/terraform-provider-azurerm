@@ -74,6 +74,11 @@ func resourceArmStorageContainer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+
+			"resource_manager_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -226,6 +231,9 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
+
+	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, id.ContainerName)
+	d.Set("resource_manager_id", resourceManagerId)
 
 	return nil
 }

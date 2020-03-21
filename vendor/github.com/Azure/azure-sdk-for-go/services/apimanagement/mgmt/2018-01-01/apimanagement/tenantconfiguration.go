@@ -36,7 +36,9 @@ func NewTenantConfigurationClient(subscriptionID string) TenantConfigurationClie
 	return NewTenantConfigurationClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTenantConfigurationClientWithBaseURI creates an instance of the TenantConfigurationClient client.
+// NewTenantConfigurationClientWithBaseURI creates an instance of the TenantConfigurationClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewTenantConfigurationClientWithBaseURI(baseURI string, subscriptionID string) TenantConfigurationClient {
 	return TenantConfigurationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

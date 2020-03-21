@@ -197,9 +197,6 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
 	environment := web.AppServiceEnvironmentPatchResource{
 		AppServiceEnvironment: &web.AppServiceEnvironment{},
 	}
@@ -220,12 +217,12 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		environment.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, name, environment); err != nil {
-		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, environment); err != nil {
+		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, resourceGroup, name); err != nil {
-		return fmt.Errorf("Error waiting for Update of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("Error waiting for Update of App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceArmAppServiceEnvironmentRead(d, meta)
@@ -241,21 +238,18 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			log.Printf("[DEBUG] App Service Environmment %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] App Service Environmment %q (Resource Group %q) was not found - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving App Service Environmment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving App Service Environmment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := existing.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -296,20 +290,17 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Name
-
-	log.Printf("[DEBUG] Deleting App Service Environment %q (Resource Group %q)", name, resGroup)
+	log.Printf("[DEBUG] Deleting App Service Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
 	// TODO: should this behaviour be added to the `features` block?
 	forceDeleteAllChildren := utils.Bool(false)
-	future, err := client.Delete(ctx, resGroup, name, forceDeleteAllChildren)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, forceDeleteAllChildren)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting App Service Environment %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
@@ -318,7 +309,7 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for deletion of App Service Environment %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for deletion of App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

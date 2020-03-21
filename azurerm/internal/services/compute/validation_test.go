@@ -43,18 +43,33 @@ func TestValidateLinuxName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// 63 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghij",
+			// can have a dot in the middle
+			input:    "hello.world",
 			expected: true,
 		},
 		{
-			// 64 chars
+			// start with a number
+			input:    "0abc",
+			expected: true,
+		},
+		{
+			// cannot contain only numbers
+			input:    "12345",
+			expected: false,
+		},
+		{
+			// 63 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk",
 			expected: true,
 		},
 		{
-			// 65 chars
+			// 64 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkj",
+			expected: true,
+		},
+		{
+			// 65 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkjl",
 			expected: false,
 		},
 	}
@@ -91,6 +106,11 @@ func TestValidateWindowsName(t *testing.T) {
 			expected: false,
 		},
 		{
+			// can't contain underscore
+			input:    "hello_world",
+			expected: false,
+		},
+		{
 			// can't end with a dash
 			input:    "hello-",
 			expected: false,
@@ -108,6 +128,21 @@ func TestValidateWindowsName(t *testing.T) {
 		{
 			// can't end with a period
 			input:    "hello.",
+			expected: false,
+		},
+		{
+			// can't contain dot
+			input:    "hello.world",
+			expected: false,
+		},
+		{
+			// start with a number
+			input:    "0abc",
+			expected: true,
+		},
+		{
+			// cannot contain only numbers
+			input:    "12345",
 			expected: false,
 		},
 		{
@@ -149,7 +184,7 @@ func TestValidateDiskEncryptionSetName(t *testing.T) {
 			expected: false,
 		},
 		{
-			//basic example
+			// basic example
 			input:    "hello",
 			expected: true,
 		},

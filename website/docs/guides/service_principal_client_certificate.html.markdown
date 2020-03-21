@@ -99,7 +99,7 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The following Provider block can be specified - where `1.21.0` is the version of the Azure Provider that you'd like to use:
+The following Provider block can be specified - where `1.44.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 provider "azurerm" {

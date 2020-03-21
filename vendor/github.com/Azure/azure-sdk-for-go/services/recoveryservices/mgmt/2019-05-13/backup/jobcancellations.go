@@ -35,7 +35,9 @@ func NewJobCancellationsClient(subscriptionID string) JobCancellationsClient {
 	return NewJobCancellationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobCancellationsClientWithBaseURI creates an instance of the JobCancellationsClient client.
+// NewJobCancellationsClientWithBaseURI creates an instance of the JobCancellationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewJobCancellationsClientWithBaseURI(baseURI string, subscriptionID string) JobCancellationsClient {
 	return JobCancellationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +105,7 @@ func (client JobCancellationsClient) TriggerPreparer(ctx context.Context, vaultN
 // TriggerSender sends the Trigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCancellationsClient) TriggerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // TriggerResponder handles the response to the Trigger request. The method always

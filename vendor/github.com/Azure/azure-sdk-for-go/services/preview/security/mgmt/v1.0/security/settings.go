@@ -36,7 +36,8 @@ func NewSettingsClient(subscriptionID string, ascLocation string) SettingsClient
 	return NewSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewSettingsClientWithBaseURI creates an instance of the SettingsClient client.
+// NewSettingsClientWithBaseURI creates an instance of the SettingsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SettingsClient {
 	return SettingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
@@ -105,8 +106,7 @@ func (client SettingsClient) GetPreparer(ctx context.Context, settingName string
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SettingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -184,8 +184,7 @@ func (client SettingsClient) ListPreparer(ctx context.Context) (*http.Request, e
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client SettingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -305,8 +304,7 @@ func (client SettingsClient) UpdatePreparer(ctx context.Context, settingName str
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client SettingsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

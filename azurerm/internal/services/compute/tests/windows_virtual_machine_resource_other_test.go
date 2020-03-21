@@ -1562,8 +1562,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "example"
-  vault_uri = azurerm_key_vault.test.vault_uri
+  name         = "example"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {

@@ -13,9 +13,9 @@ func AccRandTimeInt() int {
 	// 000000000000000000
 	// YYMMddHHmmsshhRRRR
 
-	//go format: 2006-01-02 15:04:05.00
+	// go format: 2006-01-02 15:04:05.00
 
-	timeStr := strings.Replace(time.Now().Local().Format("060102150405.00"), ".", "", 1) //no way to not have a .?
+	timeStr := strings.Replace(time.Now().Local().Format("060102150405.00"), ".", "", 1) // no way to not have a .?
 	postfix := acctest.RandStringFromCharSet(4, "0123456789")
 
 	i, err := strconv.Atoi(timeStr + postfix)
