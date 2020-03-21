@@ -175,19 +175,19 @@ The `managed_rules` block supports the following:
 
 The `exclusion` block supports the following:
 
-* `match_variable` - (Required) The name of the Match Variable.
+* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection.
 
-* `selector_match_operator` - (Required) Describes operator to be matched.
+* `selector_match_operator` - (Required) Describes operator to be matched. Possible values: `Contains`, `EndsWith`, `Equals`, `EqualsAny`, `StartsWith`.
 
 ---
 
 The `managed_rules_set` block supports the following:
 
-* `rule_set_type` - (Required) The rule set type.
+* `type` - (Required) The rule set type.
 
-* `rule_set_version` - (Required) The rule set version.
+* `version` - (Required) The rule set version.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 

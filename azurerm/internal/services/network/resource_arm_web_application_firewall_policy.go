@@ -187,12 +187,12 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"rule_set_type": {
+									"type": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.NoZeroValues,
 									},
-									"rule_set_version": {
+									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validation.NoZeroValues,
@@ -427,11 +427,10 @@ func expandArmWebApplicationFirewallPolicyManagedRulesDefinition(input []interfa
 	exclusions := v["exclusion"].([]interface{})
 	managedRuleSets := v["managed_rule_set"].([]interface{})
 
-	result := network.ManagedRulesDefinition{
+	return &network.ManagedRulesDefinition{
 		Exclusions:      expandArmWebApplicationFirewallPolicyExclusions(exclusions),
 		ManagedRuleSets: expandArmWebApplicationFirewallPolicyManagedRuleSet(managedRuleSets),
 	}
-	return &result
 }
 
 func expandArmWebApplicationFirewallPolicyExclusions(input []interface{}) *[]network.OwaspCrsExclusionEntry {
@@ -459,8 +458,8 @@ func expandArmWebApplicationFirewallPolicyManagedRuleSet(input []interface{}) *[
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		ruleSetType := v["rule_set_type"].(string)
-		ruleSetVersion := v["rule_set_version"].(string)
+		ruleSetType := v["type"].(string)
+		ruleSetVersion := v["version"].(string)
 		ruleGroupOverrides := []interface{}{}
 		if value, exists := v["rule_group_overrides"]; exists {
 			ruleGroupOverrides = value.([]interface{})
@@ -632,8 +631,8 @@ func flattenArmWebApplicationFirewallPolicyManagedRuleSets(input *[]network.Mana
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
-		v["rule_set_type"] = item.RuleSetType
-		v["rule_set_version"] = item.RuleSetVersion
+		v["type"] = item.RuleSetType
+		v["version"] = item.RuleSetVersion
 		v["rule_group_override"] = flattenArmWebApplicationFirewallPolicyRuleGroupOverrides(item.RuleGroupOverrides)
 
 		results = append(results, v)
