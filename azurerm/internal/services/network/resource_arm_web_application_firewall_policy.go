@@ -49,7 +49,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"custom_rule": {
+			"custom_rules": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -63,7 +63,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 								string(network.WebApplicationFirewallActionLog),
 							}, false),
 						},
-						"match_condition": {
+						"match_conditions": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Resource{
@@ -75,7 +75,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"match_variable": {
+									"match_variables": {
 										Type:     schema.TypeList,
 										Required: true,
 										Elem: &schema.Resource{
@@ -276,7 +276,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	customRules := d.Get("custom_rule").([]interface{})
+	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
 	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
@@ -335,14 +335,14 @@ func resourceArmWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta in
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if webApplicationFirewallPolicyPropertiesFormat := resp.WebApplicationFirewallPolicyPropertiesFormat; webApplicationFirewallPolicyPropertiesFormat != nil {
-		if err := d.Set("custom_rule", flattenArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(webApplicationFirewallPolicyPropertiesFormat.CustomRules)); err != nil {
+		if err := d.Set("custom_rules", flattenArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(webApplicationFirewallPolicyPropertiesFormat.CustomRules)); err != nil {
 			return fmt.Errorf("Error setting `custom_rules`: %+v", err)
 		}
 		if err := d.Set("policy_settings", flattenArmWebApplicationFirewallPolicyPolicySettings(webApplicationFirewallPolicyPropertiesFormat.PolicySettings)); err != nil {
-			return fmt.Errorf("Error setting `policy_setting`: %+v", err)
+			return fmt.Errorf("Error setting `policy_settings`: %+v", err)
 		}
 		if err := d.Set("managed_rules", flattenArmWebApplicationFirewallPolicyManagedRulesDefinition(webApplicationFirewallPolicyPropertiesFormat.ManagedRules)); err != nil {
-			return fmt.Errorf("Error setting `managed_rule`: %+v", err)
+			return fmt.Errorf("Error setting `managed_rules`: %+v", err)
 		}
 		if err := d.Set("managed_rules", flattenArmWebApplicationFirewallPolicyManagedRulesDefinition(webApplicationFirewallPolicyPropertiesFormat.ManagedRules)); err != nil {
 			return fmt.Errorf("Error setting `managed_rules`: %+v", err)
@@ -388,7 +388,7 @@ func expandArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input
 		name := v["name"].(string)
 		priority := v["priority"].(int)
 		ruleType := v["rule_type"].(string)
-		matchConditions := v["match_condition"].([]interface{})
+		matchConditions := v["match_conditions"].([]interface{})
 		action := v["action"].(string)
 
 		result := network.WebApplicationFirewallCustomRule{
@@ -517,7 +517,7 @@ func expandArmWebApplicationFirewallPolicyMatchCondition(input []interface{}) *[
 	results := make([]network.MatchCondition, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		matchVariables := v["match_variable"].([]interface{})
+		matchVariables := v["match_variables"].([]interface{})
 		operator := v["operator"].(string)
 		negationCondition := v["negation_condition"].(bool)
 		matchValues := v["match_values"].([]interface{})
@@ -564,7 +564,7 @@ func flattenArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(inpu
 			v["name"] = *name
 		}
 		v["action"] = string(item.Action)
-		v["match_condition"] = flattenArmWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
+		v["match_conditions"] = flattenArmWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
 		if priority := item.Priority; priority != nil {
 			v["priority"] = int(*priority)
 		}
@@ -689,7 +689,7 @@ func flattenArmWebApplicationFirewallPolicyMatchCondition(input *[]network.Match
 		v := make(map[string]interface{})
 
 		v["match_values"] = utils.FlattenStringSlice(item.MatchValues)
-		v["match_variable"] = flattenArmWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
+		v["match_variables"] = flattenArmWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition
 		}

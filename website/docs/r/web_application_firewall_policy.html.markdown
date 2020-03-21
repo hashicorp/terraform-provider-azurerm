@@ -23,13 +23,13 @@ resource "azurerm_web_application_firewall_policy" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  custom_rule {
+  custom_rules {
     name      = "Rule1"
     priority  = 1
     rule_type = "MatchRule"
 
-    match_condition {
-      match_variable {
+    match_conditions {
+      match_variables {
         variable_name = "RemoteAddr"
       }
 
@@ -41,13 +41,13 @@ resource "azurerm_web_application_firewall_policy" "example" {
     action = "Block"
   }
 
-  custom_rule {
+  custom_rules {
     name      = "Rule2"
     priority  = 2
     rule_type = "MatchRule"
 
-    match_condition {
-      match_variable {
+    match_conditions {
+      match_variables {
         variable_name = "RemoteAddr"
       }
 
@@ -56,8 +56,8 @@ resource "azurerm_web_application_firewall_policy" "example" {
       match_values       = ["192.168.1.0/24"]
     }
 
-    match_condition {
-      match_variable {
+    match_conditions {
+      match_variables {
         variable_name = "RequestHeaders"
         selector      = "UserAgent"
       }
