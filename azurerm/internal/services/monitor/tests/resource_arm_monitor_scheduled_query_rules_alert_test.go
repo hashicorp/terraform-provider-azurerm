@@ -106,33 +106,34 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestAppInsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = "acctestsqr-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
-  data_source_id = "${azurerm_application_insights.test.id}"
+  data_source_id = azurerm_application_insights.test.id
   query          = <<-QUERY
 	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ];
 	d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)
-	QUERY
+QUERY
+
 
   frequency   = 60
   time_window = 60
 
   action {
-    action_group = ["${azurerm_monitor_action_group.test.id}"]
+    action_group = [azurerm_monitor_action_group.test.id]
   }
 
   trigger {
@@ -152,27 +153,28 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestAppInsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = "acctestsqr-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
-  data_source_id = "${azurerm_application_insights.test.id}"
+  data_source_id = azurerm_application_insights.test.id
   query          = <<-QUERY
 	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ];
 	d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)
-	QUERY
+QUERY
+
 
   enabled     = false
   description = "test description"
@@ -181,7 +183,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   time_window = 30
 
   action {
-    action_group = ["${azurerm_monitor_action_group.test.id}"]
+    action_group = [azurerm_monitor_action_group.test.id]
   }
 
   trigger {
@@ -203,25 +205,25 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestAppInsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = "acctestsqr-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   description         = "test alerting action"
   enabled             = true
 
-  data_source_id = "${azurerm_application_insights.test.id}"
+  data_source_id = azurerm_application_insights.test.id
   query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
 
   frequency   = 60
@@ -230,7 +232,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   severity   = 3
   throttling = 5
   action {
-    action_group           = ["${azurerm_monitor_action_group.test.id}"]
+    action_group           = [azurerm_monitor_action_group.test.id]
     email_subject          = "Custom alert email subject"
     custom_webhook_payload = "{}"
   }

@@ -897,8 +897,8 @@ func testAccDataSourceAzureRMKubernetesCluster_nodeLabelsConfig(data acceptance.
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, r)
 }
