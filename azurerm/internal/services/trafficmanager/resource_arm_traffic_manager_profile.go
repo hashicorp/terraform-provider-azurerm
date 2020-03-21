@@ -112,9 +112,9 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:             schema.TypeString,
-										Required:         true,
-										ValidateFunc:     validation.StringIsNotEmpty,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"value": {
 										Type:     schema.TypeString,
