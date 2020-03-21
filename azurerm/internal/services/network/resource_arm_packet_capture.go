@@ -19,9 +19,10 @@ import (
 
 func resourceArmPacketCapture() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPacketCaptureCreate,
-		Read:   resourceArmPacketCaptureRead,
-		Delete: resourceArmPacketCaptureDelete,
+		Create:             resourceArmPacketCaptureCreate,
+		Read:               resourceArmPacketCaptureRead,
+		Delete:             resourceArmPacketCaptureDelete,
+		DeprecationMessage: "This resource has been renamed to azurerm_network_packet_capture and will be removed in version 3.0 of the provider.",
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

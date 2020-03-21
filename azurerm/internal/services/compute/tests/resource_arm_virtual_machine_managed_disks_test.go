@@ -881,8 +881,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name      = "${var.prefix}-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "${var.prefix}-cert"
+  key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
     issuer_parameters {
