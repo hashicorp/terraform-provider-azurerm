@@ -353,9 +353,13 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]trafficmanag
 }
 
 func flattenArmTrafficManagerCustomHeadersConfig(input *[]trafficmanager.MonitorConfigCustomHeadersItem) []interface{} {
-	headers := *input
 	result := make([]interface{}, 0)
-	if len(headers) == 0 || headers == nil {
+	if input == nil {
+		return result
+	}
+
+	headers := *input
+	if len(headers) == 0 {
 		return result
 	}
 
