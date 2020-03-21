@@ -237,7 +237,7 @@ func testAccAzureRMDataLakeStoreFile_requiresImport(data acceptance.TestData) st
 
 resource "azurerm_data_lake_store_file" "import" {
   remote_file_path = azurerm_data_lake_store_file.test.remote_file_path
-  account_name     = azurerm_data_lake_store_file.test.name
+  account_name     = azurerm_data_lake_store_file.test.account_name
   local_file_path  = "./testdata/application_gateway_test.cer"
 }
 `, template)

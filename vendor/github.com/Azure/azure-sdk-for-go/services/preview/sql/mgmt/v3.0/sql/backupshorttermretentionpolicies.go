@@ -38,7 +38,8 @@ func NewBackupShortTermRetentionPoliciesClient(subscriptionID string) BackupShor
 }
 
 // NewBackupShortTermRetentionPoliciesClientWithBaseURI creates an instance of the
-// BackupShortTermRetentionPoliciesClient client.
+// BackupShortTermRetentionPoliciesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBackupShortTermRetentionPoliciesClientWithBaseURI(baseURI string, subscriptionID string) BackupShortTermRetentionPoliciesClient {
 	return BackupShortTermRetentionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -104,9 +105,8 @@ func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdatePreparer(ctx 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client BackupShortTermRetentionPoliciesClient) CreateOrUpdateSender(req *http.Request) (future BackupShortTermRetentionPoliciesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -191,8 +191,7 @@ func (client BackupShortTermRetentionPoliciesClient) GetPreparer(ctx context.Con
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client BackupShortTermRetentionPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -272,8 +271,7 @@ func (client BackupShortTermRetentionPoliciesClient) ListByDatabasePreparer(ctx 
 // ListByDatabaseSender sends the ListByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client BackupShortTermRetentionPoliciesClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
@@ -387,9 +385,8 @@ func (client BackupShortTermRetentionPoliciesClient) UpdatePreparer(ctx context.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client BackupShortTermRetentionPoliciesClient) UpdateSender(req *http.Request) (future BackupShortTermRetentionPoliciesUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

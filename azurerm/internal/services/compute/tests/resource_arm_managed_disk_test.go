@@ -752,16 +752,16 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name      = "secret-%s"
-  value     = "szechuan"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "secret-%s"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "key-%s"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
-  key_type  = "EC"
-  key_size  = 2048
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
 
   key_opts = [
     "sign",

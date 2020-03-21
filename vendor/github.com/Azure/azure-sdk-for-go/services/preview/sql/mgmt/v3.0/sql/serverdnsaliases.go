@@ -37,7 +37,9 @@ func NewServerDNSAliasesClient(subscriptionID string) ServerDNSAliasesClient {
 	return NewServerDNSAliasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerDNSAliasesClientWithBaseURI creates an instance of the ServerDNSAliasesClient client.
+// NewServerDNSAliasesClientWithBaseURI creates an instance of the ServerDNSAliasesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewServerDNSAliasesClientWithBaseURI(baseURI string, subscriptionID string) ServerDNSAliasesClient {
 	return ServerDNSAliasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -101,9 +103,8 @@ func (client ServerDNSAliasesClient) AcquirePreparer(ctx context.Context, resour
 // AcquireSender sends the Acquire request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) AcquireSender(req *http.Request) (future ServerDNSAliasesAcquireFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -180,9 +181,8 @@ func (client ServerDNSAliasesClient) CreateOrUpdatePreparer(ctx context.Context,
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) CreateOrUpdateSender(req *http.Request) (future ServerDNSAliasesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -260,9 +260,8 @@ func (client ServerDNSAliasesClient) DeletePreparer(ctx context.Context, resourc
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) DeleteSender(req *http.Request) (future ServerDNSAliasesDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -345,8 +344,7 @@ func (client ServerDNSAliasesClient) GetPreparer(ctx context.Context, resourceGr
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -424,8 +422,7 @@ func (client ServerDNSAliasesClient) ListByServerPreparer(ctx context.Context, r
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerDNSAliasesClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

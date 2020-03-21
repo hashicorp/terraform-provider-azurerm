@@ -36,7 +36,8 @@ func NewAlertsClient(subscriptionID string, ascLocation string) AlertsClient {
 	return NewAlertsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAlertsClientWithBaseURI creates an instance of the AlertsClient client.
+// NewAlertsClientWithBaseURI creates an instance of the AlertsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAlertsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AlertsClient {
 	return AlertsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
@@ -113,8 +114,7 @@ func (client AlertsClient) GetResourceGroupLevelAlertsPreparer(ctx context.Conte
 // GetResourceGroupLevelAlertsSender sends the GetResourceGroupLevelAlerts request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) GetResourceGroupLevelAlertsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResourceGroupLevelAlertsResponder handles the response to the GetResourceGroupLevelAlerts request. The method always
@@ -195,8 +195,7 @@ func (client AlertsClient) GetSubscriptionLevelAlertPreparer(ctx context.Context
 // GetSubscriptionLevelAlertSender sends the GetSubscriptionLevelAlert request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) GetSubscriptionLevelAlertSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSubscriptionLevelAlertResponder handles the response to the GetSubscriptionLevelAlert request. The method always
@@ -287,8 +286,7 @@ func (client AlertsClient) ListPreparer(ctx context.Context, filter string, sele
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -423,8 +421,7 @@ func (client AlertsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -561,8 +558,7 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegionPreparer(ctx cont
 // ListResourceGroupLevelAlertsByRegionSender sends the ListResourceGroupLevelAlertsByRegion request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) ListResourceGroupLevelAlertsByRegionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResourceGroupLevelAlertsByRegionResponder handles the response to the ListResourceGroupLevelAlertsByRegion request. The method always
@@ -692,8 +688,7 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegionPreparer(ctx conte
 // ListSubscriptionLevelAlertsByRegionSender sends the ListSubscriptionLevelAlertsByRegion request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) ListSubscriptionLevelAlertsByRegionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSubscriptionLevelAlertsByRegionResponder handles the response to the ListSubscriptionLevelAlertsByRegion request. The method always
@@ -818,8 +813,7 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissPreparer(c
 // UpdateResourceGroupLevelAlertStateToDismissSender sends the UpdateResourceGroupLevelAlertStateToDismiss request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResourceGroupLevelAlertStateToDismissResponder handles the response to the UpdateResourceGroupLevelAlertStateToDismiss request. The method always
@@ -906,8 +900,7 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivatePrepare
 // UpdateResourceGroupLevelAlertStateToReactivateSender sends the UpdateResourceGroupLevelAlertStateToReactivate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResourceGroupLevelAlertStateToReactivateResponder handles the response to the UpdateResourceGroupLevelAlertStateToReactivate request. The method always
@@ -987,8 +980,7 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissPreparer(ct
 // UpdateSubscriptionLevelAlertStateToDismissSender sends the UpdateSubscriptionLevelAlertStateToDismiss request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateSubscriptionLevelAlertStateToDismissResponder handles the response to the UpdateSubscriptionLevelAlertStateToDismiss request. The method always
@@ -1068,8 +1060,7 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivatePreparer
 // UpdateSubscriptionLevelAlertStateToReactivateSender sends the UpdateSubscriptionLevelAlertStateToReactivate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateSubscriptionLevelAlertStateToReactivateResponder handles the response to the UpdateSubscriptionLevelAlertStateToReactivate request. The method always

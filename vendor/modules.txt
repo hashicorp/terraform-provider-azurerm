@@ -6,7 +6,7 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v38.1.0+incompatible
+# github.com/Azure/azure-sdk-for-go v40.3.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement
@@ -21,6 +21,7 @@ github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/con
 github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb
+github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account
@@ -38,7 +39,7 @@ github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
 github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault
 github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto
-github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic
+github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
@@ -87,10 +88,10 @@ github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/strea
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web
 github.com/Azure/azure-sdk-for-go/version
-# github.com/Azure/go-autorest/autorest v0.9.3 => github.com/tombuildsstuff/go-autorest/autorest v0.9.3-hashi-auth
+# github.com/Azure/go-autorest/autorest v0.10.0 => github.com/tombuildsstuff/go-autorest/autorest v0.10.1-0.20200317095413-f2d2d0252c3c
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
-# github.com/Azure/go-autorest/autorest/adal v0.8.1-0.20191028180845-3492b2aff503
+# github.com/Azure/go-autorest/autorest/adal v0.8.2
 github.com/Azure/go-autorest/autorest/adal
 # github.com/Azure/go-autorest/autorest/azure/cli v0.3.0
 github.com/Azure/go-autorest/autorest/azure/cli
@@ -322,7 +323,7 @@ github.com/satori/uuid
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
-# github.com/terraform-providers/terraform-provider-azuread v0.6.1-0.20191007035844-361c0a206ad4
+# github.com/terraform-providers/terraform-provider-azuread v0.8.0
 github.com/terraform-providers/terraform-provider-azuread/azuread
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph
@@ -331,7 +332,7 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
 github.com/terraform-providers/terraform-provider-azuread/version
-# github.com/tombuildsstuff/giovanni v0.9.0
+# github.com/tombuildsstuff/giovanni v0.10.0
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers
