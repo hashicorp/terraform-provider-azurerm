@@ -115,7 +115,6 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateFunc:     validation.StringIsNotEmpty,
-										DiffSuppressFunc: suppress.CaseDifference,
 									},
 									"value": {
 										Type:     schema.TypeString,
