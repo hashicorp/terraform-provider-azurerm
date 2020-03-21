@@ -359,7 +359,7 @@ resource "azurerm_network_interface" "src" {
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "azurerm_subnet.test.id
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
@@ -368,7 +368,7 @@ resource "azurerm_virtual_machine" "src" {
   name                  = "acctvm-src%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = ["${azurerm_network_interface.src.id}"]
+  network_interface_ids = [azurerm_network_interface.src.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
