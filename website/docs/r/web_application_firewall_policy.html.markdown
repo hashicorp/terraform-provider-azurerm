@@ -23,13 +23,13 @@ resource "azurerm_web_application_firewall_policy" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  custom_rule {
+  custom_rules {
     name      = "Rule1"
     priority  = 1
     rule_type = "MatchRule"
 
-    match_condition {
-      match_variable {
+    match_conditions {
+      match_variables {
         variable_name = "RemoteAddr"
       }
 
@@ -41,13 +41,13 @@ resource "azurerm_web_application_firewall_policy" "example" {
     action = "Block"
   }
 
-  custom_rule {
+  custom_rules {
     name      = "Rule2"
     priority  = 2
     rule_type = "MatchRule"
 
-    match_condition {
-      match_variable {
+    match_conditions {
+      match_variables {
         variable_name = "RemoteAddr"
       }
 
@@ -56,8 +56,8 @@ resource "azurerm_web_application_firewall_policy" "example" {
       match_values       = ["192.168.1.0/24"]
     }
 
-    match_condition {
-      match_variable {
+    match_conditions {
+      match_variables {
         variable_name = "RequestHeaders"
         selector      = "UserAgent"
       }
@@ -70,7 +70,7 @@ resource "azurerm_web_application_firewall_policy" "example" {
     action = "Block"
   }
 
-  policy_setting {
+  policy_settings {
     enabled = true
     mode    = "Prevention"
   }
@@ -113,9 +113,9 @@ The following arguments are supported:
 
 * `location` - (Optional) Resource location. Changing this forces a new resource to be created.
 
-* `custom_rule` - (Optional) One or more `custom_rules` blocks as defined below.
+* `custom_rules` - (Optional) One or more `custom_rules` blocks as defined below.
 
-* `policy_setting` - (Optional) A `policy_setting` block as defined below.
+* `policy_settings` - (Optional) A `policy_settings` block as defined below.
 
 * `managed_rules` - (Optional) A `managed_rules` blocks as defined below.
 
@@ -123,7 +123,7 @@ The following arguments are supported:
 
 ---
 
-The `custom_rule` block supports the following:
+The `custom_rules` block supports the following:
 
 * `name` - (Optional) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
@@ -131,15 +131,15 @@ The `custom_rule` block supports the following:
 
 * `rule_type` - (Required) Describes the type of rule.
 
-* `match_condition` - (Required) One or more `match_condition` blocks as defined below.
+* `match_conditions` - (Required) One or more `match_conditions` blocks as defined below.
 
 * `action` - (Required) Type of action.
 
 ---
 
-The `match_condition` block supports the following:
+The `match_conditions` block supports the following:
 
-* `match_variable` - (Required) One or more `match_variable` blocks as defined below.
+* `match_variables` - (Required) One or more `match_variables` blocks as defined below.
 
 * `operator` - (Required) Describes operator to be matched.
 
@@ -149,7 +149,7 @@ The `match_condition` block supports the following:
 
 ---
 
-The `match_variable` block supports the following:
+The `match_variables` block supports the following:
 
 * `variable_name` - (Required) The name of the Match Variable
 
@@ -157,7 +157,7 @@ The `match_variable` block supports the following:
 
 ---
 
-The `policy_setting` block supports the following:
+The `policy_settings` block supports the following:
 
 * `enabled` - (Optional) Describes if the policy is in enabled state or disabled state Defaults to `Enabled`.
 
@@ -175,7 +175,7 @@ The `managed_rules` block supports the following:
 
 The `exclusion` block supports the following:
 
-* `match_variable` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+* `match_variables` - (Required) The name of the Match Variable. Possible values: `RequestArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
 
 * `selector` - (Optional) Describes field of the matchVariable collection.
 
