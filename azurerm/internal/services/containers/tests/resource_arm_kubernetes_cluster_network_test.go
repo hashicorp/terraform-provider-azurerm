@@ -509,7 +509,7 @@ func testAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data, clientId, clientSecret),
-				ExpectError: regexp.MustCompile("errors during plan: Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
+				ExpectError: regexp.MustCompile("errors during apply: Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
 			},
 		},
 	})
@@ -532,7 +532,7 @@ func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data, clientId, clientSecret),
-				ExpectError: regexp.MustCompile(`'network_profile.0.load_balancer_profile.0.managed_outbound_ip_count' conflicts with 'network_profile.0.load_balancer_profile.0.outbound_ip_address_ids'. Set 'managed_outbound_ip_count = "0"' or 'outbound_ip_address_ids = \[\]'`),
+				ExpectError: regexp.MustCompile(`- "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count": conflicts with network_profile.0.load_balancer_profile.0.outbound_ip_address_ids`),
 			},
 			{
 				ResourceName:      "azurerm_public_ip.test",
@@ -592,7 +592,7 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "0", "", "azurerm_public_ip_prefix.test.id"),
+				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
@@ -602,7 +602,7 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			},
 			data.ImportStep("service_principal.0.client_secret"),
 			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "0", "", ""),
+				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigManagedIPs(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
@@ -612,7 +612,7 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			},
 			data.ImportStep("service_principal.0.client_secret"),
 			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "0", "azurerm_public_ip.test.id", ""),
+				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPIds(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
@@ -622,7 +622,7 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 			},
 			data.ImportStep("service_principal.0.client_secret"),
 			{
-				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data, clientId, clientSecret, "0", "", "azurerm_public_ip_prefix.test.id"),
+				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#", "1"),
@@ -1530,34 +1530,30 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string, managedIPCount string, ipAdressId string, ipPrefixId string) string {
+func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 }
-
 resource "azurerm_public_ip_prefix" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   name                = "acctestipprefix%d"
   prefix_length       = 31
 }
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestipone%d"
   location            = azurerm_resource_group.test.location
@@ -1565,43 +1561,163 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Static"
   sku                 = "Standard"
 }
-
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
-
   linux_profile {
     admin_username = "acctestuser%d"
-
     ssh_key {
       key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
     }
   }
-
   default_node_pool {
     name           = "default"
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
-
   service_principal {
     client_id     = "%s"
     client_secret = "%s"
   }
-
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
     load_balancer_profile {
-      managed_outbound_ip_count = "%s"
-      outbound_ip_address_ids   = [%s]
-      outbound_ip_prefix_ids    = [%s]
+      outbound_ip_prefix_ids = [azurerm_public_ip_prefix.test.id]
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret, managedIPCount, ipAdressId, ipPrefixId)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+}
+resource "azurerm_public_ip_prefix" "test" {
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestipprefix%d"
+  prefix_length       = 31
+}
+resource "azurerm_public_ip" "test" {
+  name                = "acctestipone%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+  linux_profile {
+    admin_username = "acctestuser%d"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+  network_profile {
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
+    load_balancer_profile {
+      managed_outbound_ip_count = "1"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPIds(data acceptance.TestData, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+}
+resource "azurerm_public_ip_prefix" "test" {
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestipprefix%d"
+  prefix_length       = 31
+}
+resource "azurerm_public_ip" "test" {
+  name                = "acctestipone%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+  linux_profile {
+    admin_username = "acctestuser%d"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+  network_profile {
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
+    load_balancer_profile {
+      outbound_ip_address_ids = [azurerm_public_ip.test.id]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
 }

@@ -49,13 +49,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				}
 				profile := rawProfiles[0].(map[string]interface{})
 
-				// check a few properties of the loadbalancer
-				loadBalancerSku := profile["load_balancer_sku"].(string)
-				err := precheckLoadBalancerProfile(profile["load_balancer_profile"].([]interface{}), loadBalancerSku)
-				if err != nil {
-					return err
-				}
-
 				// then ensure the conditionally-required fields are set
 				networkPlugin := profile["network_plugin"].(string)
 				if networkPlugin != "kubenet" && networkPlugin != "azure" {
@@ -302,26 +295,29 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"managed_outbound_ip_count": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										Computed:     true,
-										ValidateFunc: validation.IntBetween(0, 100),
+										Type:          schema.TypeInt,
+										Optional:      true,
+										Computed:      true,
+										ValidateFunc:  validation.IntBetween(1, 100),
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
 									"outbound_ip_prefix_ids": {
-										Type:       schema.TypeSet,
-										Optional:   true,
-										Computed:   true,
-										ConfigMode: schema.SchemaConfigModeAttr,
+										Type:          schema.TypeSet,
+										Optional:      true,
+										Computed:      true,
+										ConfigMode:    schema.SchemaConfigModeAttr,
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
 									"outbound_ip_address_ids": {
-										Type:       schema.TypeSet,
-										Optional:   true,
-										Computed:   true,
-										ConfigMode: schema.SchemaConfigModeAttr,
+										Type:          schema.TypeSet,
+										Optional:      true,
+										Computed:      true,
+										ConfigMode:    schema.SchemaConfigModeAttr,
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
@@ -759,6 +755,15 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			return err
 		}
 
+		if networkProfile.LoadBalancerSku == containerservice.LoadBalancerSku("Standard") && d.HasChange("network_profile.0.load_balancer_profile") {
+			log.Printf("[DEBUG] Updates found for the LoadBalancer of Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+			loadBalancerProfile, err := expandChangedLoadBalancerProfile(d)
+			if err != nil {
+				return err
+			}
+			networkProfile.LoadBalancerProfile = loadBalancerProfile
+		}
+
 		existing.ManagedClusterProperties.NetworkProfile = networkProfile
 	}
 
@@ -1163,9 +1168,52 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	return &networkProfile, nil
 }
 
+func expandChangedLoadBalancerProfile(rd *schema.ResourceData) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+	d := rd.Get("network_profile.0.load_balancer_profile").([]interface{})
+	if len(d) == 0 || d[0] == nil {
+		return nil, nil
+	}
+
+	config := d[0].(map[string]interface{})
+
+	var managedOutboundIps *containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs
+	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
+	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
+
+	if rd.HasChange("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count") {
+		log.Printf("[DEBUG] changes found in 'managed_outbound_ip_count'")
+		ipCount := config["managed_outbound_ip_count"]
+		if c := int32(ipCount.(int)); c > 0 {
+			managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+		}
+	}
+
+	if rd.HasChange("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids") {
+		log.Printf("[DEBUG] changes found in 'outbound_ip_prefix_ids'")
+		ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"])
+		outboundIpPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
+	}
+
+	if rd.HasChange("network_profile.0.load_balancer_profile.0.outbound_ip_address_ids") {
+		log.Printf("[DEBUG] changes found in 'outbound_ip_address_ids'")
+		outIps := idsToResourceReferences(config["outbound_ip_address_ids"])
+		outboundIps = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
+	}
+
+	return &containerservice.ManagedClusterLoadBalancerProfile{
+		ManagedOutboundIPs: managedOutboundIps,
+		OutboundIPPrefixes: outboundIpPrefixes,
+		OutboundIPs:        outboundIps,
+	}, nil
+}
+
 func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
 	if len(d) == 0 || d[0] == nil {
 		return nil, nil
+	}
+
+	if strings.ToLower(loadBalancerType) != "standard" {
+		return nil, fmt.Errorf("Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
 	}
 
 	config := d[0].(map[string]interface{})
@@ -1193,36 +1241,6 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 		OutboundIPPrefixes: outboundIpPrefixes,
 		OutboundIPs:        outboundIps,
 	}, nil
-}
-
-func precheckLoadBalancerProfile(d []interface{}, loadBalancerType string) error {
-	if len(d) == 0 || d[0] == nil {
-		return nil
-	}
-
-	if strings.ToLower(loadBalancerType) != "standard" {
-		return fmt.Errorf("Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
-	}
-
-	config := d[0].(map[string]interface{})
-
-	ipCount := config["managed_outbound_ip_count"]
-	ipPrefixes := config["outbound_ip_prefix_ids"]
-	outIps := config["outbound_ip_address_ids"]
-
-	if ipCount != 0 && ipPrefixes != nil && ipPrefixes.(*schema.Set).Len() != 0 {
-		return fmt.Errorf("'network_profile.0.load_balancer_profile.0.managed_outbound_ip_count' conflicts with 'network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids'. Set 'managed_outbound_ip_count = \"0\"' or 'outbound_ip_prefix_ids = []' ")
-	}
-
-	if ipCount != 0 && outIps != nil && outIps.(*schema.Set).Len() != 0 {
-		return fmt.Errorf("'network_profile.0.load_balancer_profile.0.managed_outbound_ip_count' conflicts with 'network_profile.0.load_balancer_profile.0.outbound_ip_address_ids'. Set 'managed_outbound_ip_count = \"0\"' or 'outbound_ip_address_ids = []'")
-	}
-
-	if outIps != nil && ipPrefixes != nil && ipPrefixes.(*schema.Set).Len() != 0 && outIps.(*schema.Set).Len() != 0 {
-		return fmt.Errorf("'network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids' conflicts with 'network_profile.0.load_balancer_profile.0.outbound_ip_address_ids'. Set 'outbound_ip_prefix_ids = []' or 'outbound_ip_address_ids = []'")
-	}
-
-	return nil
 }
 
 func idsToResourceReferences(set interface{}) *[]containerservice.ResourceReference {
