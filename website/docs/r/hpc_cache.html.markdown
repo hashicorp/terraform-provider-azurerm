@@ -66,6 +66,8 @@ The following attributes are exported:
 
 * `id` - The `id` of the HPC Cache.
 
+* `mount_addresses` - A list of mount addresses of the HPC Cache.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
