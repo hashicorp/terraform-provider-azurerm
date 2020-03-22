@@ -47,10 +47,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				if len(rawProfiles) == 0 {
 					return nil
 				}
-				profile := rawProfiles[0].(map[string]interface{})
 
 				// then ensure the conditionally-required fields are set
+				profile := rawProfiles[0].(map[string]interface{})
 				networkPlugin := profile["network_plugin"].(string)
+
 				if networkPlugin != "kubenet" && networkPlugin != "azure" {
 					return nil
 				}
