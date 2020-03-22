@@ -1166,7 +1166,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, changeManagedIps
 	return &networkProfile, nil
 }
 
-func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, allowToSetIpCountSet bool, allowToSetIpPrefixes bool, allowToSetOutboundIp bool) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, allowToSetIpCount bool, allowToSetIpPrefixes bool, allowToSetOutboundIp bool) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
 	if len(d) == 0 || d[0] == nil {
 		return nil, nil
 	}
@@ -1181,7 +1181,7 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, allowTo
 	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
 	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
 
-	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil && allowToSetIpCountSet {
+	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil && allowToSetIpCount {
 		if c := int32(ipCount.(int)); c > 0 {
 			managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
 		}
