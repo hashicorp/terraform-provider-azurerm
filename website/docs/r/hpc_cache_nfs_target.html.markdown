@@ -108,19 +108,19 @@ resource "azurerm_linux_virtual_machine" "example" {
 }
 
 resource "azurerm_hpc_cache_nfs_target" "example" {
-  name                     = "examplehpcnfstarget"
-  resource_group_name      = azurerm_resource_group.example.name
-  cache_name               = azurerm_hpc_cache.example.name
-  host_name                = azurerm_linux_virtual_machine.example.private_ip_address
-  usage_model              = "READ_HEAVY_INFREQ"
+  name                = "examplehpcnfstarget"
+  resource_group_name = azurerm_resource_group.example.name
+  cache_name          = azurerm_hpc_cache.example.name
+  host_name           = azurerm_linux_virtual_machine.example.private_ip_address
+  usage_model         = "READ_HEAVY_INFREQ"
   namespace_junction {
     namespace_path = "/nfs/a1"
-    nfs_export = "/export/a"
-    target_path = "1"
+    nfs_export     = "/export/a"
+    target_path    = "1"
   }
   namespace_junction {
     namespace_path = "/nfs/b"
-    nfs_export = "/export/b"
+    nfs_export     = "/export/b"
   }
 }
 ```
