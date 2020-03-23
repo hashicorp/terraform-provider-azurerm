@@ -335,9 +335,23 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	azureClient := storageClient.BlobContainersClient
+	gvnClient, err := storageClient.ContainersClient(ctx, *account)
+	if err != nil {
+		return fmt.Errorf("Error building Giovanni client: %s", err)
+	}
 
-	if _, err := azureClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.ContainerName); err != nil {
-		return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	if storageClient.StorageUseAzureAD {
+		if _, err := azureClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.ContainerName); err != nil {
+			return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q) with Azure client: %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		}
+	} else {
+		// Give Azure client a try if Giovanni fails
+		if _, err := gvnClient.Delete(ctx, id.AccountName, id.ContainerName); err != nil {
+			log.Printf("[WARN] Error deleting Container %q (Storage Account %q / Resource Group %q) with Giovanni client: %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+			if _, err := azureClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.ContainerName); err != nil {
+				return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q) with Azure client: %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+			}
+		}
 	}
 
 	return nil
