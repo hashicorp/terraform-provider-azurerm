@@ -300,7 +300,7 @@ func getBlobContainerPropertiesByAzure(accessLevelRaw string, metaDataRaw map[st
 	// It does not seem to be a good way, but it is the cost to use switch.
 	accessLevel := expandStorageContainerAccessLevelByAzure(accessLevelRaw)
 	if string(accessLevel) == "" {
-		return nil, fmt.Errorf("Error parse %q to a Azure blob container access level")
+		return nil, fmt.Errorf("Error parse %q to a Azure blob container access level", accessLevelRaw)
 	}
 
 	metaData := expandMetaDataByAzure(metaDataRaw)
