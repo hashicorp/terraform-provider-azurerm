@@ -509,7 +509,7 @@ func testAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data, clientId, clientSecret),
-				ExpectError: regexp.MustCompile("errors during apply: Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
+				ExpectError: regexp.MustCompile("errors during apply: only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
 			},
 		},
 	})

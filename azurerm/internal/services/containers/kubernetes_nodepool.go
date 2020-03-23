@@ -216,6 +216,12 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	profile.Count = utils.Int32(int32(count))
 
 	if enableAutoScaling {
+		// if Count has not been set use min count
+		if count == 0 {
+			count = minCount
+			profile.Count = utils.Int32(int32(count))
+		}
+
 		// Count must be set for the initial creation when using AutoScaling but cannot be updated
 		if d.HasChange("default_node_pool.0.node_count") && !d.IsNewResource() {
 			return nil, fmt.Errorf("cannot change `node_count` when `enable_auto_scaling` is set to `true`")
