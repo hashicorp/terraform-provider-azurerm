@@ -110,7 +110,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			"storage_quota_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(100, 4096),
+				ValidateFunc: validation.IntBetween(100, 102400),
 			},
 
 			"export_policy_rule": {
