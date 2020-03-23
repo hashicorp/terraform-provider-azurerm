@@ -110,7 +110,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 1024),
+				ValidateFunc: validation.IntBetween(1, 4096),
 			},
 
 			"min_capacity": {
@@ -210,7 +210,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	serverResp, err := serverClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
-		return fmt.Errorf("Failure in making Read request on MsSql Server  %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("Failure in making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	location := *serverResp.Location

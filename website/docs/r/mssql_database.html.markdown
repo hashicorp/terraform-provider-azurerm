@@ -54,6 +54,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the Ms SQL Database. Changing this forces a new resource to be created.
 
 * `server_id` - (Required) The id of the Ms SQL Server on which to create the database. Changing this forces a new resource to be created.
+
 ~> **NOTE:** This setting is still required for "Serverless" SKU's
 
 * `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of -1 means that automatic pause is disabled. This property is only settable for General Purpose Serverless databases.
@@ -79,6 +80,7 @@ The following arguments are supported:
 * `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is `AdventureWorksLT`.
 
 * `sku_name` - (Optional) Specifies the name of the sku of the database. Changing this forces a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
+
 ~> **NOTE** The default sku_name value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity.
 
 * `source_database_id` - (Optional) The id of the source database to be referred to create the new database. This should only be used for databases with `create_mode` values that use another database as reference. Changing this forces a new resource to be created.
