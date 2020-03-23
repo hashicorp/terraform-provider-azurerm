@@ -134,9 +134,6 @@ func resourceArmManagedDisk() *schema.Resource {
 			"disk_encryption_set_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				// Support for rotating the Disk Encryption Set is (apparently) coming a few months following GA
-				// Code="PropertyChangeNotAllowed" Message="Changing property 'encryption.diskEncryptionSetId' is not allowed."
-				ForceNew: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -361,6 +358,17 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
 		} else {
 			return fmt.Errorf("Error - New size must be greater than original size. Shrinking disks is not supported on Azure")
+		}
+	}
+
+	if d.HasChange("disk_encryption_set_id") {
+		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			diskUpdate.Encryption = &compute.Encryption{
+				Type:                compute.EncryptionAtRestWithCustomerKey,
+				DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+			}
+		} else {
+			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
 
