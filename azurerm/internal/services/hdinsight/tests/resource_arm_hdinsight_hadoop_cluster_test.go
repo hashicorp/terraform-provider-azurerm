@@ -341,7 +341,9 @@ func TestAccAzureRMHDInsightHadoopCluster_metastore(t *testing.T) {
 				"roles.0.zookeeper_node.0.password",
 				"roles.0.zookeeper_node.0.vm_size",
 				"storage_account",
-				"hive_metastore.0.password"),
+				"metastores.0.hive.0.password",
+				"metastores.0.oozie.0.password",
+				"metastores.0.ambari.0.password"),
 		},
 	})
 }
@@ -1016,8 +1018,28 @@ resource "azurerm_sql_server" "test" {
   version                      = "12.0"
 }
 
-resource "azurerm_sql_database" "test" {
-  name                             = "metastore"
+resource "azurerm_sql_database" "hive" {
+  name                             = "hive"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  server_name                      = azurerm_sql_server.test.name
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode                      = "Default"
+  requested_service_objective_name = "GP_Gen5_2"
+}
+
+resource "azurerm_sql_database" "oozie" {
+  name                             = "oozie"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  server_name                      = azurerm_sql_server.test.name
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode                      = "Default"
+  requested_service_objective_name = "GP_Gen5_2"
+}
+
+resource "azurerm_sql_database" "ambari" {
+  name                             = "ambari"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = azurerm_resource_group.test.location
   server_name                      = azurerm_sql_server.test.name
@@ -1078,11 +1100,27 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
   }
 
-  hive_metastore {
-    server        = azurerm_sql_server.test.fully_qualified_domain_name
-    database_name = azurerm_sql_database.test.name
-    username      = azurerm_sql_server.test.administrator_login
-    password      = azurerm_sql_server.test.administrator_login_password
+  metastores {
+    hive {
+      server        = azurerm_sql_server.test.fully_qualified_domain_name
+      database_name = azurerm_sql_database.hive.name
+      username      = azurerm_sql_server.test.administrator_login
+      password      = azurerm_sql_server.test.administrator_login_password
+    }
+
+    oozie {
+      server        = azurerm_sql_server.test.fully_qualified_domain_name
+      database_name = azurerm_sql_database.oozie.name
+      username      = azurerm_sql_server.test.administrator_login
+      password      = azurerm_sql_server.test.administrator_login_password
+    }
+
+    ambari {
+      server        = azurerm_sql_server.test.fully_qualified_domain_name
+      database_name = azurerm_sql_database.ambari.name
+      username      = azurerm_sql_server.test.administrator_login
+      password      = azurerm_sql_server.test.administrator_login_password
+    }
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)

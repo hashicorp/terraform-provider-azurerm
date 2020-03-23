@@ -91,7 +91,20 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
-			"hive_metastore": azure.SchemaHDInsightsHiveMetastore(),
+			"metastores": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"hive": azure.SchemaHDInsightsExternalMetastore(),
+
+						"oozie": azure.SchemaHDInsightsExternalMetastore(),
+
+						"ambari": azure.SchemaHDInsightsExternalMetastore(),
+					},
+				},
+			},
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
@@ -187,11 +200,10 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	gatewayRaw := d.Get("gateway").([]interface{})
 	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
-	if metastoreRaw, ok := d.GetOkExists("hive_metastore"); ok {
-		metastore := azure.ExpandHDInsightsMetastore(metastoreRaw.([]interface{}))
-		for k, v := range metastore {
-			configurations[k] = v
-		}
+	metastoresRaw := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
+	for k, v := range metastores {
+		configurations[k] = v
 	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
@@ -351,11 +363,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 
-			hiveEnv, envExists := configurations.Configurations["hive-env"]
-			hiveSite, siteExists := configurations.Configurations["hive-site"]
-			if envExists && siteExists {
-				d.Set("hive_metastore", azure.FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite))
-			}
+			flattenHDInsightsMetastores(d, configurations.Configurations)
 		}
 
 		hadoopRoles := hdInsightRoleDefinition{

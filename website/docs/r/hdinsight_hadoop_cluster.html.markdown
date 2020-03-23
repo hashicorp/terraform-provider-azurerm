@@ -107,7 +107,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Hadoop Cluster.
 
-* `hive_metastore` - (Optional) A `hive_metastore` block as defined below.
+* `metastores` - (Optional) A `metastores` block as defined below.
 
 ---
 
@@ -249,8 +249,19 @@ A `install_script_action` block supports the following:
 
 * `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
 
+--- 
+
+A `metastores` block supports the following:
+
+* `hive` - (Required) A `hive` block as defined below.
+
+* `oozie` - (Required) A `oozie` block as defined below.
+
+* `ambari` - (Required) A `amabari` block as defined below.
+
 ---
-A `hive_metastore` block supports the following:
+
+A `hive` block supports the following:
 
 * `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.
 
@@ -259,6 +270,32 @@ A `hive_metastore` block supports the following:
 * `username` - (Required) The external Hive metastore's existing SQL server admin username.
 
 * `password` - (Required) The external Hive metastore's existing SQL server admin password.
+
+
+---
+
+A `oozie` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.
+
+* `database_name` - (Required) The external Oozie metastore's existing SQL database.
+
+* `username` - (Required) The external Oozie metastore's existing SQL server admin username.
+
+* `password` - (Required) The external Oozie metastore's existing SQL server admin password.
+
+---
+
+A `ambari` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.
+
+* `username` - (Required) The external Ambari metastore's existing SQL server admin username.
+
+* `password` - (Required) The external Ambari metastore's existing SQL server admin password.
+
 
 ## Attributes Reference
 

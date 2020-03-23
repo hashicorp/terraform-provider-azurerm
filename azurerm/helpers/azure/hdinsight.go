@@ -105,7 +105,7 @@ func SchemaHDInsightsGateway() *schema.Schema {
 	}
 }
 
-func SchemaHDInsightsHiveMetastore() *schema.Schema {
+func SchemaHDInsightsExternalMetastore() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -159,7 +159,7 @@ func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} 
 	}
 }
 
-func ExpandHDInsightsMetastore(input []interface{}) map[string]interface{} {
+func ExpandHDInsightsHiveMetastore(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
 	server := vs["server"].(string)
@@ -181,6 +181,51 @@ func ExpandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 			"hive_existing_mssql_server_database": database,
 			"hive_existing_mssql_server_host":     server,
 			"hive_hostname":                       server,
+		},
+	}
+}
+
+func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} {
+	vs := input[0].(map[string]interface{})
+
+	server := vs["server"].(string)
+	database := vs["database_name"].(string)
+	username := vs["username"].(string)
+	password := vs["password"].(string)
+
+	return map[string]interface{}{
+		"oozie-site": map[string]interface{}{
+			"oozie.service.JPAService.jdbc.driver":   "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+			"oozie.service.JPAService.jdbc.url":      fmt.Sprintf("jdbc:sqlserver://%s;database=%s;encrypt=true;trustServerCertificate=true;create=false;loginTimeout=300", server, database),
+			"oozie.service.JPAService.jdbc.username": username,
+			"oozie.service.JPAService.jdbc.password": password,
+			"oozie.db.schema.name":                   "oozie",
+		},
+		"oozie-env": map[string]interface{}{
+			"oozie_database":                       "Existing MSSQL Server database with SQL authentication",
+			"oozie_database_name":                  database,
+			"oozie_database_type":                  "mssql",
+			"oozie_existing_mssql_server_database": database,
+			"oozie_existing_mssql_server_host":     server,
+			"oozie_hostname":                       server,
+		},
+	}
+}
+
+func ExpandHDInsightsAmbariMetastore(input []interface{}) map[string]interface{} {
+	vs := input[0].(map[string]interface{})
+
+	server := vs["server"].(string)
+	database := vs["database_name"].(string)
+	username := vs["username"].(string)
+	password := vs["password"].(string)
+
+	return map[string]interface{}{
+		"ambari-conf": map[string]interface{}{
+			"database-server":        server,
+			"database-name":          database,
+			"database-user-name":     username,
+			"database-user-password": password,
 		},
 	}
 }
@@ -231,6 +276,76 @@ func FlattenHDInsightsHiveMetastore(env map[string]*string, site map[string]*str
 
 	password := ""
 	if v, exists := site["javax.jdo.option.ConnectionPassword"]; exists && v != nil {
+		password = *v
+	}
+
+	if server != "" && database != "" {
+		return []interface{}{
+			map[string]interface{}{
+				"server":        server,
+				"database_name": database,
+				"username":      username,
+				"password":      password,
+			},
+		}
+	}
+
+	return nil
+}
+
+func FlattenHDInsightsOozieMetastore(env map[string]*string, site map[string]*string) []interface{} {
+	server := ""
+	if v, exists := env["oozie_hostname"]; exists && v != nil {
+		server = *v
+	}
+
+	database := ""
+	if v, exists := env["oozie_database_name"]; exists && v != nil {
+		database = *v
+	}
+
+	username := ""
+	if v, exists := site["oozie.service.JPAService.jdbc.username"]; exists && v != nil {
+		username = *v
+	}
+
+	password := ""
+	if v, exists := site["oozie.service.JPAService.jdbc.password"]; exists && v != nil {
+		password = *v
+	}
+
+	if server != "" && database != "" {
+		return []interface{}{
+			map[string]interface{}{
+				"server":        server,
+				"database_name": database,
+				"username":      username,
+				"password":      password,
+			},
+		}
+	}
+
+	return nil
+}
+
+func FlattenHDInsightsAmbariMetastore(conf map[string]*string) []interface{} {
+	server := ""
+	if v, exists := conf["database-server"]; exists && v != nil {
+		server = *v
+	}
+
+	database := ""
+	if v, exists := conf["database-name"]; exists && v != nil {
+		database = *v
+	}
+
+	username := ""
+	if v, exists := conf["database-user-name"]; exists && v != nil {
+		username = *v
+	}
+
+	password := ""
+	if v, exists := conf["database-user-password"]; exists && v != nil {
 		password = *v
 	}
 
