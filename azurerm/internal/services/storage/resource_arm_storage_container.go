@@ -95,11 +95,11 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	accountName := d.Get("storage_account_name").(string)
 
 	accessLevelRaw := d.Get("container_access_type").(string)
-	azureAccessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
-	giovanniAccessLevel := expandGiovanniStorageContainerAccessLevel(accessLevelRaw)
+	azureAccessLevel := expandStorageContainerAccessLevelByAzure(accessLevelRaw)
+	giovanniAccessLevel := expandStorageContainerAccessLevelByGiovanni(accessLevelRaw)
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	azureMetaData := expandAzureMetaData(metaDataRaw)
+	azureMetaData := expandMetaDataByAzure(metaDataRaw)
 	giovanniMetaData := ExpandMetaData(metaDataRaw)
 
 	account, err := storageClient.FindAccount(ctx, accountName)
@@ -193,11 +193,11 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[DEBUG] Computing the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 	accessLevelRaw := d.Get("container_access_type").(string)
-	accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
+	accessLevel := expandStorageContainerAccessLevelByAzure(accessLevelRaw)
 
 	log.Printf("[DEBUG] Computing the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	metaData := expandAzureMetaData(metaDataRaw)
+	metaData := expandMetaDataByAzure(metaDataRaw)
 
 	if d.HasChange("container_access_type") || d.HasChange("metadata") {
 		input := storage.BlobContainer{
@@ -292,18 +292,18 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func getAzureBlobContainerProperties(accessLevelRaw string, metaDataRaw map[string]interface{}) (*storage.BlobContainer, error) {
+func getBlobContainerPropertiesByAzure(accessLevelRaw string, metaDataRaw map[string]interface{}) (*storage.BlobContainer, error) {
 	// For backward compatibility, raw access value has to be converted.
 	// expandAzureStorageContainerAccessLevel will an empty string if it cannot find a value
 	// that maps to a storage.PublicAccess value.
 	// Therefore, if parsed value is an empty string, we are facing an error.
 	// It does not seem to be a good way, but it is the cost to use switch.
-	accessLevel := expandAzureStorageContainerAccessLevel(accessLevelRaw)
+	accessLevel := expandStorageContainerAccessLevelByAzure(accessLevelRaw)
 	if string(accessLevel) == "" {
 		return nil, fmt.Errorf("Error parse %q to a Azure blob container access level")
 	}
 
-	metaData := expandAzureMetaData(metaDataRaw)
+	metaData := expandMetaDataByAzure(metaDataRaw)
 
 	return &storage.BlobContainer{
 		ContainerProperties: &storage.ContainerProperties{
@@ -313,8 +313,8 @@ func getAzureBlobContainerProperties(accessLevelRaw string, metaDataRaw map[stri
 	}, nil
 }
 
-func getGiovanniBlobContainerProperties(accessLevelRaw string, metaDataRaw map[string]interface{}) containers.CreateInput {
-	accessLevel := expandGiovanniStorageContainerAccessLevel(accessLevelRaw)
+func getBlobContainerPropertiesByGiovanni(accessLevelRaw string, metaDataRaw map[string]interface{}) containers.CreateInput {
+	accessLevel := expandStorageContainerAccessLevelByGiovanni(accessLevelRaw)
 
 	metaData := ExpandMetaData(metaDataRaw)
 
@@ -324,7 +324,7 @@ func getGiovanniBlobContainerProperties(accessLevelRaw string, metaDataRaw map[s
 	}
 }
 
-func expandAzureStorageContainerAccessLevel(input string) storage.PublicAccess {
+func expandStorageContainerAccessLevelByAzure(input string) storage.PublicAccess {
 	switch input {
 	case "private":
 		return storage.PublicAccessNone
@@ -337,7 +337,7 @@ func expandAzureStorageContainerAccessLevel(input string) storage.PublicAccess {
 	}
 }
 
-func flattenAzureStorageContainerAccessLevel(input storage.PublicAccess) string {
+func flattenStorageContainerAccessLevelByAzure(input storage.PublicAccess) string {
 	switch input {
 	case storage.PublicAccessNone:
 		return "private"
@@ -350,13 +350,13 @@ func flattenAzureStorageContainerAccessLevel(input storage.PublicAccess) string 
 	}
 }
 
-func getAzureResourceID(baseUri, accountName, containerName string) string {
+func getResourceIdByAzure(baseUri, accountName, containerName string) string {
 	// For backforward compatible, generate resource ID in the same way as giovanni's.
 	domain := parsers.GetBlobEndpoint(baseUri, accountName)
 	return fmt.Sprintf("%s/%s", domain, containerName)
 }
 
-func expandAzureMetaData(input map[string]interface{}) map[string]*string {
+func expandMetaDataByAzure(input map[string]interface{}) map[string]*string {
 	output := make(map[string]*string)
 
 	for k, v := range input {
@@ -367,7 +367,7 @@ func expandAzureMetaData(input map[string]interface{}) map[string]*string {
 	return output
 }
 
-func flattenAzureMetaData(input map[string]*string) map[string]interface{} {
+func flattenMetaDataByAzure(input map[string]*string) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	for k, v := range input {
@@ -377,7 +377,7 @@ func flattenAzureMetaData(input map[string]*string) map[string]interface{} {
 	return output
 }
 
-func expandGiovanniStorageContainerAccessLevel(input string) containers.AccessLevel {
+func expandStorageContainerAccessLevelByGiovanni(input string) containers.AccessLevel {
 	// for historical reasons, "private" above is an empty string in the API
 	// so the enum doesn't 1:1 match. You could argue the SDK should handle this
 	// but this is suitable for now
@@ -388,7 +388,7 @@ func expandGiovanniStorageContainerAccessLevel(input string) containers.AccessLe
 	return containers.AccessLevel(input)
 }
 
-func flattenGiovanniStorageContainerAccessLevel(input containers.AccessLevel) string {
+func flattenStorageContainerAccessLevelByGiovanni(input containers.AccessLevel) string {
 	// for historical reasons, "private" above is an empty string in the API
 	if input == containers.Private {
 		return "private"
@@ -450,9 +450,9 @@ func readBlobContainerByAzure(ctx context.Context, azClient storage.BlobContaine
 		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, resourceGroup, err)
 	}
 
-	d.Set("container_access_type", flattenAzureStorageContainerAccessLevel(props.PublicAccess))
+	d.Set("container_access_type", flattenStorageContainerAccessLevelByAzure(props.PublicAccess))
 
-	if err := d.Set("metadata", flattenAzureMetaData(props.Metadata)); err != nil {
+	if err := d.Set("metadata", flattenMetaDataByAzure(props.Metadata)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
 	}
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
@@ -472,7 +472,7 @@ func readBlobContainerByGiovanni(ctx context.Context, gvnClient containers.Clien
 		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, resourceGroup, err)
 	}
 
-	d.Set("container_access_type", flattenGiovanniStorageContainerAccessLevel(props.AccessLevel))
+	d.Set("container_access_type", flattenStorageContainerAccessLevelByGiovanni(props.AccessLevel))
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
