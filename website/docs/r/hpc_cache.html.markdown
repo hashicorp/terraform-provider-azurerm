@@ -66,7 +66,7 @@ The following attributes are exported:
 
 * `id` - The `id` of the HPC Cache.
 
-* `mount_addresses` - A list of mount addresses of the HPC Cache.
+* `mount_addresses` - A list of IP Addresses where the HPC Cache can be mounted.
 
 ## Timeouts
 
