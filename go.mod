@@ -4,7 +4,7 @@ require (
 	github.com/Azure/azure-sdk-for-go v40.3.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.10.0
 	github.com/Azure/go-autorest/autorest/date v0.2.0
-	github.com/bflad/tfproviderlint v0.12.0
+	github.com/bflad/tfproviderlint v0.12.1-0.20200321055902-7b384fffdf9b
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.1.1

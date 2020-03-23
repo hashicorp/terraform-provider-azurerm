@@ -1,10 +1,14 @@
 package AZURERMR001
 
 import (
+	"bytes"
+	"fmt"
 	"go/ast"
+	"go/format"
+	"go/token"
+	"strconv"
 	"strings"
 
-	"github.com/bflad/tfproviderlint/helper/astutils"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurermproviderlint/passes/pkgcallexprfactory"
 	"golang.org/x/tools/go/analysis"
@@ -44,16 +48,46 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 
-		formatString := astutils.ExprStringValue(callExpr.Args[0])
-		if formatString == nil {
+		// errors.New() and fmt.Errorf() at least has one parameter,
+		// hence no need to check boundary.
+		firstArg, ok := callExpr.Args[0].(*ast.BasicLit)
+		if !ok {
+			continue
+		}
+		if firstArg.Kind != token.STRING {
+			continue
+		}
+		firstArgValue, _ := strconv.Unquote(firstArg.Value) // can assume well-formed Go
+
+		if !strings.HasPrefix(strings.ToLower(firstArgValue), "error ") {
 			continue
 		}
 
-		if !strings.HasPrefix(strings.ToLower(*formatString), "error ") {
-			continue
+		// suggested fix
+		var callExprBuf bytes.Buffer
+		firstArg.Value = fmt.Sprintf("%sfailed%s%s", string(firstArg.Value[0]), firstArgValue[len("error"):], string(firstArg.Value[len(firstArg.Value)-1]))
+
+		if err := format.Node(&callExprBuf, pass.Fset, callExpr); err != nil {
+			return nil, fmt.Errorf("error formatting new expression: %s", err)
 		}
 
-		pass.Reportf(callExpr.Pos(), `%s: prefer other leading words instead of "error" as error message`, analyzerName)
+		pass.Report(analysis.Diagnostic{
+			Pos:     callExpr.Pos(),
+			End:     callExpr.End(),
+			Message: fmt.Sprintf(`%s: prefer other leading words instead of "error" as error message`, analyzerName),
+			SuggestedFixes: []analysis.SuggestedFix{
+				{
+					Message: "Replace",
+					TextEdits: []analysis.TextEdit{
+						{
+							Pos:     callExpr.Pos(),
+							End:     callExpr.End(),
+							NewText: callExprBuf.Bytes(),
+						},
+					},
+				},
+			},
+		})
 	}
 	return nil, nil
 }
