@@ -182,8 +182,8 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 		// // TODO: support these in time
 		// OrchestratorVersion:    nil,
-		// ScaleSetEvictionPolicy: "",
-		// ScaleSetPriority:       "",
+		ScaleSetEvictionPolicy: containerservice.ScaleSetEvictionPolicy(raw["eviction_policy"].(string)),
+		ScaleSetPriority:       containerservice.ScaleSetPriority(raw["priority"].(string)),
 	}
 
 	availabilityZonesRaw := raw["availability_zones"].([]interface{})

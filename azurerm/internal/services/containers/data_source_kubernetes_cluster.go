@@ -189,6 +189,16 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
+						"priority": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"eviction_policy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
