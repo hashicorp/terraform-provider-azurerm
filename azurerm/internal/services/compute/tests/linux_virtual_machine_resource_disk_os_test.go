@@ -143,7 +143,43 @@ func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSet(t *testing.T) {
 				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data),
 			},
 			{
-				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data),
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data),
+			},
+			{
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
@@ -579,8 +615,12 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
 `, template, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data acceptance.TestData) string {
+func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data acceptance.TestData, complete bool) string {
 	template := testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+	diskEncryptionSetLine := ""
+	if complete {
+		diskEncryptionSetLine = "disk_encryption_set_id = azurerm_disk_encryption_set.test.id"
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -601,8 +641,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   os_disk {
     caching                = "ReadWrite"
-    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
     storage_account_type   = "Standard_LRS"
+    %s
   }
 
   source_image_reference {
@@ -617,7 +657,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, diskEncryptionSetLine)
 }
 
 func testLinuxVirtualMachine_diskOSEphemeral(data acceptance.TestData) string {
