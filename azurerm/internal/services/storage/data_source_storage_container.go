@@ -2,12 +2,15 @@ package storage
 
 import (
 	"fmt"
+	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
 )
 
 func dataSourceArmStorageContainer() *schema.Resource {
@@ -74,36 +77,88 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 	azureClient := storageClient.BlobContainersClient
 	giovanniClient, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client: %s", err)
+		return fmt.Errorf("Error building Giovanni Client: %s", err)
 	}
 
 	d.SetId(giovanniClient.GetResourceID(accountName, containerName))
 
-	props, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
-	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
+	if storageClient.StorageUseAzureAD {
+		azureProps, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
+		if err != nil {
+			if utils.ResponseWasNotFound(azureProps.Response) {
+				return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q with Azure client", containerName, accountName, account.ResourceGroup)
+			}
+
+			return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q) with Azure client: %s", containerName, accountName, account.ResourceGroup, err)
+		}
+		azPropErr := setContainerPropertiesByAzure(azureProps, d)
+		if azPropErr != nil {
+			return azPropErr
 		}
 
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+		resourceManagerId := giovanniClient.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
+		d.Set("resource_manager_id", resourceManagerId)
+
+	} else {
+		gvnProps, err := giovanniClient.GetProperties(ctx, accountName, containerName)
+		if err != nil {
+			log.Printf("[WARN] Error reading Container %q (Storage Account %q / Resource Group %q) with Giovanni client: %s", containerName, accountName, account.ResourceGroup, err)
+			azureProps, err := azureClient.Get(ctx, account.ResourceGroup, accountName, containerName)
+			if err != nil {
+				if utils.ResponseWasNotFound(azureProps.Response) {
+					return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q with Azure client", containerName, accountName, account.ResourceGroup)
+				}
+
+				return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q) with Azure client: %s", containerName, accountName, account.ResourceGroup, err)
+			}
+			azPropErr := setContainerPropertiesByAzure(azureProps, d)
+			if azPropErr != nil {
+				return azPropErr
+			}
+
+			resourceManagerId := giovanniClient.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
+			d.Set("resource_manager_id", resourceManagerId)
+
+		} else {
+			gvnPropsErr := setContainerPropertiesByGiovanni(gvnProps, d)
+			if gvnPropsErr != nil {
+				return gvnPropsErr
+			}
+			resourceManagerId := giovanniClient.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
+			d.Set("resource_manager_id", resourceManagerId)
+		}
 	}
 
 	d.Set("name", containerName)
 
 	d.Set("storage_account_name", accountName)
 
-	accessLevel := flattenAzureStorageContainerAccessLevel(props.PublicAccess)
+	return nil
+}
+
+func setContainerPropertiesByAzure(props storage.BlobContainer, d *schema.ResourceData) error {
+	accessLevel := flattenStorageContainerAccessLevelByAzure(props.PublicAccess)
 	d.Set("container_access_type", accessLevel)
 
-	if err := d.Set("metadata", flattenAzureMetaData(props.Metadata)); err != nil {
+	if err := d.Set("metadata", flattenMetaDataByAzure(props.Metadata)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
 	}
 
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
+	return nil
+}
 
-	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
-	d.Set("resource_manager_id", resourceManagerId)
+func setContainerPropertiesByGiovanni(props containers.ContainerProperties, d *schema.ResourceData) error {
+	accessLevel := flattenStorageContainerAccessLevelByGiovanni(props.AccessLevel)
+	d.Set("container_access_type", accessLevel)
+
+	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("Error setting `metadata`: %+v", err)
+	}
+
+	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
+	d.Set("has_legal_hold", props.HasLegalHold)
 
 	return nil
 }
