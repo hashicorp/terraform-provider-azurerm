@@ -23,6 +23,8 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 				Config: testAccAzureRMDataFactoryPipeline_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "activities_json"),
+					testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
 				),
 			},
 			data.ImportStep(),
@@ -115,6 +117,51 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 	}
 }
 
+func testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(resourceName string, activityName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.PipelinesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Data Factory Pipeline %q (Resource Group %q / Data Factory %q) does not exist", name, resourceGroup, dataFactoryName)
+			}
+			return fmt.Errorf("Bad: Get on DataFactoryPipelineClient: %+v", err)
+		}
+
+		activities := *resp.Activities
+		appvarActivity, _ := activities[0].AsAppendVariableActivity()
+		if *appvarActivity.Name != activityName {
+			return fmt.Errorf("Bad: Data Factory Pipeline %q (Resource Group %q / Data Factory %q) could not cast as activity", name, resourceGroup, dataFactoryName)
+		}
+
+		return nil
+	}
+}
+
+var activities_json = `[
+	{
+		"name": "Append variable1",
+		"type": "AppendVariable",
+		"dependsOn": [],
+		"userProperties": [],
+		"typeProperties": {
+			"variableName": "bob",
+			"value": "something"
+		}
+	}
+]`
+
 func testAccAzureRMDataFactoryPipeline_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -136,8 +183,14 @@ resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
+  variables = {
+	  "bob" = "item1"
+  }
+  activities_json = <<JSON
+%s
+  JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, activities_json)
 }
 
 func testAccAzureRMDataFactoryPipeline_update1(data acceptance.TestData) string {

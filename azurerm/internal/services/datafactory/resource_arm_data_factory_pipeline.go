@@ -73,6 +73,13 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 				Optional: true,
 			},
 
+			"activities_json": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				StateFunc:        azure.NormalizeJson,
+				DiffSuppressFunc: suppressJsonOrderingDifference,
+			},
+
 			"annotations": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -108,11 +115,18 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
+	activitiesJson := d.Get("activities_json").(string)
+	activities, err := deserializeDataFactoryPipelineActivities(activitiesJson)
+	if err != nil {
+		return fmt.Errorf("Error parsing 'activities_json' for Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID: %+v", name, resourceGroupName, dataFactoryName, err)
+	}
+
 	description := d.Get("description").(string)
 	pipeline := &datafactory.Pipeline{
 		Parameters:  expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
 		Variables:   expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
 		Description: &description,
+		Activities:  activities,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -187,6 +201,14 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 		variables := flattenDataFactoryVariables(props.Variables)
 		if err := d.Set("variables", variables); err != nil {
 			return fmt.Errorf("Error setting `variables`: %+v", err)
+		}
+
+		activitiesJson, err := serializeDataFactoryPipelineActivities(props.Activities)
+		if err != nil {
+			return fmt.Errorf("Error serializing `activities_json`: %+v", err)
+		}
+		if err := d.Set("activities_json", activitiesJson); err != nil {
+			return fmt.Errorf("Error setting `activities_json`: %+v", err)
 		}
 	}
 
