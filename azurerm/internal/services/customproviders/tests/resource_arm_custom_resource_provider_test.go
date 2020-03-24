@@ -31,7 +31,7 @@ func TestAccAzureRMCustomResourceProvider_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCustomResourceProvider_update(t *testing.T) {
+func TestAccAzureRMCustomResourceProvider_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_resource_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -181,7 +181,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mr-%d"
+  name     = "acctestRG-cr-%d"
   location = "%s"
 }
 resource "azurerm_custom_resource_provider" "test" {

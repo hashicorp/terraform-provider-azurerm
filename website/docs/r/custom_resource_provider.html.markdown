@@ -40,11 +40,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `resource_type` - (Optional) A `resource_type` block as defined below. One of `resource_type` or `action` must be specified.
+* `resource_type` - (Optional) Any number of `resource_type` block as defined below. One of `resource_type` or `action` must be specified.
 
-* `action` - (Optional) A `action` block as defined below. One of `resource_type` or `action` must be specified.
+* `action` - (Optional) Any number of `action` block as defined below. One of `resource_type` or `action` must be specified.
 
-* `validation` - (Optional) A `validation` block as defined below.
+* `validation` - (Optional) Any number of `validation` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -82,7 +82,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the resource.
 * `update` - (Defaults to 30 minutes) Used when updating the resource.
-* `read` - (Defaults to 5 minutes) Used when retrieving the resource.
+* `read`   - (Defaults to 5 minutes) Used when retrieving the resource.
 * `delete` - (Defaults to 30 minutes) Used when deleting the resource.
 
 ## Import

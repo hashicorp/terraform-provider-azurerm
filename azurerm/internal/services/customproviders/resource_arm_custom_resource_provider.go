@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"regexp"
 	"time"
 
@@ -142,19 +144,18 @@ func resourceArmCustomResourceProviderCreateUpdate(d *schema.ResourceData, meta 
 	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	/*
-		if features.ShouldResourcesBeImported() && d.IsNewResource() {
-			existing, err := client.Get(ctx, resourceGroup, name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing Custom Resource Provider %q (Resource Group %q): %s", name, resourceGroup, err)
-				}
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Custom Resource Provider %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
+		}
 
-			if existing.ID != nil && *existing.ID != "" {
-				return tf.ImportAsExistsError("azurerm_custom_resource_provider", *existing.ID)
-			}
-		}*/
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_custom_resource_provider", *existing.ID)
+		}
+	}
 
 	provider := customproviders.CustomRPManifest{
 		CustomRPManifestProperties: &customproviders.CustomRPManifestProperties{
