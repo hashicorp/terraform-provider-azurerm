@@ -376,6 +376,11 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	// whilst we need to shut this down, if we're not attached to anything there's no point
+	if shouldShutDown && disk.ManagedBy == nil {
+		shouldShutDown = false
+	}
+
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
 	if shouldShutDown {
 		virtualMachine, err := ParseVirtualMachineID(*disk.ManagedBy)

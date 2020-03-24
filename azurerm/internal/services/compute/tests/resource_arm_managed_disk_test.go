@@ -317,14 +317,7 @@ func TestAccAzureRMManagedDisk_diskEncryptionSet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
-				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data, true),
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetEncrypted(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
@@ -344,21 +337,14 @@ func TestAccAzureRMManagedDisk_diskEncryptionSet_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
-				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data, false),
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetUnencrypted(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data, true),
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetEncrypted(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
@@ -422,8 +408,6 @@ func TestAccAzureRMManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
 		},
 	})
 }
-
-// TODO: More property update tests?
 
 func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -758,7 +742,7 @@ resource "azurerm_managed_disk" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   os_type              = "Linux"
   create_option        = "FromImage"
-  disk_size_gb         = "0"
+  disk_size_gb         = 0
   image_reference_id   = data.azurerm_platform_image.test.id
   storage_account_type = "Standard_LRS"
 }
@@ -783,10 +767,7 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "premium"
-  }
+  sku_name            = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -967,6 +948,8 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
+  soft_delete_enabled         = true
+  purge_protection_enabled    = true
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -1005,18 +988,6 @@ resource "azurerm_key_vault_key" "test" {
 
   depends_on = ["azurerm_key_vault_access_policy.service-principal"]
 }
-`, data.RandomInteger, location, data.RandomString)
-}
-
-func testAccAzureRMManagedDisk_diskEncryptionSet(data acceptance.TestData, complete bool) string {
-	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
-	diskEncryptionSetLine := ""
-	if complete {
-		diskEncryptionSetLine = "disk_encryption_set_id = azurerm_disk_encryption_set.test.id"
-	}
-
-	return fmt.Sprintf(`
-%s
 
 resource "azurerm_disk_encryption_set" "test" {
   name                = "acctestdes-%d"
@@ -1047,22 +1018,51 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
+`, data.RandomInteger, location, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSetEncrypted(data acceptance.TestData) string {
+	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 1
-  %s
+  name                   = "acctestd-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  storage_account_type   = "Standard_LRS"
+  create_option          = "Empty"
+  disk_size_gb           = 1
+  disk_encryption_set_id = azurerm_disk_encryption_set.test.id
 
   depends_on = [
     "azurerm_role_assignment.disk-encryption-read-keyvault",
     "azurerm_key_vault_access_policy.disk-encryption",
   ]
 }
-`, template, data.RandomInteger, data.RandomInteger, diskEncryptionSetLine)
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSetUnencrypted(data acceptance.TestData) string {
+	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  storage_account_type   = "Standard_LRS"
+  create_option          = "Empty"
+  disk_size_gb           = 1
+
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMManagedDisk_managedDiskAttached(data acceptance.TestData, diskSize int) string {
@@ -1085,7 +1085,7 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   caching            = "None"
 }
@@ -1112,7 +1112,7 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   caching            = "None"
 }
@@ -1152,35 +1152,29 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_F2"
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctestvm-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_D2s_v3"
+  admin_username                  = "adminuser"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 
-  storage_image_reference {
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
