@@ -47,7 +47,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	ExtendedDatabaseBlobAuditingPoliciesClient := sql.NewExtendedDatabaseBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExtendedDatabaseBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	ExtendedServerBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClient(o.SubscriptionId)
+	ExtendedServerBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExtendedServerBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
