@@ -3,7 +3,6 @@ package mssql
 import (
 	"fmt"
 	"log"
-	"reflect"
 	"strings"
 	"time"
 
@@ -11,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -48,7 +47,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VMID,
 			},
 
 			"sql_license_type": {
@@ -59,12 +58,6 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 					string(sqlvirtualmachine.PAYG),
 					string(sqlvirtualmachine.AHUB),
 				}, false),
-			},
-
-			"sql_virtual_machine_group_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"auto_patching": {
@@ -111,17 +104,17 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azValidate.NoEmptyStrings,
 							//api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
 							DiffSuppressFunc: mssqlVMCredentialNameDiffSuppressFunc,
 						},
 
-						"azure_key_vault_url": {
+						"key_vault_url": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.URLIsHTTPS,
+							ValidateFunc: azValidate.URLIsHTTPS,
 						},
 
 						"service_principal_name": {
@@ -129,7 +122,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azValidate.NoEmptyStrings,
 						},
 
 						"service_principal_secret": {
@@ -137,56 +130,53 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azValidate.NoEmptyStrings,
 						},
 					},
 				},
 			},
 
-			"server_configuration": {
-				Type:     schema.TypeList,
+			"r_services_enabled": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"is_r_services_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
+			},
 
-						"sql_connectivity_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(sqlvirtualmachine.PRIVATE),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.LOCAL),
-								string(sqlvirtualmachine.PRIVATE),
-								string(sqlvirtualmachine.PUBLIC),
-							}, false),
-						},
+			"sql_connectivity_port": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1433,
+				ValidateFunc: validation.IntBetween(1024, 65535),
+			},
 
-						"sql_connectivity_port": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      1433,
-							ValidateFunc: validation.IntBetween(1024, 65535),
-						},
+			"sql_connectivity_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(sqlvirtualmachine.PRIVATE),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sqlvirtualmachine.LOCAL),
+					string(sqlvirtualmachine.PRIVATE),
+					string(sqlvirtualmachine.PUBLIC),
+				}, false),
+			},
 
-						"sql_connectivity_update_password": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
+			"sql_connectivity_update_password": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: azValidate.NoEmptyStrings,
+			},
 
-						"sql_connectivity_update_username": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-					},
-				},
+			"sql_connectivity_update_username": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.MsSqlVMLoginUserName,
+			},
+
+			"sql_virtual_machine_group_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.MssqlVmGroupID,
 			},
 
 			"tags": tags.Schema(),
@@ -196,6 +186,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 
 func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.SQLVirtualMachinesClient
+	vmclient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -204,14 +195,12 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	if err != nil {
 		return err
 	}
-	name := id.Name
-	resourceGroupName := id.ResourceGroup
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name, "*")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("Failure in checking for present of existing Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -220,49 +209,56 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	// get location from vm
-	vmclient := meta.(*clients.Client).Compute.VMClient
-	respvm, err := vmclient.Get(ctx, resourceGroupName, name, "")
+	respvm, err := vmclient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure Virtual Machine %s: %+v", name, err)
+		return fmt.Errorf("Failure in making Read request on Azure Virtual Machine %s: %+v", id.Name, err)
 	}
 
 	if *respvm.Location == "" {
-		return fmt.Errorf("Error location is empty from making Read request on Azure Virtual Machine %s: %+v", name, err)
-	}
-
-	properties := sqlvirtualmachine.Properties{
-		VirtualMachineResourceID:               utils.String(d.Get("virtual_machine_id").(string)),
-		SQLServerLicenseType:                   sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
-		SQLManagement:                          sqlvirtualmachine.Full,
-		AutoPatchingSettings:                   expandArmSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
-		KeyVaultCredentialSettings:             expandArmSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
-		ServerConfigurationsManagementSettings: expandArmSqlVirtualMachineServerConfigurationsManagement(d.Get("server_configuration").([]interface{})),
-	}
-
-	if sqlVirtualMachineGroupResourceID, ok := d.GetOk("sql_virtual_machine_group_id"); ok {
-		properties.SQLVirtualMachineGroupResourceID = utils.String(sqlVirtualMachineGroupResourceID.(string))
+		return fmt.Errorf("Location is empty from making Read request on Azure Virtual Machine %s: %+v", id.Name, err)
 	}
 
 	parameters := sqlvirtualmachine.SQLVirtualMachine{
-		Location:   utils.String(*respvm.Location),
-		Properties: &properties,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location: utils.String(*respvm.Location),
+		Properties: &sqlvirtualmachine.Properties{
+			VirtualMachineResourceID:   utils.String(d.Get("virtual_machine_id").(string)),
+			SQLServerLicenseType:       sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
+			SQLManagement:              sqlvirtualmachine.Full,
+			AutoPatchingSettings:       expandArmSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
+			KeyVaultCredentialSettings: expandArmSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
+			ServerConfigurationsManagementSettings: &sqlvirtualmachine.ServerConfigurationsManagementSettings{
+				AdditionalFeaturesServerConfigurations: &sqlvirtualmachine.AdditionalFeaturesServerConfigurations{
+					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
+				},
+				SQLConnectivityUpdateSettings: &sqlvirtualmachine.SQLConnectivityUpdateSettings{
+					Port:                  utils.Int32(int32(d.Get("sql_connectivity_port").(int))),
+					ConnectivityType:      sqlvirtualmachine.ConnectivityType(d.Get("sql_connectivity_type").(string)),
+					SQLAuthUpdatePassword: utils.String(d.Get("sql_connectivity_update_password").(string)),
+					SQLAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
+				},
+			},
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
+	if sqlVirtualMachineGroupResourceID, ok := d.GetOk("sql_virtual_machine_group_id"); ok {
+		parameters.Properties.SQLVirtualMachineGroupResourceID = utils.String(sqlVirtualMachineGroupResourceID.(string))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Failure in creating Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Failure in waiting for creation of Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name, "*")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Failure in retrieving Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) ID", name, resourceGroupName)
+		return fmt.Errorf("Cannot read Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -278,34 +274,30 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
-	resourceGroupName := id.ResourceGroup
-	name := id.Name
 
-	resp, err := client.Get(ctx, resourceGroupName, name, "*")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Sql Virtual Machine %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Failure in reading Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if properties := resp.Properties; properties != nil {
-		d.Set("virtual_machine_id", properties.VirtualMachineResourceID)
-		d.Set("sql_license_type", string(properties.SQLServerLicenseType))
-		flattenedAutoPatching := flattenArmSqlVirtualMachineAutoPatching(properties.AutoPatchingSettings)
-		if err := d.Set("auto_patching", flattenedAutoPatching); err != nil {
-			return fmt.Errorf("Error setting `auto_patching`: %+v", err)
+	if props := resp.Properties; props != nil {
+		d.Set("virtual_machine_id", props.VirtualMachineResourceID)
+		d.Set("sql_license_type", string(props.SQLServerLicenseType))
+		if err := d.Set("auto_patching", flattenArmSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
+			return fmt.Errorf("Failure in setting `auto_patching`: %+v", err)
 		}
-		flattenedKeyVaultCredential := flattenArmSqlVirtualMachineKeyVaultCredential(properties.KeyVaultCredentialSettings, d)
-		if err := d.Set("key_vault_credential", flattenedKeyVaultCredential); err != nil {
-			return fmt.Errorf("Error setting `key_vault_credential`: %+v", err)
+		if err := d.Set("key_vault_credential", flattenArmSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
+			return fmt.Errorf("Failure in setting `key_vault_credential`: %+v", err)
 		}
-		flattenedServerConfiguration := flattenArmSqlVirtualMachineServerConfigurationsManagement(properties.ServerConfigurationsManagementSettings, d)
-		if err := d.Set("server_configuration", flattenedServerConfiguration); err != nil {
-			return fmt.Errorf("Error setting `server_configuration`: %+v", err)
-		}
+
+		d.Set("r_services_enabled", props.ServerConfigurationsManagementSettings.AdditionalFeaturesServerConfigurations.IsRServicesEnabled)
+		d.Set("sql_connectivity_port", props.ServerConfigurationsManagementSettings.SQLConnectivityUpdateSettings.Port)
+		d.Set("sql_connectivity_type", props.ServerConfigurationsManagementSettings.SQLConnectivityUpdateSettings.ConnectivityType)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -322,12 +314,12 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Failure in deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Failure in waiting for deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -381,7 +373,7 @@ func expandArmSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtu
 	return &sqlvirtualmachine.KeyVaultCredentialSettings{
 		Enable:                 utils.Bool(true),
 		CredentialName:         utils.String(keyVaultCredentialSetting["name"].(string)),
-		AzureKeyVaultURL:       utils.String(keyVaultCredentialSetting["azure_key_vault_url"].(string)),
+		AzureKeyVaultURL:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
 		ServicePrincipalName:   utils.String(keyVaultCredentialSetting["service_principal_name"].(string)),
 		ServicePrincipalSecret: utils.String(keyVaultCredentialSetting["service_principal_secret"].(string)),
 	}
@@ -398,7 +390,7 @@ func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.K
 	}
 
 	keyVaultUrl := ""
-	if v, ok := d.GetOk("key_vault_credential.0.azure_key_vault_url"); ok {
+	if v, ok := d.GetOk("key_vault_credential.0.key_vault_url"); ok {
 		keyVaultUrl = v.(string)
 	}
 
@@ -415,78 +407,9 @@ func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.K
 	return []interface{}{
 		map[string]interface{}{
 			"name":                     name,
-			"azure_key_vault_url":      keyVaultUrl,
+			"key_vault_url":            keyVaultUrl,
 			"service_principal_name":   servicePrincipalName,
 			"service_principal_secret": servicePrincipalSecret,
-		},
-	}
-}
-
-func expandArmSqlVirtualMachineServerConfigurationsManagement(input []interface{}) *sqlvirtualmachine.ServerConfigurationsManagementSettings {
-	if len(input) == 0 {
-		return nil
-	}
-	serverConfigMM := input[0].(map[string]interface{})
-
-	result := sqlvirtualmachine.ServerConfigurationsManagementSettings{
-		SQLConnectivityUpdateSettings: &sqlvirtualmachine.SQLConnectivityUpdateSettings{
-			ConnectivityType: sqlvirtualmachine.ConnectivityType(serverConfigMM["sql_connectivity_type"].(string)),
-			Port:             utils.Int32(int32(serverConfigMM["sql_connectivity_port"].(int))),
-		},
-	}
-	if userName, ok := serverConfigMM["sql_connectivity_update_username"]; ok {
-		result.SQLConnectivityUpdateSettings.SQLAuthUpdateUserName = utils.String(userName.(string))
-	}
-	if pwd, ok := serverConfigMM["sql_connectivity_update_password"]; ok {
-		result.SQLConnectivityUpdateSettings.SQLAuthUpdatePassword = utils.String(pwd.(string))
-	}
-
-	//additional feature
-	if v, ok := serverConfigMM["is_r_services_enabled"]; ok {
-		result.AdditionalFeaturesServerConfigurations = &sqlvirtualmachine.AdditionalFeaturesServerConfigurations{IsRServicesEnabled: utils.Bool(v.(bool))}
-	}
-	return &result
-}
-
-func flattenArmSqlVirtualMachineServerConfigurationsManagement(serverConfig *sqlvirtualmachine.ServerConfigurationsManagementSettings, d *schema.ResourceData) []interface{} {
-	// if the structure of sqlvirtualmachine.ServerConfigurationsManagementSettings changes, we should update this
-	if serverConfig == nil || reflect.DeepEqual(*serverConfig, sqlvirtualmachine.ServerConfigurationsManagementSettings{
-		SQLConnectivityUpdateSettings:          &sqlvirtualmachine.SQLConnectivityUpdateSettings{},
-		SQLWorkloadTypeUpdateSettings:          &sqlvirtualmachine.SQLWorkloadTypeUpdateSettings{},
-		SQLStorageUpdateSettings:               &sqlvirtualmachine.SQLStorageUpdateSettings{},
-		AdditionalFeaturesServerConfigurations: &sqlvirtualmachine.AdditionalFeaturesServerConfigurations{},
-	}) {
-		return []interface{}{}
-	}
-
-	//additional feature
-	var isRServiceEnabled bool
-	if serverConfig.AdditionalFeaturesServerConfigurations.IsRServicesEnabled != nil {
-		isRServiceEnabled = *serverConfig.AdditionalFeaturesServerConfigurations.IsRServicesEnabled
-	}
-	//connectivity
-	connectivityType := serverConfig.SQLConnectivityUpdateSettings.ConnectivityType
-
-	var connectivityPort int32
-	if serverConfig.SQLConnectivityUpdateSettings.Port != nil {
-		connectivityPort = *serverConfig.SQLConnectivityUpdateSettings.Port
-	}
-	pwd := ""
-	if v, ok := d.GetOk("server_configuration.0.sql_connectivity_update_password"); ok {
-		pwd = v.(string)
-	}
-	userName := ""
-	if v, ok := d.GetOk("server_configuration.0.sql_connectivity_update_username"); ok {
-		userName = v.(string)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"is_r_services_enabled":            isRServiceEnabled,
-			"sql_connectivity_type":            connectivityType,
-			"sql_connectivity_port":            connectivityPort,
-			"sql_connectivity_update_password": pwd,
-			"sql_connectivity_update_username": userName,
 		},
 	}
 }

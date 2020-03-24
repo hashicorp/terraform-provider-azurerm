@@ -58,6 +58,38 @@ func TestAccAzureRMMsSqlVirtualMachine_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlVirtualMachine_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "r_services_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sql_connectivity_type", "PRIVATE"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sql_connectivity_port", "1433"),
+				),
+			},
+			data.ImportStep("sql_connectivity_update_password", "sql_connectivity_update_username"),
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "r_services_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sql_connectivity_type", "PUBLIC"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sql_connectivity_port", "1533"),
+				),
+			},
+			data.ImportStep("sql_connectivity_update_password", "sql_connectivity_update_username"),
+		},
+	})
+}
+
 func TestAccAzureRMMsSqlVirtualMachine_updateAutoPatching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 
@@ -108,7 +140,7 @@ func TestAccAzureRMMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
 					resource.TestMatchResourceAttr(data.ResourceName, "key_vault_credential.0.name", regexp.MustCompile("/*:acctestkv")),
 				),
 			},
-			data.ImportStep("key_vault_credential.0.azure_key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
+			data.ImportStep("key_vault_credential.0.key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
 
 			{
 				Config: testAccAzureRMMsSqlVirtualMachine_withKeyVaultUpdated(data, value),
@@ -117,39 +149,7 @@ func TestAccAzureRMMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
 					resource.TestMatchResourceAttr(data.ResourceName, "key_vault_credential.0.name", regexp.MustCompile("/*:acctestkv2")),
 				),
 			},
-			data.ImportStep("key_vault_credential.0.azure_key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlVirtualMachine_updateServerConfig(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlVirtualMachine_withServerConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "server_configuration.0.is_r_services_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "server_configuration.0.sql_connectivity_type", "PRIVATE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "server_configuration.0.sql_connectivity_port", "1433"),
-				),
-			},
-			data.ImportStep("server_configuration.0.sql_connectivity_update_password", "server_configuration.0.sql_connectivity_update_username"),
-			{
-				Config: testAccAzureRMMsSqlVirtualMachine_withServerConfigUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "server_configuration.0.is_r_services_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "server_configuration.0.sql_connectivity_type", "PUBLIC"),
-					resource.TestCheckResourceAttr(data.ResourceName, "server_configuration.0.sql_connectivity_port", "1533"),
-				),
-			},
-			data.ImportStep("server_configuration.0.sql_connectivity_update_password", "server_configuration.0.sql_connectivity_update_username"),
+			data.ImportStep("key_vault_credential.0.key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
 		},
 	})
 }
@@ -213,7 +213,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssqlvm-%[1]d"
+  name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
 }
 
@@ -355,6 +355,40 @@ resource "azurerm_mssql_virtual_machine" "import" {
 `, template)
 }
 
+func testAccAzureRMMsSqlVirtualMachine_complete(data acceptance.TestData) string {
+	vmconfig := testAccAzureRMVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id               = azurerm_virtual_machine.test.id
+  sql_license_type                 = "PAYG"
+  r_services_enabled               = true
+  sql_connectivity_port            = 1433
+  sql_connectivity_type            = "PRIVATE"
+  sql_connectivity_update_password = "Password1234!"
+  sql_connectivity_update_username = "sqllogin"
+}
+`, vmconfig)
+}
+
+func testAccAzureRMMsSqlVirtualMachine_update(data acceptance.TestData) string {
+	vmconfig := testAccAzureRMVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id               = azurerm_virtual_machine.test.id
+  sql_license_type                 = "PAYG"
+  r_services_enabled               = false
+  sql_connectivity_port            = 1533
+  sql_connectivity_type            = "PUBLIC"
+  sql_connectivity_update_password = "Password12344321!"
+  sql_connectivity_update_username = "sqlloginupdate"
+}
+`, vmconfig)
+}
+
 func testAccAzureRMMsSqlVirtualMachine_withAutoPatching(data acceptance.TestData) string {
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -464,7 +498,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
   key_vault_credential {
     name                     = "acctestkv"
-    azure_key_vault_url      = azurerm_key_vault_key.generated.id
+    key_vault_url            = azurerm_key_vault_key.generated.id
     service_principal_name   = azuread_service_principal.test.display_name
     service_principal_secret = azuread_service_principal_password.test.value
   }
@@ -545,50 +579,10 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
   key_vault_credential {
     name                     = "acctestkv2"
-    azure_key_vault_url      = azurerm_key_vault_key.generated.id
+    key_vault_url            = azurerm_key_vault_key.generated.id
     service_principal_name   = azuread_service_principal.test.display_name
     service_principal_secret = azuread_service_principal_password.test.value
   }
 }
 `, vmconfig, data.RandomInteger, value)
-}
-
-func testAccAzureRMMsSqlVirtualMachine_withServerConfig(data acceptance.TestData) string {
-	vmconfig := testAccAzureRMVirtualMachine_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  sql_license_type   = "PAYG"
-
-  server_configuration {
-    is_r_services_enabled            = true
-    sql_connectivity_type            = "PRIVATE"
-    sql_connectivity_port            = 1433
-    sql_connectivity_update_password = "Password1234!"
-    sql_connectivity_update_username = "sqllogin"
-  }
-}
-`, vmconfig)
-}
-
-func testAccAzureRMMsSqlVirtualMachine_withServerConfigUpdated(data acceptance.TestData) string {
-	vmconfig := testAccAzureRMVirtualMachine_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  sql_license_type   = "PAYG"
-
-  server_configuration {
-    is_r_services_enabled            = true
-    sql_connectivity_type            = "PUBLIC"
-    sql_connectivity_port            = 1533
-    sql_connectivity_update_password = "Password12344321!"
-    sql_connectivity_update_username = "sqlloginupdate"
-  }
-}
-`, vmconfig)
 }
