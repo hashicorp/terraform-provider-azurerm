@@ -1,22 +1,22 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_service_tags"
+page_title: "Azure Resource Manager: azurerm_network_service_tags"
 description: |-
   Gets information about Service Tags for a specific service type.
 ---
 
-# Data Source: azurerm_service_tags
+# Data Source: azurerm__network_service_tags
 
 Use this data source to access information about Service Tags.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_service_tags" "example" {
-  location = "West Europe"
-  service  = "AzureKeyVault"
-  region   = "northeurope"
+data "azurerm_network_service_tags" "example" {
+  location        = "West Europe"
+  service         = "AzureKeyVault"
+  location_filter = "northeurope"
 }
 
 output "address_prefixes" {
@@ -34,7 +34,7 @@ The following arguments are supported:
 
 ---
 
-* `region` - (Optional) Changes the scope of the service tags. Can be any value that is also valid for `location`. 
+* `location_filter` - (Optional) Changes the scope of the service tags. Can be any value that is also valid for `location`. 
 
 ## Attributes Reference
 

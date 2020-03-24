@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMServiceTags_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_service_tags", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_network_service_tags", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -25,7 +25,7 @@ func TestAccDataSourceAzureRMServiceTags_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMServiceTags_region(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_service_tags", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_network_service_tags", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -42,16 +42,16 @@ func TestAccDataSourceAzureRMServiceTags_region(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMServiceTags_basic() string {
-	return `data "azurerm_service_tags" "test" {
+	return `data "azurerm_network_service_tags" "test" {
   location = "northeurope"
-  service = "AzureKeyVault"
+  service  = "AzureKeyVault"
 }`
 }
 
 func testAccDataSourceAzureRMServiceTags_region() string {
-	return `data "azurerm_service_tags" "test" {
-  location = "northeurope"
-  service = "AzureKeyVault"
-  region  = "australiacentral"
+	return `data "azurerm_network_service_tags" "test" {
+  location        = "northeurope"
+  service         = "AzureKeyVault"
+  location_filter = "australiacentral"
 }`
 }
