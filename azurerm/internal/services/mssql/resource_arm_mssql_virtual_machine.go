@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
@@ -104,7 +103,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							//api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
 							DiffSuppressFunc: mssqlVMCredentialNameDiffSuppressFunc,
 						},
@@ -114,7 +113,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
-							ValidateFunc: azValidate.URLIsHTTPS,
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 
 						"service_principal_name": {
@@ -122,7 +121,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
-							ValidateFunc: azValidate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"service_principal_secret": {
@@ -130,7 +129,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Required:     true,
 							ForceNew:     true,
 							Sensitive:    true,
-							ValidateFunc: azValidate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -163,7 +162,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Sensitive:    true,
-				ValidateFunc: azValidate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"sql_connectivity_update_username": {

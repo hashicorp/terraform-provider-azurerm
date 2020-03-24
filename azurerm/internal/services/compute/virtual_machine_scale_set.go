@@ -1193,3 +1193,65 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 		},
 	}
 }
+
+func VirtualMachineScaleSetTerminateNotificationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"enabled": {
+					Type:     schema.TypeBool,
+					Required: true,
+				},
+				"timeout": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: azValidate.ISO8601Duration,
+					Default:      "PT5M",
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetScheduledEventsProfile(input []interface{}) *compute.ScheduledEventsProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	enabled := raw["enabled"].(bool)
+	timeout := raw["timeout"].(string)
+
+	return &compute.ScheduledEventsProfile{
+		TerminateNotificationProfile: &compute.TerminateNotificationProfile{
+			Enable:           &enabled,
+			NotBeforeTimeout: &timeout,
+		},
+	}
+}
+
+func FlattenVirtualMachineScaleSetScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
+	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
+	// a user explicitly set enabled to false, we need to assign a default block to this field
+
+	enabled := false
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
+		enabled = *input.TerminateNotificationProfile.Enable
+	}
+
+	timeout := "PT5M"
+	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
+		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"timeout": timeout,
+		},
+	}
+}

@@ -10903,6 +10903,32 @@ type HostingEnvironmentProfile struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// HostKeys functions host level keys.
+type HostKeys struct {
+	autorest.Response `json:"-"`
+	// MasterKey - Secret key.
+	MasterKey *string `json:"masterKey,omitempty"`
+	// FunctionKeys - Host level function keys.
+	FunctionKeys map[string]*string `json:"functionKeys"`
+	// SystemKeys - System keys.
+	SystemKeys map[string]*string `json:"systemKeys"`
+}
+
+// MarshalJSON is the custom marshaler for HostKeys.
+func (hk HostKeys) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hk.MasterKey != nil {
+		objectMap["masterKey"] = hk.MasterKey
+	}
+	if hk.FunctionKeys != nil {
+		objectMap["functionKeys"] = hk.FunctionKeys
+	}
+	if hk.SystemKeys != nil {
+		objectMap["systemKeys"] = hk.SystemKeys
+	}
+	return json.Marshal(objectMap)
+}
+
 // HostName details of a hostname derived from a domain.
 type HostName struct {
 	// Name - Name of the hostname.
@@ -12344,6 +12370,15 @@ func (j JobProperties) MarshalJSON() ([]byte, error) {
 		objectMap["settings"] = j.Settings
 	}
 	return json.Marshal(objectMap)
+}
+
+// KeyInfo function key info.
+type KeyInfo struct {
+	autorest.Response `json:"-"`
+	// Name - Key name
+	Name *string `json:"name,omitempty"`
+	// Value - Key value
+	Value *string `json:"value,omitempty"`
 }
 
 // KeyVaultReferenceCollection web app key vault reference and status ARM resource.

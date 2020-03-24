@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
@@ -149,6 +149,8 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"tags": tags.SchemaDataSource(),
+
 						"os_disk_size_gb": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -167,6 +169,14 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 						"max_pods": {
 							Type:     schema.TypeInt,
 							Computed: true,
+						},
+
+						"node_labels": {
+							Type:     schema.TypeMap,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"node_taints": {
@@ -743,12 +753,20 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
 		}
 
+		if profile.NodeLabels != nil {
+			agentPoolProfile["node_labels"] = profile.NodeLabels
+		}
+
 		if profile.NodeTaints != nil {
 			agentPoolProfile["node_taints"] = *profile.NodeTaints
 		}
 
 		if profile.EnableNodePublicIP != nil {
 			agentPoolProfile["enable_node_public_ip"] = *profile.EnableNodePublicIP
+		}
+
+		if profile.Tags != nil {
+			agentPoolProfile["tags"] = tags.Flatten(profile.Tags)
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)

@@ -119,6 +119,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 						"geo_redundant_backup": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),

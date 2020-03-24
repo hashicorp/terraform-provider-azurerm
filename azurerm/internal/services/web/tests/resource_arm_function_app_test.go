@@ -344,6 +344,34 @@ func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_dailyMemoryTimeQuota(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionApp_consumptionPlan(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_memory_time_quota", "0"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFunctionApp_dailyMemoryTimeQuota(data, 1000),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_memory_time_quota", "1000"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
@@ -1468,6 +1496,48 @@ resource "azurerm_function_app" "test" {
   https_only                = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionApp_dailyMemoryTimeQuota(data acceptance.TestData, dailyMemoryTimeQuota int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "FunctionApp"
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  app_service_plan_id       = azurerm_app_service_plan.test.id
+  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  daily_memory_time_quota   = %d
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, dailyMemoryTimeQuota)
 }
 
 func testAccAzureRMFunctionApp_consumptionPlan(data acceptance.TestData) string {

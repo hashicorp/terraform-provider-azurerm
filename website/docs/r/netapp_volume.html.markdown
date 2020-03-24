@@ -100,6 +100,8 @@ The following arguments are supported:
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 -> **Note**: It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type. 
 
 ---

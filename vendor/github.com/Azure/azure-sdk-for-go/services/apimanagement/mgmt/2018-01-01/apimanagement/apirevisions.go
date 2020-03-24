@@ -36,7 +36,8 @@ func NewAPIRevisionsClient(subscriptionID string) APIRevisionsClient {
 	return NewAPIRevisionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAPIRevisionsClientWithBaseURI creates an instance of the APIRevisionsClient client.
+// NewAPIRevisionsClientWithBaseURI creates an instance of the APIRevisionsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAPIRevisionsClientWithBaseURI(baseURI string, subscriptionID string) APIRevisionsClient {
 	return APIRevisionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

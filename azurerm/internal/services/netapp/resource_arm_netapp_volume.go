@@ -17,6 +17,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,16 +31,16 @@ func resourceArmNetAppVolume() *schema.Resource {
 		Update: resourceArmNetAppVolumeCreateUpdate,
 		Delete: resourceArmNetAppVolumeDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.NetAppVolumeID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -107,7 +110,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			"storage_quota_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(100, 4096),
+				ValidateFunc: validation.IntBetween(100, 102400),
 			},
 
 			"export_policy_rule": {
@@ -178,6 +181,8 @@ func resourceArmNetAppVolume() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -226,6 +231,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   expandArmNetAppVolumeExportPolicyRule(exportPolicyRule),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, accountName, poolName, name)
@@ -253,29 +259,25 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetAppVolumeID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["netAppAccounts"]
-	poolName := id.Path["capacityPools"]
-	name := id.Path["volumes"]
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Volumes %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Volumes %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading NetApp Volumes %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("account_name", accountName)
-	d.Set("pool_name", poolName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("account_name", id.AccountName)
+	d.Set("pool_name", id.PoolName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -292,7 +294,7 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error {
@@ -300,17 +302,13 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetAppVolumeID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	accountName := id.Path["netAppAccounts"]
-	poolName := id.Path["capacityPools"]
-	name := id.Path["volumes"]
 
-	if _, err = client.Delete(ctx, resourceGroup, accountName, poolName, name); err != nil {
-		return fmt.Errorf("Error deleting NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.Name); err != nil {
+		return fmt.Errorf("Error deleting NetApp Volume %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// The resource NetApp Volume depends on the resource NetApp Pool.
@@ -318,16 +316,16 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 	// Then it tries to immediately delete NetApp Pool but it still throws error `Can not delete resource before nested resources are deleted.`
 	// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6485
-	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
-		Refresh: netappVolumeDeleteStateRefreshFunc(ctx, client, resourceGroup, accountName, poolName, name),
+		Refresh: netappVolumeDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.PoolName, id.Name),
 		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -422,7 +420,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
-		//TODO: Start - Remove in next major version
+		// TODO: Start - Remove in next major version
 		cifsEnabled := false
 		nfsv3Enabled := false
 		nfsv4Enabled := false
@@ -432,19 +430,19 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
 			}
-			cifsEnabled = *v //TODO: Remove in next major version
+			cifsEnabled = *v // TODO: Remove in next major version
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
-			nfsv3Enabled = *v //TODO: Remove in next major version
+			nfsv3Enabled = *v // TODO: Remove in next major version
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
-			nfsv4Enabled = *v //TODO: Remove in next major version
+			nfsv4Enabled = *v // TODO: Remove in next major version
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -461,7 +459,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			"unix_read_only":    unixReadOnly,
 			"unix_read_write":   unixReadWrite,
 			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
-			//TODO: Remove in next major version
+			// TODO: Remove in next major version
 			"cifs_enabled":  cifsEnabled,
 			"nfsv3_enabled": nfsv3Enabled,
 			"nfsv4_enabled": nfsv4Enabled,

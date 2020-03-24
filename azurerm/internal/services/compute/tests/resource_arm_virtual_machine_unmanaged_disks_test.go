@@ -187,8 +187,8 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 	})
 }
 
-//This is a regression test around https://github.com/hashicorp/terraform/issues/6517
-//Because we use CreateUpdate, we were sending an empty password on update requests
+// This is a regression test around https://github.com/hashicorp/terraform/issues/6517
+// Because we use CreateUpdate, we were sending an empty password on update requests
 func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
@@ -804,7 +804,6 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_blob" "test" {
   name = "datadisk1.vhd"
 
-  resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
 

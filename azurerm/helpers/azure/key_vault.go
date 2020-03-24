@@ -59,7 +59,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient
 		resourceGroup := vid.ResourceGroup
 		name := vid.Path["vaults"]
 
-		//resp does not appear to contain the vault properties, so lets fetch them
+		// resp does not appear to contain the vault properties, so lets fetch them
 		get, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(get.Response) {

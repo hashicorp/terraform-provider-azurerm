@@ -39,7 +39,9 @@ func NewManagedDatabasesClient(subscriptionID string) ManagedDatabasesClient {
 	return NewManagedDatabasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagedDatabasesClientWithBaseURI creates an instance of the ManagedDatabasesClient client.
+// NewManagedDatabasesClientWithBaseURI creates an instance of the ManagedDatabasesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string) ManagedDatabasesClient {
 	return ManagedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -107,9 +109,8 @@ func (client ManagedDatabasesClient) CompleteRestorePreparer(ctx context.Context
 // CompleteRestoreSender sends the CompleteRestore request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) CompleteRestoreSender(req *http.Request) (future ManagedDatabasesCompleteRestoreFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -189,9 +190,8 @@ func (client ManagedDatabasesClient) CreateOrUpdatePreparer(ctx context.Context,
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) CreateOrUpdateSender(req *http.Request) (future ManagedDatabasesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -269,9 +269,8 @@ func (client ManagedDatabasesClient) DeletePreparer(ctx context.Context, resourc
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) DeleteSender(req *http.Request) (future ManagedDatabasesDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -354,8 +353,7 @@ func (client ManagedDatabasesClient) GetPreparer(ctx context.Context, resourceGr
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -433,8 +431,7 @@ func (client ManagedDatabasesClient) ListByInstancePreparer(ctx context.Context,
 // ListByInstanceSender sends the ListByInstance request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) ListByInstanceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstanceResponder handles the response to the ListByInstance request. The method always
@@ -547,9 +544,8 @@ func (client ManagedDatabasesClient) UpdatePreparer(ctx context.Context, resourc
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) UpdateSender(req *http.Request) (future ManagedDatabasesUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

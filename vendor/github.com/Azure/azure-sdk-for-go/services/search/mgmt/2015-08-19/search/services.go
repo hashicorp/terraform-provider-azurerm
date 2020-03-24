@@ -27,7 +27,7 @@ import (
 	"net/http"
 )
 
-// ServicesClient is the client that can be used to manage Azure Search services and API keys.
+// ServicesClient is the client that can be used to manage Azure Cognitive Search services and API keys.
 type ServicesClient struct {
 	BaseClient
 }
@@ -37,7 +37,8 @@ func NewServicesClient(subscriptionID string) ServicesClient {
 	return NewServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServicesClientWithBaseURI creates an instance of the ServicesClient client.
+// NewServicesClientWithBaseURI creates an instance of the ServicesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewServicesClientWithBaseURI(baseURI string, subscriptionID string) ServicesClient {
 	return ServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,8 +116,7 @@ func (client ServicesClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
@@ -137,11 +137,11 @@ func (client ServicesClient) CheckNameAvailabilityResponder(resp *http.Response)
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service to create or update. Search service names must only
-// contain lowercase letters, digits or dashes, cannot use dash as the first two or last one characters, cannot
-// contain consecutive dashes, and must be between 2 and 60 characters in length. Search service names must be
-// globally unique since they are part of the service URI (https://<name>.search.windows.net). You cannot
-// change the service name after the service is created.
+// searchServiceName - the name of the Azure Cognitive Search service to create or update. Search service names
+// must only contain lowercase letters, digits or dashes, cannot use dash as the first two or last one
+// characters, cannot contain consecutive dashes, and must be between 2 and 60 characters in length. Search
+// service names must be globally unique since they are part of the service URI
+// (https://<name>.search.windows.net). You cannot change the service name after the service is created.
 // service - the definition of the Search service to create or update.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
@@ -216,9 +216,8 @@ func (client ServicesClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future ServicesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -243,7 +242,8 @@ func (client ServicesClient) CreateOrUpdateResponder(resp *http.Response) (resul
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
 func (client ServicesClient) Delete(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result autorest.Response, err error) {
@@ -306,8 +306,7 @@ func (client ServicesClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -326,7 +325,8 @@ func (client ServicesClient) DeleteResponder(resp *http.Response) (result autore
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
 func (client ServicesClient) Get(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result Service, err error) {
@@ -389,8 +389,7 @@ func (client ServicesClient) GetPreparer(ctx context.Context, resourceGroupName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -471,8 +470,7 @@ func (client ServicesClient) ListByResourceGroupPreparer(ctx context.Context, re
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -550,8 +548,7 @@ func (client ServicesClient) ListBySubscriptionPreparer(ctx context.Context, cli
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -571,7 +568,7 @@ func (client ServicesClient) ListBySubscriptionResponder(resp *http.Response) (r
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service to update.
+// searchServiceName - the name of the Azure Cognitive Search service to update.
 // service - the definition of the Search service to update.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
@@ -637,8 +634,7 @@ func (client ServicesClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

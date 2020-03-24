@@ -56,7 +56,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.GUID,
+					ValidateFunc: validation.IsUUID,
 				},
 				Set: schema.HashString,
 			},
@@ -71,7 +71,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.GUID,
+					ValidateFunc: validation.IsUUID,
 				},
 				Set: schema.HashString,
 			},

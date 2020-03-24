@@ -45,7 +45,7 @@ func resourceArmDatabaseMigrationService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDatabasesMigrationServiceName,
+				ValidateFunc: validateDatabaseMigrationServiceName,
 			},
 
 			"location": azure.SchemaLocation(),

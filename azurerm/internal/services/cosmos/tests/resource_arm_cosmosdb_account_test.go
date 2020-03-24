@@ -241,7 +241,7 @@ func testAccAzureRMCosmosDBAccount_updateWith(t *testing.T, kind documentdb.Data
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
 				Check:  resource.ComposeAggregateTestCheckFunc(
-				//checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				// checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 				),
 			},
 			data.ImportStep(),
