@@ -21,6 +21,7 @@ beginning string "Error". This is redundant in context of terraform provider
 since terraform itself already print an "[Error]" prefix at the beginning of 
 error message.
 `
+const errorWord = "error " // suffix space is word boundary
 
 const analyzerName = "AZURERMR001"
 
@@ -59,13 +60,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 		firstArgValue, _ := strconv.Unquote(firstArg.Value) // can assume well-formed Go
 
-		if !strings.HasPrefix(strings.ToLower(firstArgValue), "error ") {
+		if !strings.HasPrefix(strings.ToLower(firstArgValue), errorWord) {
 			continue
 		}
 
 		// suggested fix
 		var callExprBuf bytes.Buffer
-		firstArg.Value = fmt.Sprintf("%sfailed%s%s", string(firstArg.Value[0]), firstArgValue[len("error"):], string(firstArg.Value[len(firstArg.Value)-1]))
+		firstArg.Value = string(firstArg.Value[0]) + firstArgValue[len(errorWord):] + string(firstArg.Value[len(firstArg.Value)-1])
 
 		if err := format.Node(&callExprBuf, pass.Fset, callExpr); err != nil {
 			return nil, fmt.Errorf("error formatting new expression: %s", err)
@@ -77,7 +78,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			Message: fmt.Sprintf(`%s: prefer other leading words instead of "error" as error message`, analyzerName),
 			SuggestedFixes: []analysis.SuggestedFix{
 				{
-					Message: "Replace",
+					Message: "Remove",
 					TextEdits: []analysis.TextEdit{
 						{
 							Pos:     callExpr.Pos(),
