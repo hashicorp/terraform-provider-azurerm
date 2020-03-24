@@ -213,15 +213,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		return tf.ImportAsExistsError("azurerm_key_vault", *existing.ID)
 	}
 
-	// before creating check to see if the key vault exists in the soft delete state
-	softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
-	if err != nil {
-		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
-			return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
-		}
-	}
-
-	// if so, does the user want us to recover it?
+	// before creating check to see if the key vault exists in the soft delete state, if the user wants it
 	recoverSoftDeletedKeyVault := false
 	if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
 		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
@@ -230,6 +222,16 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		recoverSoftDeletedKeyVault = true
+	}
+
+	//do the check
+	if recoverSoftDeletedKeyVault {
+		softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
+		if err != nil {
+			if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
+				return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
+			}
+		}
 	}
 
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
