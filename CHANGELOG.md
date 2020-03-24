@@ -4,6 +4,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_hpc_cache_blob_target` [GH-6035]
+* **New Resource:** `azurerm_machine_learning_workspace` [GH-5696]
 
 IMPROVEMENTS:
 
@@ -12,16 +13,21 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.10.0` [GH-6169]
 * Data Source `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_automation_schedule` - adding validation for the timezone field [GH-5759]
+* `azurerm_hpc_cache` - exposing the `mount_addresses` field [GH-6214]
 * `azurerm_lb` - allow ipv6 addresses for the `private_ip_address` property [GH-6125]
-* `azurerm_public_ip`: can now be dynamic for ipv6 addresses [GH-6140]
+* `azurerm_managed_disk` - the `disk_encryption_set_id` field is no longer ForceNew [GH-6207]
+* `azurerm_public_ip` - support for Dynamic IPv6 Addresses [GH-6140]
 * `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_storage_share` - exposing the `resource_manager_id` field [GH-6170]
+* `azurerm_traffic_manager_profile` - support for the `custom_header` property [GH-5923]
 
 BUG FIXES:
 
 * `azurerm_analysis_server` - switching the `ipv4_firewall_rule` block to a Set rather than a List to handle this being unordered [GH-6179]
+* `netapp_volume` - allow up to `102400` MB for the `storage_quota_in_gb` property [GH-6228]
 * `azurerm_policy_definition` - fixing a bug when parsing the Management Group ID [GH-5981]
 * `azurerm_postgresql_server` - updating the validation for the `name` field [GH-6064]
+* `azurerm_sql_database` - use the correct base URI for the Extended Auditing Policies Client [GH-6233]
 
 ## 2.2.0 (March 18, 2020)
 
