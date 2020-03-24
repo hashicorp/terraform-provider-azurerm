@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	CustomResourceProviderClient *customproviders.CustomResourceProviderClient
+	CustomProviderClient *customproviders.CustomResourceProviderClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	CustomResourceProviderClient := customproviders.NewCustomResourceProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&CustomResourceProviderClient.Client, o.ResourceManagerAuthorizer)
+	CustomProviderClient := customproviders.NewCustomResourceProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CustomProviderClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		CustomResourceProviderClient: &CustomResourceProviderClient,
+		CustomProviderClient: &CustomProviderClient,
 	}
 }

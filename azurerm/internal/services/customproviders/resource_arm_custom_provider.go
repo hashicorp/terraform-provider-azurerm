@@ -2,7 +2,7 @@ package customproviders
 
 import (
 	"fmt"
-	"regexp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/validate"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders"
@@ -19,14 +19,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCustomResourceProvider() *schema.Resource {
+func resourceArmCustomProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCustomResourceProviderCreateUpdate,
-		Read:   resourceArmCustomResourceProviderRead,
-		Update: resourceArmCustomResourceProviderCreateUpdate,
-		Delete: resourceArmCustomResourceProviderDelete,
+		Create: resourceArmCustomProviderCreateUpdate,
+		Read:   resourceArmCustomProviderRead,
+		Update: resourceArmCustomProviderCreateUpdate,
+		Delete: resourceArmCustomProviderDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CustomResourceProviderID(id)
+			_, err := parse.CustomProviderID(id)
 			return err
 		}),
 
@@ -42,7 +42,7 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCustomResourceProviderName,
+				ValidateFunc: validate.CustomProviderName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -50,7 +50,7 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"resource_type": {
-				Type:         schema.TypeList,
+				Type:         schema.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"resource_type", "action"},
 				Elem: &schema.Resource{
@@ -63,7 +63,7 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 						"endpoint": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 						"routing_type": {
 							Type:     schema.TypeString,
@@ -79,7 +79,7 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 			},
 
 			"action": {
-				Type:         schema.TypeList,
+				Type:         schema.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"resource_type", "action"},
 				Elem: &schema.Resource{
@@ -92,37 +92,21 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 						"endpoint": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-						"routing_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(customproviders.ResourceTypeRoutingProxy),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(customproviders.ResourceTypeRoutingProxy),
-							}, false),
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 					},
 				},
 			},
 
 			"validation": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"specification": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(customproviders.Swagger),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(customproviders.Swagger),
-							}, false),
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 					},
 				},
@@ -133,21 +117,20 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 	}
 }
 
-func resourceArmCustomResourceProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).CustomProviders.CustomResourceProviderClient
+func resourceArmCustomProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Custom Resource Provider %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Custom Provider %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -158,42 +141,42 @@ func resourceArmCustomResourceProviderCreateUpdate(d *schema.ResourceData, meta 
 
 	provider := customproviders.CustomRPManifest{
 		CustomRPManifestProperties: &customproviders.CustomRPManifestProperties{
-			ResourceTypes: expandCustomResourceProviderResourceType(d.Get("resource_type").([]interface{})),
-			Actions:       expandCustomResourceProviderAction(d.Get("action").([]interface{})),
-			Validations:   expandCustomResourceProviderValidation(d.Get("validation").([]interface{})),
+			ResourceTypes: expandCustomProviderResourceType(d.Get("resource_type").(*schema.Set).List()),
+			Actions:       expandCustomProviderAction(d.Get("action").(*schema.Set).List()),
+			Validations:   expandCustomProviderValidation(d.Get("validation").(*schema.Set).List()),
 		},
 		Location: &location,
-		Tags:     tags.Expand(t),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, provider)
 	if err != nil {
-		return fmt.Errorf("creating/updating Custom Resource Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Custom Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Custom Resource Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Custom Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Custom Resource Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Custom Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read Custom Resource Provider %q (Resource Group %q) ID", name, resourceGroup)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("cannot read Custom Provider %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmCustomResourceProviderRead(d, meta)
+	return resourceArmCustomProviderRead(d, meta)
 }
 
-func resourceArmCustomResourceProviderRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).CustomProviders.CustomResourceProviderClient
+func resourceArmCustomProviderRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomResourceProviderID(d.Id())
+	id, err := parse.CustomProviderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -205,7 +188,7 @@ func resourceArmCustomResourceProviderRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Custom Resource Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Custom Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -228,29 +211,29 @@ func resourceArmCustomResourceProviderRead(d *schema.ResourceData, meta interfac
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
-func resourceArmCustomResourceProviderDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).CustomProviders.CustomResourceProviderClient
+func resourceArmCustomProviderDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomResourceProviderID(d.Id())
+	id, err := parse.CustomProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Custom Resource Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Custom Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Custom Resource Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Custom Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandCustomResourceProviderResourceType(input []interface{}) *[]customproviders.CustomRPResourceTypeRouteDefinition {
+func expandCustomProviderResourceType(input []interface{}) *[]customproviders.CustomRPResourceTypeRouteDefinition {
 	if len(input) == 0 {
 		return nil
 	}
@@ -296,7 +279,7 @@ func flattenCustomProviderResourceType(input *[]customproviders.CustomRPResource
 	return definitions
 }
 
-func expandCustomResourceProviderAction(input []interface{}) *[]customproviders.CustomRPActionRouteDefinition {
+func expandCustomProviderAction(input []interface{}) *[]customproviders.CustomRPActionRouteDefinition {
 	if len(input) == 0 {
 		return nil
 	}
@@ -309,9 +292,8 @@ func expandCustomResourceProviderAction(input []interface{}) *[]customproviders.
 
 		attrs := v.(map[string]interface{})
 		definitions = append(definitions, customproviders.CustomRPActionRouteDefinition{
-			RoutingType: customproviders.ActionRouting(attrs["routing_type"].(string)),
-			Name:        utils.String(attrs["name"].(string)),
-			Endpoint:    utils.String(attrs["endpoint"].(string)),
+			Name:     utils.String(attrs["name"].(string)),
+			Endpoint: utils.String(attrs["endpoint"].(string)),
 		})
 	}
 
@@ -327,8 +309,6 @@ func flattenCustomProviderAction(input *[]customproviders.CustomRPActionRouteDef
 	for _, v := range *input {
 		definition := make(map[string]interface{})
 
-		definition["routing_type"] = string(v.RoutingType)
-
 		if v.Name != nil {
 			definition["name"] = *v.Name
 		}
@@ -342,7 +322,7 @@ func flattenCustomProviderAction(input *[]customproviders.CustomRPActionRouteDef
 	return definitions
 }
 
-func expandCustomResourceProviderValidation(input []interface{}) *[]customproviders.CustomRPValidations {
+func expandCustomProviderValidation(input []interface{}) *[]customproviders.CustomRPValidations {
 	if len(input) == 0 {
 		return nil
 	}
@@ -356,8 +336,7 @@ func expandCustomResourceProviderValidation(input []interface{}) *[]customprovid
 
 		attrs := v.(map[string]interface{})
 		validations = append(validations, customproviders.CustomRPValidations{
-			ValidationType: customproviders.ValidationType(attrs["type"].(string)),
-			Specification:  utils.String(attrs["specification"].(string)),
+			Specification: utils.String(attrs["specification"].(string)),
 		})
 	}
 
@@ -373,8 +352,6 @@ func flattenCustomProviderValidation(input *[]customproviders.CustomRPValidation
 	for _, v := range *input {
 		validation := make(map[string]interface{})
 
-		validation["type"] = string(v.ValidationType)
-
 		if v.Specification != nil {
 			validation["specification"] = *v.Specification
 		}
@@ -382,22 +359,4 @@ func flattenCustomProviderValidation(input *[]customproviders.CustomRPValidation
 		validations = append(validations, validation)
 	}
 	return validations
-}
-
-func validateCustomResourceProviderName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
-	}
-
-	if len(name) < 3 || len(name) > 63 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 63 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
 }

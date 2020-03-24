@@ -8,7 +8,7 @@ func TestCustomResourceProviderId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *CustomResourceProviderId
+		Expected *CustomProviderId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestCustomResourceProviderId(t *testing.T) {
 		{
 			Name:  "Search Service ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.CustomProviders/resourceproviders/Provider1",
-			Expected: &CustomResourceProviderId{
+			Expected: &CustomProviderId{
 				Name:          "Provider1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestCustomResourceProviderId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := CustomResourceProviderID(v.Input)
+		actual, err := CustomProviderID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

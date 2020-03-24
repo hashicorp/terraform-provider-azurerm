@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCustomResourceProvider_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_resource_provider", "test")
+func TestAccAzureRMCustomProvider_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCustomResourceProviderDestroy,
+		CheckDestroy: testCheckAzureRMCustomProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCustomResourceProvider_basic(data),
+				Config: testAccAzureRMCustomProvider_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCustomResourceProviderExists(data.ResourceName),
+					testCheckAzureRMCustomProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,32 +32,32 @@ func TestAccAzureRMCustomResourceProvider_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCustomResourceProvider_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_resource_provider", "test")
+func TestAccAzureRMCustomProvider_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCustomResourceProviderDestroy,
+		CheckDestroy: testCheckAzureRMCustomProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCustomResourceProvider_basic(data),
+				Config: testAccAzureRMCustomProvider_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCustomResourceProviderExists(data.ResourceName),
+					testCheckAzureRMCustomProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCustomResourceProvider_complete(data),
+				Config: testAccAzureRMCustomProvider_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCustomResourceProviderExists(data.ResourceName),
+					testCheckAzureRMCustomProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCustomResourceProvider_basic(data),
+				Config: testAccAzureRMCustomProvider_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCustomResourceProviderExists(data.ResourceName),
+					testCheckAzureRMCustomProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -65,32 +65,32 @@ func TestAccAzureRMCustomResourceProvider_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCustomResourceProvider_action(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_custom_resource_provider", "test")
+func TestAccAzureRMCustomProvider_action(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCustomResourceProviderDestroy,
+		CheckDestroy: testCheckAzureRMCustomProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCustomResourceProvider_action(data),
+				Config: testAccAzureRMCustomProvider_action(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCustomResourceProviderExists(data.ResourceName),
+					testCheckAzureRMCustomProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCustomResourceProvider_actionUpdate(data),
+				Config: testAccAzureRMCustomProvider_actionUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCustomResourceProviderExists(data.ResourceName),
+					testCheckAzureRMCustomProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCustomResourceProvider_action(data),
+				Config: testAccAzureRMCustomProvider_action(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCustomResourceProviderExists(data.ResourceName),
+					testCheckAzureRMCustomProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -98,9 +98,9 @@ func TestAccAzureRMCustomResourceProvider_action(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCustomResourceProviderExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMCustomProviderExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).CustomProviders.CustomResourceProviderClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).CustomProviders.CustomProviderClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -109,34 +109,34 @@ func testCheckAzureRMCustomResourceProviderExists(name string) resource.TestChec
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		id, err := parse.CustomResourceProviderID(rs.Primary.ID)
+		id, err := parse.CustomProviderID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on CustomResourceProviderClient: %+v", err)
+			return fmt.Errorf("Bad: Get on CustomProviderClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Custom Resource Provider %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: Custom Provider %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMCustomResourceProviderDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).CustomProviders.CustomResourceProviderClient
+func testCheckAzureRMCustomProviderDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).CustomProviders.CustomProviderClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_custom_resource_provider" {
+		if rs.Type != "azurerm_custom_provider" {
 			continue
 		}
 
-		id, err := parse.CustomResourceProviderID(rs.Primary.ID)
+		id, err := parse.CustomProviderID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -147,23 +147,23 @@ func testCheckAzureRMCustomResourceProviderDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Custom Resource Provider still exists: %q", id.Name)
+			return fmt.Errorf("Custom Provider still exists: %q", id.Name)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMCustomResourceProvider_basic(data acceptance.TestData) string {
+func testAccAzureRMCustomProvider_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cr-%d"
+  name     = "acctestRG-cp-%d"
   location = "%s"
 }
-resource "azurerm_custom_resource_provider" "test" {
+resource "azurerm_custom_provider" "test" {
   name                = "accTEst_saa%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -176,16 +176,16 @@ resource "azurerm_custom_resource_provider" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCustomResourceProvider_complete(data acceptance.TestData) string {
+func testAccAzureRMCustomProvider_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cr-%d"
+  name     = "acctestRG-cp-%d"
   location = "%s"
 }
-resource "azurerm_custom_resource_provider" "test" {
+resource "azurerm_custom_provider" "test" {
   name                = "accTEst_saa%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -207,16 +207,16 @@ resource "azurerm_custom_resource_provider" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCustomResourceProvider_action(data acceptance.TestData) string {
+func testAccAzureRMCustomProvider_action(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cr-%d"
+  name     = "acctestRG-cp-%d"
   location = "%s"
 }
-resource "azurerm_custom_resource_provider" "test" {
+resource "azurerm_custom_provider" "test" {
   name                = "accTEst_saa%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -229,16 +229,16 @@ resource "azurerm_custom_resource_provider" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCustomResourceProvider_actionUpdate(data acceptance.TestData) string {
+func testAccAzureRMCustomProvider_actionUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cr-%d"
+  name     = "acctestRG-cp-%d"
   location = "%s"
 }
-resource "azurerm_custom_resource_provider" "test" {
+resource "azurerm_custom_provider" "test" {
   name                = "accTEst_saa%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
