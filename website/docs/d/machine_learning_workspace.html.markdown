@@ -13,6 +13,10 @@ Use this data source to access information about an existing Machine Learning Wo
 # Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_machine_learning_workspace" "existing" {
   name                = "example-workspace"
   resource_group_name = "example-resources"

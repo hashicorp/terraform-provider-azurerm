@@ -131,11 +131,11 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "Basic",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Basic",
 					"Enterprise",
 				}, true),
-				Default: "Basic",
 			},
 
 			"tags": tags.Schema(),
@@ -167,9 +167,6 @@ func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta inte
 	applicationInsightsId := d.Get("application_insights_id").(string)
 	skuName := d.Get("sku_name").(string)
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity := expandArmMachineLearningWorkspaceIdentity(identityRaw)
-
 	t := d.Get("tags").(map[string]interface{})
 
 	workspace := machinelearningservices.Workspace{
@@ -177,7 +174,7 @@ func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta inte
 		Location: &location,
 		Tags:     tags.Expand(t),
 		Sku:      &machinelearningservices.Sku{Name: utils.String(skuName)},
-		Identity: identity,
+		Identity: expandArmMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{})),
 		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
 			StorageAccount:      &storageAccountId,
 			ApplicationInsights: &applicationInsightsId,

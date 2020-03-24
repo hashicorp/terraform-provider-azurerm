@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,11 +32,6 @@ func TestAccAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMachineLearningWorkspace_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -200,7 +194,7 @@ func testAccAzureRMMachineLearningWorkspace_basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctestworkspace-%d"
+  name                    = "acctest-MLW-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   application_insights_id = azurerm_application_insights.test.id
@@ -220,7 +214,7 @@ func testAccAzureRMMachineLearningWorkspace_basicUpdated(data acceptance.TestDat
 %s
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctestworkspace-%d"
+  name                    = "acctest-MLW-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   friendly_name           = "test-workspace"
@@ -254,7 +248,7 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctestworkspace-%[2]d"
+  name                    = "acctest-MLW-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   friendly_name           = "test-workspace"
@@ -289,7 +283,7 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctestworkspace-%[2]d"
+  name                    = "acctest-MLW-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   friendly_name           = "test-workspace-updated"
@@ -333,6 +327,10 @@ resource "azurerm_machine_learning_workspace" "import" {
 
 func testAccAzureRMMachineLearningWorkspace_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {

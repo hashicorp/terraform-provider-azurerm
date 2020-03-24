@@ -2,6 +2,7 @@ package machinelearning
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/validate"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -21,8 +22,9 @@ func dataSourceArmMachineLearningWorkspace() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
