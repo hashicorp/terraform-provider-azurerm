@@ -93,7 +93,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 			"metastores": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -200,10 +200,11 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	gatewayRaw := d.Get("gateway").([]interface{})
 	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
-	metastoresRaw := d.Get("metastores").([]interface{})
-	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
+	if metastoresRaw, ok := d.GetOkExists("metastores"); ok {
+		metastores := expandHDInsightsMetastore(metastoresRaw.([]interface{}))
+		for k, v := range metastores {
+			configurations[k] = v
+		}
 	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
