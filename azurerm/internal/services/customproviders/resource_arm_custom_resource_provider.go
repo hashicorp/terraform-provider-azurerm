@@ -2,17 +2,16 @@ package customproviders
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -59,12 +58,12 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"endpoint": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.URLIsHTTPS,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"routing_type": {
 							Type:     schema.TypeString,
@@ -88,12 +87,12 @@ func resourceArmCustomResourceProvider() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"endpoint": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.URLIsHTTPS,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"routing_type": {
 							Type:     schema.TypeString,
@@ -280,7 +279,7 @@ func flattenCustomProviderResourceType(input *[]customproviders.CustomRPResource
 
 	definitions := make([]interface{}, 0)
 	for _, v := range *input {
-		definition := make(map[string]interface{}, 0)
+		definition := make(map[string]interface{})
 
 		definition["routing_type"] = string(v.RoutingType)
 
@@ -326,7 +325,7 @@ func flattenCustomProviderAction(input *[]customproviders.CustomRPActionRouteDef
 
 	definitions := make([]interface{}, 0)
 	for _, v := range *input {
-		definition := make(map[string]interface{}, 0)
+		definition := make(map[string]interface{})
 
 		definition["routing_type"] = string(v.RoutingType)
 
@@ -372,7 +371,7 @@ func flattenCustomProviderValidation(input *[]customproviders.CustomRPValidation
 
 	validations := make([]interface{}, 0)
 	for _, v := range *input {
-		validation := make(map[string]interface{}, 0)
+		validation := make(map[string]interface{})
 
 		validation["type"] = string(v.ValidationType)
 
