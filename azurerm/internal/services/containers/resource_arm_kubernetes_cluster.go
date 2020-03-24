@@ -298,13 +298,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"outbound_ports_allocated": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										Default:      -1,
+										Default:      0,
 										ValidateFunc: validation.IntBetween(0, 64000),
 									},
 									"idle_timeout_in_minutes": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										Default:      -1,
+										Default:      30,
 										ValidateFunc: validation.IntBetween(4, 120),
 									},
 									"managed_outbound_ip_count": {
@@ -1185,11 +1185,11 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 
 	profile := &containerservice.ManagedClusterLoadBalancerProfile{}
 
-	if port := config["outbound_ports_allocated"].(int); port >= 0 {
+	if port, ok := config["outbound_ports_allocated"].(int); ok {
 		profile.AllocatedOutboundPorts = utils.Int32(int32(port))
 	}
 
-	if idleTimeout := config["idle_timeout_in_minutes"].(int); idleTimeout >= 0 {
+	if idleTimeout, ok := config["idle_timeout_in_minutes"].(int); ok {
 		profile.IdleTimeoutInMinutes = utils.Int32(int32(idleTimeout))
 	}
 
@@ -1279,17 +1279,13 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	if lbp := profile.LoadBalancerProfile; lbp != nil {
 		lb := make(map[string]interface{})
 
-		port := int32(-1)
 		if v := lbp.AllocatedOutboundPorts; v != nil {
-			port = *v
+			lb["outbound_ports_allocated"] = v
 		}
-		lb["outbound_ports_allocated"] = port
 
-		idleTimeout := int32(-1)
 		if v := lbp.IdleTimeoutInMinutes; v != nil {
-			idleTimeout = *v
+			lb["idle_timeout_in_minutes"] = v
 		}
-		lb["idle_timeout_in_minutes"] = idleTimeout
 
 		if ips := lbp.ManagedOutboundIPs; ips != nil {
 			if count := ips.Count; count != nil {
