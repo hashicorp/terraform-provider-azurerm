@@ -396,6 +396,33 @@ func TestAccAzureRMManagedDisk_attachedDiskUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	var d compute.Disk
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMManagedDisk_storageTypeUpdateWhilstAttached(data, "Standard_LRS"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMManagedDisk_storageTypeUpdateWhilstAttached(data, "Premium_LRS"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 // TODO: More property update tests?
 
 func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
@@ -1039,32 +1066,82 @@ resource "azurerm_managed_disk" "test" {
 }
 
 func testAccAzureRMManagedDisk_managedDiskAttached(data acceptance.TestData, diskSize int) string {
+	template := testAccAzureRMManagedDisk_templateAttached(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "%d-disk1"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = %d
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = "0"
+  caching            = "None"
+}
+`, template, data.RandomInteger, diskSize)
+}
+
+func testAccAzureRMManagedDisk_storageTypeUpdateWhilstAttached(data acceptance.TestData, storageAccountType string) string {
+	template := testAccAzureRMManagedDisk_templateAttached(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestdisk-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "%s"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = "0"
+  caching            = "None"
+}
+`, template, data.RandomInteger, storageAccountType)
+}
+
+func testAccAzureRMManagedDisk_templateAttached(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
+  name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
+  name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%[1]d"
+  name                = "acctni-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1076,7 +1153,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%[1]d"
+  name                  = "acctvm-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
@@ -1097,7 +1174,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   os_profile {
-    computer_name  = "hn%[1]d"
+    computer_name  = "hostname"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -1106,21 +1183,5 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 }
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "%[1]d-disk1"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = %[3]d
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = azurerm_managed_disk.test.id
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  lun                = "0"
-  caching            = "None"
-}
-`, data.RandomInteger, data.Locations.Primary, diskSize)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

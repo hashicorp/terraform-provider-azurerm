@@ -292,7 +292,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
@@ -321,6 +321,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("storage_account_type") {
+		shouldShutDown = true
 		var skuName compute.DiskStorageAccountTypes
 		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
 			if strings.EqualFold(storageAccountType, string(v)) {
@@ -356,7 +357,6 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("disk_size_gb") {
 		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
-			// restart is required on disk resize
 			shouldShutDown = true
 			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
 		} else {
@@ -365,6 +365,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("disk_encryption_set_id") {
+		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			diskUpdate.Encryption = &compute.Encryption{
 				Type:                compute.EncryptionAtRestWithCustomerKey,
