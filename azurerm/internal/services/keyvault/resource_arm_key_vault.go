@@ -214,22 +214,24 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// before creating check to see if the key vault exists in the soft delete state
-	softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
-	if err != nil {
-		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
-			return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
-		}
-	}
-
-	// if so, does the user want us to recover it?
 	recoverSoftDeletedKeyVault := false
-	if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
-		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
-			// this exists but the users opted out so they must import this it out-of-band
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location))
+	if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
+		softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
+		if err != nil {
+			if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
+				return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
+			}
 		}
 
-		recoverSoftDeletedKeyVault = true
+		// if so, does the user want us to recover it?
+		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
+			if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
+				// this exists but the users opted out so they must import this it out-of-band
+				return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location))
+			}
+
+			recoverSoftDeletedKeyVault = true
+		}
 	}
 
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
