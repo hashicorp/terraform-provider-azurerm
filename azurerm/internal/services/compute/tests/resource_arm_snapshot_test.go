@@ -365,9 +365,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -390,10 +388,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "generated-certificate"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
-  key_type  = "RSA"
-  key_size  = 2048
+  name         = "generated-certificate"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
   key_opts = [
     "decrypt",
@@ -406,9 +404,9 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name      = "secret-sauce"
-  value     = "szechuan"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "secret-sauce"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_snapshot" "test" {

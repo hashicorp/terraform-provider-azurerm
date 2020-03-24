@@ -4058,53 +4058,53 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%[1]d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%[1]d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
     name                          = "default"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_nat_pool" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
+  resource_group_name            = azurerm_resource_group.test.name
   name                           = "ssh"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = azurerm_lb.test.id
   protocol                       = "Tcp"
   frontend_port_start            = 50000
   frontend_port_end              = 50119
@@ -4114,8 +4114,8 @@ resource "azurerm_lb_nat_pool" "test" {
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -4137,9 +4137,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name                                   = "TestIPConfiguration"
       primary                                = true
-      subnet_id                              = "${azurerm_subnet.test.id}"
-      load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
-      load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.test.id}"]
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
   }
 
