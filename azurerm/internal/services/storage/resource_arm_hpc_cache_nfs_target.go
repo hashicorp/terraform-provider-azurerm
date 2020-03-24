@@ -20,28 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func namespaceJunctionResource() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"namespace_path": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: storageValidate.HPCCacheNamespacePath,
-			},
-			"nfs_export": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: storageValidate.HPCCacheNFSExport,
-			},
-			"target_path": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "",
-				ValidateFunc: storageValidate.HPCCacheNFSTargetPath,
-			},
-		},
-	}
-}
 func resourceArmHPCCacheNFSTarget() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmHPCCacheNFSTargetCreateOrUpdate,
@@ -78,7 +56,35 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"host_name": {
+			"namespace_junction": {
+				Type:     schema.TypeSet,
+				Required: true,
+				MinItems: 1,
+				// Confirmed with service team that they have a mac of 10 that is enforced by the backend.
+				MaxItems: 10,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"namespace_path": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: storageValidate.HPCCacheNamespacePath,
+						},
+						"nfs_export": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: storageValidate.HPCCacheNFSExport,
+						},
+						"target_path": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "",
+							ValidateFunc: storageValidate.HPCCacheNFSTargetPath,
+						},
+					},
+				},
+			},
+
+			"target_host_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -93,15 +99,6 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 					"WRITE_WORKLOAD_15",
 					"WRITE_AROUND",
 				}, false),
-			},
-
-			"namespace_junction": {
-				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
-				// Confirmed with service team that they have a mac of 10 that is enforced by the backend.
-				MaxItems: 10,
-				Elem:     namespaceJunctionResource(),
 			},
 		},
 	}
@@ -130,18 +127,14 @@ func resourceArmHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	hostName := d.Get("host_name").(string)
-	usageModel := d.Get("usage_model").(string)
-	namespaceJunctions := expandNamespaceJunctions(d.Get("namespace_junction").(*schema.Set).List())
-
 	// Construct parameters
 	param := &storagecache.StorageTarget{
 		StorageTargetProperties: &storagecache.StorageTargetProperties{
-			Junctions:  namespaceJunctions,
+			Junctions:  expandNamespaceJunctions(d.Get("namespace_junction").(*schema.Set).List()),
 			TargetType: storagecache.StorageTargetTypeNfs3,
 			Nfs3: &storagecache.Nfs3Target{
-				Target:     &hostName,
-				UsageModel: &usageModel,
+				Target:     utils.String(d.Get("target_host_name").(string)),
+				UsageModel: utils.String(d.Get("usage_model").(string)),
 			},
 		},
 	}
@@ -193,25 +186,14 @@ func resourceArmHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cache_name", id.Cache)
 
-	if resp.StorageTargetProperties == nil {
-		return fmt.Errorf("Error retrieving HPC Cache NFS Target %q (Resource Group %q, Cahe %q): `properties` was nil", id.Name, id.ResourceGroup, id.Cache)
-	}
-	props := *resp.StorageTargetProperties
-
-	var hostName, usageModel string
-	if nfs3 := props.Nfs3; nfs3 != nil {
-		if nfs3.Target != nil {
-			hostName = *nfs3.Target
+	if props := resp.StorageTargetProperties; props != nil {
+		if nfs3 := props.Nfs3; nfs3 != nil {
+			d.Set("target_host_name", nfs3.Target)
+			d.Set("usage_model", nfs3.UsageModel)
 		}
-		if nfs3.UsageModel != nil {
-			usageModel = *nfs3.UsageModel
+		if err := d.Set("namespace_junction", flattenNamespaceJunctions(props.Junctions)); err != nil {
+			return fmt.Errorf(`Error setting "namespace_junction" %q (Resource Group %q, Cahe %q): %w`, id.Name, id.ResourceGroup, id.Cache, err)
 		}
-	}
-	d.Set("host_name", hostName)
-	d.Set("usage_model", usageModel)
-
-	if err := d.Set("namespace_junction", schema.NewSet(schema.HashResource(namespaceJunctionResource()), flattenNamespaceJunctions(props.Junctions))); err != nil {
-		return fmt.Errorf(`Error setting "namespace_junction" %q (Resource Group %q, Cahe %q): %w`, id.Name, id.ResourceGroup, id.Cache, err)
 	}
 
 	return nil
@@ -261,20 +243,20 @@ func flattenNamespaceJunctions(input *[]storagecache.NamespaceJunction) []interf
 
 	output := make([]interface{}, 0)
 
-	for _, v := range *input {
+	for _, e := range *input {
 		namespacePath := ""
-		if v.NamespacePath != nil {
-			namespacePath = *v.NamespacePath
+		if v := e.NamespacePath; v != nil {
+			namespacePath = *v
 		}
 
 		nfsExport := ""
-		if v.NfsExport != nil {
-			nfsExport = *v.NfsExport
+		if v := e.NfsExport; v != nil {
+			nfsExport = *v
 		}
 
 		targetPath := ""
-		if v.TargetPath != nil {
-			targetPath = *v.TargetPath
+		if v := e.TargetPath; v != nil {
+			targetPath = *v
 		}
 
 		output = append(output, map[string]interface{}{

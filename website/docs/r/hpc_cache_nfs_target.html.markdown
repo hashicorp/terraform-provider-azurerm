@@ -3,12 +3,12 @@ subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hpc_cache_nfs_target"
 description: |-
-  Manages a NFS Target within a HPC Cache .
+  Manages a NFS Target within a HPC Cache.
 ---
 
 # azurerm_hpc_cache_nfs_target
 
-Manages a NFS Target within a HPC Cache .
+Manages a NFS Target within a HPC Cache.
 
 ## Example Usage
 
@@ -111,7 +111,7 @@ resource "azurerm_hpc_cache_nfs_target" "example" {
   name                = "examplehpcnfstarget"
   resource_group_name = azurerm_resource_group.example.name
   cache_name          = azurerm_hpc_cache.example.name
-  host_name           = azurerm_linux_virtual_machine.example.private_ip_address
+  target_host_name    = azurerm_linux_virtual_machine.example.private_ip_address
   usage_model         = "READ_HEAVY_INFREQ"
   namespace_junction {
     namespace_path = "/nfs/a1"
@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `cache_name` - (Required) The name HPC Cache, which the HPC Cache NFS Target will be added to. Changing this forces a new resource to be created.
 
-* `host_name` - (Required) The IP address or fully qulified domain name (FQDN) of the HPC Cache NFS target. Changing this forces a new resource to be created.
+* `target_host_name` - (Required) The IP address or fully qualified domain name (FQDN) of the HPC Cache NFS target. Changing this forces a new resource to be created.
 
 * `usage_model` - (Required) The type of usage of the HPC Cache NFS Target.
 

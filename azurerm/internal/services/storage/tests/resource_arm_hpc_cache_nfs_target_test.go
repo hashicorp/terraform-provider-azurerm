@@ -119,6 +119,9 @@ func TestAccAzureRMHPCCacheNFSTarget_requiresImport(t *testing.T) {
 
 func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StorageTargetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("HPC Cache NFS Target not found: %s", resourceName)
@@ -128,9 +131,6 @@ func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestC
 		if err != nil {
 			return err
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StorageTargetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Cache, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -175,19 +175,19 @@ func testAccAzureRMHPCCacheNFSTarget_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_hpc_cache_nfs_target" "test" {
-  name                     = "acctest-HPCCTGT-%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  cache_name               = azurerm_hpc_cache.test.name
-  host_name                = azurerm_linux_virtual_machine.test.private_ip_address
-  usage_model              = "READ_HEAVY_INFREQ"
+  name                = "acctest-HPCCTGT-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  cache_name          = azurerm_hpc_cache.test.name
+  target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model         = "READ_HEAVY_INFREQ"
   namespace_junction {
     namespace_path = "/nfs/a1"
-    nfs_export = "/export/a"
-    target_path = "1"
+    nfs_export     = "/export/a"
+    target_path    = "1"
   }
   namespace_junction {
     namespace_path = "/nfs/b"
-    nfs_export = "/export/b"
+    nfs_export     = "/export/b"
   }
 }
 `, template, data.RandomString)
@@ -199,19 +199,19 @@ func testAccAzureRMHPCCacheNFSTarget_usageModel(data acceptance.TestData) string
 %s
 
 resource "azurerm_hpc_cache_nfs_target" "test" {
-  name                     = "acctest-HPCCTGT-%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  cache_name               = azurerm_hpc_cache.test.name
-  host_name                = azurerm_linux_virtual_machine.test.private_ip_address
-  usage_model              = "WRITE_WORKLOAD_15"
+  name                = "acctest-HPCCTGT-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  cache_name          = azurerm_hpc_cache.test.name
+  target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model         = "WRITE_WORKLOAD_15"
   namespace_junction {
     namespace_path = "/nfs/a1"
-    nfs_export = "/export/a"
-    target_path = "1"
+    nfs_export     = "/export/a"
+    target_path    = "1"
   }
   namespace_junction {
     namespace_path = "/nfs/b"
-    nfs_export = "/export/b"
+    nfs_export     = "/export/b"
   }
 }
 `, template, data.RandomString)
@@ -223,15 +223,15 @@ func testAccAzureRMHPCCacheNFSTarget_namespaceJunction(data acceptance.TestData)
 %s
 
 resource "azurerm_hpc_cache_nfs_target" "test" {
-  name                     = "acctest-HPCCTGT-%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  cache_name               = azurerm_hpc_cache.test.name
-  host_name                = azurerm_linux_virtual_machine.test.private_ip_address
-  usage_model              = "WRITE_WORKLOAD_15"
+  name                = "acctest-HPCCTGT-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  cache_name          = azurerm_hpc_cache.test.name
+  target_host_name    = azurerm_linux_virtual_machine.test.private_ip_address
+  usage_model         = "WRITE_WORKLOAD_15"
   namespace_junction {
     namespace_path = "/nfs/a"
-    nfs_export = "/export/a"
-    target_path = ""
+    nfs_export     = "/export/a"
+    target_path    = ""
   }
 }
 `, template, data.RandomString)
@@ -243,19 +243,19 @@ func testAccAzureRMHPCCacheNFSTarget_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_hpc_cache_nfs_target" "import" {
-  name                 = azurerm_hpc_cache_nfs_target.test.name
-  resource_group_name  = azurerm_hpc_cache_nfs_target.test.resource_group_name
-  cache_name           = azurerm_hpc_cache_nfs_target.test.cache_name
-  host_name            = azurerm_hpc_cache_nfs_target.test.host_name
-  usage_model          = azurerm_hpc_cache_nfs_target.test.usage_model
+  name                = azurerm_hpc_cache_nfs_target.test.name
+  resource_group_name = azurerm_hpc_cache_nfs_target.test.resource_group_name
+  cache_name          = azurerm_hpc_cache_nfs_target.test.cache_name
+  target_host_name    = azurerm_hpc_cache_nfs_target.test.target_host_name
+  usage_model         = azurerm_hpc_cache_nfs_target.test.usage_model
   namespace_junction {
     namespace_path = "/nfs/a1"
-    nfs_export = "/export/a"
-    target_path = "1"
+    nfs_export     = "/export/a"
+    target_path    = "1"
   }
   namespace_junction {
     namespace_path = "/nfs/b"
-    nfs_export = "/export/b"
+    nfs_export     = "/export/b"
   }
 }
 `, template)
@@ -302,12 +302,12 @@ CUSTOM_DATA
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctest-vm-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
+  name                            = "acctest-vm-%[2]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@$$w0rd1234!"
   disable_password_authentication = false
 
   network_interface_ids = [
