@@ -25,6 +25,17 @@ resource "azurerm_sql_server" "example" {
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
+  }
+
+  tags = {
+    environment = "production"
+  }
 }
 
 resource "azurerm_storage_account" "example" {
@@ -40,13 +51,6 @@ resource "azurerm_sql_database" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = "West US"
   server_name         = azurerm_sql_server.example.name
-
-  extended_auditing_policy {
-    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
-    storage_account_access_key_is_secondary = true
-    retention_in_days                       = 6
-  }
 
   tags = {
     environment = "production"
@@ -119,15 +123,6 @@ The following arguments are supported:
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
 * `use_server_default` - (Optional) Should the default server policy be used? Defaults to `Disabled`.
-
----
-
-A `extended_auditing_policy` block supports the following:
-
-* `storage_account_access_key` - (Required) Specifies the access key to use for the auditing storage account.
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
-* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
-* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
 ## Attributes Reference
 

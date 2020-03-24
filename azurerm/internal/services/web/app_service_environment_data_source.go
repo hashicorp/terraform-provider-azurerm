@@ -64,10 +64,6 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
-	if loc := resp.Location; loc != nil {
-		d.Set("location", azure.NormalizeLocation(*loc))
-	}
-
 	if props := resp.AppServiceEnvironment; props != nil {
 		frontendScaleFactor := 0
 		if props.FrontEndScaleFactor != nil {

@@ -54,9 +54,7 @@ lintunused:
 	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=unused; ES=$$?; kill -9 $$PID; exit $$ES
 
 lintrest:
-	@echo "==> Checking source code against linters..."
-	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --config .golangci-travis.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+	./scripts/run-lint-rest.sh
 
 depscheck:
 	@echo "==> Checking source code with go mod tidy..."
