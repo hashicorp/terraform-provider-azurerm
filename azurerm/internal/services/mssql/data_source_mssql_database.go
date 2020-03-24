@@ -109,17 +109,12 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("collation", props.Collation)
-
-		if props.ElasticPoolID != nil {
-			d.Set("elastic_pool_id", props.ElasticPoolID)
-		}
-
+		d.Set("elastic_pool_id", props.ElasticPoolID)
 		d.Set("license_type", props.LicenseType)
-		d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
-
-		if props.ReadReplicaCount != nil {
-			d.Set("read_replica_count", props.ReadReplicaCount)
+		if props.MaxSizeBytes != nil {
+			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
+		d.Set("read_replica_count", props.ReadReplicaCount)
 		d.Set("read_scale", props.ReadScale)
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)

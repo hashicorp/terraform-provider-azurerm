@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
@@ -67,6 +68,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.CreateModeCopy),
@@ -117,7 +119,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.MsSqlDBMinCapacity,
+				ValidateFunc: azValidate.FloatInSlice([]float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}),
 			},
 
 			"restore_point_in_time": {
@@ -185,6 +187,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 
 func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -207,7 +210,6 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	serverResp, err := serverClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
 		return fmt.Errorf("Failure in making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
@@ -218,18 +220,22 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Location is empty from making Read request on MsSql Server %q", serverId.Name)
 	}
 
-	t := d.Get("tags").(map[string]interface{})
-
 	params := sql.Database{
-		Name:               &name,
-		Location:           &location,
-		DatabaseProperties: &sql.DatabaseProperties{},
+		Name:     &name,
+		Location: &location,
+		DatabaseProperties: &sql.DatabaseProperties{
+			AutoPauseDelay:   utils.Int32(int32(d.Get("auto_pause_delay_in_minutes").(int))),
+			Collation:        utils.String(d.Get("collation").(string)),
+			ElasticPoolID:    utils.String(d.Get("elastic_pool_id").(string)),
+			LicenseType:      sql.DatabaseLicenseType(d.Get("license_type").(string)),
+			MinCapacity:      utils.Float(d.Get("min_capacity").(float64)),
+			ReadReplicaCount: utils.Int32(int32(d.Get("read_replica_count").(int))),
+			ReadScale:        sql.DatabaseReadScale(d.Get("read_scale").(string)),
+			SampleName:       sql.SampleName(d.Get("sample_name").(string)),
+			ZoneRedundant:    utils.Bool(d.Get("zone_redundant").(bool)),
+		},
 
-		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("auto_pause_delay_in_minutes"); ok {
-		params.DatabaseProperties.AutoPauseDelay = utils.Int32(int32(v.(int)))
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("create_mode"); ok {
@@ -239,24 +245,8 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.CreateMode = sql.CreateMode(v.(string))
 	}
 
-	if v, ok := d.GetOk("collation"); ok {
-		params.DatabaseProperties.Collation = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("elastic_pool_id"); ok {
-		params.DatabaseProperties.ElasticPoolID = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("license_type"); ok {
-		params.DatabaseProperties.LicenseType = sql.DatabaseLicenseType(v.(string))
-	}
-
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
-	}
-
-	if v, ok := d.GetOk("min_capacity"); ok {
-		params.DatabaseProperties.MinCapacity = utils.Float(v.(float64))
 	}
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
@@ -267,18 +257,6 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
 	}
 
-	if v, ok := d.GetOk("read_replica_count"); ok {
-		params.DatabaseProperties.ReadReplicaCount = utils.Int32(int32(v.(int)))
-	}
-
-	if v, ok := d.GetOk("read_scale"); ok {
-		params.DatabaseProperties.ReadScale = sql.DatabaseReadScale(v.(string))
-	}
-
-	if v, ok := d.GetOk("sample_name"); ok {
-		params.DatabaseProperties.SampleName = sql.SampleName(v.(string))
-	}
-
 	if v, ok := d.GetOk("sku_name"); ok {
 		params.Sku = &sql.Sku{
 			Name: utils.String(v.(string)),
@@ -287,10 +265,6 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("source_database_id"); ok {
 		params.DatabaseProperties.SourceDatabaseID = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOkExists("zone_redundant"); ok {
-		params.DatabaseProperties.ZoneRedundant = utils.Bool(v.(bool))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, params)
@@ -346,27 +320,15 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("server_id", serverResp.ID)
 
 	if props := resp.DatabaseProperties; props != nil {
-		if props.AutoPauseDelay != nil {
-			d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
-		}
-
+		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
-
-		if props.ElasticPoolID != nil {
-			d.Set("elastic_pool_id", props.ElasticPoolID)
-		}
-
+		d.Set("elastic_pool_id", props.ElasticPoolID)
 		d.Set("license_type", props.LicenseType)
-		d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
-
-		if props.MinCapacity != nil {
-			d.Set("min_capacity", props.MinCapacity)
+		if props.MaxSizeBytes != nil {
+			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
-
-		if props.ReadReplicaCount != nil {
-			d.Set("read_replica_count", props.ReadReplicaCount)
-		}
-
+		d.Set("min_capacity", props.MinCapacity)
+		d.Set("read_replica_count", props.ReadReplicaCount)
 		d.Set("read_scale", props.ReadScale)
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)

@@ -39,25 +39,6 @@ func MsSqlDatabaseAutoPauseDelay(i interface{}, k string) (warnings []string, er
 	return warnings, errors
 }
 
-func MsSqlDBMinCapacity(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(float64)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be float", k))
-		return warnings, errors
-	}
-
-	valid := []float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}
-
-	for _, validValue := range valid {
-		if v == validValue {
-			return warnings, errors
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
-	return warnings, errors
-}
-
 func MsSqlDBSkuName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile(`(?i)(^(GP_S_Gen5_(1|2|4|6|8|10|12|14|16))$|^((GP|HS|BC)_Gen4_(1|2|3|4|5|6|7|8|9|10|16|24))$|^((GP|HS|BC)_Gen5_(2|4|6|8|10|12|14|16|18|20|24|32|40|80))$|^(BC_M_(8|10|12|14|16|18|20|24|32|64|128))$|^(Basic)$|^(ElasticPool)$|^(S(0|1|2|3|4|6|7|9|12))$|^(P(1|2|4|6|11|15))$|^(DW(1|2|3|4|5|10|15|20)00c)$|^(DS(1|2|3|4|5|6|10|12|15|20)00)$)`),

@@ -360,7 +360,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssqldb-%[1]d"
+  name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
 }
 
@@ -610,7 +610,7 @@ func testAccAzureRMMsSqlDatabase_createSecondaryMode(data acceptance.TestData) s
 %s
 
 resource "azurerm_resource_group" "second" {
-  name     = "acctestRG-mssqldb2-%[2]d"
+  name     = "acctestRG-mssql2-%[2]d"
   location = "%[3]s"
 }
 

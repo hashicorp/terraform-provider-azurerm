@@ -27,28 +27,6 @@ func TestMsSqlDatabaseAutoPauseDelay(t *testing.T) {
 	}
 }
 
-func TestMsSqlDBMinCapacity(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"-1", true},
-		{"0.25", true},
-		{"0.5", false},
-		{"1.25", false},
-		{"2", false},
-		{"2.25", true},
-	}
-
-	for _, test := range testCases {
-		_, es := MsSqlDBMinCapacity(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
-
 func TestMsSqlDBSkuName(t *testing.T) {
 	tests := []struct {
 		name  string
