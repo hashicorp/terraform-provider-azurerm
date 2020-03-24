@@ -33,6 +33,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_hpc_cache":                            resourceArmHPCCache(),
+		"azurerm_hpc_cache_blob_target":                resourceArmHPCCacheBlobTarget(),
 		"azurerm_storage_account":                      resourceArmStorageAccount(),
 		"azurerm_storage_account_customer_managed_key": resourceArmStorageAccountCustomerManagedKey(),
 		"azurerm_storage_account_network_rules":        resourceArmStorageAccountNetworkRules(),

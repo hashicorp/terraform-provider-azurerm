@@ -196,7 +196,7 @@ func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 // the expectations of the ResourceData schema, so that this data can be
 // managed by Terradata state.
 func flattenAzureRmDnsMxRecords(records *[]dns.MxRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
+	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {

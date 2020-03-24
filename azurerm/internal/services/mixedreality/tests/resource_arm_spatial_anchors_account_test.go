@@ -125,7 +125,7 @@ resource "azurerm_spatial_anchors_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func testAccAzureRMSpatialAnchorsAccount_complete(data acceptance.TestData) string {
@@ -148,5 +148,5 @@ resource "azurerm_spatial_anchors_account" "test" {
     Environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }

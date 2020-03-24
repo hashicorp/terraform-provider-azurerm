@@ -36,7 +36,8 @@ func NewTagDescriptionClient(subscriptionID string) TagDescriptionClient {
 	return NewTagDescriptionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTagDescriptionClientWithBaseURI creates an instance of the TagDescriptionClient client.
+// NewTagDescriptionClientWithBaseURI creates an instance of the TagDescriptionClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTagDescriptionClientWithBaseURI(baseURI string, subscriptionID string) TagDescriptionClient {
 	return TagDescriptionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

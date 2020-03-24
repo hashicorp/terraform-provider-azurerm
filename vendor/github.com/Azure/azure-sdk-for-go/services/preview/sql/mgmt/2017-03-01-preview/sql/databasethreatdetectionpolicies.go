@@ -38,7 +38,8 @@ func NewDatabaseThreatDetectionPoliciesClient(subscriptionID string) DatabaseThr
 }
 
 // NewDatabaseThreatDetectionPoliciesClientWithBaseURI creates an instance of the DatabaseThreatDetectionPoliciesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewDatabaseThreatDetectionPoliciesClientWithBaseURI(baseURI string, subscriptionID string) DatabaseThreatDetectionPoliciesClient {
 	return DatabaseThreatDetectionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -111,8 +112,7 @@ func (client DatabaseThreatDetectionPoliciesClient) CreateOrUpdatePreparer(ctx c
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseThreatDetectionPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -192,8 +192,7 @@ func (client DatabaseThreatDetectionPoliciesClient) GetPreparer(ctx context.Cont
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseThreatDetectionPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always

@@ -37,7 +37,9 @@ func NewServerAutomaticTuningClient(subscriptionID string) ServerAutomaticTuning
 	return NewServerAutomaticTuningClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerAutomaticTuningClientWithBaseURI creates an instance of the ServerAutomaticTuningClient client.
+// NewServerAutomaticTuningClientWithBaseURI creates an instance of the ServerAutomaticTuningClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewServerAutomaticTuningClientWithBaseURI(baseURI string, subscriptionID string) ServerAutomaticTuningClient {
 	return ServerAutomaticTuningClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +105,7 @@ func (client ServerAutomaticTuningClient) GetPreparer(ctx context.Context, resou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAutomaticTuningClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -184,8 +185,7 @@ func (client ServerAutomaticTuningClient) UpdatePreparer(ctx context.Context, re
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAutomaticTuningClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

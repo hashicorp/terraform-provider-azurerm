@@ -80,7 +80,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 			},
 
 			"ipv4_firewall_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -368,7 +368,7 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 		EnablePowerBIService: utils.Bool(d.Get("enable_power_bi_service").(bool)),
 	}
 
-	firewallRules := d.Get("ipv4_firewall_rule").([]interface{})
+	firewallRules := d.Get("ipv4_firewall_rule").(*schema.Set).List()
 
 	fwRules := make([]analysisservices.IPv4FirewallRule, len(firewallRules))
 	for i, v := range firewallRules {
