@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -41,7 +42,7 @@ func SchemaHDInsightTier() *schema.Schema {
 			string(hdinsight.Premium),
 		}, false),
 		// TODO: file a bug about this
-		DiffSuppressFunc: SuppressLocationDiff,
+		DiffSuppressFunc: location.DiffSuppressFunc,
 	}
 }
 

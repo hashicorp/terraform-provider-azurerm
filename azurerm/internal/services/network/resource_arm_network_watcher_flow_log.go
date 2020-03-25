@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -132,8 +133,8 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 						"workspace_region": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azure.NormalizeLocation,
-							DiffSuppressFunc: azure.SuppressLocationDiff,
+							StateFunc:        location.StateFunc,
+							DiffSuppressFunc: location.DiffSuppressFunc,
 						},
 
 						"workspace_resource_id": {
