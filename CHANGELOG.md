@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.10.0` [GH-6169]
 * Data Source `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_automation_schedule` - adding validation for the timezone field [GH-5759]
+* `azurerm_cognitive_account` - support for the `qna_runtime_endpoint` property [GH-5778]
 * `azurerm_hpc_cache` - exposing the `mount_addresses` field [GH-6214]
 * `azurerm_lb` - allow ipv6 addresses for the `private_ip_address` property [GH-6125]
 * `azurerm_managed_disk` - the `disk_encryption_set_id` field is no longer ForceNew [GH-6207]
