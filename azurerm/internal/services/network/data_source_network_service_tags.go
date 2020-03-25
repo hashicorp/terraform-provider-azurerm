@@ -69,6 +69,10 @@ func dataSourceNetworkServiceTagsRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if props := sti.Properties; props != nil {
+			if props.Region == nil {
+				continue
+			}
+
 			if azure.NormalizeLocation(*props.Region) == locationFilter {
 				addressPrefixes := make([]string, 0)
 				if props.AddressPrefixes != nil {
