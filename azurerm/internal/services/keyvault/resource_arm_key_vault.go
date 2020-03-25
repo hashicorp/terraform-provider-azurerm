@@ -225,11 +225,6 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 		// if so, does the user want us to recover it?
 		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
-			if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
-				// this exists but the users opted out so they must import this it out-of-band
-				return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location))
-			}
-
 			recoverSoftDeletedKeyVault = true
 		}
 	}
