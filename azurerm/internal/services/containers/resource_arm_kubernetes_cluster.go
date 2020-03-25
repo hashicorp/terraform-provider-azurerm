@@ -42,41 +42,37 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			if v, exists := diff.GetOk("network_profile"); exists {
+			if v, exists := diff.GetOkExists("network_profile"); exists {
 				rawProfiles := v.([]interface{})
-				if len(rawProfiles) == 0 {
-					return nil
+
+				if len(rawProfiles) != 0 {
+					// then ensure the conditionally-required fields are set
+					profile := rawProfiles[0].(map[string]interface{})
+
+					if networkPlugin := profile["network_plugin"].(string); networkPlugin != "" {
+						dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
+						dnsServiceIP := profile["dns_service_ip"].(string)
+						serviceCidr := profile["service_cidr"].(string)
+						podCidr := profile["pod_cidr"].(string)
+
+						// Azure network plugin is not compatible with pod_cidr
+						if podCidr != "" && networkPlugin == "azure" {
+							return fmt.Errorf("`pod_cidr` and `azure` cannot be set together.")
+						}
+
+						// if not All empty values or All set values.
+						if !(dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") && !(dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "") {
+							return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
+						}
+					}
 				}
+			}
 
-				// then ensure the conditionally-required fields are set
-				profile := rawProfiles[0].(map[string]interface{})
-				networkPlugin := profile["network_plugin"].(string)
+			_, principalExists := diff.GetOkExists("service_principal")
+			_, identityExists := diff.GetOkExists("identity")
 
-				if networkPlugin != "kubenet" && networkPlugin != "azure" {
-					return nil
-				}
-
-				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
-				dnsServiceIP := profile["dns_service_ip"].(string)
-				serviceCidr := profile["service_cidr"].(string)
-				podCidr := profile["pod_cidr"].(string)
-
-				// Azure network plugin is not compatible with pod_cidr
-				if podCidr != "" && networkPlugin == "azure" {
-					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together.")
-				}
-
-				// All empty values.
-				if dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "" {
-					return nil
-				}
-
-				// All set values.
-				if dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "" {
-					return nil
-				}
-
-				return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
+			if principalExists && identityExists {
+				return fmt.Errorf("`service_principal` and `identity` cannot both be set.")
 			}
 
 			return nil
@@ -112,7 +108,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"service_principal": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -408,6 +405,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"windows_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -451,8 +449,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Sensitive: true,
 						},
 						"client_certificate": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_key": {
 							Type:      schema.TypeString,
@@ -460,8 +459,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -492,8 +492,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Sensitive: true,
 						},
 						"client_certificate": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_key": {
 							Type:      schema.TypeString,
@@ -501,8 +502,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -587,9 +589,26 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	managedClusterIdentity := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
 
-	// since the Create and Update use separate methods, there's no point extracting this out
-	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
-	servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
+	// if the resource is using user-assigned managed identity the ManagedClusterServicePrincipalProfile
+	// needs to have both the cliend_id and the client_secret, but it the resource is using
+	// system-assigned managed identity the ManagedClusterServicePrincipalProfile needs to have
+	// a client_id of "msi" and a client_secret of "nil"
+	servicePrincipalProfile := containerservice.ManagedClusterServicePrincipalProfile{
+		ClientID: utils.String("msi"),
+	}
+
+	// if the service_principal is defined use that value to fill out the ManagedClusterServicePrincipalProfile
+	// but only if it's not defined as msi
+	if servicePrincipalProfileRaw := d.Get("service_principal").([]interface{}); len(servicePrincipalProfileRaw) != 0 {
+		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
+
+		if strings.ToLower(servicePrincipalProfileVal["client_id"].(string)) != "msi" {
+			servicePrincipalProfile = containerservice.ManagedClusterServicePrincipalProfile{
+				ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
+				Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
+			}
+		}
+	}
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
@@ -607,10 +626,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			NetworkProfile:          networkProfile,
 			NodeResourceGroup:       utils.String(nodeResourceGroup),
 			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
-			ServicePrincipalProfile: &containerservice.ManagedClusterServicePrincipalProfile{
-				ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
-				Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
-			},
+			ServicePrincipalProfile: &servicePrincipalProfile,
 		},
 		Identity: managedClusterIdentity,
 		Tags:     tags.Expand(t),
@@ -657,16 +673,24 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-		servicePrincipals := d.Get("service_principal").([]interface{})
-		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
+		params := containerservice.ManagedClusterServicePrincipalProfile{}
 
-		clientId := servicePrincipalRaw["client_id"].(string)
-		clientSecret := servicePrincipalRaw["client_secret"].(string)
+		if servicePrincipals := d.Get("service_principal").([]interface{}); len(servicePrincipals) > 0 {
+			servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
 
-		params := containerservice.ManagedClusterServicePrincipalProfile{
-			ClientID: utils.String(clientId),
-			Secret:   utils.String(clientSecret),
+			clientId := servicePrincipalRaw["client_id"].(string)
+			clientSecret := servicePrincipalRaw["client_secret"].(string)
+
+			params = containerservice.ManagedClusterServicePrincipalProfile{
+				ClientID: utils.String(clientId),
+				Secret:   utils.String(clientSecret),
+			}
+		} else {
+			params = containerservice.ManagedClusterServicePrincipalProfile{
+				ClientID: utils.String("msi"),
+			}
 		}
+
 		future, err := clusterClient.ResetServicePrincipalProfile(ctx, id.ResourceGroup, id.Name, params)
 		if err != nil {
 			return fmt.Errorf("updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -1430,6 +1454,14 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 		if len(val) > 0 && val[0] != nil {
 			raw := val[0].(map[string]interface{})
 			clientSecret = raw["client_secret"].(string)
+		}
+	}
+
+	if clientId == "msi" {
+		return []interface{}{
+			map[string]interface{}{
+				"client_id": clientId,
+			},
 		}
 	}
 
