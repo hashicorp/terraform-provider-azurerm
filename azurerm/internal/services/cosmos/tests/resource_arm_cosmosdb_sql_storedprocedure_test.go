@@ -5,15 +5,18 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMCosmosDbSqlStoredProcedure_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_storedprocedure", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,7 +27,6 @@ func TestAccAzureRMCosmosDbSqlStoredProcedure_basic(t *testing.T) {
 				Config: testAccAzureRMCosmosDbSqlStoredProcedure_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlStoredProcedureExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "body"),
 				),
 			},
 			data.ImportStep(),
@@ -33,7 +35,7 @@ func TestAccAzureRMCosmosDbSqlStoredProcedure_basic(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDbSqlStoredProcedure_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_storedprocedure", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_stored_procedure", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -42,19 +44,17 @@ func TestAccAzureRMCosmosDbSqlStoredProcedure_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlStoredProcedure_update(data, "function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }"),
+				Config: testAccAzureRMCosmosDbSqlStoredProcedure_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlStoredProcedureExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "body"),
 				),
 			},
 			data.ImportStep(),
 			{
 
-				Config: testAccAzureRMCosmosDbSqlStoredProcedure_update(data, "function () { var context = getContext(); var response = context.getResponse(); response.setBody('Welcome To Sprocs in Terraform'); }"),
+				Config: testAccAzureRMCosmosDbSqlStoredProcedure_update(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlStoredProcedureExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "body"),
 				),
 			},
 			data.ImportStep(),
@@ -67,7 +67,7 @@ func testCheckAzureRMCosmosDbSqlStoredProcedureDestroy(s *terraform.State) error
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmosdb_sql_storedprocedure" {
+		if rs.Type != "azurerm_cosmosdb_sql_stored_procedure" {
 			continue
 		}
 
@@ -122,11 +122,56 @@ func testCheckAzureRMCosmosDbSqlStoredProcedureExists(resourceName string) resou
 	}
 }
 
+func testAccAzureRMCosmosDbSqlStoredProcedure_base(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-cosmos-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  consistency_policy {
+    consistency_level = "%[4]s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-sql-database-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-sql-container-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+}
+`, data.Locations.Primary, data.RandomInteger, string(documentdb.GlobalDocumentDB), string(documentdb.Session))
+}
+
 func testAccAzureRMCosmosDbSqlStoredProcedure_basic(data acceptance.TestData) string {
+	template := testAccAzureRMCosmosDbSqlStoredProcedure_base(data)
+
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_sql_storedprocedure" "test" {
+resource "azurerm_cosmosdb_sql_stored_procedure" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
@@ -134,17 +179,23 @@ resource "azurerm_cosmosdb_sql_storedprocedure" "test" {
   container_name      = azurerm_cosmosdb_sql_container.test.name
 
   body = <<BODY
-  	function () { var context = getContext(); var response = context.getResponse(); response.setBody('Hello, World'); }
+  	function () {
+		  var context = getContext();
+		  var response = context.getResponse();
+		  response.setBody('Hello, World');
+		}
 BODY
 }
-`, testAccAzureRMCosmosDbSqlContainer_basic(data), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbSqlStoredProcedure_update(data acceptance.TestData, storedProcedureBody string) string {
+func testAccAzureRMCosmosDbSqlStoredProcedure_update(data acceptance.TestData) string {
+	template := testAccAzureRMCosmosDbSqlStoredProcedure_base(data)
+
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_sql_storedprocedure" "test" {
+resource "azurerm_cosmosdb_sql_stored_procedure" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
@@ -152,8 +203,12 @@ resource "azurerm_cosmosdb_sql_storedprocedure" "test" {
   container_name      = azurerm_cosmosdb_sql_container.test.name
 
   body = <<BODY
-%[3]s
+	function () {
+			var context = getContext();
+			var response = context.getResponse();
+			response.setBody('Welcome To Sprocs in Terraform');
+		}
 BODY
 }
-`, testAccAzureRMCosmosDbSqlContainer_basic(data), data.RandomInteger, storedProcedureBody)
+`, template, data.RandomInteger)
 }
