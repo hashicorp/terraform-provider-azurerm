@@ -180,10 +180,10 @@ resource "azurerm_cosmosdb_sql_stored_procedure" "test" {
 
   body = <<BODY
   	function () {
-		  var context = getContext();
-		  var response = context.getResponse();
-		  response.setBody('Hello, World');
-		}
+		var context = getContext();
+		var response = context.getResponse();
+		response.setBody('Hello, World');
+	}
 BODY
 }
 `, template, data.RandomInteger)
@@ -204,10 +204,10 @@ resource "azurerm_cosmosdb_sql_stored_procedure" "test" {
 
   body = <<BODY
 	function () {
-			var context = getContext();
-			var response = context.getResponse();
-			response.setBody('Welcome To Sprocs in Terraform');
-		}
+		var context = getContext();
+		var response = context.getResponse();
+		response.setBody('Welcome To Sprocs in Terraform');
+	}
 BODY
 }
 `, template, data.RandomInteger)
