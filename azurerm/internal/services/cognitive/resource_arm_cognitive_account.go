@@ -153,22 +153,23 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
-	apiProperties, err := expandCognitiveAccountAPIProperties(d, kind)
-	if err != nil {
-		return err
-	}
-
-	properties := cognitiveservices.Account{
+	props := cognitiveservices.Account{
 		Kind:     utils.String(kind),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties: apiProperties,
+			APIProperties: &cognitiveservices.AccountAPIProperties{
+				QnaRuntimeEndpoint: utils.String(d.Get("qna_runtime_endpoint").(string)),
+			},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, properties); err != nil {
+	if kind == "QnAMaker" && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
+		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+	}
+
+	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
 		return fmt.Errorf("Error creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -197,20 +198,21 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	apiProperties, err := expandCognitiveAccountAPIProperties(d, d.Get("kind").(string))
-	if err != nil {
-		return err
-	}
-
-	properties := cognitiveservices.Account{
+	props := cognitiveservices.Account{
 		Sku: sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties: apiProperties,
+			APIProperties: &cognitiveservices.AccountAPIProperties{
+				QnaRuntimeEndpoint: utils.String(d.Get("qna_runtime_endpoint").(string)),
+			},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, properties); err != nil {
+	if d.Get("kind").(string) == "QnAMaker" && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
+		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+	}
+
+	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
 		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -251,8 +253,8 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.Properties; props != nil {
-		if props.APIProperties != nil && props.APIProperties.QnaRuntimeEndpoint != nil {
-			d.Set("qna_runtime_endpoint", props.APIProperties.QnaRuntimeEndpoint)
+		if apiProps := props.APIProperties; apiProps != nil {
+			d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
 		}
 		d.Set("endpoint", props.Endpoint)
 	}
@@ -310,17 +312,5 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 	return &cognitiveservices.Sku{
 		Name: utils.String(skuName),
 		Tier: tier,
-	}, nil
-}
-
-func expandCognitiveAccountAPIProperties(d *schema.ResourceData, kind string) (*cognitiveservices.AccountAPIProperties, error) {
-	qnaRuntimeEnvironment := d.Get("qna_runtime_endpoint").(string)
-
-	if kind == "QnAMaker" && qnaRuntimeEnvironment == "" {
-		return nil, fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
-	}
-
-	return &cognitiveservices.AccountAPIProperties{
-		QnaRuntimeEndpoint: utils.String(qnaRuntimeEnvironment),
 	}, nil
 }
