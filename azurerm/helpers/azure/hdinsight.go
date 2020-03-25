@@ -39,7 +39,7 @@ func SchemaHDInsightTier() *schema.Schema {
 		ValidateFunc: validation.StringInSlice([]string{
 			string(hdinsight.Standard),
 			string(hdinsight.Premium),
-		}, false),
+		}, true),
 		// TODO: file a bug about this
 		DiffSuppressFunc: SuppressLocationDiff,
 	}
