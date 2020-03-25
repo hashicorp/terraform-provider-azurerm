@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -64,7 +64,7 @@ func resourceArmCosmosGremlinDatabase() *schema.Resource {
 }
 
 func resourceArmCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -127,7 +127,7 @@ func resourceArmCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -155,9 +155,9 @@ func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if d.HasChange("throughput") {
-		throughputParameters := documentdb.ThroughputUpdateParameters{
-			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-				Resource: &documentdb.ThroughputResource{
+		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
+			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
+				Resource: &documentdb.ThroughputSettingsResource{
 					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
 				},
 			},
@@ -184,7 +184,7 @@ func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,8 +206,10 @@ func resourceArmCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.Account)
-	if props := resp.GremlinDatabaseProperties; props != nil {
-		d.Set("name", props.ID)
+	if props := resp.GremlinDatabaseGetProperties; props != nil {
+		if res := props.Resource; res != nil {
+			d.Set("name", res.ID)
+		}
 	}
 
 	throughputResp, err := client.GetGremlinDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database)
@@ -218,14 +220,18 @@ func resourceArmCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface
 			d.Set("throughput", nil)
 		}
 	} else {
-		d.Set("throughput", throughputResp.Throughput)
+		if props := throughputResp.ThroughputSettingsGetProperties; props != nil {
+			if res := props.Resource; res != nil {
+				d.Set("throughput", res.Throughput)
+			}
+		}
 	}
 
 	return nil
 }
 
 func resourceArmCosmosGremlinDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
