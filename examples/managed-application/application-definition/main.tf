@@ -4,6 +4,10 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+data "azurerm_role_definition" "builtin" {
+  name = "Contributor"
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = var.location
@@ -20,6 +24,6 @@ resource "azurerm_managed_application_definition" "example" {
 
   authorization {
     service_principal_id = data.azurerm_client_config.current.object_id
-    role_definition_id   = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id   = split("/", data.azurerm_role_definition.builtin.id)[length(split("/", data.azurerm_role_definition.builtin.id)) - 1]
   }
 }
