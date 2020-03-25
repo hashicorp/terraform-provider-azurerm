@@ -35,7 +35,9 @@ func NewAdvancedThreatProtectionClient(subscriptionID string, ascLocation string
 	return NewAdvancedThreatProtectionClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAdvancedThreatProtectionClientWithBaseURI creates an instance of the AdvancedThreatProtectionClient client.
+// NewAdvancedThreatProtectionClientWithBaseURI creates an instance of the AdvancedThreatProtectionClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewAdvancedThreatProtectionClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AdvancedThreatProtectionClient {
 	return AdvancedThreatProtectionClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
@@ -101,8 +103,7 @@ func (client AdvancedThreatProtectionClient) CreatePreparer(ctx context.Context,
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client AdvancedThreatProtectionClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -176,8 +177,7 @@ func (client AdvancedThreatProtectionClient) GetPreparer(ctx context.Context, re
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AdvancedThreatProtectionClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetResponder handles the response to the Get request. The method always

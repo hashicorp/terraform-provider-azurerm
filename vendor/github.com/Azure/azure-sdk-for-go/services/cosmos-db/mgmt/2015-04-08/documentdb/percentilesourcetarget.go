@@ -36,7 +36,9 @@ func NewPercentileSourceTargetClient(subscriptionID string) PercentileSourceTarg
 	return NewPercentileSourceTargetClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPercentileSourceTargetClientWithBaseURI creates an instance of the PercentileSourceTargetClient client.
+// NewPercentileSourceTargetClientWithBaseURI creates an instance of the PercentileSourceTargetClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewPercentileSourceTargetClientWithBaseURI(baseURI string, subscriptionID string) PercentileSourceTargetClient {
 	return PercentileSourceTargetClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -124,8 +126,7 @@ func (client PercentileSourceTargetClient) ListMetricsPreparer(ctx context.Conte
 // ListMetricsSender sends the ListMetrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client PercentileSourceTargetClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListMetricsResponder handles the response to the ListMetrics request. The method always

@@ -36,7 +36,8 @@ func NewAPIExportClient(subscriptionID string) APIExportClient {
 	return NewAPIExportClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAPIExportClientWithBaseURI creates an instance of the APIExportClient client.
+// NewAPIExportClientWithBaseURI creates an instance of the APIExportClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAPIExportClientWithBaseURI(baseURI string, subscriptionID string) APIExportClient {
 	return APIExportClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

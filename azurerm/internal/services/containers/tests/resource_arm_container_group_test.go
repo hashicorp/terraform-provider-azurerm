@@ -129,7 +129,6 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.password", "acrpassword"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.protocol", "UDP"),
 				),
 			},
 			{
@@ -454,7 +453,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   identity {
@@ -498,7 +500,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   identity {
@@ -543,7 +548,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   identity {
@@ -581,7 +589,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   tags = {
@@ -608,7 +619,10 @@ resource "azurerm_container_group" "import" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   tags = {
@@ -1083,7 +1097,6 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_share" "test" {
   name = "acctestss-%d"
 
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
   quota = 50

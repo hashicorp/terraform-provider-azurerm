@@ -24,6 +24,7 @@ func TestAccAzureRMHPCCache_basic(t *testing.T) {
 				Config: testAccAzureRMHPCCache_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHPCCacheExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
 				),
 			},
 			data.ImportStep(),

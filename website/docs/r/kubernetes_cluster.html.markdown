@@ -109,8 +109,6 @@ The following arguments are supported:
 
 * `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
--> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
-
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -253,7 +251,7 @@ A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
 
--> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `agent_pool_profile` block must be set and `pod_cidr` must not be set.
+-> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `default_node_pool` block must be set and `pod_cidr` must not be set.
 
 * `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/en-us/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created. 
 
@@ -336,8 +334,6 @@ The following attributes are exported:
 
 * `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
 
--> **NOTE:**  At this time Private Link is in Public Preview.
-
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
@@ -390,6 +386,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 ```
 provider "kubernetes" {
+  load_config_file       = "false"
   host                   = "${azurerm_kubernetes_cluster.main.kube_config.0.host}"
   username               = "${azurerm_kubernetes_cluster.main.kube_config.0.username}"
   password               = "${azurerm_kubernetes_cluster.main.kube_config.0.password}"

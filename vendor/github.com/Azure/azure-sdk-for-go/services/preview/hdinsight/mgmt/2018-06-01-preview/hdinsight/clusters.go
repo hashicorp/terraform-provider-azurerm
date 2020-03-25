@@ -36,7 +36,8 @@ func NewClustersClient(subscriptionID string) ClustersClient {
 	return NewClustersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewClustersClientWithBaseURI creates an instance of the ClustersClient client.
+// NewClustersClientWithBaseURI creates an instance of the ClustersClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewClustersClientWithBaseURI(baseURI string, subscriptionID string) ClustersClient {
 	return ClustersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -98,9 +99,8 @@ func (client ClustersClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) CreateSender(req *http.Request) (future ClustersCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -175,9 +175,8 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -260,9 +259,8 @@ func (client ClustersClient) ExecuteScriptActionsPreparer(ctx context.Context, r
 // ExecuteScriptActionsSender sends the ExecuteScriptActions request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) ExecuteScriptActionsSender(req *http.Request) (future ClustersExecuteScriptActionsFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -342,8 +340,7 @@ func (client ClustersClient) GetPreparer(ctx context.Context, resourceGroupName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -419,8 +416,7 @@ func (client ClustersClient) GetGatewaySettingsPreparer(ctx context.Context, res
 // GetGatewaySettingsSender sends the GetGatewaySettings request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) GetGatewaySettingsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetGatewaySettingsResponder handles the response to the GetGatewaySettings request. The method always
@@ -492,8 +488,7 @@ func (client ClustersClient) ListPreparer(ctx context.Context) (*http.Request, e
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -605,8 +600,7 @@ func (client ClustersClient) ListByResourceGroupPreparer(ctx context.Context, re
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -717,9 +711,8 @@ func (client ClustersClient) ResizePreparer(ctx context.Context, resourceGroupNa
 // ResizeSender sends the Resize request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) ResizeSender(req *http.Request) (future ClustersResizeFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -796,9 +789,8 @@ func (client ClustersClient) RotateDiskEncryptionKeyPreparer(ctx context.Context
 // RotateDiskEncryptionKeySender sends the RotateDiskEncryptionKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) RotateDiskEncryptionKeySender(req *http.Request) (future ClustersRotateDiskEncryptionKeyFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -881,8 +873,7 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -955,9 +946,8 @@ func (client ClustersClient) UpdateGatewaySettingsPreparer(ctx context.Context, 
 // UpdateGatewaySettingsSender sends the UpdateGatewaySettings request. The method will close the
 // http.Response Body if it receives an error.
 func (client ClustersClient) UpdateGatewaySettingsSender(req *http.Request) (future ClustersUpdateGatewaySettingsFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

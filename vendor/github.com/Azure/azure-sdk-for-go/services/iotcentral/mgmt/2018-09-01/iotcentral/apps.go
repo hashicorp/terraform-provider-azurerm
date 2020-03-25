@@ -36,7 +36,8 @@ func NewAppsClient(subscriptionID string) AppsClient {
 	return NewAppsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAppsClientWithBaseURI creates an instance of the AppsClient client.
+// NewAppsClientWithBaseURI creates an instance of the AppsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAppsClientWithBaseURI(baseURI string, subscriptionID string) AppsClient {
 	return AppsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -108,8 +109,7 @@ func (client AppsClient) CheckNameAvailabilityPreparer(ctx context.Context, oper
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
@@ -192,8 +192,7 @@ func (client AppsClient) CheckSubdomainAvailabilityPreparer(ctx context.Context,
 // CheckSubdomainAvailabilitySender sends the CheckSubdomainAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) CheckSubdomainAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckSubdomainAvailabilityResponder handles the response to the CheckSubdomainAvailability request. The method always
@@ -280,9 +279,8 @@ func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -357,9 +355,8 @@ func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) DeleteSender(req *http.Request) (future AppsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -439,8 +436,7 @@ func (client AppsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -515,8 +511,7 @@ func (client AppsClient) ListByResourceGroupPreparer(ctx context.Context, resour
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -625,8 +620,7 @@ func (client AppsClient) ListBySubscriptionPreparer(ctx context.Context) (*http.
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -735,8 +729,7 @@ func (client AppsClient) ListTemplatesPreparer(ctx context.Context) (*http.Reque
 // ListTemplatesSender sends the ListTemplates request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) ListTemplatesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListTemplatesResponder handles the response to the ListTemplates request. The method always
@@ -846,9 +839,8 @@ func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client AppsClient) UpdateSender(req *http.Request) (future AppsUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
