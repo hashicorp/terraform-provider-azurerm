@@ -60,6 +60,9 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.FromImage),
 					string(compute.Import),
 					string(compute.Restore),
+					// RM-3552.  See also:
+					// <https://github.com/Azure/azure-sdk-for-go/blob/a46b3306041faf0e29af43a0d424a29283e323d2/services/compute/mgmt/2019-12-01/compute/models.go#L290>
+					"Upload",
 				}, true),
 			},
 
