@@ -11,11 +11,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
+	azuread "github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -41,9 +42,10 @@ func resourceArmCosmosDbSQLStoredProcedure() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azuread.NoEmptyStrings,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -56,8 +58,9 @@ func resourceArmCosmosDbSQLStoredProcedure() *schema.Resource {
 			},
 
 			"body": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azuread.NoEmptyStrings,
 			},
 
 			"container_name": {
@@ -89,20 +92,18 @@ func resourceArmCosmosDbSQLStoredProcedureCreate(d *schema.ResourceData, meta in
 	accountName := d.Get("account_name").(string)
 	storedProcBody := d.Get("body").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
-			}
-		} else {
-			id, err := azure.CosmosGetIDFromResponse(existing.Response)
-			if err != nil {
-				return fmt.Errorf("Error generating import ID for SQL Stored Proecdure '%s' (Account %s)", name, accountName)
-			}
-
-			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_storedprocedure", id)
+	existing, err := client.GetSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of creating SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 		}
+	} else {
+		id, err := azure.CosmosGetIDFromResponse(existing.Response)
+		if err != nil {
+			return fmt.Errorf("Error generating import ID for SQL Stored Proecdure '%q' (Container %q / Database %q / Account %q)", name, containerName, databaseName, accountName)
+		}
+
+		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_stored_procedure", id)
 	}
 
 	storedProcParams := documentdb.SQLStoredProcedureCreateUpdateParameters{
@@ -117,16 +118,16 @@ func resourceArmCosmosDbSQLStoredProcedureCreate(d *schema.ResourceData, meta in
 
 	future, err := client.CreateUpdateSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name, storedProcParams)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
+		return fmt.Errorf("Error creating SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
+		return fmt.Errorf("Error waiting for creation of SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 	}
 
 	resp, err := client.GetSQLStoredProcedure(ctx, resourceGroupName, accountName, databaseName, containerName, name)
 	if err != nil {
-		return fmt.Errorf("Error making get request for SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
+		return fmt.Errorf("Error retrieving SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -149,27 +150,23 @@ func resourceArmCosmosDbSQLStoredProcedureUpdate(d *schema.ResourceData, meta in
 	accountName := id.Account
 	name := id.Name
 
-	if d.HasChange("body") {
-		storedProcParams := documentdb.SQLStoredProcedureCreateUpdateParameters{
-			SQLStoredProcedureCreateUpdateProperties: &documentdb.SQLStoredProcedureCreateUpdateProperties{
-				Resource: &documentdb.SQLStoredProcedureResource{
-					ID:   utils.String(name),
-					Body: utils.String(d.Get("body").(string)),
-				},
-				Options: map[string]*string{},
+	storedProcParams := documentdb.SQLStoredProcedureCreateUpdateParameters{
+		SQLStoredProcedureCreateUpdateProperties: &documentdb.SQLStoredProcedureCreateUpdateProperties{
+			Resource: &documentdb.SQLStoredProcedureResource{
+				ID:   utils.String(name),
+				Body: utils.String(d.Get("body").(string)),
 			},
-		}
+			Options: map[string]*string{},
+		},
+	}
 
-		log.Printf("[INFO] BODY: %s", d.Get("body").(string))
+	future, err := client.CreateUpdateSQLStoredProcedure(ctx, id.ResourceGroup, accountName, databaseName, containerName, name, storedProcParams)
+	if err != nil {
+		return fmt.Errorf("Error updating SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
+	}
 
-		future, err := client.CreateUpdateSQLStoredProcedure(ctx, id.ResourceGroup, accountName, databaseName, containerName, name, storedProcParams)
-		if err != nil {
-			return fmt.Errorf("Error issuing create/update request for SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on create/update future for SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
-		}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 	}
 
 	return resourceArmCosmosDbSQLStoredProcedureRead(d, meta)
@@ -193,12 +190,12 @@ func resourceArmCosmosDbSQLStoredProcedureRead(d *schema.ResourceData, meta inte
 	resp, err := client.GetSQLStoredProcedure(ctx, id.ResourceGroup, accountName, databaseName, containerName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Stored Procedure %s (Account %s) - removing from state", name, accountName)
+			log.Printf("[INFO] SQL Stored Procedure %q (Container %q / Database %q / Account %q) was not found - removing from state", name, containerName, databaseName, accountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
+		return fmt.Errorf("Error retrieving SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -210,8 +207,6 @@ func resourceArmCosmosDbSQLStoredProcedureRead(d *schema.ResourceData, meta inte
 	if props := resp.SQLStoredProcedureGetProperties; props != nil {
 		if resource := props.Resource; resource != nil {
 			d.Set("body", resource.Body)
-		} else {
-			return fmt.Errorf("Error reading body for SQL Stored Procedure %s (Account %s)", name, accountName)
 		}
 	}
 
@@ -236,13 +231,13 @@ func resourceArmCosmosDbSQLStoredProcedureDelete(d *schema.ResourceData, meta in
 	future, err := client.DeleteSQLStoredProcedure(ctx, id.ResourceGroup, accountName, databaseName, containerName, name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
+			return fmt.Errorf("Error deleting SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for SQL Stored Procedure %s (Account %s): %+v", name, accountName, err)
+		return fmt.Errorf("Error waiting for deletion of SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 	}
 
 	return nil
