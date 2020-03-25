@@ -53,7 +53,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	defer cancel()
 
 	name := d.Get("name").(string)
-	location := location.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -110,7 +110,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", location.NormalizeNilableLocation(resp.Location))
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

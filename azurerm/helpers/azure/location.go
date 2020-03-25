@@ -23,5 +23,5 @@ func SchemaLocationForDataSource() *schema.Schema {
 // to the canonical form than the other way around.
 func NormalizeLocation(input interface{}) string {
 	loc := input.(string)
-	return location.NormalizeLocation(loc)
+	return location.Normalize(loc)
 }

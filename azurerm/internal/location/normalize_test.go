@@ -26,7 +26,7 @@ func TestNormalizeLocation(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual := NormalizeLocation(v.input)
+		actual := Normalize(v.input)
 		if v.expected != actual {
 			t.Fatalf("Expected %q but got %q", v.expected, actual)
 		}
@@ -57,7 +57,7 @@ func TestNormalizeNilableLocation(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual := NormalizeNilableLocation(v.input)
+		actual := NormalizeNilable(v.input)
 		if v.expected != actual {
 			t.Fatalf("Expected %q but got %q", v.expected, actual)
 		}

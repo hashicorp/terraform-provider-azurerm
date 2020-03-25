@@ -38,15 +38,15 @@ func SchemaComputed() *schema.Schema {
 }
 
 func DiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
-	return NormalizeLocation(old) == NormalizeLocation(new)
+	return Normalize(old) == Normalize(new)
 }
 
 func HashCode(location interface{}) int {
 	loc := location.(string)
-	return hashcode.String(NormalizeLocation(loc))
+	return hashcode.String(Normalize(loc))
 }
 
 func StateFunc(location interface{}) string {
 	input := location.(string)
-	return NormalizeLocation(input)
+	return Normalize(input)
 }
