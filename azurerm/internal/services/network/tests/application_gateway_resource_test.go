@@ -2034,8 +2034,8 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
 
   managed_rules {
     managed_rules_set {
-      rule_set_type    = "OWASP"
-      rule_set_version = "3.1"
+      type    = "OWASP"
+      version = "3.1"
     }
   }
 }
