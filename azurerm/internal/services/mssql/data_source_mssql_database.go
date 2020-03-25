@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -61,7 +62,7 @@ func dataSourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"read_scale": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
@@ -115,7 +116,11 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
 		d.Set("read_replica_count", props.ReadReplicaCount)
-		d.Set("read_scale", props.ReadScale)
+		if props.ReadScale == sql.DatabaseReadScaleEnabled {
+			d.Set("read_scale", true)
+		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {
+			d.Set("read_scale", false)
+		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}

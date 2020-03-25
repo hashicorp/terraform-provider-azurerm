@@ -177,7 +177,7 @@ func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
 				Config: testAccAzureRMMsSqlDatabase_BC(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "read_scale", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_scale", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "BC_Gen5_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
 				),
@@ -187,7 +187,7 @@ func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
 				Config: testAccAzureRMMsSqlDatabase_BCUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "read_scale", "Disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_scale", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "BC_Gen5_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "false"),
 				),
@@ -244,7 +244,7 @@ func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
 				),
 			},
-			data.ImportStep("create_mode", "source_database_id"),
+			data.ImportStep("create_mode", "creation_source_database_id"),
 		},
 	})
 }
@@ -273,7 +273,7 @@ func TestAccAzureRMMsSqlDatabase_createPITRMode(t *testing.T) {
 				),
 			},
 
-			data.ImportStep("create_mode", "source_database_id", "restore_point_in_time"),
+			data.ImportStep("create_mode", "creation_source_database_id", "restore_point_in_time"),
 		},
 	})
 }
@@ -295,7 +295,7 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
 				),
 			},
-			data.ImportStep("create_mode", "source_database_id", "sample_name"),
+			data.ImportStep("create_mode", "creation_source_database_id", "sample_name"),
 		},
 	})
 }
@@ -552,7 +552,7 @@ func testAccAzureRMMsSqlDatabase_BC(data acceptance.TestData) string {
 resource "azurerm_mssql_database" "test" {
   name           = "acctest-db-%d"
   server_id      = azurerm_sql_server.test.id
-  read_scale     = "Enabled"
+  read_scale     = true
   sku_name       = "BC_Gen5_2"
   zone_redundant = true
 }
@@ -567,7 +567,7 @@ func testAccAzureRMMsSqlDatabase_BCUpdate(data acceptance.TestData) string {
 resource "azurerm_mssql_database" "test" {
   name           = "acctest-db-%d"
   server_id      = azurerm_sql_server.test.id
-  read_scale     = "Disabled"
+  read_scale     = false
   sku_name       = "BC_Gen5_2"
   zone_redundant = false
 }
@@ -580,10 +580,10 @@ func testAccAzureRMMsSqlDatabase_createCopyMode(data acceptance.TestData) string
 %s
 
 resource "azurerm_mssql_database" "copy" {
-  name               = "acctest-dbc-%d"
-  server_id          = azurerm_sql_server.test.id
-  create_mode        = "Copy"
-  source_database_id = azurerm_mssql_database.test.id
+  name                        = "acctest-dbc-%d"
+  server_id                   = azurerm_sql_server.test.id
+  create_mode                 = "Copy"
+  creation_source_database_id = azurerm_mssql_database.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -594,11 +594,11 @@ func testAccAzureRMMsSqlDatabase_createPITRMode(data acceptance.TestData) string
 %s
 
 resource "azurerm_mssql_database" "pitr" {
-  name                  = "acctest-dbp-%d"
-  server_id             = azurerm_sql_server.test.id
-  create_mode           = "PointInTimeRestore"
-  restore_point_in_time = "%s"
-  source_database_id    = azurerm_mssql_database.test.id
+  name                        = "acctest-dbp-%d"
+  server_id                   = azurerm_sql_server.test.id
+  create_mode                 = "PointInTimeRestore"
+  restore_point_in_time       = "%s"
+  creation_source_database_id = azurerm_mssql_database.test.id
 
 }
 `, template, data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
@@ -624,10 +624,10 @@ resource "azurerm_sql_server" "second" {
 }
 
 resource "azurerm_mssql_database" "secondary" {
-  name               = "acctest-dbs-%[2]d"
-  server_id          = azurerm_sql_server.second.id
-  create_mode        = "Secondary"
-  source_database_id = azurerm_mssql_database.test.id
+  name                        = "acctest-dbs-%[2]d"
+  server_id                   = azurerm_sql_server.second.id
+  create_mode                 = "Secondary"
+  creation_source_database_id = azurerm_mssql_database.test.id
 
 }
 `, template, data.RandomInteger, data.Locations.Secondary)

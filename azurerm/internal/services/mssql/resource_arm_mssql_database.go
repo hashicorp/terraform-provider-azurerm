@@ -138,13 +138,9 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"read_scale": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.DatabaseReadScaleEnabled),
-					string(sql.DatabaseReadScaleDisabled),
-				}, false),
 			},
 
 			"sample_name": {
@@ -166,7 +162,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"source_database_id": {
+			"creation_source_database_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -230,7 +226,6 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 			LicenseType:      sql.DatabaseLicenseType(d.Get("license_type").(string)),
 			MinCapacity:      utils.Float(d.Get("min_capacity").(float64)),
 			ReadReplicaCount: utils.Int32(int32(d.Get("read_replica_count").(int))),
-			ReadScale:        sql.DatabaseReadScale(d.Get("read_scale").(string)),
 			SampleName:       sql.SampleName(d.Get("sample_name").(string)),
 			ZoneRedundant:    utils.Bool(d.Get("zone_redundant").(bool)),
 		},
@@ -239,14 +234,22 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("create_mode"); ok {
-		if _, ok := d.GetOk("source_database_id"); (v.(string) == string(sql.CreateModeCopy) || v.(string) == string(sql.CreateModePointInTimeRestore) || v.(string) == string(sql.CreateModeRestore) || v.(string) == string(sql.CreateModeSecondary)) && !ok {
-			return fmt.Errorf("'source_database_id' is required for create_mode %s", v.(string))
+		if _, ok := d.GetOk("creation_source_database_id"); (v.(string) == string(sql.CreateModeCopy) || v.(string) == string(sql.CreateModePointInTimeRestore) || v.(string) == string(sql.CreateModeRestore) || v.(string) == string(sql.CreateModeSecondary)) && !ok {
+			return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", v.(string))
 		}
 		params.DatabaseProperties.CreateMode = sql.CreateMode(v.(string))
 	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
+	}
+
+	if v, ok := d.GetOkExists("read_scale"); ok {
+		if v.(bool) {
+			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleEnabled
+		} else {
+			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleDisabled
+		}
 	}
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
@@ -263,7 +266,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	if v, ok := d.GetOk("source_database_id"); ok {
+	if v, ok := d.GetOk("creation_source_database_id"); ok {
 		params.DatabaseProperties.SourceDatabaseID = utils.String(v.(string))
 	}
 
@@ -329,7 +332,11 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		}
 		d.Set("min_capacity", props.MinCapacity)
 		d.Set("read_replica_count", props.ReadReplicaCount)
-		d.Set("read_scale", props.ReadScale)
+		if props.ReadScale == sql.DatabaseReadScaleEnabled {
+			d.Set("read_scale", true)
+		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {
+			d.Set("read_scale", false)
+		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}

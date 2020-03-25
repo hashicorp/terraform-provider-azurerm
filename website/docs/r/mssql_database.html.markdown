@@ -36,7 +36,7 @@ resource "azurerm_mssql_database" "test" {
   collation      = "SQL_Latin1_General_CP1_CI_AS"
   license_type   = "LicenseIncluded"
   max_size_gb    = 4
-  read_scale     = "Enabled"
+  read_scale     = true
   sku_name       = "BC_Gen5_2"
   zone_redundant = true
 
@@ -63,9 +63,9 @@ The following arguments are supported:
 
 * `collation` - (Optional) Specifies the collation of the database. Changing this forces a new resource to be created.
 
-* `elastic_pool_id` - (Optional) Specifies the id of the elastic pool containing this database. Changing this forces a new resource to be created.
+* `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database. Changing this forces a new resource to be created.
 
-* `license_type` - (Optional) Specifies the license type to apply for this database. Possible values are `LicenseIncluded` and `BasePrice`.
+* `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `max_size_gb` - (Optional) The max size of the database in gigabytes. 
 
@@ -75,15 +75,15 @@ The following arguments are supported:
 
 * `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
 
-* `read_scale` - (Optional) If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. Possible values are `Enabled` and `Disabled`. This property is only settable for Premium and Business Critical databases.
+* `read_scale` - (Optional) If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. This property is only settable for Premium and Business Critical databases.
 
 * `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is `AdventureWorksLT`.
 
-* `sku_name` - (Optional) Specifies the name of the sku of the database. Changing this forces a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
+* `sku_name` - (Optional) Specifies the name of the sku used by the database. Changing this forces a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
 
 ~> **NOTE** The default sku_name value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity.
 
-* `source_database_id` - (Optional) The id of the source database to be referred to create the new database. This should only be used for databases with `create_mode` values that use another database as reference. Changing this forces a new resource to be created.
+* `creation_source_database_id` - (Optional) The id of the source database to be referred to create the new database. This should only be used for databases with `create_mode` values that use another database as reference. Changing this forces a new resource to be created.
 
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
 
