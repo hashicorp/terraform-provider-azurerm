@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -28,7 +29,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -49,7 +50,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -70,7 +71,7 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -91,7 +92,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -138,7 +139,7 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -156,7 +157,7 @@ func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -174,7 +175,61 @@ func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLServer_replica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	version := "9.6"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basic(data, version),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMPostgreSQLServer_replica(data, version),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.test_replica"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLServer_restorePointInTime(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	version := "9.6"
+	timeToRestore := time.Now().Add(15 * time.Minute)
+	formattedTime := timeToRestore.UTC().Format(time.RFC3339)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basic(data, version),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			{
+				PreConfig: func() { time.Sleep(timeToRestore.Sub(time.Now().Add(-1 * time.Minute))) },
+				Config:    testAccAzureRMPostgreSQLServer_restorePointInTime(data, version, formattedTime),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.test_restore"),
+				),
+			},
 		},
 	})
 }
@@ -589,4 +644,43 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMPostgreSQLServer_replica(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_server" "test_replica" {
+  name                = "acctest-psql-server-replica-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name         = "GP_Gen5_2"
+  create_mode      = "Replica"
+  source_server_id = azurerm_postgresql_server.test.id
+
+  version         = "%s"
+  ssl_enforcement = "Enabled"
+}
+`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, version)
+}
+
+func testAccAzureRMPostgreSQLServer_restorePointInTime(data acceptance.TestData, version string, formattedTime string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_server" "test_restore" {
+  name                = "acctest-psql-server-restore-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name              = "GP_Gen5_2"
+  create_mode           = "PointInTimeRestore"
+  source_server_id      = azurerm_postgresql_server.test.id
+  restore_point_in_time = "%s"
+
+  version         = "%s"
+  ssl_enforcement = "Enabled"
+}
+`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, formattedTime, version)
 }
