@@ -383,8 +383,8 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.certificate_common_name", "firstcertcommonname"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.is_admin", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.certificate_issuer_thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.certificate_common_name", "secondcertcommonname"),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.issuer_thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.common_name", "secondcertcommonname"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.is_admin", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.certificate_issuer_thumbprint", ""),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "1"),
@@ -1135,9 +1135,9 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   client_certificate_common_name {
-    certificate_common_name       = "firstcertcommonname"
-    is_admin                      = true
-    certificate_issuer_thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    common_name       = "firstcertcommonname"
+    issuer_thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    is_admin          = true
   }
 
   client_certificate_common_name {
