@@ -80,7 +80,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 			},
 
 			"ipv4_firewall_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
