@@ -381,12 +381,12 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.certificate_common_name", "firstcertcommonname"),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.common_name", "firstcertcommonname"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.is_admin", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.0.issuer_thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.common_name", "secondcertcommonname"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.is_admin", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.certificate_issuer_thumbprint", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_common_name.1.issuer_thumbprint", ""),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.thumbprint", "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_certificate_thumbprint.0.is_admin", "true"),
@@ -576,6 +576,47 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics_config.#", "0"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_clusterUpgradeDescription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_clusterUpgradeDescription(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.force_restart", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_check_retry_timeout", "00:00:02"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_check_stable_duration", "00:00:04"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_check_wait_duration", "00:00:06"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.upgrade_domain_timeout", "00:00:20"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.upgrade_replica_set_check_timeout", "00:00:10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.upgrade_timeout", "00:00:40"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_policy.0.max_percent_unhealthy_applications", "40"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.health_policy.0.max_percent_unhealthy_nodes", "5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.max_percent_delta_unhealthy_applications", "20"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.max_percent_delta_unhealthy_nodes", "40"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.max_percent_upgrade_domain_delta_unhealthy_nodes", "60"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.application_type", "fabric:/system"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.default_service_type_delta_health_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.default_service_type_delta_health_policy.0.max_percent_delta_unhealthy_services", "5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.service_type_delta_health_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.service_type_delta_health_policy.0.service_type", "fabric:/system/service"),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_description.0.delta_health_policy.0.application_delta_health_policy.0.service_type_delta_health_policy.0.max_percent_delta_unhealthy_services", "30"),
 				),
 			},
 			data.ImportStep(),
@@ -1141,7 +1182,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   client_certificate_common_name {
-    certificate_common_name = "secondcertcommonname"
+    common_name = "secondcertcommonname"
     is_admin                = false
   }
 
@@ -1500,6 +1541,84 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMServiceFabricCluster_clusterUpgradeDescription(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "http://example:80"
+  diagnostics_config {
+    storage_account_name       = azurerm_storage_account.test.name
+    protected_account_key_name = "StorageAccountKey1"
+    blob_endpoint              = azurerm_storage_account.test.primary_blob_endpoint
+    queue_endpoint             = azurerm_storage_account.test.primary_queue_endpoint
+    table_endpoint             = azurerm_storage_account.test.primary_table_endpoint
+  }
+  upgrade_description {
+    force_restart                     = true
+    health_check_retry_timeout        = "00:00:02"
+    health_check_stable_duration      = "00:00:04"
+    health_check_wait_duration        = "00:00:06"
+    upgrade_domain_timeout            = "00:00:20"
+    upgrade_replica_set_check_timeout = "00:00:10"
+    upgrade_timeout                   = "00:00:40"
+
+    health_policy {
+      max_percent_unhealthy_nodes        = 5
+      max_percent_unhealthy_applications = 40
+    }
+
+    delta_health_policy {
+      max_percent_delta_unhealthy_applications         = 20
+      max_percent_delta_unhealthy_nodes                = 40
+      max_percent_upgrade_domain_delta_unhealthy_nodes = 60
+
+      application_delta_health_policy {
+
+        application_type = "fabric:/system"
+
+        default_service_type_delta_health_policy {
+          max_percent_delta_unhealthy_services = 5
+        }
+
+        service_type_delta_health_policy {
+          service_type                         = "fabric:/system/service"
+          max_percent_delta_unhealthy_services = 30
+        }
+      }
+
+    }
+  }
 
   node_type {
     name                 = "first"
