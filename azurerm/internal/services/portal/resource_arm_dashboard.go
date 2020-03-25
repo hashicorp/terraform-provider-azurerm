@@ -61,7 +61,7 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	t := d.Get("tags").(map[string]interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	dashboardProps := d.Get("dashboard_properties").(string)
 
 	dashboard := portal.Dashboard{

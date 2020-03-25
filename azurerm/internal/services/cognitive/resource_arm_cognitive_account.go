@@ -148,7 +148,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	properties := cognitiveservices.Account{
 		Kind:       utils.String(d.Get("kind").(string)),
-		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location:   utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Sku:        sku,
 		Properties: &cognitiveservices.AccountProperties{},
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),

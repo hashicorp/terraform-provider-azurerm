@@ -1340,7 +1340,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	enablehttp2 := d.Get("enable_http2").(bool)
 	t := d.Get("tags").(map[string]interface{})
 

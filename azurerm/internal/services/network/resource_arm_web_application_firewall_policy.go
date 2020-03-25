@@ -192,7 +192,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
 	t := d.Get("tags").(map[string]interface{})

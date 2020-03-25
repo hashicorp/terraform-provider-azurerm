@@ -315,7 +315,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
@@ -408,7 +408,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)

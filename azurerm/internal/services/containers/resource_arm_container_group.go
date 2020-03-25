@@ -444,7 +444,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	t := d.Get("tags").(map[string]interface{})

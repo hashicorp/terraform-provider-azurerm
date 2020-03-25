@@ -82,7 +82,7 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP Prefix creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	prefix_length := d.Get("prefix_length").(int)

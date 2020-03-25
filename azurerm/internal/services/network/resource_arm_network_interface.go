@@ -198,7 +198,7 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
 	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -302,7 +302,7 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	// then pull out things we need to lock on
 	info := parseFieldsFromNetworkInterface(*existing.InterfacePropertiesFormat)
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	update := network.Interface{
 		Name:                      utils.String(name),
 		Location:                  utils.String(location),

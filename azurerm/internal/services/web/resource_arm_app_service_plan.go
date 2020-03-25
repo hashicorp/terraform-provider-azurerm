@@ -156,7 +156,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	kind := d.Get("kind").(string)
 	t := d.Get("tags").(map[string]interface{})
 

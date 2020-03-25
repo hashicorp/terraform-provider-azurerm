@@ -92,7 +92,7 @@ func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) 
 			},
 			ChannelName: botservice.ChannelNameEmailChannel1,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -172,7 +172,7 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 			},
 			ChannelName: botservice.ChannelNameEmailChannel1,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Kind:     botservice.KindBot,
 	}
 

@@ -541,7 +541,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 

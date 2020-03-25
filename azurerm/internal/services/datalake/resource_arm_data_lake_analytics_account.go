@@ -100,7 +100,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	storeAccountName := d.Get("default_store_account_name").(string)
 	tier := d.Get("tier").(string)
 	t := d.Get("tags").(map[string]interface{})

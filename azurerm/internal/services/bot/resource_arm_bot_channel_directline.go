@@ -141,7 +141,7 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 			},
 			ChannelName: botservice.ChannelNameDirectLineChannel1,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -221,7 +221,7 @@ func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interfac
 			},
 			ChannelName: botservice.ChannelNameDirectLineChannel1,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Kind:     botservice.KindBot,
 	}
 

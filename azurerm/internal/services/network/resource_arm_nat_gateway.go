@@ -116,7 +116,7 @@ func resourceArmNatGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	idleTimeoutInMinutes := d.Get("idle_timeout_in_minutes").(int)
 	publicIpAddressIds := d.Get("public_ip_address_ids").(*schema.Set).List()
 	publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*schema.Set).List()

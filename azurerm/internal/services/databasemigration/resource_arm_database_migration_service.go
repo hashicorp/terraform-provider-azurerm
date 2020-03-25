@@ -100,7 +100,7 @@ func resourceArmDatabaseMigrationServiceCreate(d *schema.ResourceData, meta inte
 
 	skuName := d.Get("sku_name").(string)
 	subnetID := d.Get("subnet_id").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 
 	parameters := datamigration.Service{
 		Location: utils.String(location),

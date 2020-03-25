@@ -117,7 +117,7 @@ func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
 	bgpSettings := expandVPNGatewayBGPSettings(bgpSettingsRaw)
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	scaleUnit := d.Get("scale_unit").(int)
 	virtualHubId := d.Get("virtual_hub_id").(string)
 	t := d.Get("tags").(map[string]interface{})

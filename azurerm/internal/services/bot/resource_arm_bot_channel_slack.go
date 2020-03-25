@@ -107,7 +107,7 @@ func resourceArmBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) 
 			},
 			ChannelName: botservice.ChannelNameSlackChannel1,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -186,7 +186,7 @@ func resourceArmBotChannelSlackUpdate(d *schema.ResourceData, meta interface{}) 
 			},
 			ChannelName: botservice.ChannelNameSlackChannel1,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Kind:     botservice.KindBot,
 	}
 

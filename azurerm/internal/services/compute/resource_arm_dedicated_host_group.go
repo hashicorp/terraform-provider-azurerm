@@ -87,7 +87,7 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	platformFaultDomainCount := d.Get("platform_fault_domain_count").(int)
 	t := d.Get("tags").(map[string]interface{})
 

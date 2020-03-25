@@ -356,7 +356,7 @@ func resourceArmDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceDat
 }
 
 func expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	computeProperties := datafactory.IntegrationRuntimeComputeProperties{
 		Location:                     &location,
 		NodeSize:                     utils.String(d.Get("node_size").(string)),

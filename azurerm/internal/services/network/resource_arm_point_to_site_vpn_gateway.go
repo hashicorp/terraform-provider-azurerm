@@ -128,7 +128,7 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	scaleUnit := d.Get("scale_unit").(int)
 	virtualHubId := d.Get("virtual_hub_id").(string)
 	vpnServerConfigurationId := d.Get("vpn_server_configuration_id").(string)

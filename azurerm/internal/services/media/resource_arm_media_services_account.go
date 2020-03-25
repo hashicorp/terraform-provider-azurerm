@@ -85,7 +85,7 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 	defer cancel()
 
 	accountName := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()

@@ -100,7 +100,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := automation.AccountCreateOrUpdateParameters{

@@ -55,7 +55,7 @@ func resourceArmSiteRecoveryFabric() *schema.Resource {
 func resourceArmSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	name := d.Get("name").(string)
 
 	client := meta.(*clients.Client).RecoveryServices.FabricClient(resGroup, vaultName)

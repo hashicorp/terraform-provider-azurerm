@@ -115,7 +115,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	storageAccountId := d.Get("storage_account_id").(string)
 	poolAllocationMode := d.Get("pool_allocation_mode").(string)
 	t := d.Get("tags").(map[string]interface{})

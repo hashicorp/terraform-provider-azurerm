@@ -298,7 +298,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		computerName = name
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandVirtualMachineIdentity(identityRaw)
 	if err != nil {

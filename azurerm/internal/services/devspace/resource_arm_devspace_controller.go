@@ -113,7 +113,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	t := d.Get("tags").(map[string]interface{})
 
 	sku, err := expandControllerSkuName(d.Get("sku_name").(string))

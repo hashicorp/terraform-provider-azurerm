@@ -87,7 +87,7 @@ func resourceArmExpressRouteGatewayCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	virtualHubId := d.Get("virtual_hub_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 

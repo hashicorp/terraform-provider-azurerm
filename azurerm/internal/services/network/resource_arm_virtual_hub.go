@@ -114,7 +114,7 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	addressPrefix := d.Get("address_prefix").(string)
 	virtualWanId := d.Get("virtual_wan_id").(string)
 	route := d.Get("route").(*schema.Set).List()

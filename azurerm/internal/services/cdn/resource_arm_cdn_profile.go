@@ -93,7 +93,7 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 

@@ -120,7 +120,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	skuName := d.Get("sku").(string)
 	sku := &operationalinsights.Sku{
 		Name: operationalinsights.SkuNameEnum(skuName),

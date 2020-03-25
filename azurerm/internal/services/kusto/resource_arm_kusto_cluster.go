@@ -131,7 +131,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 
 	sku, err := expandKustoClusterSku(d)
 	if err != nil {

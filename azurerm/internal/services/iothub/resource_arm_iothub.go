@@ -497,7 +497,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	props := devices.IotHubDescription{
 		Name:     utils.String(name),
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Sku:      expandIoTHubSku(d),
 		Properties: &devices.IotHubProperties{
 			IPFilterRules:                 expandIPFilterRules(d),

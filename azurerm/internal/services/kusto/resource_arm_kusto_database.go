@@ -98,7 +98,7 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 
 	databaseProperties := expandKustoDatabaseProperties(d)
 

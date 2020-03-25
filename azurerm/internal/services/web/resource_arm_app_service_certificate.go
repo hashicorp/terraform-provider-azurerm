@@ -126,7 +126,7 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)

@@ -130,7 +130,7 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	t := d.Get("tags").(map[string]interface{})
 
 	webhook := containerregistry.WebhookCreateParameters{

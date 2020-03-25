@@ -103,7 +103,7 @@ func resourceArmDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, met
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	sourcePlatform := d.Get("source_platform").(string)
 	targetPlatform := d.Get("target_platform").(string)
 	t := d.Get("tags").(map[string]interface{})

@@ -144,7 +144,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	var managedResourceGroupID string
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 

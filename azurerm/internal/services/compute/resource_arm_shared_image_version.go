@@ -114,7 +114,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	imageName := d.Get("image_name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	managedImageId := d.Get("managed_image_id").(string)
 	excludeFromLatest := d.Get("exclude_from_latest").(bool)
 

@@ -195,7 +195,7 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	parameters := appconfiguration.ConfigurationStore{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Sku: &appconfiguration.Sku{
 			Name: utils.String(d.Get("sku").(string)),
 		},

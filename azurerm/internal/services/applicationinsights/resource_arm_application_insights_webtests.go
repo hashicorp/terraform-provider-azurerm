@@ -157,7 +157,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	kind := d.Get("kind").(string)
 	description := d.Get("description").(string)
 	frequency := int32(d.Get("frequency").(int))

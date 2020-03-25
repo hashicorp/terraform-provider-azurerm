@@ -98,7 +98,7 @@ func resourceArmPowerBIEmbeddedCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	administrators := d.Get("administrators").(*schema.Set).List()
 	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})

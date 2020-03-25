@@ -80,7 +80,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 			},
 
 			"ipv4_firewall_rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -150,7 +150,7 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 	}
 
 	sku := d.Get("sku").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 
 	serverProperties := expandAnalysisServicesServerProperties(d)
 

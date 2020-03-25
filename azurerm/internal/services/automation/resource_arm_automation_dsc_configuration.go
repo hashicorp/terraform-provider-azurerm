@@ -111,7 +111,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	}
 
 	contentEmbedded := d.Get("content_embedded").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 	t := d.Get("tags").(map[string]interface{})

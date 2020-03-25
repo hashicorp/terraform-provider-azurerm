@@ -143,7 +143,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})

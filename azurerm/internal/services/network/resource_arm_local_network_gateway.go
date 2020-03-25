@@ -108,7 +108,7 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	ipAddress := d.Get("gateway_address").(string)
 
 	addressSpaces := expandLocalNetworkGatewayAddressSpaces(d)

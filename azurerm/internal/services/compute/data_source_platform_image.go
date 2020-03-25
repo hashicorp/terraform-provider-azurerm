@@ -50,7 +50,7 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	publisher := d.Get("publisher").(string)
 	offer := d.Get("offer").(string)
 	sku := d.Get("sku").(string)

@@ -159,7 +159,7 @@ func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, 
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 
 	eventHubDataConnectionProperties := expandKustoEventHubDataConnectionProperties(d)
 

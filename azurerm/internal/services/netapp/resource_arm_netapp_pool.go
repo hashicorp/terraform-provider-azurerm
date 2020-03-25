@@ -101,7 +101,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	serviceLevel := d.Get("service_level").(string)
 	sizeInTB := int64(d.Get("size_in_tb").(int))
 	sizeInMB := sizeInTB * 1024 * 1024

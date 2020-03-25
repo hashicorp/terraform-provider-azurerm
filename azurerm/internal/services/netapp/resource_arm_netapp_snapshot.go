@@ -98,7 +98,7 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 
 	parameters := netapp.Snapshot{
 		Location: utils.String(location),

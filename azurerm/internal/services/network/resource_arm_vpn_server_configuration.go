@@ -399,7 +399,7 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 		props.RadiusServerRootCertificates = radiusServer.serverRootCertificates
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	t := d.Get("tags").(map[string]interface{})
 	parameters := network.VpnServerConfiguration{
 		Location:                         utils.String(location),

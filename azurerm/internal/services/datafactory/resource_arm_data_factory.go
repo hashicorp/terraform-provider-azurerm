@@ -163,7 +163,7 @@ func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}
 	defer cancel()
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 

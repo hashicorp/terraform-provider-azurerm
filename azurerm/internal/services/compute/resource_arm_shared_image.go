@@ -121,7 +121,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	description := d.Get("description").(string)
 
 	eula := d.Get("eula").(string)

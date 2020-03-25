@@ -169,7 +169,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	autoApproval := d.Get("auto_approval_subscription_ids").(*schema.Set).List()
 	enableProxyProtocol := d.Get("enable_proxy_protocol").(bool)
 	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})

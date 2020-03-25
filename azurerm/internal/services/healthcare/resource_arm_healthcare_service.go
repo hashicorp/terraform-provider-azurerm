@@ -170,7 +170,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	t := d.Get("tags").(map[string]interface{})
 
 	kind := d.Get("kind").(string)

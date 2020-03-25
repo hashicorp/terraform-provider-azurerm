@@ -77,7 +77,7 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 
 	ppg := compute.ProximityPlacementGroup{
 		Name:     &name,
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 

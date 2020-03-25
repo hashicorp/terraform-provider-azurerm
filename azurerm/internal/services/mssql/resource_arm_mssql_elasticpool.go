@@ -187,7 +187,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	sku := expandAzureRmMsSqlElasticPoolSku(d)
 	t := d.Get("tags").(map[string]interface{})
 

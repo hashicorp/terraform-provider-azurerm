@@ -161,7 +161,7 @@ func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_machine_learning_workspace", *existing.ID)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	storageAccountId := d.Get("storage_account_id").(string)
 	keyVaultId := d.Get("key_vault_id").(string)
 	applicationInsightsId := d.Get("application_insights_id").(string)

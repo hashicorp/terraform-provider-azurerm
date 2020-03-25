@@ -97,7 +97,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	disableVpnEncryption := d.Get("disable_vpn_encryption").(bool)
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
 	allowVnetToVnetTraffic := d.Get("allow_vnet_to_vnet_traffic").(bool)

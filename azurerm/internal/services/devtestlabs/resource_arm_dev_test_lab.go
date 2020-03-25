@@ -117,7 +117,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	storageType := d.Get("storage_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 

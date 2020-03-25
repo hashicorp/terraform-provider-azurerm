@@ -127,7 +127,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	activeDirectories := d.Get("active_directory").([]interface{})
 
 	accountParameters := netapp.Account{

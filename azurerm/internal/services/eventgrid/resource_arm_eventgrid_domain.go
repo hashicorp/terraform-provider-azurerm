@@ -168,7 +168,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{

@@ -130,7 +130,7 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	parameters := compute.DedicatedHost{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		DedicatedHostProperties: &compute.DedicatedHostProperties{
 			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
 			LicenseType:          compute.DedicatedHostLicenseTypes(d.Get("license_type").(string)),
