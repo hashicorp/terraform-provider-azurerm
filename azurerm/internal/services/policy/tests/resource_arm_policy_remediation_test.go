@@ -173,6 +173,9 @@ func TestAccAzureRMPolicyRemediation_requiresImport(t *testing.T) {
 
 func testCheckAzureRMPolicyRemediationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.RemediationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Policy Insights Remediation not found: %s", resourceName)
@@ -182,9 +185,6 @@ func testCheckAzureRMPolicyRemediationExists(resourceName string) resource.TestC
 		if err != nil {
 			return err
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.RemediationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := policy.RemediationGetAtScope(ctx, client, id.Name, id.PolicyScopeId); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -86,7 +86,12 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Policy Remediation. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The Scope at which the Policy Remediation should be applied, which must be a Resource ID (such as Subscription e.g. `/subscriptions/00000000-0000-0000-0000-000000000000` or a Resource Group e.g.`/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup` or a specified Resource e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Compute/virtualMachines/myVM`) or a Management Group (e.g. `/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000`). Changing this forces a new resource to be created.
+* `scope` - (Required) The Scope at which the Policy Remediation should be applied. Changing this forces a new resource to be created. A scope must be a Resource ID out of one of the following list:
+
+    1. A subscription, e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`
+    1. A resource group, e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup`
+    1. A resource, e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Compute/virtualMachines/myVM`
+    1. A management group, e.g. `/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000`
 
 * `policy_assignment_id` - (Required) The resource ID of the policy assignment that should be remediated.
 
@@ -100,10 +105,32 @@ The following attributes are exported:
 
 * `id` - The ID of the Policy Remediation.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Policy Remediation.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Remediation.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Policy Remediation.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Policy Remediation.
+
+
 ## Import
 
 Policy Remediations can be imported using the `resource id`, e.g.
 
 ```shell
+terraform import azurerm_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.PolicyInsights/remediations/remediation1
+```
+or
+```shell
 terraform import azurerm_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.PolicyInsights/remediations/remediation1
+```
+or
+```shell
+terraform import azurerm_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.PolicyInsights/remediations/remediation1
+```
+or
+```shell
+terraform import azurerm_policy_remediation.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.PolicyInsights/remediations/remediation1
 ```
