@@ -1,6 +1,5 @@
 ## 2.3.0 (Unreleased)
 
-
 FEATURES:
 
 * **New Resource:** `azurerm_custom_resource_provider` [GH-6234]
@@ -31,6 +30,7 @@ BUG FIXES:
 * `azurerm_policy_definition` - fixing a bug when parsing the Management Group ID [GH-5981]
 * `azurerm_postgresql_server` - updating the validation for the `name` field [GH-6064]
 * `azurerm_sql_database` - use the correct base URI for the Extended Auditing Policies Client [GH-6233]
+`azurerm_virtual_machine_data_disk_attachment` - detecting the disk attachment as gone when the VM is no longer available [GH-6237]
 
 ## 2.2.0 (March 18, 2020)
 
