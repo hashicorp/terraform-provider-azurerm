@@ -18,6 +18,7 @@ IMPROVEMENTS:
 * `azurerm_lb` - allow ipv6 addresses for the `private_ip_address` property [GH-6125]
 * `azurerm_managed_disk` - the `disk_encryption_set_id` field is no longer ForceNew [GH-6207]
 * `azurerm_public_ip` - support for Dynamic IPv6 Addresses [GH-6140]
+* `azurerm_service_fabric_cluster` - support for the `client_certificate_common_name` property [GH-6097]
 * `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_storage_share` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_traffic_manager_profile` - support for the `custom_header` property [GH-5923]
