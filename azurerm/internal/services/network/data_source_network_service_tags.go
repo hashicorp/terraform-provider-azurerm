@@ -1,7 +1,6 @@
 package network
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -51,18 +50,18 @@ func dataSourceNetworkServiceTagsRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	res, err := client.List(ctx, location)
 	if err != nil {
-		return err
+		return fmt.Errorf("error listing network service tags: %+v", err)
 	}
 
 	if res.Values == nil {
-		return errors.New("unexpected nil value for service tag information")
+		return fmt.Errorf("unexpected nil value for service tag information")
 	}
 
 	service := d.Get("service").(string)
-	locationFilter := d.Get("location_filter").(string)
+	locationFilter := azure.NormalizeLocation(d.Get("location_filter"))
 
 	for _, sti := range *res.Values {
 		if sti.Name == nil || !isServiceTagOf(*sti.Name, service) {
@@ -70,18 +69,18 @@ func dataSourceNetworkServiceTagsRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if props := sti.Properties; props != nil {
-			if *props.Region == locationFilter {
+			if azure.NormalizeLocation(*props.Region) == locationFilter {
 				addressPrefixes := make([]string, 0)
 				if props.AddressPrefixes != nil {
 					addressPrefixes = *props.AddressPrefixes
 				}
 				err = d.Set("address_prefixes", addressPrefixes)
 				if err != nil {
-					return fmt.Errorf("Error setting `address_prefixes`: %+v", err)
+					return fmt.Errorf("error setting `address_prefixes`: %+v", err)
 				}
 
 				if sti.ID == nil {
-					return errors.New("unexpected nil ID for service tag")
+					return fmt.Errorf("unexcepted nil ID for service tag")
 				}
 
 				d.SetId(*sti.ID)
@@ -89,7 +88,11 @@ func dataSourceNetworkServiceTagsRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 	}
-	return errors.New("specified service tag not found")
+	errSuffix := "globally"
+	if locationFilter != "" {
+		errSuffix = "for region " + locationFilter
+	}
+	return fmt.Errorf("specified service tag `%s` not found %s", service, errSuffix)
 }
 
 // isServiceTagOf is used to check whether a service tag name belongs to the service of name `serviceName`.

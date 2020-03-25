@@ -28,13 +28,13 @@ output "address_prefixes" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Service Tags exists. This value is not used to filter the results, use `region` for that purpose instead. More information can be found here: [Service Tags URL parameters](https://docs.microsoft.com/en-us/rest/api/virtualnetwork/servicetags/list#uri-parameters).
+* `location` - (Required) The Azure Region where the Service Tags exists. This value is not used to filter the results but for specifying the region to request. For filtering by region use `location_filter` instead.  More information can be found here: [Service Tags URL parameters](https://docs.microsoft.com/en-us/rest/api/virtualnetwork/servicetags/list#uri-parameters).
 
 * `service` - (Required) The type of the service for which address prefixes will be fetched. Available service tags can be found here: [Available service tags](https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags).
 
 ---
 
-* `location_filter` - (Optional) Changes the scope of the service tags. Can be any value that is also valid for `location`. 
+* `location_filter` - (Optional) Changes the scope of the service tags. Can be any value that is also valid for `location`. If this field is empty then all address prefixes are considered instead of only location specific ones.
 
 ## Attributes Reference
 
