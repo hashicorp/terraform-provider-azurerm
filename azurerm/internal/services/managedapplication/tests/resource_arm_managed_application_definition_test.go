@@ -91,6 +91,7 @@ func TestAccAzureRMManagedApplicationDefinition_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Managed Application Definition"),
 					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "package_file_uri"),
 				),
 			},
 			data.ImportStep("package_file_uri"),
@@ -103,6 +104,8 @@ func TestAccAzureRMManagedApplicationDefinition_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "create_ui_definition"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "main_template"),
 				),
 			},
 			data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
@@ -179,7 +182,7 @@ resource "azurerm_managed_application_definition" "test" {
 
   authorization {
     service_principal_id = data.azurerm_client_config.current.object_id
-    role_definition_id   = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id   = split("/", data.azurerm_role_definition.builtin.id)[length(split("/", data.azurerm_role_definition.builtin.id)) - 1]
   }
 }
 `, template, data.RandomInteger)
@@ -259,7 +262,8 @@ resource "azurerm_managed_application_definition" "test" {
       }
 	}
   CREATE_UI_DEFINITION
-  main_template        = <<MAIN_TEMPLATE
+
+  main_template = <<MAIN_TEMPLATE
     {
       "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
       "contentVersion": "1.0.0.0",
@@ -299,10 +303,12 @@ resource "azurerm_managed_application_definition" "test" {
       }
     }
   MAIN_TEMPLATE
+
   authorization {
     service_principal_id = data.azurerm_client_config.current.object_id
-    role_definition_id   = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id   = split("/", data.azurerm_role_definition.builtin.id)[length(split("/", data.azurerm_role_definition.builtin.id)) - 1]
   }
+
   tags = {
     ENV = "Test"
   }
@@ -317,6 +323,10 @@ provider "azurerm" {
 }
 
 data "azurerm_client_config" "current" {}
+
+data "azurerm_role_definition" "builtin" {
+  name = "Contributor"
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedapplication-%d"

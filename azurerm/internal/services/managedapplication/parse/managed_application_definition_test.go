@@ -6,40 +6,41 @@ import (
 
 func TestManagedApplicationDefinitionID(t *testing.T) {
 	testData := []struct {
-		input    string
-		expected *ManagedApplicationDefinitionId
+		Name   string
+		Input  string
+		Error  bool
+		Expect *ManagedApplicationDefinitionId
 	}{
 		{
-			input:    "",
-			expected: nil,
+			Name:  "Empty",
+			Input: "",
+			Error: true,
 		},
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			expected: nil,
+			Name:  "No Resource Groups Segment",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Error: true,
 		},
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
-			expected: nil,
+			Name:  "No Resource Groups Value",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
+			Error: true,
 		},
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello",
-			expected: nil,
+			Name:  "Resource Group ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello",
+			Error: true,
 		},
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers",
-			expected: nil,
+			Name:  "Missing Managed Application Definition Value",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.Solutions/applicationDefinitions",
+			Error: true,
 		},
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.Solutions",
-			expected: nil,
-		},
-		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.Solutions/applicationDefinitions",
-			expected: nil,
-		},
-		{
-			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.Solutions/applicationDefinitions/appDef1",
-			expected: &ManagedApplicationDefinitionId{
+			Name:  "Managed Application Definition ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.Solutions/applicationDefinitions/appDef1",
+			Error: false,
+			Expect: &ManagedApplicationDefinitionId{
 				Name:          "appDef1",
 				ResourceGroup: "hello",
 			},
@@ -47,35 +48,23 @@ func TestManagedApplicationDefinitionID(t *testing.T) {
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := ManagedApplicationDefinitionID(v.input)
+		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		// if we get something there shouldn't be an error
-		if v.expected != nil && err == nil {
-			continue
-		}
+		actual, err := ManagedApplicationDefinitionID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
 
-		// if nothing's expected we should get an error
-		if v.expected == nil && err != nil {
-			continue
+			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if v.expected == nil && actual == nil {
-			continue
+		if actual.Name != v.Expect.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
 
-		if v.expected == nil && actual != nil {
-			t.Fatalf("Expected nothing but got %+v", actual)
-		}
-		if v.expected != nil && actual == nil {
-			t.Fatalf("Expected %+v but got nil", actual)
-		}
-
-		if v.expected.ResourceGroup != actual.ResourceGroup {
-			t.Fatalf("Expected ResourceGroup to be %q but got %q", v.expected.ResourceGroup, actual.ResourceGroup)
-		}
-		if v.expected.Name != actual.Name {
-			t.Fatalf("Expected Name to be %q but got %q", v.expected.Name, actual.Name)
+		if actual.ResourceGroup != v.Expect.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

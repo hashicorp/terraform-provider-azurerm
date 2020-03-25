@@ -1,5 +1,5 @@
 ---
-subcategory: "ManagedApplication"
+subcategory: "Managed Application"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_application_definition"
 description: |-
@@ -23,7 +23,7 @@ data "azurerm_managed_application_definition" "example" {
 }
 
 output "id" {
-  value = data.azurerm_managed_application_definition.existing.id
+  value = data.azurerm_managed_application_definition.example.id
 }
 ```
 
@@ -39,33 +39,9 @@ The following arguments are supported:
 
 The following attributes are exported:
 
+* `id` - The ID of the Managed Application Definition.
+
 * `location` - The Azure location where the resource exists.
-
-* `authorization` - One or more `authorization` block defined below.
-
-* `create_ui_definition` - The createUiDefinition json for the backing template with Microsoft.Solutions/applications resource.
-
-* `description` - The managed application definition description.
-
-* `display_name` - The managed application definition display name.
-
-* `package_enabled` - Is enabled on this package?
-
-* `lock_level` - The managed application lock level.
-
-* `main_template` - The inline main template json which has resources to be provisioned.
-
-* `package_file_uri` - The managed application definition package file Uri.
-
-* `tags` - A mapping of tags to assign to the resource.
-
----
-
-An `authorization` block supports the following:
-
-* `role_definition_id` - The provider's role definition identifier.
-
-* `service_principal_id` - The provider's principal identifier.
 
 ---
 
@@ -73,4 +49,4 @@ An `authorization` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the DataBox.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Managed Application Definition.

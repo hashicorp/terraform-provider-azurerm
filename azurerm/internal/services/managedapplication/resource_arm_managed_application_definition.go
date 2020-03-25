@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -46,13 +47,25 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 				ValidateFunc: validate.ManagedApplicationDefinitionName,
 			},
 
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"lock_level": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedapplications.CanNotDelete),
+					string(managedapplications.None),
+					string(managedapplications.ReadOnly),
+				}, false),
+			},
 
 			"authorization": {
 				Type:     schema.TypeSet,
 				Required: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"role_definition_id": {
@@ -69,11 +82,18 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 				},
 			},
 
+			"display_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.ManagedApplicationDefinitionDisplayName,
+			},
+
 			"create_ui_definition": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringIsJSON,
-				ConflictsWith: []string{"package_file_uri"},
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: structure.SuppressJsonDiff,
+				ConflictsWith:    []string{"package_file_uri"},
 			},
 
 			"description": {
@@ -82,34 +102,18 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 				ValidateFunc: validate.ManagedApplicationDefinitionDescription,
 			},
 
-			"display_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionDisplayName,
+			"main_template": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: structure.SuppressJsonDiff,
+				ConflictsWith:    []string{"package_file_uri"},
 			},
 
 			"package_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-			},
-
-			"lock_level": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(managedapplications.CanNotDelete),
-					string(managedapplications.None),
-					string(managedapplications.ReadOnly),
-				}, false),
-			},
-
-			"main_template": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringIsJSON,
-				ConflictsWith: []string{"package_file_uri"},
 			},
 
 			"package_file_uri": {
@@ -135,7 +139,7 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 		existing, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failure checking for present of existing Managed Application Definition Name %q (Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("checking for present of existing Managed Application Definition Name %q (Resource Group %q): %+v", name, resourceGroupName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -181,15 +185,15 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("failure creating Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("creating Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failure waiting for creation of Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("waiting for creation of Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-		return fmt.Errorf("failure retrieving Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("retrieving Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("cannot read Managed Application Definition %q (Resource Group %q) ID", name, resourceGroupName)
@@ -216,7 +220,7 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failure reading Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -226,7 +230,7 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 	}
 	if props := resp.ApplicationDefinitionProperties; props != nil {
 		if err := d.Set("authorization", flattenArmManagedApplicationDefinitionAuthorization(props.Authorizations)); err != nil {
-			return fmt.Errorf("failure setting `authorization`: %+v", err)
+			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
@@ -258,11 +262,11 @@ func resourceArmManagedApplicationDefinitionDelete(d *schema.ResourceData, meta 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("failure deleting Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failure waiting for deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -10,52 +10,46 @@ func TestManagedApplicationDefinitionName(t *testing.T) {
 		expected bool
 	}{
 		{
-			// empty
 			input:    "",
 			expected: false,
 		},
 		{
-			// basic example
-			input:    "hello",
+			input:    "h",
+			expected: false,
+		},
+		{
+			input:    "he",
+			expected: false,
+		},
+		{
+			input:    "hel",
 			expected: true,
 		},
 		{
-			// can't start with an underscore
+			input:    "hel2",
+			expected: true,
+		},
+		{
 			input:    "_hello",
 			expected: false,
 		},
 		{
-			// can't end with a dash
 			input:    "hello-",
 			expected: false,
 		},
 		{
-			// can't contain an exclamation mark
-			input:    "hello!",
+			input:    "malcolm-in!the-middle",
 			expected: false,
 		},
 		{
-			// dash in the middle
-			input:    "malcolm-in-the-middle",
-			expected: false,
-		},
-		{
-			// can't end with a period
-			input:    "hello.",
-			expected: false,
-		},
-		{
-			// 63 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk",
 			expected: true,
 		},
 		{
-			// 64 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkj",
 			expected: true,
 		},
 		{
-			// 65 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkja",
 			expected: false,
 		},
@@ -78,52 +72,30 @@ func TestManagedApplicationDefinitionDisplayName(t *testing.T) {
 		expected bool
 	}{
 		{
-			// empty
 			input:    "",
 			expected: false,
 		},
 		{
-			// basic example
+			input:    "hel",
+			expected: false,
+		},
+		{
+			input:    "hell",
+			expected: true,
+		},
+		{
 			input:    "hello",
 			expected: true,
 		},
 		{
-			// can't start with an underscore
-			input:    "_hello",
-			expected: true,
-		},
-		{
-			// can't end with a dash
-			input:    "hello-",
-			expected: true,
-		},
-		{
-			// can't contain an exclamation mark
-			input:    "hello!",
-			expected: true,
-		},
-		{
-			// dash in the middle
-			input:    "malcolm-in-the-middle",
-			expected: true,
-		},
-		{
-			// can't end with a period
-			input:    "hello.",
-			expected: true,
-		},
-		{
-			// 59 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefg",
 			expected: true,
 		},
 		{
-			// 60 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefga",
 			expected: true,
 		},
 		{
-			// 61 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgaa",
 			expected: false,
 		},
@@ -146,52 +118,18 @@ func TestManagedApplicationDefinitionDescription(t *testing.T) {
 		expected bool
 	}{
 		{
-			// empty
 			input:    "",
 			expected: true,
 		},
 		{
-			// basic example
-			input:    "hello",
-			expected: true,
-		},
-		{
-			// can't start with an underscore
-			input:    "_hello",
-			expected: true,
-		},
-		{
-			// can't end with a dash
-			input:    "hello-",
-			expected: true,
-		},
-		{
-			// can't contain an exclamation mark
-			input:    "hello!",
-			expected: true,
-		},
-		{
-			// dash in the middle
-			input:    "malcolm-in-the-middle",
-			expected: true,
-		},
-		{
-			// can't end with a period
-			input:    "hello.",
-			expected: true,
-		},
-		{
-			// 199 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvw",
 			expected: true,
 		},
 		{
-			// 200 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwd",
 			expected: true,
 		},
 		{
-			// 201 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwds",
 			expected: false,
 		},
