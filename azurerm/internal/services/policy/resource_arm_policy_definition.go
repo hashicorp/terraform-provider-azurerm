@@ -301,7 +301,7 @@ func parsePolicyDefinitionNameFromId(id string) (string, error) {
 }
 
 func parseManagementGroupIdFromPolicyId(id string) string {
-	r, _ := regexp.Compile("managementgroups/(.+)/providers/.*$")
+	r, _ := regexp.Compile("managementGroups/(.+)/providers/.*$")
 
 	if r.MatchString(id) {
 		parms := r.FindAllStringSubmatch(id, -1)[0]

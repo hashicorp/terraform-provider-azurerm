@@ -36,7 +36,8 @@ func NewBackendClient(subscriptionID string) BackendClient {
 	return NewBackendClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBackendClientWithBaseURI creates an instance of the BackendClient client.
+// NewBackendClientWithBaseURI creates an instance of the BackendClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBackendClientWithBaseURI(baseURI string, subscriptionID string) BackendClient {
 	return BackendClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

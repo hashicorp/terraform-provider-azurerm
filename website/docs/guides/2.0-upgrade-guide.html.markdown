@@ -41,6 +41,7 @@ Once version 2.0 of the AzureRM Provider is released - you can then upgrade to i
 ```hcl
 provider "azurerm" {
   version = "=2.0.0"
+  features {}
 }
 ```
 

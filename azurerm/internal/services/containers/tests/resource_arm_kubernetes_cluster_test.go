@@ -11,8 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-var olderKubernetesVersion = "1.14.8"
-var currentKubernetesVersion = "1.15.5"
+var olderKubernetesVersion = "1.15.10"
+var currentKubernetesVersion = "1.16.7"
 
 func TestAccAzureRMKubernetes_all(t *testing.T) {
 	// we can conditionally run tests tests individually, or combined
@@ -67,6 +67,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"manualScaleMultiplePoolsUpdate": testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
 			"manualScaleUpdate":              testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate,
 			"manualScaleVMSku":               testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku,
+			"nodeLabels":                     TestAccAzureRMKubernetesClusterNodePool_nodeLabels,
 			"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
 			"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
 			"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
@@ -81,6 +82,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"basicVMSS":             testAccAzureRMKubernetesCluster_basicVMSS,
 			"requiresImport":        testAccAzureRMKubernetesCluster_requiresImport,
 			"linuxProfile":          testAccAzureRMKubernetesCluster_linuxProfile,
+			"nodeLabels":            testAccAzureRMKubernetesCluster_nodeLabels,
 			"nodeTaints":            testAccAzureRMKubernetesCluster_nodeTaints,
 			"nodeResourceGroup":     testAccAzureRMKubernetesCluster_nodeResourceGroup,
 			"upgradeConfig":         testAccAzureRMKubernetesCluster_upgrade,
@@ -115,6 +117,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"addOnProfileRouting":                         testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting,
 			"autoscalingNoAvailabilityZones":              testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones,
 			"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
+			"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
 			"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
 			"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
 			"privateLink":                                 testAccDataSourceAzureRMKubernetesCluster_privateLink,

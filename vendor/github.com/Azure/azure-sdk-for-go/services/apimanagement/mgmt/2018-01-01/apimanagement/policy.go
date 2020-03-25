@@ -36,7 +36,8 @@ func NewPolicyClient(subscriptionID string) PolicyClient {
 	return NewPolicyClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPolicyClientWithBaseURI creates an instance of the PolicyClient client.
+// NewPolicyClientWithBaseURI creates an instance of the PolicyClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPolicyClientWithBaseURI(baseURI string, subscriptionID string) PolicyClient {
 	return PolicyClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

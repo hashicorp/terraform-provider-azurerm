@@ -291,13 +291,13 @@ func testAccAzureRMNetAppVolume_nfsv41(data acceptance.TestData) string {
 
 resource "azurerm_netapp_volume" "test" {
   name                = "acctest-NetAppVolume-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  pool_name           = "${azurerm_netapp_pool.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
   volume_path         = "my-unique-file-path-%d"
   service_level       = "Standard"
-  subnet_id           = "${azurerm_subnet.test.id}"
+  subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
 

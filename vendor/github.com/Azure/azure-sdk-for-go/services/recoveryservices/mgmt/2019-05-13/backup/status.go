@@ -35,7 +35,8 @@ func NewStatusClient(subscriptionID string) StatusClient {
 	return NewStatusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStatusClientWithBaseURI creates an instance of the StatusClient client.
+// NewStatusClientWithBaseURI creates an instance of the StatusClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStatusClientWithBaseURI(baseURI string, subscriptionID string) StatusClient {
 	return StatusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -101,8 +102,7 @@ func (client StatusClient) GetPreparer(ctx context.Context, azureRegion string, 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StatusClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
