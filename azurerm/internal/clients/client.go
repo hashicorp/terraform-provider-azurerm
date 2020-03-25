@@ -20,6 +20,7 @@ import (
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
+	customproviders "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/client"
 	datamigration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/client"
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
@@ -38,6 +39,7 @@ import (
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
+	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
 	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
 	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
@@ -93,6 +95,7 @@ type Client struct {
 	Containers        *containerServices.Client
 	Cosmos            *cosmosdb.Client
 	CostManagement    *costmanagement.Client
+	CustomProviders   *customproviders.Client
 	DatabaseMigration *datamigration.Client
 	DataBricks        *databricks.Client
 	DataFactory       *datafactory.Client
@@ -111,6 +114,7 @@ type Client struct {
 	Kusto             *kusto.Client
 	LogAnalytics      *loganalytics.Client
 	Logic             *logic.Client
+	MachineLearning   *machinelearning.Client
 	ManagementGroups  *managementgroup.Client
 	Maps              *maps.Client
 	MariaDB           *mariadb.Client
@@ -167,6 +171,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
+	client.CustomProviders = customproviders.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
@@ -185,6 +190,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Kusto = kusto.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
+	client.MachineLearning = machinelearning.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
 	client.Maps = maps.NewClient(o)
 	client.MariaDB = mariadb.NewClient(o)
