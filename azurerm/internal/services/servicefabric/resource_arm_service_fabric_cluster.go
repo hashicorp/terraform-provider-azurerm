@@ -225,12 +225,12 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"certificate_common_name": {
+						"common_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"certificate_issuer_thumbprint": {
+						"issuer_thumbprint": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -881,8 +881,8 @@ func expandServiceFabricClusterClientCertificateCommonNames(input []interface{})
 	for _, v := range input {
 		val := v.(map[string]interface{})
 
-		certificate_common_name := val["certificate_common_name"].(string)
-		certificate_issuer_thumbprint := val["certificate_issuer_thumbprint"].(string)
+		certificate_common_name := val["common_name"].(string)
+		certificate_issuer_thumbprint := val["issuer_thumbprint"].(string)
 		isAdmin := val["is_admin"].(bool)
 
 		result := servicefabric.ClientCertificateCommonName{
@@ -907,11 +907,11 @@ func flattenServiceFabricClusterClientCertificateCommonNames(input *[]servicefab
 		result := make(map[string]interface{})
 
 		if certificate_common_name := v.CertificateCommonName; certificate_common_name != nil {
-			result["certificate_common_name"] = *certificate_common_name
+			result["common_name"] = *certificate_common_name
 		}
 
 		if certificate_issuer_thumbprint := v.CertificateIssuerThumbprint; certificate_issuer_thumbprint != nil {
-			result["certificate_issuer_thumbprint"] = *certificate_issuer_thumbprint
+			result["issuer_thumbprint"] = *certificate_issuer_thumbprint
 		}
 
 		if isAdmin := v.IsAdmin; isAdmin != nil {
