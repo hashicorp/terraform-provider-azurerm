@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -175,7 +175,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 }
 
 func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -254,7 +254,7 @@ func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -298,9 +298,9 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("throughput") {
-		throughputParameters := documentdb.ThroughputUpdateParameters{
-			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-				Resource: &documentdb.ThroughputResource{
+		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
+			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
+				Resource: &documentdb.ThroughputSettingsResource{
 					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
 				},
 			},
@@ -323,7 +323,7 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -348,32 +348,34 @@ func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{
 	d.Set("account_name", id.Account)
 	d.Set("database_name", id.Database)
 
-	if props := resp.GremlinGraphProperties; props != nil {
-		if pk := props.PartitionKey; pk != nil {
-			if paths := pk.Paths; paths != nil {
-				if len(*paths) > 1 {
-					return fmt.Errorf("Error reading PartitionKey Paths, more than 1 returned")
-				} else if len(*paths) == 1 {
-					d.Set("partition_key_path", (*paths)[0])
+	if graphProperties := resp.GremlinGraphGetProperties; graphProperties != nil {
+		if props := graphProperties.Resource; props != nil {
+			if pk := props.PartitionKey; pk != nil {
+				if paths := pk.Paths; paths != nil {
+					if len(*paths) > 1 {
+						return fmt.Errorf("Error reading PartitionKey Paths, more than 1 returned")
+					} else if len(*paths) == 1 {
+						d.Set("partition_key_path", (*paths)[0])
+					}
 				}
 			}
-		}
 
-		if ip := props.IndexingPolicy; ip != nil {
-			if err := d.Set("index_policy", flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(props.IndexingPolicy)); err != nil {
-				return fmt.Errorf("Error setting `index_policy`: %+v", err)
+			if ip := props.IndexingPolicy; ip != nil {
+				if err := d.Set("index_policy", flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(props.IndexingPolicy)); err != nil {
+					return fmt.Errorf("Error setting `index_policy`: %+v", err)
+				}
 			}
-		}
 
-		if crp := props.ConflictResolutionPolicy; crp != nil {
-			if err := d.Set("conflict_resolution_policy", flattenAzureRmCosmosDbGremlinGraphConflictResolutionPolicy(props.ConflictResolutionPolicy)); err != nil {
-				return fmt.Errorf("Error setting `conflict_resolution_policy`: %+v", err)
+			if crp := props.ConflictResolutionPolicy; crp != nil {
+				if err := d.Set("conflict_resolution_policy", flattenAzureRmCosmosDbGremlinGraphConflictResolutionPolicy(props.ConflictResolutionPolicy)); err != nil {
+					return fmt.Errorf("Error setting `conflict_resolution_policy`: %+v", err)
+				}
 			}
-		}
 
-		if ukp := props.UniqueKeyPolicy; ukp != nil {
-			if err := d.Set("unique_key", flattenCosmosGremlinGraphUniqueKeys(ukp.UniqueKeys)); err != nil {
-				return fmt.Errorf("Error setting `unique_key`: %+v", err)
+			if ukp := props.UniqueKeyPolicy; ukp != nil {
+				if err := d.Set("unique_key", flattenCosmosGremlinGraphUniqueKeys(ukp.UniqueKeys)); err != nil {
+					return fmt.Errorf("Error setting `unique_key`: %+v", err)
+				}
 			}
 		}
 	}
@@ -386,14 +388,18 @@ func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{
 			d.Set("throughput", nil)
 		}
 	} else {
-		d.Set("throughput", throughputResp.Throughput)
+		if props := throughputResp.ThroughputSettingsGetProperties; props != nil {
+			if res := props.Resource; res != nil {
+				d.Set("throughput", res.Throughput)
+			}
+		}
 	}
 
 	return nil
 }
 
 func resourceArmCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

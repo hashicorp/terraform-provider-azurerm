@@ -122,7 +122,7 @@ func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbMongoCollectionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -152,7 +152,7 @@ func testCheckAzureRMCosmosDbMongoCollectionDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbMongoCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API

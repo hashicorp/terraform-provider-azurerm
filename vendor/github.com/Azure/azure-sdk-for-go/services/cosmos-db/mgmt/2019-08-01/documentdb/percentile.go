@@ -26,36 +26,33 @@ import (
 	"net/http"
 )
 
-// PartitionKeyRangeIDClient is the azure Cosmos DB Database Service Resource Provider REST API
-type PartitionKeyRangeIDClient struct {
+// PercentileClient is the azure Cosmos DB Database Service Resource Provider REST API
+type PercentileClient struct {
 	BaseClient
 }
 
-// NewPartitionKeyRangeIDClient creates an instance of the PartitionKeyRangeIDClient client.
-func NewPartitionKeyRangeIDClient(subscriptionID string) PartitionKeyRangeIDClient {
-	return NewPartitionKeyRangeIDClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewPercentileClient creates an instance of the PercentileClient client.
+func NewPercentileClient(subscriptionID string) PercentileClient {
+	return NewPercentileClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPartitionKeyRangeIDClientWithBaseURI creates an instance of the PartitionKeyRangeIDClient client using a custom
-// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
-// stack).
-func NewPartitionKeyRangeIDClientWithBaseURI(baseURI string, subscriptionID string) PartitionKeyRangeIDClient {
-	return PartitionKeyRangeIDClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewPercentileClientWithBaseURI creates an instance of the PercentileClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewPercentileClientWithBaseURI(baseURI string, subscriptionID string) PercentileClient {
+	return PercentileClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ListMetrics retrieves the metrics determined by the given filter for the given partition key range id.
+// ListMetrics retrieves the metrics determined by the given filter for the given database account. This url is only
+// for PBS and Replication Latency data
 // Parameters:
 // resourceGroupName - name of an Azure resource group.
 // accountName - cosmos DB database account name.
-// databaseRid - cosmos DB database rid.
-// collectionRid - cosmos DB collection rid.
-// partitionKeyRangeID - partition Key Range Id for which to get data.
 // filter - an OData filter expression that describes a subset of metrics to return. The parameters that can be
 // filtered are name.value (name of the metric, can have an or of multiple names), startTime, endTime, and
 // timeGrain. The supported operator is eq.
-func (client PartitionKeyRangeIDClient) ListMetrics(ctx context.Context, resourceGroupName string, accountName string, databaseRid string, collectionRid string, partitionKeyRangeID string, filter string) (result PartitionMetricListResult, err error) {
+func (client PercentileClient) ListMetrics(ctx context.Context, resourceGroupName string, accountName string, filter string) (result PercentileMetricListResult, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PartitionKeyRangeIDClient.ListMetrics")
+		ctx = tracing.StartSpan(ctx, fqdn+"/PercentileClient.ListMetrics")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -73,42 +70,39 @@ func (client PartitionKeyRangeIDClient) ListMetrics(ctx context.Context, resourc
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
 				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("documentdb.PartitionKeyRangeIDClient", "ListMetrics", err.Error())
+		return result, validation.NewError("documentdb.PercentileClient", "ListMetrics", err.Error())
 	}
 
-	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, accountName, databaseRid, collectionRid, partitionKeyRangeID, filter)
+	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, accountName, filter)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.PartitionKeyRangeIDClient", "ListMetrics", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "documentdb.PercentileClient", "ListMetrics", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListMetricsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "documentdb.PartitionKeyRangeIDClient", "ListMetrics", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "documentdb.PercentileClient", "ListMetrics", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "documentdb.PartitionKeyRangeIDClient", "ListMetrics", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "documentdb.PercentileClient", "ListMetrics", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListMetricsPreparer prepares the ListMetrics request.
-func (client PartitionKeyRangeIDClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseRid string, collectionRid string, partitionKeyRangeID string, filter string) (*http.Request, error) {
+func (client PercentileClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, accountName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"accountName":         autorest.Encode("path", accountName),
-		"collectionRid":       autorest.Encode("path", collectionRid),
-		"databaseRid":         autorest.Encode("path", databaseRid),
-		"partitionKeyRangeId": autorest.Encode("path", partitionKeyRangeID),
-		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
-		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-08"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,
@@ -117,20 +111,20 @@ func (client PartitionKeyRangeIDClient) ListMetricsPreparer(ctx context.Context,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/databases/{databaseRid}/collections/{collectionRid}/partitionKeyRangeId/{partitionKeyRangeId}/metrics", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/percentile/metrics", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListMetricsSender sends the ListMetrics request. The method will close the
 // http.Response Body if it receives an error.
-func (client PartitionKeyRangeIDClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
+func (client PercentileClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListMetricsResponder handles the response to the ListMetrics request. The method always
 // closes the http.Response Body.
-func (client PartitionKeyRangeIDClient) ListMetricsResponder(resp *http.Response) (result PartitionMetricListResult, err error) {
+func (client PercentileClient) ListMetricsResponder(resp *http.Response) (result PercentileMetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

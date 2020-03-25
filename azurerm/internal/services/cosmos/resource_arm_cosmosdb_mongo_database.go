@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -64,7 +64,7 @@ func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 }
 
 func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -127,7 +127,7 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -155,9 +155,9 @@ func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if d.HasChange("throughput") {
-		throughputParameters := documentdb.ThroughputUpdateParameters{
-			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-				Resource: &documentdb.ThroughputResource{
+		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
+			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
+				Resource: &documentdb.ThroughputSettingsResource{
 					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
 				},
 			},
@@ -185,7 +185,7 @@ func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -207,8 +207,10 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.Account)
-	if props := resp.MongoDBDatabaseProperties; props != nil {
-		d.Set("name", props.ID)
+	if props := resp.MongoDBDatabaseGetProperties; props != nil {
+		if res := props.Resource; res != nil {
+			d.Set("name", res.ID)
+		}
 	}
 
 	throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database)
@@ -219,14 +221,18 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 			d.Set("throughput", nil)
 		}
 	} else {
-		d.Set("throughput", throughputResp.Throughput)
+		if props := throughputResp.ThroughputSettingsGetProperties; props != nil {
+			if res := props.Resource; res != nil {
+				d.Set("throughput", res.Throughput)
+			}
+		}
 	}
 
 	return nil
 }
 
 func resourceArmCosmosDbMongoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
