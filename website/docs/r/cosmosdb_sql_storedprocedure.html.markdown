@@ -1,12 +1,12 @@
 ---
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_storedprocedure"
+page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_stored_procedure"
 description: |-
   Manages a SQL Stored Procedure within a Cosmos DB Account SQL Database.
 ---
 
-# azurerm_cosmosdb_sql_storedprocedure
+# azurerm_cosmosdb_sql_stored_procedure
 
 Manages a SQL Stored Procedure within a Cosmos DB Account SQL Database.
 
@@ -33,7 +33,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   partition_key_path  = "/id"
 }
 
-resource "azurerm_cosmosdb_sql_storedprocedure" "example" {
+resource "azurerm_cosmosdb_sql_stored_procedure" "example" {
   name                = "test-stored-proc"
   resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
   account_name        = azurerm_cosmosdb_account.example.name
@@ -80,8 +80,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Cosmos SQL Stored Procedure can be imported using the `resource id`, e.g.
+CosmosDB SQL Stored Procedures can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cosmosdb_sql_storedprocedure.db1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/sqlDatabases/db1/containers/c1/storedProcedures/sp1
+terraform import azurerm_cosmosdb_sql_stored_procedure.db1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/sqlDatabases/db1/containers/c1/storedProcedures/sp1
 ```
