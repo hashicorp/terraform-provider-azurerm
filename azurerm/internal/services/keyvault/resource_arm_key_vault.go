@@ -776,22 +776,6 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	return []interface{}{output}
 }
 
-func optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location string) string {
-	return fmt.Sprintf(`
-An existing soft-deleted Key Vault exists with the Name %q in the location %q, however
-automatically recovering this KeyVault has been disabled via the "features" block.
-
-Terraform can automatically recover the soft-deleted Key Vault when this behaviour is
-enabled within the "features" block (located within the "provider" block) - more
-information can be found here:
-
-https://www.terraform.io/docs/providers/azurerm/index.html#features
-
-Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
-this into Terraform via "terraform import", or pick a different name/location.
-`, name, location)
-}
-
 type keyVaultDeletionStatus struct {
 	deleteDate string
 	purgeDate  string
