@@ -20,6 +20,7 @@ import (
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
+	customproviders "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/client"
 	datamigration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/client"
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
@@ -95,6 +96,7 @@ type Client struct {
 	Containers         *containerServices.Client
 	Cosmos             *cosmosdb.Client
 	CostManagement     *costmanagement.Client
+	CustomProviders    *customproviders.Client
 	DatabaseMigration  *datamigration.Client
 	DataBricks         *databricks.Client
 	DataFactory        *datafactory.Client
@@ -171,6 +173,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
 	client.CostManagement = costmanagement.NewClient(o)
+	client.CustomProviders = customproviders.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
