@@ -27,10 +27,7 @@ func GremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
 	}
 
 	if gremlinDatabase.Name, err = id.PopSegment("gremlinDatabases"); err != nil {
-		// Handle existing resources created with the 2015-04-08 SDK
-		if gremlinDatabase.Name, err = id.PopSegment("databases"); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &gremlinDatabase, nil

@@ -58,17 +58,6 @@ func TestMongoDbCollectionId(t *testing.T) {
 			},
 		},
 		{
-			Name:  "Existing 2015-04-08 SDK MongoDB Collection ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/apis/mongodb/databases/db1/collections/coll1",
-			Error: false,
-			Expect: &MongoDbCollectionId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Database:      "db1",
-				Name:          "coll1",
-			},
-		},
-		{
 			Name:  "Wrong Casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/MongodbDatabases/db1/Collections/coll1",
 			Error: true,

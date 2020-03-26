@@ -28,10 +28,7 @@ func SqlContainerID(input string) (*SqlContainerId, error) {
 	}
 
 	if sqlContainer.Database, err = id.PopSegment("sqlDatabases"); err != nil {
-		// Handle existing resources created with the 2015-04-08 SDK
-		if sqlContainer.Database, err = id.PopSegment("databases"); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	if sqlContainer.Name, err = id.PopSegment("containers"); err != nil {

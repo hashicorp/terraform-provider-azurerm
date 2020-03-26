@@ -27,10 +27,7 @@ func MongoDbDatabaseID(input string) (*MongoDbDatabaseId, error) {
 	}
 
 	if mongodbDatabase.Name, err = id.PopSegment("mongodbDatabases"); err != nil {
-		// Handle existing resources created with the 2015-04-08 SDK
-		if mongodbDatabase.Name, err = id.PopSegment("databases"); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &mongodbDatabase, nil

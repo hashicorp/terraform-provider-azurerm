@@ -52,16 +52,6 @@ func TestCassandraKeyspaceID(t *testing.T) {
 			},
 		},
 		{
-			Name:  "Existing 2015-04-08 SDK Keyspace ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/apis/cassandra/keyspaces/keyspace1",
-			Error: false,
-			Expect: &CassandraKeyspaceId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Name:          "keyspace1",
-			},
-		},
-		{
 			Name:  "Wrong Casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/CassandraKeyspaces/keyspace1",
 			Error: true,

@@ -27,10 +27,7 @@ func CassandraKeyspaceID(input string) (*CassandraKeyspaceId, error) {
 	}
 
 	if cassandraKeyspace.Name, err = id.PopSegment("cassandraKeyspaces"); err != nil {
-		// Handle existing resources created with the 2015-04-08 SDK
-		if cassandraKeyspace.Name, err = id.PopSegment("keyspaces"); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &cassandraKeyspace, nil
