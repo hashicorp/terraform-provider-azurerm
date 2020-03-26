@@ -91,7 +91,7 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 				return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Database %q (Account: %q): %+v", name, account, err)
 			}
 		} else {
-			if existing.ID != nil && *existing.ID != "" {
+			if existing.ID == nil && *existing.ID == "" {
 				return fmt.Errorf("Error generating import ID for Cosmos Mongo Database %q (Account: %q)", name, account)
 			}
 
