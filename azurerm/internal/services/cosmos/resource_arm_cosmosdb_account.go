@@ -289,7 +289,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing CosmosDB Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing CosmosDB Account %q (Resource Group: %q): %q", name, resourceGroup, err)
 			}
 		}
 
@@ -309,16 +309,16 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group: %q): %+v", name, resourceGroup, err)
 	}
 
 	if !utils.ResponseWasNotFound(r) {
-		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+		return fmt.Errorf("CosmosDB Account %q already exists, please import the resource via terraform import", name)
 	}
 
 	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
 	if err != nil {
-		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group: %q) geo locations: %+v", name, resourceGroup, err)
 	}
 
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
@@ -352,12 +352,12 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
-		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group: %q): %+v", name, resourceGroup, err)
 	}
 
 	id := resp.ID
 	if id == nil {
-		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read CosmosDB Account %q (Resource Group: %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*id)
@@ -386,13 +386,13 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
 	if err != nil {
-		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group: %q) geo locations: %+v", name, resourceGroup, err)
 	}
 
 	// get existing locations (if exists)
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account %q: %q", name, err)
 	}
 
 	oldLocations := make([]documentdb.Location, 0)
@@ -428,7 +428,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group: %q): %+v", name, resourceGroup, err)
 	}
 
 	// determine if any locations have been renamed/priority reordered and remove them
@@ -437,7 +437,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		if ol, ok := oldLocationsMap[*l.LocationName]; ok {
 			if *l.FailoverPriority != *ol.FailoverPriority {
 				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the failover priority of primary Cosmos DB account %q location %s to %d (Resource Group %q)", name, *l.LocationName, *l.FailoverPriority, resourceGroup)
+					return fmt.Errorf("Cannot change the failover priority of primary Cosmos DB account %q location %q to %d (Resource Group: %q)", name, *l.LocationName, *l.FailoverPriority, resourceGroup)
 				}
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
@@ -448,7 +448,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 			if *l.ID != *ol.ID {
 				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the prefix/ID of the primary Cosmos DB account %q location %s (Resource Group %q)", name, *l.LocationName, resourceGroup)
+					return fmt.Errorf("Cannot change the prefix/ID of the primary Cosmos DB account %q location %q (Resource Group: %q)", name, *l.LocationName, resourceGroup)
 				}
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
@@ -464,7 +464,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
 		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
-			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group: %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -472,12 +472,12 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
 	upsertResponse, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
-		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group: %q): %+v", name, resourceGroup, err)
 	}
 
 	id := (*upsertResponse).ID
 	if id == nil {
-		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read CosmosDB Account %q (Resource Group: %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*id)
@@ -505,7 +505,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account %q: %q", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -532,7 +532,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
-		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group: %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
@@ -558,7 +558,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 	if err := d.Set("read_endpoints", readEndpoints); err != nil {
-		return fmt.Errorf("Error setting `read_endpoints`: %s", err)
+		return fmt.Errorf("Error setting `read_endpoints`: %q", err)
 	}
 
 	writeEndpoints := make([]string, 0)
@@ -572,7 +572,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 	if err := d.Set("write_endpoints", writeEndpoints); err != nil {
-		return fmt.Errorf("Error setting `write_endpoints`: %s", err)
+		return fmt.Errorf("Error setting `write_endpoints`: %q", err)
 	}
 
 	// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer
@@ -580,12 +580,12 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(keys.Response) {
-			log.Printf("[DEBUG] Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Keys were not found for CosmosDB Account %q (Resource Group: %q) - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
+		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %q: %q", name, err)
 	}
 	d.Set("primary_master_key", keys.PrimaryMasterKey)
 	d.Set("secondary_master_key", keys.SecondaryMasterKey)
@@ -593,12 +593,12 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(keys.Response) {
-			log.Printf("[DEBUG] Read Only Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Read Only Keys were not found for CosmosDB Account %q (Resource Group: %q) - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
+		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %q: %q", name, err)
 	}
 	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
 	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
@@ -606,12 +606,12 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	connStringResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(keys.Response) {
-			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group: %q) - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", name, err)
+		return fmt.Errorf("[ERROR] Unable to List connection strings for CosmosDB Account %q: %q", name, err)
 	}
 
 	var connStrings []string
@@ -644,7 +644,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account %q: %+v", name, err)
 	}
 
 	// the SDK now will return a `WasNotFound` response even when still deleting
@@ -659,7 +659,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 				if utils.ResponseWasNotFound(resp.Response) {
 					return resp, "NotFound", nil
 				}
-				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after delete (Resource Group %q): %+v", name, resourceGroup, err2)
+				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after delete (Resource Group: %q): %+v", name, resourceGroup, err2)
 			}
 
 			return resp, "Deleting", nil
@@ -667,7 +667,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Waiting forCosmosDB Account %q to delete (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Waiting forCosmosDB Account %q to delete (Resource Group: %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -676,11 +676,11 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *schema.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group: %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group: %q) to finish creating/updating: %+v", name, resourceGroup, err)
 	}
 
 	// if a replication location is added or removed it can take some time to provision
@@ -692,7 +692,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
-				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
+				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group: %q): %+v", name, resourceGroup, err2)
 			}
 
 			status := "Succeeded"
@@ -714,7 +714,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 
 	resp, err := stateConf.WaitForState()
 	if err != nil {
-		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group: %q) to provision: %+v", name, resourceGroup, err)
 	}
 
 	r := resp.(documentdb.DatabaseAccountGetResults)
@@ -744,7 +744,7 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *docu
 }
 
 func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location string) string {
-	return fmt.Sprintf("%s-%s", databaseName, location)
+	return fmt.Sprintf("%q-%q", databaseName, location)
 }
 
 func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
@@ -780,7 +780,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 		}
 
 		if _, ok := byName[name]; ok {
-			return nil, fmt.Errorf("Each `geo_location` needs to be in unique location. Multiple instances of '%s' found", name)
+			return nil, fmt.Errorf("Each `geo_location` needs to be in unique location. Multiple instances of %q found", name)
 		}
 
 		byPriorities[priority] = location
@@ -909,7 +909,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
-		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
+		buf.WriteString(fmt.Sprintf("%q-%q-%d", prefix, location, priority))
 	}
 
 	return hashcode.String(buf.String())
@@ -919,7 +919,7 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%q-", m["name"].(string)))
 	}
 
 	return hashcode.String(buf.String())

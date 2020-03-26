@@ -87,11 +87,11 @@ func resourceArmCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interfa
 		existing, err := client.GetGremlinDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Gremlin Database %s (Account %s): %+v", name, account, err)
+				return fmt.Errorf("Error checking for presence of creating Gremlin Database %q (Account: %q): %+v", name, account, err)
 			}
 		} else {
 			if existing.ID != nil && *existing.ID != "" {
-				return fmt.Errorf("Error generating import ID for Cosmos Gremlin Database %s (Account %s)", name, account)
+				return fmt.Errorf("Error generating import ID for Cosmos Gremlin Database %q (Account: %q)", name, account)
 			}
 
 			return tf.ImportAsExistsError("azurerm_cosmosdb_gremlin_database", *existing.ID)
@@ -115,20 +115,20 @@ func resourceArmCosmosGremlinDatabaseCreate(d *schema.ResourceData, meta interfa
 
 	future, err := client.CreateUpdateGremlinDatabase(ctx, resourceGroup, account, name, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Gremlin Database %s (Account %s): %+v", name, account, err)
+		return fmt.Errorf("Error issuing create/update request for Gremlin Database %q (Account: %q): %+v", name, account, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Gremlin Database %s (Account %s): %+v", name, account, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Gremlin Database %q (Account: %q): %+v", name, account, err)
 	}
 
 	resp, err := client.GetGremlinDatabase(ctx, resourceGroup, account, name)
 	if err != nil {
-		return fmt.Errorf("Error making get request for Cosmos Gremlin Database %s (Account %s) ID: %v", name, account, err)
+		return fmt.Errorf("Error making get request for Cosmos Gremlin Database %q (Account: %q) ID: %v", name, account, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Error getting ID from Cosmos Gremlin Database %s (Account %s)", name, account)
+		return fmt.Errorf("Error getting ID from Cosmos Gremlin Database %q (Account: %q)", name, account)
 	}
 
 	d.SetId(*resp.ID)
@@ -157,11 +157,11 @@ func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interfa
 
 	future, err := client.CreateUpdateGremlinDatabase(ctx, id.ResourceGroup, id.Account, id.Name, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Gremlin Database %s (Account %s): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.Account, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Gremlin Database %s (Account %s): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.Account, err)
 	}
 
 	if d.HasChange("throughput") {
@@ -176,18 +176,18 @@ func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interfa
 		throughputFuture, err := client.UpdateGremlinDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name, throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
-				return fmt.Errorf("Error setting Throughput for Cosmos Gremlin Database %s (Account %s): %+v - "+
+				return fmt.Errorf("Error setting Throughput for Cosmos Gremlin Database %q (Account: %q): %+v - "+
 					"If the collection has not been created with and initial throughput, you cannot configure it later.", id.Name, id.Account, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Gremlin Database %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Name, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Gremlin Database %q (Account: %q, Database %q): %+v", id.Name, id.Account, id.Name, err)
 		}
 	}
 
 	if _, err = client.GetGremlinDatabase(ctx, id.ResourceGroup, id.Account, id.Name); err != nil {
-		return fmt.Errorf("Error making get request for Cosmos Gremlin Database %s (Account %s): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error making get request for Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.Account, err)
 	}
 
 	return resourceArmCosmosGremlinDatabaseRead(d, meta)
@@ -206,12 +206,12 @@ func resourceArmCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface
 	resp, err := client.GetGremlinDatabase(ctx, id.ResourceGroup, id.Account, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Gremlin Database %s (Account %s) - removing from state", id.Name, id.Account)
+			log.Printf("[INFO] Error reading Cosmos Gremlin Database %q (Account: %q) - removing from state", id.Name, id.Account)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Gremlin Database %s (Account %s): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error reading Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.Account, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -225,7 +225,7 @@ func resourceArmCosmosGremlinDatabaseRead(d *schema.ResourceData, meta interface
 	throughputResp, err := client.GetGremlinDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Gremlin Database %s (Account %s): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error reading Throughput on Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.Account, err)
 		} else {
 			d.Set("throughput", nil)
 		}
@@ -253,12 +253,12 @@ func resourceArmCosmosGremlinDatabaseDelete(d *schema.ResourceData, meta interfa
 	future, err := client.DeleteGremlinDatabase(ctx, id.ResourceGroup, id.Account, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Gremlin Database %s (Account %s): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error deleting Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.Account, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos Gremlin Database %s (Account %s): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error waiting on delete future for Cosmos Gremlin Database %q (Account: %q): %+v", id.Name, id.Account, err)
 	}
 
 	return nil
