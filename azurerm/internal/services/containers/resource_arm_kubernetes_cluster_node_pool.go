@@ -168,7 +168,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 			return fmt.Errorf("Kubernetes Cluster %q was not found in Resource Group %q!", clusterName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
+		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", clusterName, resourceGroup, err)
 	}
 
 	// try to provide a more helpful error here
@@ -191,7 +191,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 		existing, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Agent Pool %q (Kubernetes Cluster %q / Resource Group %q): %s", name, clusterName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Agent Pool %q (Kubernetes Cluster %q / Resource Group %q): %s", name, clusterName, resourceGroup, err)
 			}
 		}
 
@@ -280,16 +280,16 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	future, err := poolsClient.CreateOrUpdate(ctx, resourceGroup, clusterName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, poolsClient.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -320,10 +320,10 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 			return fmt.Errorf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", id.Name, id.ClusterName, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 	if existing.ManagedClusterAgentPoolProfileProperties == nil {
-		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `properties` was nil", id.Name, id.ClusterName, id.ResourceGroup)
+		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): `properties` was nil", id.Name, id.ClusterName, id.ResourceGroup)
 	}
 
 	props := existing.ManagedClusterAgentPoolProfileProperties
@@ -403,11 +403,11 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	existing.ManagedClusterAgentPoolProfileProperties = props
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ClusterName, id.Name, existing)
 	if err != nil {
-		return fmt.Errorf("Error updating Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Node Pool %q (Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
 	d.Partial(false)
@@ -435,7 +435,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	resp, err := poolsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
@@ -446,7 +446,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -454,7 +454,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 
 	if props := resp.ManagedClusterAgentPoolProfileProperties; props != nil {
 		if err := d.Set("availability_zones", utils.FlattenStringSlice(props.AvailabilityZones)); err != nil {
-			return fmt.Errorf("Error setting `availability_zones`: %+v", err)
+			return fmt.Errorf("setting `availability_zones`: %+v", err)
 		}
 
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
@@ -485,11 +485,11 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("node_count", count)
 
 		if err := d.Set("node_labels", props.NodeLabels); err != nil {
-			return fmt.Errorf("Error setting `node_labels`: %+v", err)
+			return fmt.Errorf("setting `node_labels`: %+v", err)
 		}
 
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
-			return fmt.Errorf("Error setting `node_taints`: %+v", err)
+			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
 		osDiskSizeGB := 0
@@ -517,11 +517,11 @@ func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta int
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the deletion of Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
 	}
 
 	return nil
