@@ -30,13 +30,13 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_datasource_windows_performance_counter" "example" {
-  name = "example-lad-wpc"
+  name                = "example-lad-wpc"
   resource_group_name = azurerm_resource_group.example.name
-  workspace_name = azurerm_log_analytics_workspace.example.name
-  counter_name = "CPU"
-  object_name = "CPU"
-  interval_seconds = 10
-  instance_name = "*"
+  workspace_name      = azurerm_log_analytics_workspace.example.name
+  counter_name        = "CPU"
+  object_name         = "CPU"
+  interval_seconds    = 10
+  instance_name       = "*"
 }
 ```
 

@@ -169,13 +169,13 @@ func testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(data ac
 %s
 
 resource "azurerm_log_analytics_datasource_windows_performance_counter" "test" {
-  name = "acctestLADS-WPC-%d"
+  name                = "acctestLADS-WPC-%d"
   resource_group_name = azurerm_resource_group.test.name
-  workspace_name = azurerm_log_analytics_workspace.test.name
-  counter_name = "CPU"
-  object_name = "CPU"
-  interval_seconds = 10
-  instance_name = "*"
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+  counter_name        = "CPU"
+  object_name         = "CPU"
+  interval_seconds    = 10
+  instance_name       = "*"
 }
 `, template, data.RandomInteger)
 }
@@ -186,13 +186,13 @@ func testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_complete(data
 %s
 
 resource "azurerm_log_analytics_datasource_windows_performance_counter" "test" {
-  name = "acctestLADS-WPC-%d"
+  name                = "acctestLADS-WPC-%d"
   resource_group_name = azurerm_resource_group.test.name
-  workspace_name = azurerm_log_analytics_workspace.test.name
-  counter_name = "Mem"
-  object_name = "Mem"
-  interval_seconds = 20
-  instance_name = "inst1"
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+  counter_name        = "Mem"
+  object_name         = "Mem"
+  interval_seconds    = 20
+  instance_name       = "inst1"
 }
 `, template, data.RandomInteger)
 }
@@ -203,13 +203,13 @@ func testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_requiresImpor
 %s
 
 resource "azurerm_log_analytics_datasource_windows_performance_counter" "import" {
-  name = azurerm_log_analytics_datasource_windows_performance_counter.test.name
+  name                = azurerm_log_analytics_datasource_windows_performance_counter.test.name
   resource_group_name = azurerm_log_analytics_datasource_windows_performance_counter.test.resource_group_name
-  workspace_name = azurerm_log_analytics_datasource_windows_performance_counter.test.workspace_name
-  counter_name = azurerm_log_analytics_datasource_windows_performance_counter.test.counter_name
-  object_name = azurerm_log_analytics_datasource_windows_performance_counter.test.object_name
-  interval_seconds = azurerm_log_analytics_datasource_windows_performance_counter.test.interval_seconds
-  instance_name = azurerm_log_analytics_datasource_windows_performance_counter.test.instance_name
+  workspace_name      = azurerm_log_analytics_datasource_windows_performance_counter.test.workspace_name
+  counter_name        = azurerm_log_analytics_datasource_windows_performance_counter.test.counter_name
+  object_name         = azurerm_log_analytics_datasource_windows_performance_counter.test.object_name
+  interval_seconds    = azurerm_log_analytics_datasource_windows_performance_counter.test.interval_seconds
+  instance_name       = azurerm_log_analytics_datasource_windows_performance_counter.test.instance_name
 }
 `, template)
 }
