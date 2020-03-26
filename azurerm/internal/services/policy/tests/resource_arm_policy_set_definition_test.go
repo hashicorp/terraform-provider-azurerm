@@ -5,14 +5,11 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
@@ -34,11 +31,6 @@ func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 }
 
 func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
