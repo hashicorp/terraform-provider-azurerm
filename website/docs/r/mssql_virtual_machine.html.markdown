@@ -21,8 +21,20 @@ data "azurerm_virtual_machine" "example" {
 }
 
 resource "azurerm_mssql_virtual_machine" "example" {
-  virtual_machine_id = data.azurerm_virtual_machine.example.id
-  sql_license_type   = "PAYG"
+  virtual_machine_id               = data.azurerm_virtual_machine.example.id
+  sql_license_type                 = "PAYG"
+  r_services_enabled               = true
+  sql_connectivity_port            = 1433
+  sql_connectivity_type            = "PRIVATE"
+  sql_connectivity_update_password = "Password1234!"
+  sql_connectivity_update_username = "sqllogin"
+
+  auto_patching {
+    day_of_week                            = "Sunday"
+    maintenance_window_duration_in_minutes = 60
+    maintenance_window_starting_hour       = 2
+  }
+
 }
 ```
 
@@ -47,8 +59,6 @@ The following arguments are supported:
 * `sql_connectivity_update_password` - (Optional) The SQL Server sysadmin login password.
 
 * `sql_connectivity_update_username` - (Optional) The SQL Server sysadmin login to create.
-
-* `sql_virtual_machine_group_id` - (Optional) The ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

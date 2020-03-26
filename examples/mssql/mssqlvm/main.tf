@@ -90,7 +90,7 @@ resource "azurerm_virtual_machine" "example" {
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_DS13"
+  vm_size               = "Standard_DS14_v2"
 
   storage_image_reference {
     publisher = "MicrosoftSQLServer"

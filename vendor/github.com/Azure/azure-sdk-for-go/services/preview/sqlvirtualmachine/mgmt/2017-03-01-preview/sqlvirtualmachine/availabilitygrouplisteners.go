@@ -38,7 +38,9 @@ func NewAvailabilityGroupListenersClient(subscriptionID string) AvailabilityGrou
 	return NewAvailabilityGroupListenersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAvailabilityGroupListenersClientWithBaseURI creates an instance of the AvailabilityGroupListenersClient client.
+// NewAvailabilityGroupListenersClientWithBaseURI creates an instance of the AvailabilityGroupListenersClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewAvailabilityGroupListenersClientWithBaseURI(baseURI string, subscriptionID string) AvailabilityGroupListenersClient {
 	return AvailabilityGroupListenersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,9 +105,8 @@ func (client AvailabilityGroupListenersClient) CreateOrUpdatePreparer(ctx contex
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AvailabilityGroupListenersClient) CreateOrUpdateSender(req *http.Request) (future AvailabilityGroupListenersCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -183,9 +184,8 @@ func (client AvailabilityGroupListenersClient) DeletePreparer(ctx context.Contex
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AvailabilityGroupListenersClient) DeleteSender(req *http.Request) (future AvailabilityGroupListenersDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -268,8 +268,7 @@ func (client AvailabilityGroupListenersClient) GetPreparer(ctx context.Context, 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AvailabilityGroupListenersClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -347,8 +346,7 @@ func (client AvailabilityGroupListenersClient) ListByGroupPreparer(ctx context.C
 // ListByGroupSender sends the ListByGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AvailabilityGroupListenersClient) ListByGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByGroupResponder handles the response to the ListByGroup request. The method always

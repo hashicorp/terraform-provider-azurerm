@@ -172,12 +172,6 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				ValidateFunc: validate.MsSqlVMLoginUserName,
 			},
 
-			"sql_virtual_machine_group_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.MssqlVmGroupID,
-			},
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -240,10 +234,6 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if sqlVirtualMachineGroupResourceID, ok := d.GetOk("sql_virtual_machine_group_id"); ok {
-		parameters.Properties.SQLVirtualMachineGroupResourceID = utils.String(sqlVirtualMachineGroupResourceID.(string))
-	}
-
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
 		return fmt.Errorf("Failure in creating Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -290,13 +280,20 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 		if err := d.Set("auto_patching", flattenArmSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
 			return fmt.Errorf("Failure in setting `auto_patching`: %+v", err)
 		}
+
 		if err := d.Set("key_vault_credential", flattenArmSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
 			return fmt.Errorf("Failure in setting `key_vault_credential`: %+v", err)
 		}
 
-		d.Set("r_services_enabled", props.ServerConfigurationsManagementSettings.AdditionalFeaturesServerConfigurations.IsRServicesEnabled)
-		d.Set("sql_connectivity_port", props.ServerConfigurationsManagementSettings.SQLConnectivityUpdateSettings.Port)
-		d.Set("sql_connectivity_type", props.ServerConfigurationsManagementSettings.SQLConnectivityUpdateSettings.ConnectivityType)
+		if mgmtSettings := props.ServerConfigurationsManagementSettings; mgmtSettings != nil {
+			if cfgs := mgmtSettings.AdditionalFeaturesServerConfigurations; cfgs != nil {
+				d.Set("r_services_enabled", mgmtSettings.AdditionalFeaturesServerConfigurations.IsRServicesEnabled)
+			}
+			if scus := mgmtSettings.SQLConnectivityUpdateSettings; scus != nil {
+				d.Set("sql_connectivity_port", mgmtSettings.SQLConnectivityUpdateSettings.Port)
+				d.Set("sql_connectivity_type", mgmtSettings.SQLConnectivityUpdateSettings.ConnectivityType)
+			}
+		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
