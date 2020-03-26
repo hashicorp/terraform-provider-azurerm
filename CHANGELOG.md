@@ -2,15 +2,18 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_mssql_database` [GH-6083]
 * **New Resource:** `azurerm_custom_resource_provider` [GH-6234]
 * **New Resource:** `azurerm_hpc_cache_blob_target` [GH-6035]
 * **New Resource:** `azurerm_machine_learning_workspace` [GH-5696]
+* **New Resource:** `azurerm_mssql_database` [GH-6083]
 
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v40.3.0` [GH-6134]
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.8.0` [GH-6134]
 * dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.10.0` [GH-6169]
+* all resources using the `location` field - adding validation to ensure this is not an empty string where this field is Required [GH-6242]
 * Data Source `azurerm_storage_container` - exposing the `resource_manager_id` field [GH-6170]
 * `azurerm_automation_schedule` - adding validation for the timezone field [GH-5759]
 * `azurerm_cognitive_account` - support for the `qna_runtime_endpoint` property [GH-5778]
