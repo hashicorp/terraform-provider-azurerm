@@ -151,7 +151,8 @@ github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-# github.com/bflad/tfproviderlint v0.12.0
+# github.com/bflad/tfproviderlint v0.12.1-0.20200321055902-7b384fffdf9b
+github.com/bflad/tfproviderlint/helper/analysisfixtest
 github.com/bflad/tfproviderlint/helper/analysisutils
 github.com/bflad/tfproviderlint/helper/astutils
 github.com/bflad/tfproviderlint/helper/terraformtype/helper/resource
@@ -383,6 +384,8 @@ github.com/posener/complete/match
 github.com/satori/go.uuid
 # github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 github.com/satori/uuid
+# github.com/sergi/go-diff v1.0.0
+github.com/sergi/go-diff/diffmatchpatch
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
@@ -494,6 +497,7 @@ golang.org/x/tools/go/analysis/internal/checker
 golang.org/x/tools/go/analysis/internal/facts
 golang.org/x/tools/go/analysis/multichecker
 golang.org/x/tools/go/analysis/passes/inspect
+golang.org/x/tools/go/analysis/singlechecker
 golang.org/x/tools/go/analysis/unitchecker
 golang.org/x/tools/go/ast/inspector
 golang.org/x/tools/go/gcexportdata
