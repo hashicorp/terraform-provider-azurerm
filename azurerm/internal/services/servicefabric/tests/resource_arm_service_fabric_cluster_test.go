@@ -1183,7 +1183,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   client_certificate_common_name {
     common_name = "secondcertcommonname"
-    is_admin                = false
+    is_admin    = false
   }
 
   client_certificate_thumbprint {
