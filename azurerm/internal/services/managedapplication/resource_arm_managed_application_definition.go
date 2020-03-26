@@ -139,7 +139,7 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 		existing, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Managed Application Definition Name %q (Resource Group %q): %+v", name, resourceGroupName, err)
+				return fmt.Errorf("failed to check for present of existing Managed Application Definition Name %q (Resource Group %q): %+v", name, resourceGroupName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -180,12 +180,12 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("failed to create Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failed to wait for creation of Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failed to retrieve Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("cannot read Managed Application Definition %q (Resource Group %q) ID", name, resourceGroupName)
@@ -212,7 +212,7 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failed to read Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -254,11 +254,11 @@ func resourceArmManagedApplicationDefinitionDelete(d *schema.ResourceData, meta 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failed to delete Managed Application Definition %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failed to wait for deleting Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

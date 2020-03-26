@@ -47,7 +47,7 @@ func dataSourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta 
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Managed Application Definition (Managed Application Definition Name %q / Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("reading Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failed to read Managed Application Definition (Managed Application Definition Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
