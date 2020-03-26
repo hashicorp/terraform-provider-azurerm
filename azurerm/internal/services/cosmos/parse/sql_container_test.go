@@ -59,7 +59,7 @@ func TestSqlContainerID(t *testing.T) {
 		},
 		{
 			Name:  "Existing 2015-04-08 SDK SQL Container ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/databases/db1/containers/container1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/apis/sql/databases/db1/containers/container1",
 			Error: false,
 			Expect: &SqlContainerId{
 				ResourceGroup: "resGroup1",

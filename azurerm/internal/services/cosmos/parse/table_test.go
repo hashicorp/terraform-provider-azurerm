@@ -52,6 +52,16 @@ func TestTableID(t *testing.T) {
 			},
 		},
 		{
+			Name:  "Existing 2015-04-08 SDK Table ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/apis/table/tables/table1",
+			Error: false,
+			Expect: &TableId{
+				ResourceGroup: "resGroup1",
+				Account:       "acc1",
+				Name:          "table1",
+			},
+		},
+		{
 			Name:  "Wrong Casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/Tables/table1",
 			Error: true,
