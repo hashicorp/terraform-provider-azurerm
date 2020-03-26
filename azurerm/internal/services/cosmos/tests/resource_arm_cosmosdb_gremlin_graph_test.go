@@ -171,7 +171,7 @@ func testCheckAzureRmCosmosDbGremlinGraphExists(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		database := rs.Primary.Attributes["database_name"]
 
-		resp, err := client.GetGremlinGraph(ctx, resourceGroup, database, account, name)
+		resp, err := client.GetGremlinGraph(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
