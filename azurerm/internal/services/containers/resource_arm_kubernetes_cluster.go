@@ -41,43 +41,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(90 * time.Minute),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			if v, exists := diff.GetOkExists("network_profile"); exists {
-				rawProfiles := v.([]interface{})
-
-				if len(rawProfiles) != 0 {
-					// then ensure the conditionally-required fields are set
-					profile := rawProfiles[0].(map[string]interface{})
-
-					if networkPlugin := profile["network_plugin"].(string); networkPlugin != "" {
-						dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
-						dnsServiceIP := profile["dns_service_ip"].(string)
-						serviceCidr := profile["service_cidr"].(string)
-						podCidr := profile["pod_cidr"].(string)
-
-						// Azure network plugin is not compatible with pod_cidr
-						if podCidr != "" && networkPlugin == "azure" {
-							return fmt.Errorf("`pod_cidr` and `azure` cannot be set together.")
-						}
-
-						// if not All empty values or All set values.
-						if !(dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") && !(dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "") {
-							return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
-						}
-					}
-				}
-			}
-
-			_, principalExists := diff.GetOkExists("service_principal")
-			_, identityExists := diff.GetOkExists("identity")
-
-			if principalExists && identityExists {
-				return fmt.Errorf("`service_principal` and `identity` cannot both be set.")
-			}
-
-			return nil
-		},
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -525,6 +488,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
 
+	if err := validateKubernetesCluster(d); err != nil {
+		return err
+	}
+
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -661,6 +628,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
+
+	if err := validateKubernetesCluster(d); err != nil {
+		return err
+	}
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 

@@ -31,11 +31,11 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"addonProfileRouting":                   testAccAzureRMKubernetesCluster_addonProfileRouting,
 		},
 		"auth": {
-			"apiServerAuthorizedIPRanges":                testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
-			"enablePodSecurityPolicy":                    testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
-			"managedClusterIdentityWithServicePrincipal": testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal,
-			"roleBasedAccessControl":                     testAccAzureRMKubernetesCluster_roleBasedAccessControl,
-			"roleBasedAccessControlAAD":                  testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+			"apiServerAuthorizedIPRanges": testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
+			"enablePodSecurityPolicy":     testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
+			"managedClusterIdentity":      testAccAzureRMKubernetesCluster_managedClusterIdentity,
+			"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
+			"roleBasedAccessControlAAD":   testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
 		},
 		"network": {
 			"advancedNetworkingKubenet":                   testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,

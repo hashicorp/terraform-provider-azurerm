@@ -84,6 +84,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -111,6 +112,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -139,6 +141,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "calico"),
+					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -167,6 +170,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "calico"),
+					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -195,6 +199,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "azure"),
+					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -223,6 +228,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_policy", "azure"),
+					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
@@ -313,29 +319,24 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	initialPrivateIpAddressCdir := "10.0.0.0/8"
-	modifiedPrivateIpAddressCdir := "10.230.0.0/16"
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, initialPrivateIpAddressCdir, true),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, modifiedPrivateIpAddressCdir, true),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
 				),
 			},
@@ -354,16 +355,13 @@ func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	initialPrivateIpAddressCdir := "10.0.0.0/8"
-	modifiedPrivateIpAddressCdir := "10.230.0.0/16"
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, initialPrivateIpAddressCdir, false),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
@@ -371,7 +369,7 @@ func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, modifiedPrivateIpAddressCdir, false),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
@@ -939,7 +937,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, clientId string, clientSecret string, location string, cdir string, enablePrivateLink bool) string {
+func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, clientId string, clientSecret string, location string, enablePrivateLink bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -980,10 +978,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 
-  api_server_authorized_ip_ranges = ["%s"]
   private_link_enabled            = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, cdir, enablePrivateLink)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, enablePrivateLink)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data acceptance.TestData, clientId string, clientSecret string) string {

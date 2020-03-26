@@ -34,9 +34,8 @@ resource "azurerm_kubernetes_cluster" "example" {
     vm_size    = "Standard_D2_v2"
   }
 
-  service_principal {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "00000000000000000000000000000000"
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = {
@@ -73,6 +72,8 @@ The following arguments are supported:
 
 * `service_principal` - (Required) A `service_principal` block as documented below.
 
+-> **NOTE:** `service_principal` is only required if `identity` has not been defined. `service_principal` or `identity` can be defined in the configuration file.
+
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
@@ -81,7 +82,9 @@ The following arguments are supported:
 
 -> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
 
-* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
+* `identity` - (Required) A `identity` block as defined below. Changing this forces a new resource to be created.
+
+-> **NOTE:** `identity` is only required if `service_principal` has not been defined. `identity` or `service_principal` can be defined in the configuration file.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
