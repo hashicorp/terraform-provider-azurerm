@@ -962,6 +962,13 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// make sure the schema is valid before destroying the resource
+	// as this could be painful and accidental delete of a resource that
+	// was not meant do be destroied due to a force new
+	if err := validateKubernetesCluster(d); err != nil {
+		return err
+	}
+
 	id, err := ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
