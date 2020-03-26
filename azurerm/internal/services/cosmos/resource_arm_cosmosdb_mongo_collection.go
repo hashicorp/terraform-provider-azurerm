@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -288,11 +289,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			d.Set("throughput", nil)
 		}
 	} else {
-		if props := throughputResp.ThroughputSettingsGetProperties; props != nil {
-			if res := props.Resource; res != nil {
-				d.Set("throughput", res.Throughput)
-			}
-		}
+		d.Set("throughput", common.GetThroughputFromResult(throughputResp))
 	}
 
 	return nil
