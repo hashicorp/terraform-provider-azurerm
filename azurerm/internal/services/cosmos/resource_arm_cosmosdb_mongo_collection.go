@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -103,12 +104,11 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 				return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 			}
 		} else {
-			id, err := azure.CosmosGetIDFromResponse(existing.Response)
-			if err != nil {
+			if existing.ID != nil && *existing.ID != "" {
 				return fmt.Errorf("Error generating import ID for Cosmos Mongo Collection %s (Account %s, Database %s)", name, account, database)
 			}
 
-			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id)
+			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", *existing.ID)
 		}
 	}
 
@@ -153,11 +153,11 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error making get request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
 
-	id, err := azure.CosmosGetIDFromResponse(resp.Response)
-	if err != nil {
-		return fmt.Errorf("Error getting ID for Cosmos Mongo Collection %s (Account %s, Database %s) ID: %v", name, account, database, err)
+	if resp.ID == nil {
+		return fmt.Errorf("Error getting ID from Cosmos Mongo Collection %s (Account %s, Database %s)", name, account, database)
 	}
-	d.SetId(id)
+
+	d.SetId(*resp.ID)
 
 	return resourceArmCosmosDbMongoCollectionRead(d, meta)
 }
@@ -167,7 +167,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())
+	id, err := parse.MongoDbCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
-				ID:      &id.Collection,
+				ID:      &id.Name,
 				Indexes: expandCosmosMongoCollectionIndexes(ttl),
 			},
 			Options: map[string]*string{},
@@ -193,13 +193,13 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	future, err := client.CreateUpdateMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection, db)
+	future, err := client.CreateUpdateMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Database, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Database, err)
 	}
 
 	if d.HasChange("throughput") {
@@ -211,16 +211,16 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 			},
 		}
 
-		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection, throughputParameters)
+		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %s (Account %s, Database %s): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Collection, id.Account, id.Database, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, id.Database, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Database, err)
 		}
 	}
 
@@ -232,20 +232,20 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())
+	id, err := parse.MongoDbCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
+	resp, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Mongo Collection %s (Account %s, Database %s)", id.Collection, id.Account, id.Database)
+			log.Printf("[INFO] Error reading Cosmos Mongo Collection %s (Account %s, Database %s)", id.Name, id.Account, id.Database)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+		return fmt.Errorf("Error reading Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Database, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -270,10 +270,10 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
+	throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Database, err)
 		} else {
 			d.Set("throughput", nil)
 		}
@@ -293,21 +293,21 @@ func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())
+	id, err := parse.MongoDbCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.DeleteMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
+	future, err := client.DeleteMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+			return fmt.Errorf("Error deleting Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Database, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+		return fmt.Errorf("Error waiting on delete future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Name, id.Account, id.Database, err)
 	}
 
 	return nil
