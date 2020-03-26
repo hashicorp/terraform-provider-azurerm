@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,6 +31,15 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.ResourceGremlinGraphUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.ResourceGremlinGraphStateUpgradeV0ToV1,
+				Version: 0,
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{

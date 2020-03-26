@@ -27,10 +27,7 @@ func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	}
 
 	if sqlDatabase.Name, err = id.PopSegment("sqlDatabases"); err != nil {
-		// Handle existing resources created with the 2015-04-08 SDK
-		if sqlDatabase.Name, err = id.PopSegment("databases"); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &sqlDatabase, nil
