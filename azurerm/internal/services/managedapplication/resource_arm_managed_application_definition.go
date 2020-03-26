@@ -147,24 +147,16 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	authorizations := d.Get("authorization").(*schema.Set).List()
-	displayName := d.Get("display_name").(string)
-	description := d.Get("description").(string)
-	packageEnabled := d.Get("package_enabled").(bool)
-	lockLevel := d.Get("lock_level").(string)
-	t := d.Get("tags").(map[string]interface{})
-
 	parameters := managedapplications.ApplicationDefinition{
-		Location: utils.String(location),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		ApplicationDefinitionProperties: &managedapplications.ApplicationDefinitionProperties{
-			Authorizations: expandArmManagedApplicationDefinitionAuthorization(authorizations),
-			Description:    utils.String(description),
-			DisplayName:    utils.String(displayName),
-			IsEnabled:      utils.Bool(packageEnabled),
-			LockLevel:      managedapplications.ApplicationLockLevel(lockLevel),
+			Authorizations: expandArmManagedApplicationDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
+			Description:    utils.String(d.Get("description").(string)),
+			DisplayName:    utils.String(d.Get("display_name").(string)),
+			IsEnabled:      utils.Bool(d.Get("package_enabled").(bool)),
+			LockLevel:      managedapplications.ApplicationLockLevel(d.Get("lock_level").(string)),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("create_ui_definition"); ok {
@@ -185,7 +177,7 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("failed to create Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Managed Application Definition %q (Resource Group %q): %+v", name, resourceGroupName, err)

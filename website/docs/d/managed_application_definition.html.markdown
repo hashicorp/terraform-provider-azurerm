@@ -35,15 +35,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where this Managed Application Definition exists.
 
+* `location` - The Azure location where the resource exists.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Managed Application Definition.
-
-* `location` - The Azure location where the resource exists.
-
----
 
 ## Timeouts
 

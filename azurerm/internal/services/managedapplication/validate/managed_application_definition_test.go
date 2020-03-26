@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -42,15 +43,15 @@ func TestManagedApplicationDefinitionName(t *testing.T) {
 			expected: false,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk",
+			input:    strings.Repeat("a", 63),
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkj",
+			input:    strings.Repeat("a", 64),
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkja",
+			input:    strings.Repeat("a", 65),
 			expected: false,
 		},
 	}
@@ -88,15 +89,15 @@ func TestManagedApplicationDefinitionDisplayName(t *testing.T) {
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefg",
+			input:    strings.Repeat("a", 59),
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefga",
+			input:    strings.Repeat("a", 60),
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgaa",
+			input:    strings.Repeat("a", 61),
 			expected: false,
 		},
 	}
@@ -122,15 +123,15 @@ func TestManagedApplicationDefinitionDescription(t *testing.T) {
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvw",
+			input:    strings.Repeat("a", 199),
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwd",
+			input:    strings.Repeat("a", 200),
 			expected: true,
 		},
 		{
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwds",
+			input:    strings.Repeat("a", 201),
 			expected: false,
 		},
 	}

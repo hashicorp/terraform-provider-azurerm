@@ -28,21 +28,21 @@ func TestManagedApplicationDefinitionID(t *testing.T) {
 		},
 		{
 			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1",
 			Error: true,
 		},
 		{
 			Name:  "Missing Managed Application Definition Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.Solutions/applicationDefinitions",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applicationDefinitions",
 			Error: true,
 		},
 		{
 			Name:  "Managed Application Definition ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/providers/Microsoft.Solutions/applicationDefinitions/appDef1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applicationDefinitions/appDef1",
 			Error: false,
 			Expect: &ManagedApplicationDefinitionId{
 				Name:          "appDef1",
-				ResourceGroup: "hello",
+				ResourceGroup: "group1",
 			},
 		},
 	}
