@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_virtual_network_connection_gateway"
-sidebar_current: "docs-azurerm-resource-app-service-virtual-network-connection-gateway"
 description: |-
   Manages an App Service Virtual Network Connection Gateway.
 
@@ -131,7 +130,6 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Services Virtual Network Connection Gateway.
-* `update` - (Defaults to 30 minutes) Used when updating the App Services Virtual Network Connection Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Services Virtual Network Connection Gateway.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Services Virtual Network Connection Gateway.
 

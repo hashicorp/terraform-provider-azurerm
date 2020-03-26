@@ -26,9 +26,9 @@ import (
 
 func resourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate,
+		Create: resourceArmAppServiceVirtualNetworkConnectionGatewayCreate,
 		Read:   resourceArmAppServiceVirtualNetworkConnectionGatewayRead,
-		Update: resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate,
+		Update: nil,
 		Delete: resourceArmAppServiceVirtualNetworkConnectionGatewayDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -39,7 +39,6 @@ func resourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -98,10 +97,10 @@ func resourceArmAppServiceVirtualNetworkConnectionGateway() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceVirtualNetworkConnectionGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	vnetGatewayClient := meta.(*clients.Client).Network.VnetGatewayClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Virtual Network Connection creation.")
@@ -155,7 +154,7 @@ func resourceArmAppServiceVirtualNetworkConnectionGatewayCreateUpdate(d *schema.
 
 	// the create functions contains four steps:
 	// 1. CreateOrUpdateVnetConnection
-	// 2. result of step 1 contains cert infomation, we should set the cert to virtual network gateway (check duplicate)
+	// 2. result of step 1 contains cert information, we should set the cert to virtual network gateway (check duplicate)
 	// 3. generate vpn package uri
 	// 4. CreateOrUpdateVnetConnectionGateway using step 3's result
 

@@ -5,15 +5,20 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_connection_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(data),
@@ -27,6 +32,37 @@ func TestAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(t *testing.T)
 			data.ImportStep("virtual_network_gateway_id"),
 		},
 	})
+}
+
+func testCheckAzureRMAppServiceVirtualNetworkConnectionGatewayDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_app_service_virtual_network_connection_gateway" {
+			continue
+		}
+
+		appServiceName := rs.Primary.Attributes["app_service_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		virtualNetworkId, err := parse.VirtualNetworkID(rs.Primary.Attributes["virtual_network_id"])
+		if err != nil {
+			return err
+		}
+
+		resp, err := client.GetVnetConnection(ctx, resourceGroup, appServiceName, virtualNetworkId.Name)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+			return err
+		}
+
+		return nil
+	}
+
+	return nil
 }
 
 func testAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(data acceptance.TestData) string {
