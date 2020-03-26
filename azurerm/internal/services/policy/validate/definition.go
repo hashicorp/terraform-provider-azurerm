@@ -25,8 +25,7 @@ func PolicyDefinitionID(i interface{}, k string) (warnings []string, errors []er
 
 	scope := segments[0]
 	// scope should be a resource group ID, or Management Group ID
-	_, err := parse.PolicyScopeID(scope)
-	if err != nil {
+	if _, err := parse.PolicyScopeID(scope); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as valid scope id: %+v", k, err))
 		return
 	}

@@ -113,7 +113,9 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 
 	parameters := policyinsights.Remediation{
 		RemediationProperties: &policyinsights.RemediationProperties{
-			Filters:                     expandArmRemediationLocationFilters(filters),
+			Filters: &policyinsights.RemediationFilters{
+				Locations: utils.ExpandStringSlice(filters),
+			},
 			PolicyAssignmentID:          utils.String(policyAssignmentID),
 			PolicyDefinitionReferenceID: utils.String(policyDefinitionReferenceID),
 		},
@@ -171,7 +173,11 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("scope", id.ScopeId())
 
 	if props := resp.RemediationProperties; props != nil {
-		if err := d.Set("location_filters", flattenArmRemediationLocationFilters(props.Filters)); err != nil {
+		locations := []interface{}{}
+		if filters := props.Filters; filters != nil {
+			locations = utils.FlattenStringSlice(filters.Locations)
+		}
+		if err := d.Set("location_filters", locations); err != nil {
 			return fmt.Errorf("unable to set `location_filters`: %+v", err)
 		}
 
@@ -209,26 +215,6 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
-}
-
-func expandArmRemediationLocationFilters(input []interface{}) *policyinsights.RemediationFilters {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := policyinsights.RemediationFilters{
-		Locations: utils.ExpandStringSlice(input),
-	}
-
-	return &result
-}
-
-func flattenArmRemediationLocationFilters(input *policyinsights.RemediationFilters) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	return utils.FlattenStringSlice(input.Locations)
 }
 
 // RemediationGetAtScope is a wrapper of the 4 Get functions on RemediationsClient, combining them into one to simplify code.
