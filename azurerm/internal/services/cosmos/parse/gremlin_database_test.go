@@ -53,7 +53,7 @@ func TestGremlinDatabaseID(t *testing.T) {
 		},
 		{
 			Name:  "Existing 2015-04-08 SDK Gremlin Database ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/databases/database1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/apis/gremlin/databases/database1",
 			Error: false,
 			Expect: &GremlinDatabaseId{
 				ResourceGroup: "resGroup1",

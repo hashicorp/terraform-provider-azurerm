@@ -53,7 +53,7 @@ func TestSqlDatabaseID(t *testing.T) {
 		},
 		{
 			Name:  "Existing 2015-04-08 SDK SQL Database ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/databases/db1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/apis/sql/databases/db1",
 			Error: false,
 			Expect: &SqlDatabaseId{
 				ResourceGroup: "resGroup1",
