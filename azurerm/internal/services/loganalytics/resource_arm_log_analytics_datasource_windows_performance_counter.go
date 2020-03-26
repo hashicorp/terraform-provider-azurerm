@@ -168,8 +168,8 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *schema.Re
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_name", id.Workspace)
-	if mprop := resp.Properties; mprop != nil {
-		propStr, err := structure.FlattenJsonToString(mprop.(map[string]interface{}))
+	if props := resp.Properties; props != nil {
+		propStr, err := structure.FlattenJsonToString(props.(map[string]interface{}))
 		if err != nil {
 			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource Windows Performance Counter %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
