@@ -29,6 +29,7 @@ type Client struct {
 	RouteTablesClient                    *network.RouteTablesClient
 	SecurityGroupClient                  *network.SecurityGroupsClient
 	SecurityRuleClient                   *network.SecurityRulesClient
+	ServiceTagsClient                    *network.ServiceTagsClient
 	SubnetsClient                        *network.SubnetsClient
 	NatGatewayClient                     *network.NatGatewaysClient
 	VnetGatewayConnectionsClient         *network.VirtualNetworkGatewayConnectionsClient
@@ -126,6 +127,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	SecurityRuleClient := network.NewSecurityRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SecurityRuleClient.Client, o.ResourceManagerAuthorizer)
 
+	ServiceTagsClient := network.NewServiceTagsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServiceTagsClient.Client, o.ResourceManagerAuthorizer)
+
 	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -177,6 +181,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		RouteTablesClient:                    &RouteTablesClient,
 		SecurityGroupClient:                  &SecurityGroupClient,
 		SecurityRuleClient:                   &SecurityRuleClient,
+		ServiceTagsClient:                    &ServiceTagsClient,
 		SubnetsClient:                        &SubnetsClient,
 		NatGatewayClient:                     &NatGatewayClient,
 		VnetGatewayConnectionsClient:         &VnetGatewayConnectionsClient,
