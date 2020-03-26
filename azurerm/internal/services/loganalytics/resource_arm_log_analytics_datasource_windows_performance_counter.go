@@ -59,13 +59,15 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 			},
 
 			"counter_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"instance_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"interval_seconds": {
@@ -75,8 +77,9 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 			},
 
 			"object_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
