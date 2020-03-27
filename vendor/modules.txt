@@ -49,6 +49,7 @@ github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
+github.com/Azure/azure-sdk-for-go/services/policyinsights/mgmt/2019-10-01/policyinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
@@ -68,6 +69,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
+github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
