@@ -8,6 +8,7 @@ FEATURES:
 * **New Resource:** `azurerm_hpc_cache_blob_target` [GH-6035]
 * **New Resource:** `azurerm_machine_learning_workspace` [GH-5696]
 * **New Resource:** `azurerm_mssql_database` [GH-6083]
+* **New Resource:** `azurerm_mssql_virtual_machine` [GH-5263]
 
 IMPROVEMENTS:
 
