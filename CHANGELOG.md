@@ -7,9 +7,9 @@ FEATURES:
 * **New Resource:** `azurerm_custom_resource_provider` [GH-6234]
 * **New Resource:** `azurerm_hpc_cache_blob_target` [GH-6035]
 * **New Resource:** `azurerm_machine_learning_workspace` [GH-5696]
-* **New resource:** `azurerm_policy_remediation` [GH-5746]
 * **New Resource:** `azurerm_mssql_database` [GH-6083]
 * **New Resource:** `azurerm_mssql_virtual_machine` [GH-5263]
+* **New resource:** `azurerm_policy_remediation` [GH-5746]
 
 IMPROVEMENTS:
 
@@ -34,13 +34,13 @@ BUG FIXES:
 * `azurerm_analysis_server` - switching the `ipv4_firewall_rule` block to a Set rather than a List to handle this being unordered [GH-6179]
 * `azurerm_linux_virtual_machine` - making the `custom_data` field sensitive [GH-6225]
 * `azurerm_linux_virtual_machine_scale_set` - making the `custom_data` field sensitive [GH-6225]
-* `azurerm_managed_disk`-  only rebooting the attached Virtual Machine when changing the Disk Size, Disk Encryption Set ID or Storage Account Type [GH-6162]
+* `azurerm_managed_disk`- only rebooting the attached Virtual Machine when changing the Disk Size, Disk Encryption Set ID or Storage Account Type [GH-6162]
 * `azurerm_netapp_volume` - allow up to `102400` MB for the `storage_quota_in_gb` property [GH-6228]
 * `azurerm_policy_definition` - fixing a bug when parsing the Management Group ID [GH-5981]
 * `azurerm_postgresql_server` - updating the validation for the `name` field [GH-6064]
 * `azurerm_sql_database` - use the correct base URI for the Extended Auditing Policies Client [GH-6233]
 * `azurerm_storage_management_policy` - conditionally setting values within the `base_blob` block [GH-6250]
-`azurerm_virtual_machine_data_disk_attachment` - detecting the disk attachment as gone when the VM is no longer available [GH-6237]
+* `azurerm_virtual_machine_data_disk_attachment` - detecting the disk attachment as gone when the VM is no longer available [GH-6237]
 * `azurerm_windows_virtual_machine` - making the `custom_data` field sensitive [GH-6225]
 * `azurerm_windows_virtual_machine_scale_set` - making the `custom_data` field sensitive [GH-6225]
 
