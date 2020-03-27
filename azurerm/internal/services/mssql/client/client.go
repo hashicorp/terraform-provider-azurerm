@@ -11,7 +11,7 @@ type Client struct {
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
-	SQLVirtualMachinesClient                           *sqlvirtualmachine.SQLVirtualMachinesClient
+	VirtualMachinesClient                           *sqlvirtualmachine.SQLVirtualMachinesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -27,14 +27,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	ServerVulnerabilityAssessmentsClient := sql.NewServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServerVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	SQLVirtualMachinesClient := sqlvirtualmachine.NewSQLVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SQLVirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
+	VirtualMachinesClient := sqlvirtualmachine.NewSQLVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		ElasticPoolsClient: &ElasticPoolsClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &DatabaseVulnerabilityAssessmentRuleBaselinesClient,
 		ServerSecurityAlertPoliciesClient:                  &ServerSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient:               &ServerVulnerabilityAssessmentsClient,
-		SQLVirtualMachinesClient:                           &SQLVirtualMachinesClient,
+		VirtualMachinesClient:                           &VirtualMachinesClient,
 	}
 }

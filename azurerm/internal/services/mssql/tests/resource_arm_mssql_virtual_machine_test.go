@@ -166,14 +166,14 @@ func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.Tes
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.SQLVirtualMachinesClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.VirtualMachinesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on sqlVirtualMachinesClient: %+v", err)
+			return fmt.Errorf("Bad: Get on VirtualMachinesClient: %+v", err)
 		}
 
 		return nil
@@ -181,7 +181,7 @@ func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.SQLVirtualMachinesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -196,7 +196,7 @@ func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on sqlVirtualMachinesClient: %+v", err)
+				return fmt.Errorf("Bad: Get on VirtualMachinesClient: %+v", err)
 			}
 		}
 
@@ -290,21 +290,16 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "test" {
-  network_interface_id      = azurerm_network_interface.test.id
-  network_security_group_id = azurerm_network_security_group.test.id
-}
-
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctest-VM-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_DS14_v2"
+  vm_size               = "Standard_F2s"
 
   storage_image_reference {
     publisher = "MicrosoftSQLServer"
-    offer     = "SQL2019-WS2019"
+    offer     = "SQL2017-WS2016"
     sku       = "SQLDEV"
     version   = "latest"
   }
