@@ -168,7 +168,7 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 	}
 
 	if (parameters.CreateUIDefinition != nil && parameters.MainTemplate == nil) || (parameters.CreateUIDefinition == nil && parameters.MainTemplate != nil) {
-		return fmt.Errorf("`create_ui_definition` and `main_template` should be set or not set together")
+		return fmt.Errorf("if either `create_ui_definition` or `main_template` is set the other one must be too")
 	}
 
 	if v, ok := d.GetOk("package_file_uri"); ok {

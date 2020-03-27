@@ -329,7 +329,7 @@ data "azurerm_role_definition" "builtin" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-managedapplication-%d"
+  name     = "acctestRG-mapp-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)

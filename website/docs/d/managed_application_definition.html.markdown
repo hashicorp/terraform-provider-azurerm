@@ -1,5 +1,5 @@
 ---
-subcategory: "Managed Application"
+subcategory: "Managed Applications"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_application_definition"
 description: |-

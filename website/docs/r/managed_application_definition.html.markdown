@@ -1,5 +1,5 @@
 ---
-subcategory: "Managed Application"
+subcategory: "Managed Applications"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_application_definition"
 description: |-
@@ -54,19 +54,21 @@ The following arguments are supported:
 
 * `lock_level` - (Required) Specifies the managed application lock level. Valid values include `CanNotDelete`, `None`, `ReadOnly`. Changing this forces a new resource to be created.
 
-* `create_ui_definition` - (Optional) Specifies the createUiDefinition json for the backing template with Microsoft.Solutions/applications resource.
+* `create_ui_definition` - (Optional) Specifies the `createUiDefinition` json for the backing template with `Microsoft.Solutions/applications` resource.
 
 * `display_name` - (Optional) Specifies the managed application definition display name.
 
 * `description` - (Optional) Specifies the managed application definition description.
 
-* `package_enabled` - (Optional) Is enabled for this package? Defaults to `true`.
+* `package_enabled` - (Optional) Is the package enabled? Defaults to `true`.
 
 * `main_template` - (Optional) Specifies the inline main template json which has resources to be provisioned.
 
 * `package_file_uri` - (Optional) Specifies the managed application definition package file Uri.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+-> **NOTE:** If either `create_ui_definition` or `main_template` is set the other one must be too.
 
 ---
 
