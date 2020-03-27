@@ -38,7 +38,6 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 			"management_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				// TODO -- temporary removed this validation, since a management group ID is always not a resource ID. add this back when there is a proper function for validation of mgmt group IDs
 			},
 			"type": {
 				Type:     schema.TypeString,
