@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplication/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -109,6 +109,18 @@ func TestAccAzureRMManagedApplicationDefinition_update(t *testing.T) {
 				),
 			},
 			data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
+			{
+				Config: testAccAzureRMManagedApplicationDefinition_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedApplicationDefinitionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "TestManagedApplicationDefinition"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Managed Application Definition"),
+					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "package_file_uri"),
+				),
+			},
+			data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
 		},
 	})
 }
@@ -174,16 +186,11 @@ resource "azurerm_managed_application_definition" "test" {
   name                = "acctestAppDef%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  lock_level          = "ReadOnly"
+  lock_level          = "None"
   package_file_uri    = "https://github.com/Azure/azure-managedapp-samples/raw/master/Managed Application Sample Packages/201-managed-storage-account/managedstorage.zip"
   display_name        = "TestManagedApplicationDefinition"
   description         = "Test Managed Application Definition"
   package_enabled     = false
-
-  authorization {
-    service_principal_id = data.azurerm_client_config.current.object_id
-    role_definition_id   = split("/", data.azurerm_role_definition.builtin.id)[length(split("/", data.azurerm_role_definition.builtin.id)) - 1]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -195,7 +202,9 @@ func testAccAzureRMManagedApplicationDefinition_requiresImport(data acceptance.T
 resource "azurerm_managed_application_definition" "import" {
   name                = azurerm_managed_application_definition.test.name
   location            = azurerm_managed_application_definition.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_managed_application_definition.test.resource_group_name
+  display_name        = azurerm_managed_application_definition.test.display_name
+  lock_level          = azurerm_managed_application_definition.test.lock_level
 }
 `, testAccAzureRMManagedApplicationDefinition_basic(data))
 }

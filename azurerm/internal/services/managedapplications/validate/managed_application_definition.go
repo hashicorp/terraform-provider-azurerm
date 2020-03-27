@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplication/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 )
 
 func ManagedApplicationDefinitionID(i interface{}, k string) (warnings []string, errors []error) {

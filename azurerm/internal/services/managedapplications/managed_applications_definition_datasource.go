@@ -1,4 +1,4 @@
-package managedapplication
+package managedapplications
 
 import (
 	"fmt"
@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplication/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmManagedApplicationDefinition() *schema.Resource {
+func dataSourceManagedApplicationDefinition() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmManagedApplicationDefinitionRead,
+		Read: dataSourceManagedApplicationDefinitionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -34,7 +34,7 @@ func dataSourceArmManagedApplicationDefinition() *schema.Resource {
 	}
 }
 
-func dataSourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceManagedApplicationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

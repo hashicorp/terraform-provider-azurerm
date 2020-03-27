@@ -50,9 +50,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `authorization` - (Required) One or more `authorization` block defined below.
-
 * `lock_level` - (Required) Specifies the managed application lock level. Valid values include `CanNotDelete`, `None`, `ReadOnly`. Changing this forces a new resource to be created.
+
+* `authorization` - (Optional) One or more `authorization` block defined below.
 
 * `create_ui_definition` - (Optional) Specifies the `createUiDefinition` json for the backing template with `Microsoft.Solutions/applications` resource.
 
@@ -68,15 +68,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
--> **NOTE:** If either `create_ui_definition` or `main_template` is set the other one must be too.
+-> **NOTE:** If either `create_ui_definition` or `main_template` is set they both must be set.
 
 ---
 
 An `authorization` block supports the following:
 
-* `role_definition_id` - (Required) Specifies the provider's role definition identifier. This role will define all the permissions that the provider must have on the managed application's container resource group. This role definition cannot have permission to delete the resource group.
+* `role_definition_id` - (Required) Specifies a role definition identifier for the provider. This role will define all the permissions that the provider must have on the managed application's container resource group. This role definition cannot have permission to delete the resource group.
 
-* `service_principal_id` - (Required) Specifies the provider's principal identifier. This is the identity that the provider will use to call ARM to manage the managed application resources.
+* `service_principal_id` - (Required) Specifies a service principal identifier for the provider. This is the identity that the provider will use to call ARM to manage the managed application resources.
 
 ---
 

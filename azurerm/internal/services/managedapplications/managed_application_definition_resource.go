@@ -1,4 +1,4 @@
-package managedapplication
+package managedapplications
 
 import (
 	"fmt"
@@ -12,20 +12,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplication/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplication/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmManagedApplicationDefinition() *schema.Resource {
+func resourceManagedApplicationDefinition() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedApplicationDefinitionCreateUpdate,
-		Read:   resourceArmManagedApplicationDefinitionRead,
-		Update: resourceArmManagedApplicationDefinitionCreateUpdate,
-		Delete: resourceArmManagedApplicationDefinitionDelete,
+		Create: resourceManagedApplicationDefinitionCreateUpdate,
+		Read:   resourceManagedApplicationDefinitionRead,
+		Update: resourceManagedApplicationDefinitionCreateUpdate,
+		Delete: resourceManagedApplicationDefinitionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagedApplicationDefinitionID(id)
@@ -51,6 +51,12 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"display_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.ManagedApplicationDefinitionDisplayName,
+			},
+
 			"lock_level": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -64,7 +70,7 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 
 			"authorization": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -80,12 +86,6 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"display_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionDisplayName,
 			},
 
 			"create_ui_definition": {
@@ -127,7 +127,7 @@ func resourceArmManagedApplicationDefinition() *schema.Resource {
 	}
 }
 
-func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 	parameters := managedapplications.ApplicationDefinition{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		ApplicationDefinitionProperties: &managedapplications.ApplicationDefinitionProperties{
-			Authorizations: expandArmManagedApplicationDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
+			Authorizations: expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
 			Description:    utils.String(d.Get("description").(string)),
 			DisplayName:    utils.String(d.Get("display_name").(string)),
 			IsEnabled:      utils.Bool(d.Get("package_enabled").(bool)),
@@ -192,10 +192,10 @@ func resourceArmManagedApplicationDefinitionCreateUpdate(d *schema.ResourceData,
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmManagedApplicationDefinitionRead(d, meta)
+	return resourceManagedApplicationDefinitionRead(d, meta)
 }
 
-func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,7 +221,7 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.ApplicationDefinitionProperties; props != nil {
-		if err := d.Set("authorization", flattenArmManagedApplicationDefinitionAuthorization(props.Authorizations)); err != nil {
+		if err := d.Set("authorization", flattenManagedApplicationDefinitionAuthorization(props.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
@@ -229,6 +229,8 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 		d.Set("package_enabled", props.IsEnabled)
 		d.Set("lock_level", string(props.LockLevel))
 	}
+
+	// the following are not returned from the API so lets pull it from state
 	if v, ok := d.GetOk("create_ui_definition"); ok {
 		d.Set("create_ui_definition", v.(string))
 	}
@@ -242,7 +244,7 @@ func resourceArmManagedApplicationDefinitionRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmManagedApplicationDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,7 +266,7 @@ func resourceArmManagedApplicationDefinitionDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-func expandArmManagedApplicationDefinitionAuthorization(input []interface{}) *[]managedapplications.ApplicationAuthorization {
+func expandManagedApplicationDefinitionAuthorization(input []interface{}) *[]managedapplications.ApplicationAuthorization {
 	results := make([]managedapplications.ApplicationAuthorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -278,7 +280,7 @@ func expandArmManagedApplicationDefinitionAuthorization(input []interface{}) *[]
 	return &results
 }
 
-func flattenArmManagedApplicationDefinitionAuthorization(input *[]managedapplications.ApplicationAuthorization) []interface{} {
+func flattenManagedApplicationDefinitionAuthorization(input *[]managedapplications.ApplicationAuthorization) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
