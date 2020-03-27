@@ -7,14 +7,19 @@ import (
 )
 
 type Client struct {
+	DatabasesClient                                    *sql.DatabasesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
+	ServersClient                                      *sql.ServersClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
 	SQLVirtualMachinesClient                           *sqlvirtualmachine.SQLVirtualMachinesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	DatabasesClient := sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
+
 	ElasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ElasticPoolsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -24,6 +29,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	ServerSecurityAlertPoliciesClient := sql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServerSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	ServersClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
+
 	ServerVulnerabilityAssessmentsClient := sql.NewServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServerVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -31,10 +39,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&SQLVirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		DatabasesClient:    &DatabasesClient,
 		ElasticPoolsClient: &ElasticPoolsClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &DatabaseVulnerabilityAssessmentRuleBaselinesClient,
-		ServerSecurityAlertPoliciesClient:                  &ServerSecurityAlertPoliciesClient,
-		ServerVulnerabilityAssessmentsClient:               &ServerVulnerabilityAssessmentsClient,
-		SQLVirtualMachinesClient:                           &SQLVirtualMachinesClient,
+		ServersClient:                        &ServersClient,
+		ServerSecurityAlertPoliciesClient:    &ServerSecurityAlertPoliciesClient,
+		ServerVulnerabilityAssessmentsClient: &ServerVulnerabilityAssessmentsClient,
+		SQLVirtualMachinesClient:             &SQLVirtualMachinesClient,
 	}
 }

@@ -109,8 +109,6 @@ The following arguments are supported:
 
 * `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
--> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
-
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -335,8 +333,6 @@ The following attributes are exported:
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
 * `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
-
--> **NOTE:**  At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
