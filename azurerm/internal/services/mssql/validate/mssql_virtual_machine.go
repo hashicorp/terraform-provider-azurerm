@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 )
 
 func VMID(i interface{}, k string) (warnings []string, errors []error) {
@@ -17,20 +16,6 @@ func VMID(i interface{}, k string) (warnings []string, errors []error) {
 
 	if _, err := compute.ParseVirtualMachineID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a virtual machine id: %v", k, err))
-	}
-
-	return warnings, errors
-}
-
-func MssqlVmGroupID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := parse.MssqlVmGroupID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a virtual machine group id: %v", k, err))
 	}
 
 	return warnings, errors

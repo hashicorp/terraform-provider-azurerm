@@ -99,11 +99,6 @@ type MssqlVmId struct {
 	Name          string
 }
 
-type MssqlVmGroupId struct {
-	ResourceGroup string
-	Name          string
-}
-
 func MssqlVmID(input string) (*MssqlVmId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -123,25 +118,4 @@ func MssqlVmID(input string) (*MssqlVmId, error) {
 	}
 
 	return &sqlvm, nil
-}
-
-func MssqlVmGroupID(input string) (*MssqlVmGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql VM Group ID %q: %+v", input, err)
-	}
-
-	sqlvmGroup := MssqlVmGroupId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if sqlvmGroup.Name, err = id.PopSegment("sqlVirtualMachineGroups"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &sqlvmGroup, nil
 }
