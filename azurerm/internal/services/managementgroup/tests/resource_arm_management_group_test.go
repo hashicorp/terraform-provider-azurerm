@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMManagementGroup_basic(t *testing.T) {
@@ -33,11 +32,6 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -278,7 +272,7 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_management_group" "import" {
-  group_id = azurerm_management_group.test.group_id
+  name = azurerm_management_group.test.name
 }
 `
 }

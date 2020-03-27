@@ -23,7 +23,18 @@ func dataSourceArmManagementGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"group_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
+				ExactlyOneOf: []string{"name", "group_id"},
+				Deprecated:   "Deprecated in favor of `name`",
+				ValidateFunc: validate.ManagementGroupName,
+			},
+
+			"name": {
+				Type:         schema.TypeString,
+				Optional:     true, // TODO -- change back to required after the deprecation
+				Computed:     true, // TODO -- remove computed after the deprecation
+				ExactlyOneOf: []string{"name", "group_id"},
 				ValidateFunc: validate.ManagementGroupName,
 			},
 
@@ -52,24 +63,31 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	groupId := d.Get("group_id").(string)
+	groupName := ""
+	if v, ok := d.GetOk("name"); ok {
+		groupName = v.(string)
+	}
+	if v, ok := d.GetOk("group_id"); ok {
+		groupName = v.(string)
+	}
 
 	recurse := true
-	resp, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Management Group %q was not found", groupId)
+			return fmt.Errorf("Management Group %q was not found", groupName)
 		}
 
 		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Client returned an nil ID for Management Group %q", groupId)
+		return fmt.Errorf("Client returned an nil ID for Management Group %q", groupName)
 	}
 
 	d.SetId(*resp.ID)
-	d.Set("group_id", groupId)
+	d.Set("name", groupName)
+	d.Set("group_id", groupName)
 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
