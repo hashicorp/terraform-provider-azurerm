@@ -6,7 +6,7 @@ description: |-
     Manages automated shutdown schedules for Azure Resource Manager VMs outside of Dev Test Labs.
 ---
 
-# azurerm_dev_test_schedule
+# azurerm_dev_test_global_shutdown_schedule
 
 Manages automated shutdown schedules for Azure Resource Manager VMs outside of Dev Test Labs.
 
@@ -44,36 +44,29 @@ resource "azurerm_network_interface" "sample" {
   }
 }
 
-resource "azurerm_virtual_machine" "sample" {
+resource "azurerm_linux_virtual_machine" "sample" {
   name                  = "SampleVM"
   location              = "${azurerm_resource_group.sample.location}"
   resource_group_name   = "${azurerm_resource_group.sample.name}"
   network_interface_ids = ["${azurerm_network_interface.sample.id}"]
-  vm_size               = "Standard_B2s"
+  size                  = "Standard_B2s"
 
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 
-  storage_os_disk {
+  os_disk {
     name              = "myosdisk-%d"
     caching           = "ReadWrite"
-    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
+  admin_username		          = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 }
 
 resource "azurerm_dev_test_global_shutdown_schedule" "sample" {
@@ -101,29 +94,25 @@ The following arguments are supported:
 
 * `location` - (Required) The location where the schedule is created. Changing this forces a new resource to be created.
 
-* `target_resource_id` - (Required) The resource ID of the target ARM-based Virtual Machine. Changing this forces a new resource to be created.
+* `virtual_machine_id` - (Required) The resource ID of the target ARM-based Virtual Machine. Changing this forces a new resource to be created.
 
-* `status` - (Optional) The status of this schedule. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+* `enabled` - (Optional) Whether to enable the schedule. Possible values are `true` and `false`. Defaults to `true`.
 
-* `time_zone_id` - (Required) The time zone ID (e.g. Pacific Standard time). Refer to this guide for a [full list of accepted time zone names](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+* `timezone` - (Required) The time zone ID (e.g. Pacific Standard time). Refer to this guide for a [full list of accepted time zone names](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
----
-
-A `daily_recurrence` - (Required) - block supports the following:
-
-* `time` - (Required) The time each day when the schedule takes effect. Must match the format HHmm where HH is 00-23 and mm is 00-59 (e.g. 0930, 2300, etc.)
+* `daily_recurrence_time` - (Required) The time each day when the schedule takes effect. Must match the format HHmm where HH is 00-23 and mm is 00-59 (e.g. 0930, 2300, etc.)
 
 ---
 
 A `notification_settings` - (Required)  - block supports the following:
 
-* `status` - (Optional) The status of the notification. Possible values are `Enabled` and `Disabled`. Defaults to `Disabled`
+* `enabled` - (Optional) Whether to enable pre-shutdown notifications. Possible values are `true` and `false`. Defaults to `false`
 
-* `time_in_minutes` - Time in minutes between 15 and 120 before a shutdown event at which a notification will be sent. Required if `status` is `Enabled`. Optional otherwise.
+* `time_in_minutes` - (Optional) Time in minutes between 15 and 120 before a shutdown event at which a notification will be sent. Defaults to `30`.
 
-* `webhook_url` - The webhook URL to which the notification will be sent. Required if `status` is `Enabled`. Optional otherwise.
+* `webhook_url` - The webhook URL to which the notification will be sent. Required if `enabled` is `true`. Optional otherwise.
 
 ## Attributes Reference
 
@@ -136,5 +125,5 @@ The following additional attributes are exported:
 An existing Dev Test Global Shutdown Schedule can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_global_shutdown_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-rg/providers/Microsoft.DevTestLab/schedules/compute-vm-SampleVM
+terraform import azurerm_dev_test_global_shutdown_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-rg/providers/Microsoft.DevTestLab/schedules/shutdown-computevm-SampleVM
 ```

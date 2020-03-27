@@ -42,42 +42,29 @@ func resourceArmDevTestLabGlobalShutdownSchedule() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"location": azure.SchemaLocation(),
 
-			"target_resource_id": {
+			"virtual_machine_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: devtestValidate.GlobalScheduleVirtualMachineID,
 			},
 
-			"status": {
-				Type:     schema.TypeString,
+			"enabled": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  dtl.EnableStatusEnabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(dtl.EnableStatusEnabled),
-					string(dtl.EnableStatusDisabled),
-				}, false),
+				Default:  true,
 			},
 
-			"daily_recurrence": {
-				Type:     schema.TypeList,
+			"daily_recurrence_time": {
+				Type:     schema.TypeString,
 				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"time": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]|[0-9])[0-5][0-9]$"),
-								"Time of day must match the format HHmm where HH is 00-23 and mm is 00-59",
-							),
-						},
-					},
-				},
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^(0[0-9]|1[0-9]|2[0-3]|[0-9])[0-5][0-9]$"),
+					"Time of day must match the format HHmm where HH is 00-23 and mm is 00-59",
+				),
 			},
 
-			"time_zone_id": {
+			"timezone": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.VirtualMachineTimeZoneCaseInsensitive(),
@@ -89,26 +76,19 @@ func resourceArmDevTestLabGlobalShutdownSchedule() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"status": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  dtl.NotificationStatusDisabled,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(dtl.NotificationStatusEnabled),
-								string(dtl.NotificationStatusDisabled),
-							}, false),
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
 						},
 						"time_in_minutes": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Default:      30,
 							ValidateFunc: validation.IntBetween(15, 120),
 						},
 						"webhook_url": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -124,7 +104,7 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	targetResourceID := d.Get("target_resource_id").(string)
+	vmID := d.Get("virtual_machine_id").(string)
 	vm, err := parse.GlobalScheduleVirtualMachineID(vmID)
 	if err != nil {
 		return err
@@ -152,30 +132,27 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	taskType := "ComputeVmShutdownTask"
-	t := d.Get("tags").(map[string]interface{})
 
 	schedule := dtl.Schedule{
 		Location: &location,
 		ScheduleProperties: &dtl.ScheduleProperties{
-			TargetResourceID: &targetResourceID,
+			TargetResourceID: &vmID,
 			TaskType:         &taskType,
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	switch status := d.Get("status"); status {
-	case string(dtl.EnableStatusEnabled):
+	if d.Get("enabled").(bool) {
 		schedule.ScheduleProperties.Status = dtl.EnableStatusEnabled
-	case string(dtl.EnableStatusDisabled):
+	} else {
 		schedule.ScheduleProperties.Status = dtl.EnableStatusDisabled
-	default:
 	}
 
-	if timeZoneId := d.Get("time_zone_id").(string); timeZoneId != "" {
+	if timeZoneId := d.Get("timezone").(string); timeZoneId != "" {
 		schedule.ScheduleProperties.TimeZoneID = &timeZoneId
 	}
 
-	if v, ok := d.GetOk("daily_recurrence"); ok {
+	if v, ok := d.GetOk("daily_recurrence_time"); ok {
 		dailyRecurrence := expandArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(v)
 		schedule.DailyRecurrence = dailyRecurrence
 	}
@@ -230,12 +207,11 @@ func resourceArmDevTestLabGlobalShutdownScheduleRead(d *schema.ResourceData, met
 	}
 
 	if props := resp.ScheduleProperties; props != nil {
-		d.Set("target_resource_id", props.TargetResourceID)
-		d.Set("time_zone_id", props.TimeZoneID)
+		d.Set("virtual_machine_id", props.TargetResourceID)
+		d.Set("timezone", props.TimeZoneID)
+		d.Set("enabled", props.Status == dtl.EnableStatusEnabled)
 
-		d.Set("status", string(props.Status))
-
-		if err := d.Set("daily_recurrence", flattenArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
+		if err := d.Set("daily_recurrence_time", flattenArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
 			return fmt.Errorf("Error setting `dailyRecurrence`: %#v", err)
 		}
 
@@ -266,28 +242,24 @@ func resourceArmDevTestLabGlobalShutdownScheduleDelete(d *schema.ResourceData, m
 	return nil
 }
 
-func expandArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(recurrence interface{}) *dtl.DayDetails {
-	dailyRecurrenceConfigs := recurrence.([]interface{})
-	dailyRecurrenceConfig := dailyRecurrenceConfigs[0].(map[string]interface{})
-	dailyTime := dailyRecurrenceConfig["time"].(string)
-
+func expandArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(dailyTime interface{}) *dtl.DayDetails {
+	time := dailyTime.(string)
 	return &dtl.DayDetails{
-		Time: &dailyTime,
+		Time: &time,
 	}
 }
 
-func flattenArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDetails) []interface{} {
+func flattenArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDetails) interface{} {
 	if dailyRecurrence == nil {
-		return []interface{}{}
+		return nil
 	}
 
-	result := make(map[string]interface{})
-
+	var result string
 	if dailyRecurrence.Time != nil {
-		result["time"] = *dailyRecurrence.Time
+		result = *dailyRecurrence.Time
 	}
 
-	return []interface{}{result}
+	return result
 }
 
 func expandArmDevTestLabGlobalShutdownScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
@@ -296,7 +268,12 @@ func expandArmDevTestLabGlobalShutdownScheduleNotificationSettings(d *schema.Res
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
 	timeInMinutes := int32(notificationSettingsConfig["time_in_minutes"].(int))
 
-	notificationStatus := dtl.NotificationStatus(notificationSettingsConfig["status"].(string))
+	var notificationStatus dtl.NotificationStatus
+	if notificationSettingsConfig["enabled"].(bool) {
+		notificationStatus = dtl.NotificationStatusEnabled
+	} else {
+		notificationStatus = dtl.NotificationStatusDisabled
+	}
 
 	return &dtl.NotificationSettings{
 		WebhookURL:    &webhookUrl,
@@ -320,9 +297,7 @@ func flattenArmDevTestLabGlobalShutdownScheduleNotificationSettings(notification
 		result["time_in_minutes"] = *notificationSettings.TimeInMinutes
 	}
 
-	if string(notificationSettings.Status) != "" {
-		result["status"] = string(notificationSettings.Status)
-	}
+	result["enabled"] = notificationSettings.Status == dtl.NotificationStatusEnabled
 
 	return []interface{}{result}
 }
