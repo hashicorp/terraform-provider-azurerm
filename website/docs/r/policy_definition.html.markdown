@@ -67,8 +67,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the policy definition. Changing this forces a
     new resource to be created.
 
-* `policy_type` - (Required) The policy type.  The value can be "BuiltIn", "Custom"
-    or "NotSpecified". Changing this forces a new resource to be created.
+* `policy_type` - (Required) The policy type. Possible values are "BuiltIn", "Custom" and "NotSpecified". Changing this forces a new resource to be created.
 
 * `mode` - (Required) The policy mode that allows you to specify which resource
     types will be evaluated.  The value can be "All", "Indexed" or

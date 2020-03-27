@@ -1,13 +1,13 @@
 package policy
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
@@ -23,17 +23,22 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"display_name": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			"management_group_id": {
-				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"name", "display_name"},
 			},
 			"name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"name", "display_name"},
+			},
+			"management_group_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
+				// TODO -- temporary removed this validation, since a management group ID is always not a resource ID. add this back when there is a proper function for validation of mgmt group IDs
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -68,39 +73,24 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("display_name").(string)
+	displayName := d.Get("display_name").(string)
+	name := d.Get("name").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	var policyDefinitions policy.DefinitionListResultIterator
-	var err error
-
-	if managementGroupID != "" {
-		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
-	} else {
-		policyDefinitions, err = client.ListComplete(ctx)
-	}
-
-	if err != nil {
-		return fmt.Errorf("Error loading Policy Definition List: %+v", err)
-	}
-
 	var policyDefinition policy.Definition
-
-	for policyDefinitions.NotDone() {
-		def := policyDefinitions.Value()
-		if def.DisplayName != nil && *def.DisplayName == name {
-			policyDefinition = def
-			break
-		}
-
-		err = policyDefinitions.NextWithContext(ctx)
+	var err error
+	if displayName != "" {
+		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupID)
 		if err != nil {
-			return fmt.Errorf("Error loading Policy Definition List: %s", err)
+			return fmt.Errorf("failed to read Policy Definition (Display Name %q): %+v", displayName, err)
 		}
-	}
-
-	if policyDefinition.ID == nil {
-		return fmt.Errorf("Error loading Policy Definition List: could not find policy '%s'", name)
+	} else if name != "" {
+		policyDefinition, err = getPolicyDefinition(ctx, client, name, managementGroupID)
+		if err != nil {
+			return fmt.Errorf("failed to read Policy Definition %q: %+v", name, err)
+		}
+	} else {
+		return fmt.Errorf("one of `display_name` or `name` must be set")
 	}
 
 	d.SetId(*policyDefinition.ID)
@@ -123,4 +113,31 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupID string) (policy.Definition, error) {
+	var policyDefinitions policy.DefinitionListResultIterator
+	var err error
+
+	if managementGroupID != "" {
+		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
+	} else {
+		policyDefinitions, err = client.ListComplete(ctx)
+	}
+	if err != nil {
+		return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: %+v", err)
+	}
+
+	for policyDefinitions.NotDone() {
+		def := policyDefinitions.Value()
+		if def.DisplayName != nil && *def.DisplayName == displayName && def.ID != nil {
+			return def, nil
+		}
+
+		if err := policyDefinitions.NextWithContext(ctx); err != nil {
+			return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: %s", err)
+		}
+	}
+
+	return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: could not find policy '%s'", displayName)
 }
