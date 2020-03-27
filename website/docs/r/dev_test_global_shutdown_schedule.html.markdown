@@ -21,34 +21,34 @@ resource "azurerm_resource_group" "sample" {
 resource "azurerm_virtual_network" "sample" {
   name                = "sample-vnet"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.sample.location}"
-  resource_group_name = "${azurerm_resource_group.sample.name}"
+  location            = azurerm_resource_group.sample.location
+  resource_group_name = azurerm_resource_group.sample.name
 }
 
 resource "azurerm_subnet" "sample" {
   name                 = "sample-subnet"
-  resource_group_name  = "${azurerm_resource_group.sample.name}"
-  virtual_network_name = "${azurerm_virtual_network.sample.name}"
+  resource_group_name  = azurerm_resource_group.sample.name
+  virtual_network_name = azurerm_virtual_network.sample.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "sample" {
   name                = "sample-nic"
-  location            = "${azurerm_resource_group.sample.location}"
-  resource_group_name = "${azurerm_resource_group.sample.name}"
+  location            = azurerm_resource_group.sample.location
+  resource_group_name = azurerm_resource_group.sample.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.sample.id}"
+    subnet_id                     = azurerm_subnet.sample.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_linux_virtual_machine" "sample" {
   name                  = "SampleVM"
-  location              = "${azurerm_resource_group.sample.location}"
-  resource_group_name   = "${azurerm_resource_group.sample.name}"
-  network_interface_ids = ["${azurerm_network_interface.sample.id}"]
+  location              = azurerm_resource_group.sample.location
+  resource_group_name   = azurerm_resource_group.sample.name
+  network_interface_ids = [azurerm_network_interface.sample.id]
   size                  = "Standard_B2s"
 
   source_image_reference {
@@ -64,14 +64,14 @@ resource "azurerm_linux_virtual_machine" "sample" {
     managed_disk_type = "Standard_LRS"
   }
 
-  admin_username		          = "testadmin"
+  admin_username                  = "testadmin"
   admin_password                  = "Password1234!"
   disable_password_authentication = false
 }
 
 resource "azurerm_dev_test_global_shutdown_schedule" "sample" {
-  target_resource_id = "${azurerm_virtual_machine.sample.id}"
-  location           = "${azurerm_resource_group.example.location}"
+  target_resource_id = azurerm_virtual_machine.sample.id
+  location           = azurerm_resource_group.example.location
   status             = "Enabled"
 
   daily_recurrence {

@@ -28,7 +28,7 @@ func resourceArmDevTestLabGlobalShutdownSchedule() *schema.Resource {
 		Update: resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate,
 		Delete: resourceArmDevTestLabGlobalShutdownScheduleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := devtestValidate.GlobalScheduleID(id)
+			_, err := parse.GlobalScheduleID(id)
 			return err
 		}),
 
