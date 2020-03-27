@@ -313,11 +313,11 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"max_percent_unhealthy_nodes": {
+									"max_percent_unhealthy_applications": {
 										Type:     schema.TypeInt,
 										Required: true,
 									},
-									"max_percent_unhealthy_applications": {
+									"max_percent_unhealthy_nodes": {
 										Type:     schema.TypeInt,
 										Required: true,
 									},

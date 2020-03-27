@@ -73,15 +73,17 @@ The following arguments are supported:
 
 * `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
 
-* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below. 
+* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
 
-* `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below. 
+* `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below.
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
 * `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below. Changing this forces a new resource to be created.
 
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
+
+* `upgrade_description` - (optional) A `upgrade_description` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -216,6 +218,72 @@ A `ephemeral_ports` block supports the following:
 * `start_port` - (Required) The start of the Ephemeral Port Range on this Node Type.
 
 * `end_port` - (Required) The end of the Ephemeral Port Range on this Node Type.
+
+---
+
+A `upgrade description` block supports the following:
+
+* `force_restart` - (Optional) Indicates whether to restart the Service Fabric node even if only dynamic configurations have changed.
+
+* `health_check_retry_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, after which Service Fabric retries the health check if the previous health check fails.
+
+* `health_check_stable_duration` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric waits in order to verify that the cluster is stable before it continues to the next upgrade domain or completes the upgrade. This wait duration prevents undetected changes of health right after the health check is performed.
+
+* `health_check_wait_duration` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric waits before it performs the initial health check after it finishes the upgrade on the upgrade domain.
+
+* `upgrade_domain_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric takes to upgrade a single upgrade domain. After this period, the upgrade fails.
+
+* `upgrade_replica_set_check_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric waits for a replica set to reconfigure into a safe state, if it is not already in a safe state, before Service Fabric proceeds with the upgrade.
+
+* `upgrade_timeout` - (Optional) Specifies the duration, in "hh:mm:ss" string format, that Service Fabric takes for the entire upgrade. After this period, the upgrade fails.
+
+* `health_policy` - (Optional) A `health_policy` block as defined below
+
+* `delta_health_policy` - (Optional) A `delta_health_policy` block as defined below
+
+---
+
+A `health_policy` block supports the following:
+
+* `max_percent_unhealthy_applications` - (Optional) Specifies the maximum tolerated percentage of applications that can have aggregated health state of error. If the upgrade exceeds this percentage, the cluster is unhealthy.
+
+* `max_percent_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of nodes that can have aggregated health states of error. If an upgrade exceeds this percentage, the cluster is unhealthy.
+
+---
+
+A `delta_health_policy` block supports the following:
+
+* `max_percent_unhealthy_applications` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy applications that can have aggregated health states of error. If the current unhealthy applications do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy.
+
+* `max_percent_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of delta unhealthy nodes that can have aggregated health states of error. If the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy.
+
+* `max_percent_upgrade_domain_delta_unhealthy_nodes` - (Optional) Specifies the maximum tolerated percentage of upgrade domain delta unhealthy nodes that can have aggregated health state of error. If there is any upgrade domain where the current unhealthy nodes do not respect the percentage relative to the state at the beginning of the upgrade, the cluster is unhealthy.
+
+* `application_delta_health_policy` - (Optional)  Specifies the  maximum percentage of unhealthy applications that are allowed per application type. Application types in this map are evaluated using specific percentages rather than the global MaxPercentUnhealthyApplications percentage. This is an `application_delta_health_policy` block as defined below.
+
+---
+
+A `application_delta_health_policy` block supports the following:
+
+* `application_type` - (Required) Application type to which the policy applies. Specified in format of "fabric:/myapplication"
+
+* `default_service_type_delta_health_policy` - (Optional) A `default_service_type_delta_health_policy` block as defined below
+
+* `service_type_delta_health_policy` - (Optional) Specifies the  maximum percentage of unhealthy services that are allowed per service type. Service types in this map are evaluated using specific percentages. This is a `service_type_delta_health_policy` block as defined below
+
+---
+
+A `default_service_type_delta_health_policy` block supports the following:
+
+* `max_percent_delta_unhealthy_services` - (Required) Specifies the maximum tolerated percentage of delta unhealthy services that can have aggregated health states of error.
+
+---
+
+A `service_type_delta_health_policy` block supports the following:
+
+* `service_type` - (Required) Service type to which the policy applies. Specified in format of "fabric:/myapplication/myservice"
+
+* `max_percent_delta_unhealthy_services` - (Required) Specifies the maximum tolerated percentage of delta unhealthy services that can have aggregated health states of error.
 
 
 ## Attributes Reference
