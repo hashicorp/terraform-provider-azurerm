@@ -1156,7 +1156,6 @@ func expandApplicationDeltaHealthPolicies(input []interface{}) map[string]*servi
 			DefaultServiceTypeDeltaHealthPolicy: expandDefaultServiceTypeDeltaHealthPolicy(appDeltaHealthPolicy["default_service_type_delta_health_policy"].([]interface{})),
 			ServiceTypeDeltaHealthPolicies:      expandserviceTypeDeltaHealthPolicies(appDeltaHealthPolicy["service_type_delta_health_policy"].([]interface{})),
 		}
-
 	}
 
 	return applicationDeltaHealthPolicies
@@ -1247,7 +1246,7 @@ func flattenServiceFabricClusterUpgradeDescription(input *servicefabric.ClusterU
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if v := input; v != nil {
 		if forceRestart := v.ForceRestart; forceRestart != nil {
