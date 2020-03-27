@@ -144,6 +144,42 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(data, "https://localhost:8080/"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
+					resource.TestCheckResourceAttr(data.ResourceName, "qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(data, "https://localhost:9000/"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
+					resource.TestCheckResourceAttr(data.ResourceName, "qna_runtime_endpoint", "https://localhost:9000/"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -207,7 +243,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cognitive-%d"
   location = "%s"
 }
 
@@ -229,7 +265,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cognitive-%d"
   location = "%s"
 }
 
@@ -267,7 +303,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cognitive-%d"
   location = "%s"
 }
 
@@ -284,4 +320,28 @@ resource "azurerm_cognitive_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(data acceptance.TestData, url string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  kind                 = "QnAMaker"
+  qna_runtime_endpoint = "%s"
+
+  sku_name = "S0"
+}
+`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, url)
 }

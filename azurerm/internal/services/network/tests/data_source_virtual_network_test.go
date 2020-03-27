@@ -63,7 +63,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d-rg"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -94,7 +94,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d-rg"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -128,7 +128,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d-rg"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

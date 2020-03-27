@@ -292,7 +292,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
@@ -300,6 +300,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	storageAccountType := d.Get("storage_account_type").(string)
+	shouldShutDown := false
 
 	disk, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -320,6 +321,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("storage_account_type") {
+		shouldShutDown = true
 		var skuName compute.DiskStorageAccountTypes
 		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
 			if strings.EqualFold(storageAccountType, string(v)) {
@@ -355,6 +357,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("disk_size_gb") {
 		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
+			shouldShutDown = true
 			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
 		} else {
 			return fmt.Errorf("Error - New size must be greater than original size. Shrinking disks is not supported on Azure")
@@ -362,6 +365,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("disk_encryption_set_id") {
+		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			diskUpdate.Encryption = &compute.Encryption{
 				Type:                compute.EncryptionAtRestWithCustomerKey,
@@ -372,8 +376,13 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	// whilst we need to shut this down, if we're not attached to anything there's no point
+	if shouldShutDown && disk.ManagedBy == nil {
+		shouldShutDown = false
+	}
+
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
-	if disk.ManagedBy != nil {
+	if shouldShutDown {
 		virtualMachine, err := ParseVirtualMachineID(*disk.ManagedBy)
 		if err != nil {
 			return fmt.Errorf("Error parsing VMID %q for disk attachment: %+v", *disk.ManagedBy, err)
@@ -390,7 +399,6 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		shouldTurnBackOn := true
-		shouldShutDown := true
 		shouldDeallocate := true
 
 		if instanceView.Statuses != nil {
