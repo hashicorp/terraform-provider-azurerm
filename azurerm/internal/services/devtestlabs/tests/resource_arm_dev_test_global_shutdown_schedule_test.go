@@ -6,9 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/parse"
 )
 
 func TestAccAzureRMDevTestLabGlobalShutdownSchedule_autoShutdownBasic(t *testing.T) {
@@ -99,14 +99,14 @@ func testCheckAzureRMDevTestLabGlobalShutdownScheduleExistsInternal(vmID string)
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-	rid, err := azure.ParseAzureResourceID(vmID)
+	vm, err := parse.GlobalScheduleVirtualMachineID(vmID)
 	if err != nil {
 		return false, fmt.Errorf("Bad: Failed to parse ID (id: %s): %+v", vmID, err)
 	}
 
-	vmName := rid.Path["virtualMachines"]
+	vmName := vm.Name
 	name := "shutdown-computevm-" + vmName // Auto-shutdown schedule must use this naming format for Compute VMs
-	resourceGroup := rid.ResourceGroup
+	resourceGroup := vm.ResourceGroup
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {

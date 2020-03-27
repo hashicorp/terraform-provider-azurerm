@@ -13,7 +13,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/parse"
+	devtestValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +27,10 @@ func resourceArmDevTestLabGlobalShutdownSchedule() *schema.Resource {
 		Read:   resourceArmDevTestLabGlobalShutdownScheduleRead,
 		Update: resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate,
 		Delete: resourceArmDevTestLabGlobalShutdownScheduleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := devtestValidate.GlobalScheduleID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -42,7 +46,7 @@ func resourceArmDevTestLabGlobalShutdownSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: devtestValidate.GlobalScheduleVirtualMachineID,
 			},
 
 			"status": {
@@ -121,13 +125,13 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 	defer cancel()
 
 	targetResourceID := d.Get("target_resource_id").(string)
-	rid, err := azure.ParseAzureResourceID(targetResourceID)
+	vm, err := parse.GlobalScheduleVirtualMachineID(vmID)
 	if err != nil {
 		return err
 	}
 
-	vmName := rid.Path["virtualMachines"]
-	resGroup := rid.ResourceGroup
+	vmName := vm.Name
+	resGroup := vm.ResourceGroup
 
 	// Can't find any official documentation on this, but the API returns a 400 for any other name.
 	// The best example I could find is here: https://social.msdn.microsoft.com/Forums/en-US/25a02403-dba9-4bcb-bdcc-1f4afcba5b65/powershell-script-to-autoshutdown-azure-virtual-machine?forum=WAVirtualMachinesforWindows
@@ -204,12 +208,12 @@ func resourceArmDevTestLabGlobalShutdownScheduleRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	schedule, err := parse.GlobalScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["schedules"]
+	resGroup := schedule.ResourceGroup
+	name := schedule.Name
 
 	resp, err := client.Get(ctx, resGroup, name, "")
 
@@ -248,12 +252,12 @@ func resourceArmDevTestLabGlobalShutdownScheduleDelete(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	schedule, err := parse.GlobalScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["schedules"]
+	resGroup := schedule.ResourceGroup
+	name := schedule.Name
 
 	if _, err := client.Delete(ctx, resGroup, name); err != nil {
 		return err
