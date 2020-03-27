@@ -27,7 +27,7 @@ func RemediationName(i interface{}, k string) (warnings []string, errors []error
 	}
 	// Despite the service accepts remediation name with capitalized characters, but in the response,
 	// all upper case characters will be converted to lower cases. Therefore we forbid user to use upper case letters here
-	if !strings.EqualFold(v, strings.ToLower(v)) {
+	if v != strings.ToLower(v) {
 		errors = append(errors, fmt.Errorf("%s cannot contain upper case letters", k))
 	}
 

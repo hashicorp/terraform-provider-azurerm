@@ -64,6 +64,11 @@ func TestValidateRemediationName(t *testing.T) {
 			Expected: false,
 		},
 		{
+			Name: "cannot contains upper case letters",
+			Input: "HelloWorld",
+			Expected: false,
+		},
+		{
 			Name:     "260 chars",
 			Input:    "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij",
 			Expected: true,
