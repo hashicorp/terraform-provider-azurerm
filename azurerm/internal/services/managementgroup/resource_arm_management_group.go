@@ -2,6 +2,7 @@ package managementgroup
 
 import (
 	"fmt"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"log"
 	"strings"
 	"time"
@@ -26,9 +27,11 @@ func resourceArmManagementGroup() *schema.Resource {
 		Update: resourceArmManagementGroupCreateUpdate,
 		Read:   resourceArmManagementGroupRead,
 		Delete: resourceArmManagementGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ManagementGroupID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
