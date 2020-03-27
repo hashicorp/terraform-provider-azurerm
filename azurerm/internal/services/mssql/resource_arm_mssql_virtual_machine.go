@@ -184,7 +184,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 }
 
 func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.SQLVirtualMachinesClient
+	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	vmclient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,7 +265,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.SQLVirtualMachinesClient
+	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -302,7 +302,7 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.SQLVirtualMachinesClient
+	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

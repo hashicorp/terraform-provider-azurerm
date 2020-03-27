@@ -166,7 +166,7 @@ func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.Tes
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.SQLVirtualMachinesClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.VirtualMachinesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
@@ -181,7 +181,7 @@ func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.SQLVirtualMachinesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -300,7 +300,7 @@ resource "azurerm_virtual_machine" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_DS13"
+  vm_size               = "Standard_F2s"
 
   storage_image_reference {
     publisher = "MicrosoftSQLServer"

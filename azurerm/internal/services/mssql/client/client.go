@@ -13,7 +13,7 @@ type Client struct {
 	ServersClient                                      *sql.ServersClient
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
-	SQLVirtualMachinesClient                           *sqlvirtualmachine.SQLVirtualMachinesClient
+	VirtualMachinesClient                              *sqlvirtualmachine.SQLVirtualMachinesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -45,6 +45,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServersClient:                        &ServersClient,
 		ServerSecurityAlertPoliciesClient:    &ServerSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient: &ServerVulnerabilityAssessmentsClient,
-		SQLVirtualMachinesClient:             &SQLVirtualMachinesClient,
+		VirtualMachinesClient:                &SQLVirtualMachinesClient,
 	}
 }
