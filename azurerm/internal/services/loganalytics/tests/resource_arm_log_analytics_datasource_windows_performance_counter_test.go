@@ -24,10 +24,10 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(t *test
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "CPU"),
 					resource.TestCheckResourceAttr(data.ResourceName, "object_name", "CPU"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "10"),
 					resource.TestCheckResourceAttr(data.ResourceName, "instance_name", "*"),
+					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "CPU"),
+					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "10"),
 				),
 			},
 			data.ImportStep(),
@@ -47,10 +47,10 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_complete(t *t
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "Mem"),
 					resource.TestCheckResourceAttr(data.ResourceName, "object_name", "Mem"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "20"),
 					resource.TestCheckResourceAttr(data.ResourceName, "instance_name", "inst1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "Mem"),
+					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "20"),
 				),
 			},
 			data.ImportStep(),
@@ -70,10 +70,10 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_update(t *tes
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "CPU"),
 					resource.TestCheckResourceAttr(data.ResourceName, "object_name", "CPU"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "10"),
 					resource.TestCheckResourceAttr(data.ResourceName, "instance_name", "*"),
+					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "CPU"),
+					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "10"),
 				),
 			},
 			data.ImportStep(),
@@ -81,10 +81,10 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_update(t *tes
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "Mem"),
 					resource.TestCheckResourceAttr(data.ResourceName, "object_name", "Mem"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "20"),
 					resource.TestCheckResourceAttr(data.ResourceName, "instance_name", "inst1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "counter_name", "Mem"),
+					resource.TestCheckResourceAttr(data.ResourceName, "interval_seconds", "20"),
 				),
 			},
 			data.ImportStep(),
@@ -172,10 +172,10 @@ resource "azurerm_log_analytics_datasource_windows_performance_counter" "test" {
   name                = "acctestLADS-WPC-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
-  counter_name        = "CPU"
   object_name         = "CPU"
-  interval_seconds    = 10
   instance_name       = "*"
+  counter_name        = "CPU"
+  interval_seconds    = 10
 }
 `, template, data.RandomInteger)
 }
@@ -189,10 +189,10 @@ resource "azurerm_log_analytics_datasource_windows_performance_counter" "test" {
   name                = "acctestLADS-WPC-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
-  counter_name        = "Mem"
   object_name         = "Mem"
-  interval_seconds    = 20
   instance_name       = "inst1"
+  counter_name        = "Mem"
+  interval_seconds    = 20
 }
 `, template, data.RandomInteger)
 }
@@ -206,10 +206,10 @@ resource "azurerm_log_analytics_datasource_windows_performance_counter" "import"
   name                = azurerm_log_analytics_datasource_windows_performance_counter.test.name
   resource_group_name = azurerm_log_analytics_datasource_windows_performance_counter.test.resource_group_name
   workspace_name      = azurerm_log_analytics_datasource_windows_performance_counter.test.workspace_name
-  counter_name        = azurerm_log_analytics_datasource_windows_performance_counter.test.counter_name
   object_name         = azurerm_log_analytics_datasource_windows_performance_counter.test.object_name
-  interval_seconds    = azurerm_log_analytics_datasource_windows_performance_counter.test.interval_seconds
   instance_name       = azurerm_log_analytics_datasource_windows_performance_counter.test.instance_name
+  counter_name        = azurerm_log_analytics_datasource_windows_performance_counter.test.counter_name
+  interval_seconds    = azurerm_log_analytics_datasource_windows_performance_counter.test.interval_seconds
 }
 `, template)
 }
@@ -221,7 +221,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-la-%d"
   location = "%s"
 }
 

@@ -33,10 +33,10 @@ resource "azurerm_log_analytics_datasource_windows_performance_counter" "example
   name                = "example-lad-wpc"
   resource_group_name = azurerm_resource_group.example.name
   workspace_name      = azurerm_log_analytics_workspace.example.name
-  counter_name        = "CPU"
   object_name         = "CPU"
-  interval_seconds    = 10
   instance_name       = "*"
+  counter_name        = "CPU"
+  interval_seconds    = 10
 }
 ```
 
@@ -50,13 +50,13 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) The name of the Log Analytics Workspace where the Log Analytics Windows Performance Counter DataSource should exist. Changing this forces a new Log Analytics Windows Performance Counter DataSource to be created.
 
-* `counter_name` - (Required) The friendly name of the performance counter.
+* `object_name` - (Required) The object name of the Log Analytics Windows Performance Counter DataSource.
 
 * `instance_name` - (Required) The name of the virtual machine instance to which the Windows Performance Counter DataSource be applied. Specify a `*` will apply to all instances.
 
-* `interval_seconds` - (Required) The time of sample interval in seconds. Supports values between 10 and 2147483647.
+* `counter_name` - (Required) The friendly name of the performance counter.
 
-* `object_name` - (Required) The object name of the Log Analytics Windows Performance Counter DataSource.
+* `interval_seconds` - (Required) The time of sample interval in seconds. Supports values between 10 and 2147483647.
 
 ## Attributes Reference
 
