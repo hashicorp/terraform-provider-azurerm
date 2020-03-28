@@ -6,6 +6,11 @@ FEATURES:
 * **New Data source:** `azurerm_managed_application_definition` [GH-6211]
 * **New Resource:** `azurerm_managed_application_definition` [GH-6211]
 
+IMPROVEMENTS:
+
+* `azurerm_network_interface` - always send `enable_accelerated_networking` to the api [GH-6289]
+
+
 ## 2.3.0 (March 27, 2020)
 
 FEATURES:
