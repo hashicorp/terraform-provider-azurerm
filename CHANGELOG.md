@@ -1,10 +1,17 @@
 ## 2.4.0 (Unreleased)
+
+
+FEATURES:
+
+* **New Data source:** `azurerm_managed_application_definition` [GH-6211]
+* **New Resource:** `azurerm_managed_application_definition` [GH-6211]
+
 ## 2.3.0 (March 27, 2020)
 
 FEATURES:
 
 * **New Data Source:** `azurerm_mssql_database` ([#6083](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6083))
-* **New data source:** `azurerm_network_service_tags` ([#6229](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6229))
+* **New Data source:** `azurerm_network_service_tags` ([#6229](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6229))
 * **New Resource:** `azurerm_custom_resource_provider` ([#6234](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6234))
 * **New Resource:** `azurerm_hpc_cache_blob_target` ([#6035](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6035))
 * **New Resource:** `azurerm_machine_learning_workspace` ([#5696](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5696))
