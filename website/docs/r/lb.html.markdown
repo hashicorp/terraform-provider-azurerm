@@ -76,7 +76,7 @@ The following attributes are exported:
 A `frontend_ip_configuration` block exports the following:
 
 * `id` - The id of the Frontend IP Configuration.
-* `inbound_nat_rules` - The list of IDs of inbound pools that use this frontend IP.
+* `inbound_nat_rules` - The list of IDs of inbound rules that use this frontend IP.
 * `load_balancer_rules` - The list of IDs of load balancing rules that use this frontend IP.
 * `outbound_rules` - The list of IDs outbound rules that use this frontend IP.
 * `private_ip_address` - Private IP Address to assign to the Load Balancer.
