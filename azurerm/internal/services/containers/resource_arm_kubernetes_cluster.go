@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -31,7 +32,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		Delete: resourceArmKubernetesClusterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseKubernetesClusterID(id)
+			_, err := parse.KubernetesClusterID(id)
 			return err
 		}),
 
@@ -627,7 +628,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
-	id, err := ParseKubernetesClusterID(d.Id())
+	id, err := parse.KubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -840,7 +841,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseKubernetesClusterID(d.Id())
+	id, err := parse.KubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -959,7 +960,7 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseKubernetesClusterID(d.Id())
+	id, err := parse.KubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
