@@ -10,6 +10,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_network_interface` - always send `enable_accelerated_networking` to the api [GH-6289]
+* `azurerm_management_group` - deprecated and rename the `group_id` property to `name` to better match what it represents [GH-6276]
 
 BUGS:
 
