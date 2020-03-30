@@ -253,11 +253,11 @@ A `install_script_action` block supports the following:
 
 A `metastores` block supports the following:
 
-* `hive` - (Required) A `hive` block as defined below.
+* `hive` - (Optional) A `hive` block as defined below.
 
-* `oozie` - (Required) A `oozie` block as defined below.
+* `oozie` - (Optional) A `oozie` block as defined below.
 
-* `ambari` - (Required) A `amabari` block as defined below.
+* `ambari` - (Optional) A `amabari` block as defined below.
 
 ---
 
