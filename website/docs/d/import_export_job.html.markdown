@@ -19,7 +19,7 @@ provider "azurerm" {
 }
 
 data "azurerm_import_export_job" "example" {
-  name = "example-job"
+  name                = "example-job"
   resource_group_name = "example-resource-group"
 }
 
