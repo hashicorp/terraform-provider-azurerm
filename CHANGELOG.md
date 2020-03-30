@@ -10,6 +10,9 @@ IMPROVEMENTS:
 
 * `azurerm_network_interface` - always send `enable_accelerated_networking` to the api [GH-6289]
 
+BUGS:
+
+* `azurerm_policy_set_definition` - mark `metadata` as computed [GH-6266]
 
 ## 2.3.0 (March 27, 2020)
 
