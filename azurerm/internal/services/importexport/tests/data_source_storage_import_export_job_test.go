@@ -48,7 +48,7 @@ func testAccDataSourceStorageImportExportJob_importJobBasic(data acceptance.Test
 %s
 
 data "azurerm_import_export_job" "test" {
-    name                = azurerm_import_job.test.name
+  name                = azurerm_import_job.test.name
   resource_group_name = azurerm_import_job.test.resource_group_name
 }
 `, config)
@@ -60,7 +60,7 @@ func testAccDataSourceStorageImportExportJob_exportJobBasic(data acceptance.Test
 %s
 
 data "azurerm_import_export_job" "test" {
-    name                = azurerm_export_job.test.name
+  name                = azurerm_export_job.test.name
   resource_group_name = azurerm_export_job.test.resource_group_name
 }
 `, config)
