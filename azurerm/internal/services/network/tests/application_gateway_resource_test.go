@@ -2033,7 +2033,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   }
 
   managed_rules {
-    managed_rules_set {
+    managed_rule_set {
       type    = "OWASP"
       version = "3.1"
     }
