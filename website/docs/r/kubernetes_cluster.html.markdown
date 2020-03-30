@@ -70,9 +70,9 @@ The following arguments are supported:
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
-* `service_principal` - (Required) A `service_principal` block as documented below.
+In addition, one of either `identity` or `service_principal` must be specified.
 
--> **NOTE:** `service_principal` is only required if `identity` has not been defined. `service_principal` or `identity` can be defined in the configuration file.
+---
 
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
@@ -82,9 +82,9 @@ The following arguments are supported:
 
 -> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
 
-* `identity` - (Required) A `identity` block as defined below. Changing this forces a new resource to be created.
+* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
 
--> **NOTE:** `identity` is only required if `service_principal` has not been defined. `identity` or `service_principal` can be defined in the configuration file.
+-> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
@@ -100,15 +100,20 @@ The following arguments are supported:
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `role_based_access_control` - (Optional) A `role_based_access_control` block.
+* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
--> **NOTE:** Adding this block to, or removing it from, an existing cluster configuration will recreate the cluster.
+-> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
+
+* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
+
+* `service_principal` - (Optional) A `service_principal` block as documented below.
+
+-> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
-* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -256,7 +261,7 @@ A `network_profile` block supports the following:
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `default_node_pool` block must be set and `pod_cidr` must not be set.
 
-* `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/en-us/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created. 
+* `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/en-us/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** When `network_plugin` is set to `kubenet` the `network_policy` field can only be set to `calico`, otherwise it has to be set to `azure`.
 
