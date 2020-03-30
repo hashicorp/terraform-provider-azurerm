@@ -36,6 +36,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"managedClusterIdentity":      testAccAzureRMKubernetesCluster_managedClusterIdentity,
 			"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
 			"roleBasedAccessControlAAD":   testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+			"servicePrincipal":            testAccAzureRMKubernetesCluster_servicePrincipal,
 		},
 		"network": {
 			"advancedNetworkingKubenet":                   testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
@@ -67,7 +68,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"manualScaleMultiplePoolsUpdate": testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
 			"manualScaleUpdate":              testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate,
 			"manualScaleVMSku":               testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku,
-			"nodeLabels":                     TestAccAzureRMKubernetesClusterNodePool_nodeLabels,
+			"nodeLabels":                     testAccAzureRMKubernetesClusterNodePool_nodeLabels,
 			"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
 			"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
 			"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,

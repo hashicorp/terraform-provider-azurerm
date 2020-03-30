@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -17,8 +16,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,13 +23,13 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data, clientId, clientSecret, data.Locations.Primary, "kubenet"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data, "kubenet"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "kubenet"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,8 +41,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,13 +48,13 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data, clientId, clientSecret, data.Locations.Primary, "kubenet"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data, "kubenet"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "kubenet"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -71,8 +66,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,14 +73,14 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data, clientId, clientSecret, data.Locations.Primary, "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data, "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -99,8 +92,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -108,14 +99,14 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data, clientId, clientSecret, data.Locations.Primary, "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data, "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -127,8 +118,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -136,7 +125,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data, clientId, clientSecret, data.Locations.Primary, "azure", "calico"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
@@ -144,7 +133,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -156,8 +145,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -165,7 +152,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data, clientId, clientSecret, data.Locations.Primary, "azure", "calico"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data, "azure", "calico"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
@@ -173,7 +160,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -185,8 +172,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -194,7 +179,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data, clientId, clientSecret, data.Locations.Primary, "azure", "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
@@ -202,7 +187,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -214,8 +199,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -223,7 +206,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data, clientId, clientSecret, data.Locations.Primary, "azure", "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data, "azure", "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.network_plugin", "azure"),
@@ -231,7 +214,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 					resource.TestCheckResourceAttr(data.ResourceName, "windows_profile.0.admin_username", "azureuser"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -243,8 +226,6 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -253,31 +234,31 @@ func testAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Enabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, clientId, clientSecret, data.Locations.Primary, true),
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_node_public_ip", "true"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 			{
 				// Disabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, clientId, clientSecret, data.Locations.Primary, false),
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_node_public_ip", "false"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 			{
 				// Enabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, clientId, clientSecret, data.Locations.Primary, true),
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.enable_node_public_ip", "true"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -289,8 +270,6 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -298,13 +277,13 @@ func testAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_internalNetworkConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_internalNetworkConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.max_pods", "60"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -316,8 +295,6 @@ func TestAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -325,22 +302,14 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, true),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
 					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
 				),
 			},
-			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
-				),
-			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -352,8 +321,6 @@ func TestAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -361,21 +328,14 @@ func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, false),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
 				),
 			},
-			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, false),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
-				),
-			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -387,8 +347,6 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -396,13 +354,13 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -414,8 +372,6 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -423,13 +379,13 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -441,8 +397,6 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -450,7 +404,7 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
@@ -458,6 +412,7 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "3"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -469,8 +424,6 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t *test
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.PreCheck(t) },
@@ -479,13 +432,14 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete(t *test
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -497,8 +451,6 @@ func TestAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -506,8 +458,8 @@ func testAccAzureRMKubernetesCluster_basicLoadBalancerProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data, clientId, clientSecret),
-				ExpectError: regexp.MustCompile("errors during apply: only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
+				Config:      testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data),
+				ExpectError: regexp.MustCompile("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: basic"),
 			},
 		},
 	})
@@ -520,8 +472,6 @@ func TestAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T
 
 func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -529,18 +479,8 @@ func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data, clientId, clientSecret),
+				Config:      testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data),
 				ExpectError: regexp.MustCompile(`- "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count": conflicts with network_profile.0.load_balancer_profile.0.outbound_ip_address_ids`),
-			},
-			{
-				ResourceName:      "azurerm_public_ip.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				ResourceName:      "azurerm_public_ip.test2",
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
@@ -553,8 +493,6 @@ func TestAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -562,7 +500,7 @@ func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
@@ -570,11 +508,12 @@ func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -620,19 +559,18 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
     network_plugin = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, networkPlugin)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -696,9 +634,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -708,10 +645,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, networkPlugin)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -757,9 +694,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -767,10 +703,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_policy = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, networkPlugin, networkPolicy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, networkPolicy)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data acceptance.TestData, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -834,9 +770,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -847,10 +782,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, networkPlugin, networkPolicy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, networkPolicy)
 }
 
-func testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data acceptance.TestData, clientId, clientSecret, location string, enabled bool) string {
+func testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -874,15 +809,14 @@ resource "azurerm_kubernetes_cluster" "test" {
     enable_node_public_ip = %t
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func testAccAzureRMKubernetesCluster_internalNetworkConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_internalNetworkConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -929,15 +863,14 @@ resource "azurerm_kubernetes_cluster" "test" {
     max_pods       = 60
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, clientId string, clientSecret string, location string, enablePrivateLink bool) string {
+func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, enablePrivateLink bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -949,10 +882,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  name                  = "acctestaks%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  dns_prefix            = "acctestaks%d"
+  private_link_enabled  = %t
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -968,9 +902,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -978,12 +911,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 
-  private_link_enabled            = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, enablePrivateLink)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateLink, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1030,9 +962,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -1040,10 +971,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "Standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1108,9 +1039,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -1121,10 +1051,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku  = "Standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1171,9 +1101,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -1184,10 +1113,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1242,9 +1171,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -1255,10 +1183,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_basicLoadBalancerProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1305,9 +1233,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -1318,10 +1245,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1382,9 +1309,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -1396,10 +1322,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1453,9 +1379,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -1466,5 +1391,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }

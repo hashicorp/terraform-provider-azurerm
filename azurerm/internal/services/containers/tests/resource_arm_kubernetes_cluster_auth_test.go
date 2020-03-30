@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -16,8 +15,6 @@ func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +22,7 @@ func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRangesConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRangesConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
@@ -43,7 +40,7 @@ func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "3"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -55,8 +52,6 @@ func TestAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -64,13 +59,13 @@ func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_enablePodSecurityPolicyConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_enablePodSecurityPolicyConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_pod_security_policy", "true"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -96,7 +91,7 @@ func testAccAzureRMKubernetesCluster_managedClusterIdentity(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "service_principal.0.client_id", "msi"),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -108,8 +103,6 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -117,7 +110,7 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlConfig(data, clientId, clientSecret),
+				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
@@ -127,7 +120,7 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
 				),
 			},
-			data.ImportStep("service_principal.0.client_secret"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -139,9 +132,8 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	tenantId := os.Getenv("ARM_TENANT_ID")
+	clientData := data.Client()
+	auth := clientData.Default
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -149,7 +141,7 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data, clientId, clientSecret, ""),
+				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
@@ -164,21 +156,53 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 				),
 			},
 			data.ImportStep(
-				"service_principal.0.client_secret",
 				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
 			),
 			{
 				// should be no changes since the default for Tenant ID comes from the Provider block
-				Config:   testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data, clientId, clientSecret, tenantId),
+				Config:   testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, clientData.TenantID),
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(
-				"service_principal.0.client_secret",
 				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
 			),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_servicePrincipal(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_servicePrincipal(t)
+}
+
+func testAccAzureRMKubernetesCluster_servicePrincipal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	clientData := data.Client()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_servicePrincipalConfig(data, clientData.Default.ClientID, clientData.Default.ClientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
+				),
+			},
+			data.ImportStep("service_principal.0.client_secret"),
+			{
+				Config: testAccAzureRMKubernetesCluster_servicePrincipalConfig(data, clientData.Alternate.ClientID, clientData.Alternate.ClientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "0"),
+				),
+			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
@@ -190,12 +214,10 @@ func TestAccAzureRMKubernetesCluster_updateRoleBasedAccessControlAAD(t *testing.
 
 func testAccAzureRMKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	tenantId := os.Getenv("ARM_TENANT_ID")
-	// TODO: find or create a suitable replacement client_id to use to extend the test and set ARM_CLIENT_ID_ALT in the CI job
-	updateClientId := os.Getenv("ARM_CLIENT_ID_ALT")
-	updateClientSecret := os.Getenv("ARM_CLIENT_SECRET_ALT")
+
+	clientData := data.Client()
+	auth := clientData.Default
+	altAlt := clientData.Alternate
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -203,7 +225,7 @@ func testAccAzureRMKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data, clientId, clientSecret, tenantId),
+				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, clientData.TenantID),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
@@ -218,33 +240,31 @@ func testAccAzureRMKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T
 				),
 			},
 			data.ImportStep(
-				"service_principal.0.client_secret",
 				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
 			),
 			{
-				Config: testAccAzureRMKubernetesCluster_updateRoleBasedAccessControlAADConfig(data, clientId, clientSecret, updateClientId, updateClientSecret, tenantId),
+				Config: testAccAzureRMKubernetesCluster_updateRoleBasedAccessControlAADConfig(data, altAlt.ClientID, altAlt.ClientSecret, clientData.TenantID),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.client_app_id", updateClientId),
-					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id", updateClientId),
-					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.server_app_secret", updateClientSecret),
-					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id", tenantId),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.client_app_id", altAlt.ClientID),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id", altAlt.ClientID),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.server_app_secret", altAlt.ClientSecret),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id", clientData.TenantID),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "1"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_admin_config_raw"),
 				),
 			},
 			data.ImportStep(
-				"service_principal.0.client_secret",
 				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
 			),
 		},
 	})
 }
 
-func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRangesConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRangesConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -282,9 +302,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   network_profile {
@@ -298,10 +317,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     "8.8.2.0/24",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_enablePodSecurityPolicyConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_enablePodSecurityPolicyConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -329,12 +348,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data acceptance.TestData) string {
@@ -357,7 +375,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    type       = "AvailabilitySet"
     vm_size    = "Standard_DS2_v2"
   }
 
@@ -368,7 +385,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_roleBasedAccessControlConfig(data acceptance.TestData, clientId, clientSecret string) string {
+func testAccAzureRMKubernetesCluster_roleBasedAccessControlConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -399,16 +416,15 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   role_based_access_control {
     enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data acceptance.TestData, clientId, clientSecret, tenantId string) string {
@@ -442,9 +458,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   role_based_access_control {
@@ -458,10 +473,41 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, clientId, clientSecret, clientId)
+`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, clientId)
 }
 
-func testAccAzureRMKubernetesCluster_updateRoleBasedAccessControlAADConfig(data acceptance.TestData, clientId, clientSecret, altClientId, altClientSecret, tenantId string) string {
+func testAccAzureRMKubernetesCluster_servicePrincipalConfig(data acceptance.TestData, clientId, clientSecret string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_updateRoleBasedAccessControlAADConfig(data acceptance.TestData, altClientId, altClientSecret, tenantId string) string {
 	return fmt.Sprintf(`
 variable "tenant_id" {
   default = "%s"
@@ -492,9 +538,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
   }
 
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
+  identity {
+    type = "SystemAssigned"
   }
 
   role_based_access_control {
@@ -508,5 +553,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, altClientId, altClientSecret, altClientId)
+`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, altClientId, altClientSecret, altClientId)
 }
