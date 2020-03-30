@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,9 +27,11 @@ func resourceArmManagementGroup() *schema.Resource {
 		Update: resourceArmManagementGroupCreateUpdate,
 		Read:   resourceArmManagementGroupRead,
 		Delete: resourceArmManagementGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ManagementGroupID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,11 +42,22 @@ func resourceArmManagementGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"group_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ManagementGroupName,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"name"},
+				Deprecated:    "Deprecated in favor of `name`",
+				ValidateFunc:  validate.ManagementGroupName,
+			},
+
+			"name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"group_id"},
+				ValidateFunc:  validate.ManagementGroupName,
 			},
 
 			"display_name": {
@@ -77,9 +90,12 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	defer cancel()
 	armTenantID := meta.(*clients.Client).Account.TenantId
 
-	groupId := d.Get("group_id").(string)
-	if groupId == "" {
-		groupId = uuid.New().String()
+	groupName := uuid.New().String()
+	if v, ok := d.GetOk("group_name"); ok {
+		groupName = v.(string)
+	}
+	if v, ok := d.GetOk("group_id"); ok {
+		groupName = v.(string)
 	}
 
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
@@ -88,11 +104,11 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	recurse := false
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupId, err)
+				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
 			}
 		}
 
@@ -101,10 +117,10 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	log.Printf("[INFO] Creating Management Group %q", groupId)
+	log.Printf("[INFO] Creating Management Group %q", groupName)
 
 	properties := managementgroups.CreateManagementGroupRequest{
-		Name: utils.String(groupId),
+		Name: utils.String(groupName),
 		CreateManagementGroupProperties: &managementgroups.CreateManagementGroupProperties{
 			TenantID: utils.String(armTenantID),
 			Details: &managementgroups.CreateManagementGroupDetails{
@@ -119,18 +135,18 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		properties.CreateManagementGroupProperties.DisplayName = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, groupId, properties, managementGroupCacheControl)
+	future, err := client.CreateOrUpdate(ctx, groupName, properties, managementGroupCacheControl)
 	if err != nil {
-		return fmt.Errorf("unable to create Management Group %q: %+v", groupId, err)
+		return fmt.Errorf("unable to create Management Group %q: %+v", groupName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed when waiting for creation of Management Group %q: %+v", groupId, err)
+		return fmt.Errorf("failed when waiting for creation of Management Group %q: %+v", groupName, err)
 	}
 
-	resp, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve Management Group %q: %+v", groupId, err)
+		return fmt.Errorf("unable to retrieve Management Group %q: %+v", groupName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -139,19 +155,19 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 
 	// first remove any which need to be removed
 	if !d.IsNewResource() {
-		log.Printf("[DEBUG] Determine which Subscriptions should be removed from Management Group %q", groupId)
+		log.Printf("[DEBUG] Determine which Subscriptions should be removed from Management Group %q", groupName)
 		if props := resp.Properties; props != nil {
 			subscriptionIdsToRemove, err2 := determineManagementGroupSubscriptionsIdsToRemove(props.Children, subscriptionIds)
 			if err2 != nil {
-				return fmt.Errorf("unable to determine which subscriptions should be removed from Management Group %q: %+v", groupId, err2)
+				return fmt.Errorf("unable to determine which subscriptions should be removed from Management Group %q: %+v", groupName, err2)
 			}
 
 			for _, subscriptionId := range *subscriptionIdsToRemove {
-				log.Printf("[DEBUG] De-associating Subscription ID %q from Management Group %q", subscriptionId, groupId)
-				deleteResp, err2 := subscriptionsClient.Delete(ctx, groupId, subscriptionId, managementGroupCacheControl)
+				log.Printf("[DEBUG] De-associating Subscription ID %q from Management Group %q", subscriptionId, groupName)
+				deleteResp, err2 := subscriptionsClient.Delete(ctx, groupName, subscriptionId, managementGroupCacheControl)
 				if err2 != nil {
 					if !response.WasNotFound(deleteResp.Response) {
-						return fmt.Errorf("unable to de-associate Subscription %q from Management Group %q: %+v", subscriptionId, groupId, err2)
+						return fmt.Errorf("unable to de-associate Subscription %q from Management Group %q: %+v", subscriptionId, groupName, err2)
 					}
 				}
 			}
@@ -159,12 +175,11 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	// then add the new ones
-	log.Printf("[DEBUG] Preparing to assign Subscriptions to Management Group %q", groupId)
+	log.Printf("[DEBUG] Preparing to assign Subscriptions to Management Group %q", groupName)
 	for _, subscriptionId := range subscriptionIds {
-		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupId)
-		_, err = subscriptionsClient.Create(ctx, groupId, subscriptionId, managementGroupCacheControl)
-		if err != nil {
-			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q: %+v", subscriptionId, groupId, err)
+		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupName)
+		if _, err := subscriptionsClient.Create(ctx, groupName, subscriptionId, managementGroupCacheControl); err != nil {
+			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q: %+v", subscriptionId, groupName, err)
 		}
 	}
 
@@ -193,6 +208,7 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("unable to read Management Group %q: %+v", d.Id(), err)
 	}
 
+	d.Set("name", id.GroupId)
 	d.Set("group_id", id.GroupId)
 
 	if props := resp.Properties; props != nil {
