@@ -184,7 +184,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 						},
 						"managed_rule_set": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {

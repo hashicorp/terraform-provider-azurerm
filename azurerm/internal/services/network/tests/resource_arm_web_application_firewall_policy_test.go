@@ -80,14 +80,14 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.exclusion.1.match_variable", "RequestCookieNames"),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.exclusion.1.selector", "too-much-fun"),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.exclusion.1.selector_match_operator", "EndsWith"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.0.type", "OWASP"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.0.version", "3.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.0.rule_group_override.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.0.rule_group_override.0.rule_group_name", "REQUEST-920-PROTOCOL-ENFORCEMENT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.0.rule_group_override.0.disabled_rules.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.0.rule_group_override.0.disabled_rules.0", "920300"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rules_set.0.rule_group_override.0.disabled_rules.1", "920440"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.0.type", "OWASP"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.0.version", "3.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.0.rule_group_override.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.0.rule_group_override.0.rule_group_name", "REQUEST-920-PROTOCOL-ENFORCEMENT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.0.rule_group_override.0.disabled_rules.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.0.rule_group_override.0.disabled_rules.0", "920300"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.managed_rule_set.0.rule_group_override.0.disabled_rules.1", "920440"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.mode", "Prevention"),
 				),
@@ -216,6 +216,13 @@ resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -296,7 +303,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       selector_match_operator = "EndsWith"
     }
 
-    managed_rules_set {
+    managed_rule_set {
       type    = "OWASP"
       version = "3.1"
 

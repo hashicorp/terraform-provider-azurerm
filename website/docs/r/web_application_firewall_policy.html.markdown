@@ -87,7 +87,7 @@ resource "azurerm_web_application_firewall_policy" "example" {
       selector_match_operator = "EndsWith"
     }
 
-    managed_rules_set {
+    managed_rule_set {
       rule_set_type    = "OWASP"
       rule_set_version = "3.1"
       rule_group_override {
@@ -169,7 +169,7 @@ The `managed_rules` block supports the following:
 
 * `exclusion` - (Optional) One or more `exclusion` block defined below.
 
-* `managed_rules_set` - (Optional) One or more `managed_rules_set` block defined below.
+* `managed_rule_set` - (Optional) One or more `managed_rule_set` block defined below.
 
 ---
 
@@ -183,7 +183,7 @@ The `exclusion` block supports the following:
 
 ---
 
-The `managed_rules_set` block supports the following:
+The `managed_rule_set` block supports the following:
 
 * `type` - (Required) The rule set type.
 
