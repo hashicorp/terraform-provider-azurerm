@@ -33,6 +33,7 @@ import (
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
+	importexport "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/importexport/client"
 	iotcentral "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
@@ -109,6 +110,7 @@ type Client struct {
 	Frontdoor          *frontdoor.Client
 	HDInsight          *hdinsight.Client
 	HealthCare         *healthcare.Client
+	ImportExport       *importexport.Client
 	IoTHub             *iothub.Client
 	IoTCentral         *iotcentral.Client
 	KeyVault           *keyvault.Client
@@ -186,6 +188,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
+	client.ImportExport = importexport.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
