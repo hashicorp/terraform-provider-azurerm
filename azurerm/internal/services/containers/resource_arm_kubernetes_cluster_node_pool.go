@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -27,7 +28,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 		Delete: resourceArmKubernetesClusterNodePoolDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseKubernetesNodePoolID(id)
+			_, err := parse.KubernetesNodePoolID(id)
 			return err
 		}),
 
@@ -306,7 +307,7 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseKubernetesNodePoolID(d.Id())
+	id, err := parse.KubernetesNodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -421,7 +422,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseKubernetesNodePoolID(d.Id())
+	id, err := parse.KubernetesNodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -510,7 +511,7 @@ func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseKubernetesNodePoolID(d.Id())
+	id, err := parse.KubernetesNodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
