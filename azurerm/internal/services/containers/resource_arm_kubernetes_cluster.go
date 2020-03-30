@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -72,14 +73,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"service_principal": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"client_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: containerValidate.ClientID,
 						},
 
 						"client_secret": {
@@ -488,7 +488,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
 
-	if err := validateKubernetesCluster(d); err != nil {
+	if err := validateKubernetesCluster(d, nil); err != nil {
 		return err
 	}
 
@@ -553,30 +553,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
 
-	managedClusterIdentityRaw := d.Get("identity").([]interface{})
-	managedClusterIdentity := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
-
-	// if the resource is using user-assigned managed identity the ManagedClusterServicePrincipalProfile
-	// needs to have both the cliend_id and the client_secret, but it the resource is using
-	// system-assigned managed identity the ManagedClusterServicePrincipalProfile needs to have
-	// a client_id of "msi" and a client_secret of "nil"
-	servicePrincipalProfile := containerservice.ManagedClusterServicePrincipalProfile{
-		ClientID: utils.String("msi"),
-	}
-
-	// if the service_principal is defined use that value to fill out the ManagedClusterServicePrincipalProfile
-	// but only if it's not defined as msi
-	if servicePrincipalProfileRaw := d.Get("service_principal").([]interface{}); len(servicePrincipalProfileRaw) != 0 {
-		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
-
-		if strings.ToLower(servicePrincipalProfileVal["client_id"].(string)) != "msi" {
-			servicePrincipalProfile = containerservice.ManagedClusterServicePrincipalProfile{
-				ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
-				Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
-			}
-		}
-	}
-
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
@@ -593,10 +569,30 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			NetworkProfile:          networkProfile,
 			NodeResourceGroup:       utils.String(nodeResourceGroup),
 			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
-			ServicePrincipalProfile: &servicePrincipalProfile,
 		},
-		Identity: managedClusterIdentity,
-		Tags:     tags.Expand(t),
+		Tags: tags.Expand(t),
+	}
+
+	managedClusterIdentityRaw := d.Get("identity").([]interface{})
+	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
+
+	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
+		return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
+	}
+
+	if len(managedClusterIdentityRaw) > 0 {
+		parameters.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
+			ClientID: utils.String("msi"),
+		}
+	}
+
+	if len(servicePrincipalProfileRaw) > 0 {
+		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
+		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
+			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
+			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -629,10 +625,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
 
-	if err := validateKubernetesCluster(d); err != nil {
-		return err
-	}
-
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
 	id, err := ParseKubernetesClusterID(d.Id())
@@ -642,24 +634,29 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	d.Partial(true)
 
+	// we need to conditionally update the cluster
+	existing, err := clusterClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if existing.ManagedClusterProperties == nil {
+		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+	}
+
+	if err := validateKubernetesCluster(d, existing.ManagedClusterProperties); err != nil {
+		return err
+	}
+
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-		params := containerservice.ManagedClusterServicePrincipalProfile{}
+		servicePrincipals := d.Get("service_principal").([]interface{})
+		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
 
-		if servicePrincipals := d.Get("service_principal").([]interface{}); len(servicePrincipals) > 0 {
-			servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
-
-			clientId := servicePrincipalRaw["client_id"].(string)
-			clientSecret := servicePrincipalRaw["client_secret"].(string)
-
-			params = containerservice.ManagedClusterServicePrincipalProfile{
-				ClientID: utils.String(clientId),
-				Secret:   utils.String(clientSecret),
-			}
-		} else {
-			params = containerservice.ManagedClusterServicePrincipalProfile{
-				ClientID: utils.String("msi"),
-			}
+		clientId := servicePrincipalRaw["client_id"].(string)
+		clientSecret := servicePrincipalRaw["client_secret"].(string)
+		params := containerservice.ManagedClusterServicePrincipalProfile{
+			ClientID: utils.String(clientId),
+			Secret:   utils.String(clientSecret),
 		}
 
 		future, err := clusterClient.ResetServicePrincipalProfile(ctx, id.ResourceGroup, id.Name, params)
@@ -671,15 +668,15 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", id.Name, id.ResourceGroup)
-	}
 
-	// we need to conditionally update the cluster
-	existing, err := clusterClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	if existing.ManagedClusterProperties == nil {
-		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		// since we're patching it, re-retrieve the latest version of the cluster
+		existing, err = clusterClient.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+		if existing.ManagedClusterProperties == nil {
+			return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		}
 	}
 
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
@@ -961,13 +958,6 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	// make sure the schema is valid before destroying the resource
-	// as this could be painful and accidental delete of a resource that
-	// was not meant do be destroied due to a force new
-	if err := validateKubernetesCluster(d); err != nil {
-		return err
-	}
 
 	id, err := ParseKubernetesClusterID(d.Id())
 	if err != nil {
@@ -1417,6 +1407,10 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 		clientId = *v
 	}
 
+	if strings.EqualFold(clientId, "msi") {
+		return []interface{}{}
+	}
+
 	// client secret isn't returned by the API so pass the existing value along
 	clientSecret := ""
 	if sp, ok := d.GetOk("service_principal"); ok {
@@ -1432,14 +1426,6 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 		if len(val) > 0 && val[0] != nil {
 			raw := val[0].(map[string]interface{})
 			clientSecret = raw["client_secret"].(string)
-		}
-	}
-
-	if clientId == "msi" {
-		return []interface{}{
-			map[string]interface{}{
-				"client_id": clientId,
-			},
 		}
 	}
 
