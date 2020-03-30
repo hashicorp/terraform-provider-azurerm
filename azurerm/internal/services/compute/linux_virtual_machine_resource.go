@@ -566,8 +566,13 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error setting `secret`: %+v", err)
 		}
 	}
-
-	d.Set("priority", string(props.Priority))
+	// Resources created with azurerm_virtual_machine have priority set to ""
+	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
+	priority := props.Priority
+	if priority == "" {
+		priority = compute.Regular
+	}
+	d.Set("priority", string(priority))
 	proximityPlacementGroupId := ""
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
 		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID
