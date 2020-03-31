@@ -56,7 +56,7 @@ The following attributes are exported:
 
 * `log_level` - The log level of Azure Import/Export job.
 
-* `drive_info` - One or more `drive_info` block defined below.
+* `drives` - One or more `drive` block defined below.
 
 * `return_address` - One `return_address` block defined below.
 
@@ -66,7 +66,7 @@ The following attributes are exported:
 
 ---
 
-A `drive_info` block exports the following:
+A `drive` block exports the following:
 
 * `bit_locker_key` - The BitLocker key used to encrypt the drive.
 

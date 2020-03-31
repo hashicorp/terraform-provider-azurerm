@@ -37,7 +37,7 @@ resource "azurerm_import_job" "test" {
 
   storage_account_id = azurerm_storage_account.example.id
 
-  drive_info {
+  drives {
     drive_id       = "9CA995BB"
     bit_locker_key = "238810-662376-448998-450120-652806-203390-606320-483076"
     manifest_file  = "/DriveManifest.xml"
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The resource ID of the storage account where data will be imported to. Changing this forces a new resource to be created.
 
-* `drive_info` - (Required) One or more `drive_info` block defined below.
+* `drives` - (Required) One or more `drive` block defined below.
 
 * `return_address` - (Required) One `return_address` block defined below.
 
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 ---
 
-A `drive_info` block exports the following:
+A `drive` block exports the following:
 
 * `bit_locker_key` - (Required) Specifies the BitLocker key used to encrypt the drive.
 

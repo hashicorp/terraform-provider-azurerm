@@ -30,7 +30,7 @@ func TestAccAzureRMStorageImportJob_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "shipping_information.0.street_address1"),
 				),
 			},
-			data.ImportStep("drive_info.0.bit_locker_key"),
+			data.ImportStep("drives.0.bit_locker_key"),
 		},
 	})
 }
@@ -67,7 +67,7 @@ func TestAccAzureRMStorageImportJob_complete(t *testing.T) {
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drive_info.0.bit_locker_key"),
+			data.ImportStep("drives.0.bit_locker_key"),
 		},
 	})
 }
@@ -86,21 +86,21 @@ func TestAccAzureRMStorageImportJob_update(t *testing.T) {
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drive_info.0.bit_locker_key"),
+			data.ImportStep("drives.0.bit_locker_key"),
 			{
 				Config: testAccAzureRMStorageImportJob_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drive_info.0.bit_locker_key"),
+			data.ImportStep("drives.0.bit_locker_key"),
 			{
 				Config: testAccAzureRMStorageImportJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drive_info.0.bit_locker_key"),
+			data.ImportStep("drives.0.bit_locker_key"),
 		},
 	})
 }
@@ -161,7 +161,7 @@ resource "azurerm_import_job" "test" {
 
   storage_account_id = azurerm_storage_account.test.id
 
-  drive_info {
+  drives {
     drive_id       = "9CA995BB-%s"
     bit_locker_key = "238810-662376-448998-450120-652806-203390-606320-483076"
     manifest_file  = "/DriveManifest.xml"
@@ -198,7 +198,7 @@ resource "azurerm_import_job" "import" {
 
   storage_account_id = azurerm_storage_account.test.id
 
-  drive_info {
+  drives {
     drive_id       = "9CA995BB-%s"
     bit_locker_key = "238810-662376-448998-450120-652806-203390-606320-483076"
     manifest_file  = "/DriveManifest.xml"
@@ -238,7 +238,7 @@ resource "azurerm_import_job" "test" {
   diagnostics_path      = "waimportexport"
   log_level             = "Verbose"
 
-  drive_info {
+  drives {
     drive_id       = "9CA995BB-%s"
     bit_locker_key = "238810-662376-448998-450120-652806-203390-606320-483076"
     manifest_file  = "/DriveManifest.xml"

@@ -58,7 +58,7 @@ func resourceArmStorageImportJob() *schema.Resource {
 				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
-			"drive_info": {
+			"drives": {
 				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
@@ -265,14 +265,14 @@ func resourceArmStorageImportJobCreate(d *schema.ResourceData, meta interface{})
 
 	returnAddress := expandArmJobReturnAddress(d.Get("return_address").([]interface{}))
 	returnShipping := expandArmJobReturnShipping(d.Get("return_shipping").([]interface{}))
-	driveList := expandArmJobDriveInfo(d.Get("drive_info").([]interface{}))
+	drives := expandArmJobDrives(d.Get("drives").([]interface{}))
 
 	body := storageimportexport.PutJobParameters{
 		Location: utils.String(location),
 		Properties: &storageimportexport.JobDetails{
 			BackupDriveManifest: utils.Bool(backupDriveManifest),
 			DiagnosticsPath:     utils.String(diagnosticsPath),
-			DriveList:           driveList,
+			DriveList:           drives,
 			JobType:             utils.String(ImportJobType),
 			LogLevel:            utils.String(logLevel),
 			ReturnAddress:       returnAddress,
@@ -310,13 +310,13 @@ func resourceArmStorageImportJobUpdate(d *schema.ResourceData, meta interface{})
 
 	returnAddress := expandArmJobReturnAddress(d.Get("return_address").([]interface{}))
 	returnShipping := expandArmJobReturnShipping(d.Get("return_shipping").([]interface{}))
-	driveList := expandArmJobDriveInfo(d.Get("drive_info").([]interface{}))
+	drives := expandArmJobDrives(d.Get("drives").([]interface{}))
 
 	body := storageimportexport.UpdateJobParameters{
 		UpdateJobParametersProperties: &storageimportexport.UpdateJobParametersProperties{
 			BackupDriveManifest: utils.Bool(backupDriveManifest),
 			LogLevel:            utils.String(logLevel),
-			DriveList:           driveList,
+			DriveList:           drives,
 			ReturnAddress:       returnAddress,
 			ReturnShipping:      returnShipping,
 		},
@@ -368,8 +368,8 @@ func resourceArmStorageImportJobRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("diagnostics_path", props.DiagnosticsPath)
 		d.Set("log_level", props.LogLevel)
 
-		if err := d.Set("drive_info", flattenArmJobDriveInfo(props.DriveList, d)); err != nil {
-			return fmt.Errorf("failure setting drive_info: %+v", err)
+		if err := d.Set("drives", flattenArmJobDrives(props.DriveList, d)); err != nil {
+			return fmt.Errorf("failure setting drives: %+v", err)
 		}
 		if err := d.Set("return_address", flattenArmJobReturnAddress(props.ReturnAddress)); err != nil {
 			return fmt.Errorf("failure setting return_address: %+v", err)
@@ -400,7 +400,7 @@ func resourceArmStorageImportJobDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandArmJobDriveInfo(input []interface{}) *[]storageimportexport.DriveStatus {
+func expandArmJobDrives(input []interface{}) *[]storageimportexport.DriveStatus {
 	results := make([]storageimportexport.DriveStatus, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -419,14 +419,14 @@ func expandArmJobDriveInfo(input []interface{}) *[]storageimportexport.DriveStat
 	return &results
 }
 
-func flattenArmJobDriveInfo(input *[]storageimportexport.DriveStatus, d *schema.ResourceData) []interface{} {
+func flattenArmJobDrives(input *[]storageimportexport.DriveStatus, d *schema.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	// prepare old state to find sensitive props not returned by API.
-	oldDriveInfosRaw := d.Get("drive_info").([]interface{})
+	oldDriveInfosRaw := d.Get("drives").([]interface{})
 
 	for i, item := range *input {
 		// prepare old state to find sensitive props not returned by API.

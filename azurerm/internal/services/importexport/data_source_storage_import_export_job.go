@@ -79,7 +79,7 @@ func dataSourceStorageImportExportJob() *schema.Resource {
 				Computed: true,
 			},
 
-			"drive_info": {
+			"drives": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -257,8 +257,8 @@ func dataSourceArmStorageImportExportJobRead(d *schema.ResourceData, meta interf
 			}
 		}
 
-		if err := d.Set("drive_info", flattenArmJobDriveInfo(props.DriveList, d)); err != nil {
-			return fmt.Errorf("failure setting drive_info: %+v", err)
+		if err := d.Set("drives", flattenArmJobDrives(props.DriveList, d)); err != nil {
+			return fmt.Errorf("failure setting drives: %+v", err)
 		}
 		if err := d.Set("return_address", flattenArmJobReturnAddress(props.ReturnAddress)); err != nil {
 			return fmt.Errorf("failure setting return_address: %+v", err)
