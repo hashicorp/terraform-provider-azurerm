@@ -68,7 +68,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"max_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
+					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
 				"max_pods": {
@@ -81,7 +81,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"min_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 100),
+					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
 				"node_count": {
@@ -250,7 +250,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 			return nil, fmt.Errorf("`max_count` must be >= `min_count`")
 		}
 	} else if minCount > 0 || maxCount > 0 {
-		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `0` when `enable_auto_scaling` is set to `false`", maxCount, minCount)
+		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `enable_auto_scaling` is set to `false`", maxCount, minCount)
 	}
 
 	return &[]containerservice.ManagedClusterAgentPoolProfile{
