@@ -36,7 +36,7 @@ func TestStorageImportExportJobID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "App Configuration ID",
+			Name:  "Import / Export Job ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ImportExport/jobs/job1",
 			Expected: &StorageImportExportJobId{
 				Name:          "job1",

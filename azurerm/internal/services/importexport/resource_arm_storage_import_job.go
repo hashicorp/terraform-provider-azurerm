@@ -103,9 +103,15 @@ func resourceArmStorageImportJob() *schema.Resource {
 						},
 
 						"carrier_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Blue Dart",
+								"DHL",
+								"FedEx",
+								"TNT",
+								"UPS",
+							}, false),
 						},
 					},
 				},
@@ -130,12 +136,12 @@ func resourceArmStorageImportJob() *schema.Resource {
 						"email": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.ImportExportJobEmail,
 						},
 						"phone": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.ImportExportJobPhone,
 						},
 						"postal_code": {
 							Type:         schema.TypeString,

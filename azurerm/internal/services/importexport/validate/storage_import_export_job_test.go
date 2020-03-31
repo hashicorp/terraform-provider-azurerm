@@ -54,3 +54,57 @@ func TestImportExportJobName(t *testing.T) {
 		}
 	}
 }
+
+func TestImportExportJobPhone(t *testing.T) {
+	testData := []struct {
+		input    string
+		expected bool
+	}{
+		{
+			input:    "",
+			expected: false,
+		},
+		{
+			input:    "hello123",
+			expected: false,
+		},
+		{
+			input:    "hello!",
+			expected: false,
+		},
+		{
+			input:    "123hello123",
+			expected: false,
+		},
+		{
+			input:    "123-242345",
+			expected: true,
+		},
+		{
+			input:    "+12",
+			expected: true,
+		},
+		{
+			input:    "+12 123456789",
+			expected: true,
+		},
+		{
+			input:    "1123456789",
+			expected: true,
+		},
+		{
+			input:    "+(1) 23456789",
+			expected: true,
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q..", v.input)
+
+		_, errors := ImportExportJobPhone(v.input, "phone")
+		actual := len(errors) == 0
+		if v.expected != actual {
+			t.Fatalf("Expected %t but got %t", v.expected, actual)
+		}
+	}
+}

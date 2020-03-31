@@ -17,7 +17,27 @@ func ImportExportJobName(i interface{}, k string) (warnings []string, errors []e
 	// 2. must start with a letter, and can contain only letters, numbers, and hyphens.
 
 	if !regexp.MustCompile(`^[a-zA-Z][a-zA-Z\d-]{1,63}$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter, end with a letter or number, contain only letters, numbers and hyphens. The length should be between 2 and 64 characters long.", k))
+		errors = append(errors, fmt.Errorf("%q must begin with a letter, contain only letters, numbers and hyphens. The length should be between 2 and 64 characters long.", k))
+	}
+
+	return warnings, errors
+}
+
+func ImportExportJobEmail(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q must be with @", k))
+	}
+
+	return warnings, errors
+}
+
+func ImportExportJobPhone(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(`%q must align to regex "^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$"`, k))
 	}
 
 	return warnings, errors

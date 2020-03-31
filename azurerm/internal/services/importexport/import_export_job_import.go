@@ -22,18 +22,18 @@ func importAzureImportExportJob(jobType string, resourceType string) func(d *sch
 
 		job, err := client.Get(ctx, id.Name, id.ResourceGroup)
 		if err != nil {
-			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Azure Import Export Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return []*schema.ResourceData{}, fmt.Errorf("failure retrieving Azure Import Export Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if job.Properties == nil {
-			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Azure Import Export Job %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+			return []*schema.ResourceData{}, fmt.Errorf("failure retrieving Azure Import Export Job %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 		}
 
 		if job.Properties.JobType == nil {
-			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Azure Import Export Job %q (Resource Group %q): `properties.JobType` was nil", id.Name, id.ResourceGroup)
+			return []*schema.ResourceData{}, fmt.Errorf("failure retrieving Azure Import Export Job %q (Resource Group %q): `properties.JobType` was nil", id.Name, id.ResourceGroup)
 		}
 		if *job.Properties.JobType != jobType {
-			return []*schema.ResourceData{}, fmt.Errorf("The %q resource only supports Azure %s Job", resourceType, jobType)
+			return []*schema.ResourceData{}, fmt.Errorf("the %q resource only supports Azure %s Job", resourceType, jobType)
 		}
 
 		return []*schema.ResourceData{d}, nil
