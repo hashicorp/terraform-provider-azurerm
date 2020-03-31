@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestValidateSpringCloudServiceName(t *testing.T) {
+func TestSpringCloudServiceName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -52,7 +52,7 @@ func TestValidateSpringCloudServiceName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateSpringCloudServiceName(v.input, "name")
+		_, errors := SpringCloudServiceName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

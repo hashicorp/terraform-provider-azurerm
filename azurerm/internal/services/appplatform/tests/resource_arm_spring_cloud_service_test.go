@@ -220,7 +220,7 @@ resource "azurerm_spring_cloud_service" "test" {
       strict_host_key_checking_enabled = false
     }
 
-    repositories {
+    repository {
       name         = "repo1"
       uri          = "https://github.com/Azure-Samples/piggymetrics"
       label        = "config"
@@ -231,7 +231,7 @@ resource "azurerm_spring_cloud_service" "test" {
       }
     }
 
-    repositories {
+    repository {
       name         = "repo2"
       uri          = "https://github.com/Azure-Samples/piggymetrics"
       label        = "config"

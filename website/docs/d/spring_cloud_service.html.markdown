@@ -13,9 +13,13 @@ Use this data source to access information about an existing Spring Cloud Servic
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_spring_cloud_service" "example" {
   name                = azurerm_spring_cloud_service.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  resource_group_name = azurerm_spring_cloud_service.example.resource_group_name
 }
 
 output "spring_cloud_service_id" {
@@ -53,11 +57,11 @@ The `config_server_git_setting` block supports the following:
 
 * `search_paths` - An array of strings used to search subdirectories of the Git repository.
 
-* `http_basic_auth` - One or more `http_basic_auth` block defined below.
+* `http_basic_auth` - A `http_basic_auth` block as defined below.
 
-* `ssh_auth` - One or more `ssh_auth` block defined below.
+* `ssh_auth` - A `ssh_auth` block as defined below.
 
-* `repositories` - One or more `repository` block defined below.
+* `repository` - One or more `repository` blocks as defined below.
 
 ---
 
@@ -73,9 +77,9 @@ The `repository` block contains the following:
 
 * `search_paths` - An array of strings used to search subdirectories of the Git repository.
 
-* `http_basic_auth` - One or more `http_basic_auth` block defined below.
+* `http_basic_auth` - A `http_basic_auth` block as defined below.
 
-* `ssh_auth` - One or more `ssh_auth` block defined below.
+* `ssh_auth` - A `ssh_auth` block as defined below.
 
 ---
 

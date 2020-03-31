@@ -2,12 +2,11 @@ package validate
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func ValidateSpringCloudServiceName(i interface{}, k string) (_ []string, errors []error) {
+func SpringCloudServiceName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -19,18 +18,14 @@ func ValidateSpringCloudServiceName(i interface{}, k string) (_ []string, errors
 	// 3. The last character must be a letter or number
 	// 3. The value must be between 4 and 32 characters long
 
-	if len(v) < 4 || len(v) > 32 {
-		errors = append(errors, fmt.Errorf("%s must be between 4 and 32 characters long", k))
-	} else {
-		if m, _ := validate.RegExHelper(i, k, `^([a-z])([a-z\d-]{0,30})([a-z\d])$`); !m {
-			errors = append(errors, fmt.Errorf("%s must begin with a letter, end with a letter or number, contain only lowercase letters, numbers and hyphens.", k))
-		}
+	if !regexp.MustCompile(`^([a-z])([a-z\d-]{2,30})([a-z\d])$`).MatchString(v) {
+		errors = append(errors, fmt.Errorf("%s must begin with a letter, end with a letter or number, contain only lowercase letters, numbers and hyphens.", k))
 	}
 
 	return nil, errors
 }
 
-func ValidateConfigServerURI(i interface{}, k string) (_ []string, errors []error) {
+func ConfigServerURI(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))

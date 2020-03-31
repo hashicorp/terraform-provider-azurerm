@@ -44,7 +44,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateSpringCloudServiceName,
+				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
 			// Spring Cloud Service only supports following locations, we are still supporting more locations (Wednesday, November 20, 2019 4:20 PM):
@@ -62,7 +62,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 						"uri": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ValidateConfigServerURI,
+							ValidateFunc: validate.ConfigServerURI,
 						},
 
 						"label": {
@@ -79,70 +79,11 @@ func resourceArmSpringCloudService() *schema.Resource {
 							},
 						},
 
-						"http_basic_auth": {
-							Type:          schema.TypeList,
-							Optional:      true,
-							MaxItems:      1,
-							ConflictsWith: []string{"config_server_git_settings.0.ssh_auth"},
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"username": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+						"http_basic_auth": SchemaConfigServerHttpBasicAuth([]string{"config_server_git_settings.0.ssh_auth"}),
 
-									"password": {
-										Type:      schema.TypeString,
-										Required:  true,
-										Sensitive: true,
-									},
-								},
-							},
-						},
+						"ssh_auth": SchemaConfigServerSSHAuth([]string{"config_server_git_settings.0.http_basic_auth"}),
 
-						"ssh_auth": {
-							Type:          schema.TypeList,
-							Optional:      true,
-							MaxItems:      1,
-							ConflictsWith: []string{"config_server_git_settings.0.http_basic_auth"},
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"private_key": {
-										Type:         schema.TypeString,
-										Required:     true,
-										Sensitive:    true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"host_key": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Sensitive:    true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"host_key_algorithm": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"ssh-dss",
-											"ssh-rsa",
-											"ecdsa-sha2-nistp256",
-											"ecdsa-sha2-nistp384",
-											"ecdsa-sha2-nistp521",
-										}, false),
-									},
-
-									"strict_host_key_checking_enabled": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-								},
-							},
-						},
-
-						"repositories": {
+						"repository": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -155,7 +96,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 									"uri": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.ValidateConfigServerURI,
+										ValidateFunc: validate.ConfigServerURI,
 									},
 									"label": {
 										Type:     schema.TypeString,
@@ -177,65 +118,10 @@ func resourceArmSpringCloudService() *schema.Resource {
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
-									"http_basic_auth": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"username": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
 
-												"password": {
-													Type:      schema.TypeString,
-													Required:  true,
-													Sensitive: true,
-												},
-											},
-										},
-									},
-									"ssh_auth": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"private_key": {
-													Type:         schema.TypeString,
-													Required:     true,
-													Sensitive:    true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
+									"http_basic_auth": SchemaConfigServerHttpBasicAuth(nil),
 
-												"host_key": {
-													Type:         schema.TypeString,
-													Optional:     true,
-													Sensitive:    true,
-													ValidateFunc: validation.StringIsNotEmpty,
-												},
-
-												"host_key_algorithm": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														"ssh-dss",
-														"ssh-rsa",
-														"ecdsa-sha2-nistp256",
-														"ecdsa-sha2-nistp384",
-														"ecdsa-sha2-nistp521",
-													}, false),
-												},
-
-												"strict_host_key_checking_enabled": {
-													Type:     schema.TypeBool,
-													Optional: true,
-												},
-											},
-										},
-									},
+									"ssh_auth": SchemaConfigServerSSHAuth(nil),
 								},
 							},
 						},
@@ -386,7 +272,7 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
 		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
 			if err := d.Set("config_server_git_settings", flattenArmSpringCloudConfigServerGitSettings(props, d)); err != nil {
-				return fmt.Errorf("[DEBUG] failure setting AzureRM Spring Cloud Service error: %+v", err)
+				return fmt.Errorf("failure setting AzureRM Spring Cloud Service error: %+v", err)
 			}
 		}
 	}
@@ -456,8 +342,8 @@ func expandArmSpringCloudConfigServerGitProperty(input []interface{}) *appplatfo
 		}
 	}
 
-	if repositories, ok := v["repositories"]; ok {
-		result.Repositories = expandArmSpringCloudGitPatternRepository(repositories.([]interface{}))
+	if warnings, ok := v["repository"]; ok {
+		result.Repositories = expandArmSpringCloudGitPatternRepository(warnings.([]interface{}))
 	}
 
 	return &result
@@ -590,7 +476,7 @@ func flattenArmSpringCloudConfigServerGitSettings(input *appplatform.ConfigServe
 			"search_paths":    searchPaths,
 			"http_basic_auth": httpBasicAuth,
 			"ssh_auth":        sshAuth,
-			"repositories":    flattenArmSpringCloudGitPatternRepository(input.Repositories, d),
+			"repository":      flattenArmSpringCloudGitPatternRepository(input.Repositories, d),
 		},
 	}
 }
@@ -605,7 +491,7 @@ func flattenArmSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRe
 	oldGitPatternRepositories := []interface{}{}
 	if oldGitSettings := d.Get("config_server_git_settings").([]interface{}); len(oldGitSettings) > 0 {
 		oldGitSetting := oldGitSettings[0].(map[string]interface{})
-		oldGitPatternRepositories = oldGitSetting["repositories"].([]interface{})
+		oldGitPatternRepositories = oldGitSetting["repository"].([]interface{})
 	}
 
 	for i, item := range *input {

@@ -12,6 +12,10 @@ Manages an Azure Spring Cloud Service.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "Southeast Asia"
@@ -60,11 +64,11 @@ The `config_server_git_setting` block supports the following:
 
 * `search_paths` - (Optional) An array of strings used to search subdirectories of the Git repository.
 
-* `http_basic_auth` - (Optional) One or more `http_basic_auth` block defined below.
+* `http_basic_auth` - (Optional) A `http_basic_auth` block as defined below.
 
-* `ssh_auth` - (Optional) One or more `ssh_auth` block defined below.
+* `ssh_auth` - (Optional) A `ssh_auth` block as defined below.
 
-* `repositories` - (Optional) One or more `repository` block defined below.
+* `repository` - (Optional) One or more `repository` blocks as defined below.
 
 ---
 
@@ -80,9 +84,9 @@ The `repository` block supports the following:
 
 * `search_paths` - (Optional) An array of strings used to search subdirectories of the Git repository.
 
-* `http_basic_auth` - (Optional) One or more `http_basic_auth` block defined below.
+* `http_basic_auth` - (Optional) A `http_basic_auth` block as defined below.
 
-* `ssh_auth` - (Optional) One or more `ssh_auth` block defined below.
+* `ssh_auth` - (Optional) A `ssh_auth` block as defined below.
 
 ---
 

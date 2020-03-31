@@ -25,7 +25,7 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ValidateSpringCloudServiceName,
+				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -55,52 +55,11 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 							},
 						},
 
-						"http_basic_auth": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"username": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"password": {
-										Type:      schema.TypeString,
-										Computed:  true,
-										Sensitive: true,
-									},
-								},
-							},
-						},
+						"http_basic_auth": DataSourceSchemaConfigServerHttpBasicAuth(),
 
-						"ssh_auth": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"private_key": {
-										Type:      schema.TypeString,
-										Computed:  true,
-										Sensitive: true,
-									},
-									"host_key": {
-										Type:      schema.TypeString,
-										Computed:  true,
-										Sensitive: true,
-									},
-									"host_key_algorithm": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"strict_host_key_checking_enabled": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-								},
-							},
-						},
+						"ssh_auth": DataSourceSchemaConfigServerSSHAuth(),
 
-						"repositories": {
+						"repository": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -131,53 +90,10 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 											Type: schema.TypeString,
 										},
 									},
-									"http_basic_auth": {
-										Type:     schema.TypeList,
-										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"username": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
 
-												"password": {
-													Type:      schema.TypeString,
-													Computed:  true,
-													Sensitive: true,
-												},
-											},
-										},
-									},
-									"ssh_auth": {
-										Type:     schema.TypeList,
-										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"private_key": {
-													Type:      schema.TypeString,
-													Computed:  true,
-													Sensitive: true,
-												},
+									"http_basic_auth": DataSourceSchemaConfigServerHttpBasicAuth(),
 
-												"host_key": {
-													Type:      schema.TypeString,
-													Computed:  true,
-													Sensitive: true,
-												},
-
-												"host_key_algorithm": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-
-												"strict_host_key_checking_enabled": {
-													Type:     schema.TypeBool,
-													Computed: true,
-												},
-											},
-										},
-									},
+									"ssh_auth": DataSourceSchemaConfigServerSSHAuth(),
 								},
 							},
 						},
@@ -221,7 +137,7 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
 		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
 			if err := d.Set("config_server_git_settings", flattenArmSpringCloudConfigServerGitSettings(props, d)); err != nil {
-				return fmt.Errorf("[DEBUG] failure setting AzureRM Spring Cloud Service Config Server error: %+v", err)
+				return fmt.Errorf("failure setting AzureRM Spring Cloud Service Config Server error: %+v", err)
 			}
 		}
 	}

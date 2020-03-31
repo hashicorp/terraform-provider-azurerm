@@ -31,12 +31,12 @@ func TestSpringCloudServiceID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing Stores Value",
+			Name:     "Missing Spring Value",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/",
 			Expected: nil,
 		},
 		{
-			Name:  "App Configuration ID",
+			Name:  "Spring Cloud Service ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1",
 			Expected: &SpringCloudServiceId{
 				Name:          "spring1",
