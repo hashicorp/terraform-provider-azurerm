@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
@@ -266,6 +267,38 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *t
 				ResourceName:      "azurerm_kubernetes_cluster_node_pool.second",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChanges(t)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChanges(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "node_count", "1"),
+					testCheckAzureRMKubernetesNodePoolScale(data.ResourceName, 2),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesUpdatedConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "node_count", "2"),
+				),
 			},
 		},
 	})
@@ -639,13 +672,62 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
+		agentPool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
 		}
 
-		if agent_pool.StatusCode == http.StatusNotFound {
+		if agentPool.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.Name, parsedK8sId.ResourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMKubernetesNodePoolScale(resourceName string, nodeCount int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		nodePoolName := rs.Primary.Attributes["name"]
+		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
+		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		if err != nil {
+			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
+		}
+
+		clusterName := parsedK8sId.Name
+		resourceGroup := parsedK8sId.ResourceGroup
+
+		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
+		}
+
+		if nodePool.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", nodePoolName, clusterName, resourceGroup)
+		}
+
+		if nodePool.ManagedClusterAgentPoolProfileProperties == nil {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
+		}
+
+		nodePool.ManagedClusterAgentPoolProfileProperties.Count = utils.Int32(int32(nodeCount))
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
+		if err != nil {
+			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
 		}
 
 		return nil
@@ -845,6 +927,58 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
   tags = {
     Environment = "Staging"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+
+  lifecycle {
+    ignore_changes = [
+      node_count,
+    ]
+  }
+}
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_manualScaleIgnoreChangesUpdatedConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+
+  tags = {
+    Environment = "Staging"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      node_count,
+    ]
   }
 }
 `, template)

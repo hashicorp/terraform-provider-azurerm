@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var olderKubernetesVersion = "1.15.10"
@@ -93,6 +94,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 		},
 		"scaling": {
 			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
+			"manualScaleIgnoreChanges":         testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges,
 			"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
 			"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
 			"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
@@ -195,4 +197,46 @@ func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func kubernetesClusterUpdateNodePoolCount(resourceName string, nodeCount int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		nodePoolName := rs.Primary.Attributes["default_node_pool.0.name"]
+		clusterName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
+		}
+
+		if nodePool.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", nodePoolName, clusterName, resourceGroup)
+		}
+
+		if nodePool.ManagedClusterAgentPoolProfileProperties == nil {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
+		}
+
+		nodePool.ManagedClusterAgentPoolProfileProperties.Count = utils.Int32(int32(nodeCount))
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
+		if err != nil {
+			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
+		}
+
+		return nil
+	}
 }

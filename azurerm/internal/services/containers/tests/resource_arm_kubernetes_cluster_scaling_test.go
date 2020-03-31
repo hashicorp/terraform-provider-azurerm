@@ -38,6 +38,38 @@ func testAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges(t)
+}
+
+func testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
+					kubernetesClusterUpdateNodePoolCount(data.ResourceName, 2),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfigUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_removeAgent(t)
@@ -182,6 +214,82 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, numberOfAgents)
+}
+
+func testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      default_node_pool.0.node_count
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfigUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+
+    tags = {
+      Hello = "World"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      default_node_pool.0.node_count
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_autoscaleNodeCountUnsetConfig(data acceptance.TestData) string {
