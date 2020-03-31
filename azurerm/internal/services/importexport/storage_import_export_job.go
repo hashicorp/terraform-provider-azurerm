@@ -5,6 +5,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const (
+	ImportJobType string = "Import"
+	ExportJobType string = "Export"
+)
+
 func expandArmJobReturnAddress(input []interface{}) *storageimportexport.ReturnAddress {
 	if len(input) == 0 {
 		return nil

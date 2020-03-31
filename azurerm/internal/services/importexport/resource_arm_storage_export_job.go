@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/importexport/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/importexport/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
@@ -33,10 +34,10 @@ func resourceArmStorageExportJob() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.StorageImportExportJobID(id)
 			return err
-		}),
+		}, importAzureImportExportJob(ExportJobType, "azurerm_export_job")),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -275,7 +276,7 @@ func resourceArmStorageExportJobCreate(d *schema.ResourceData, meta interface{})
 				},
 				BlobListblobPath: utils.String(blobListblobPath),
 			},
-			JobType:          utils.String("Export"),
+			JobType:          utils.String(ExportJobType),
 			LogLevel:         utils.String(logLevel),
 			StorageAccountID: utils.String(storageAccountId),
 			ReturnAddress:    returnAddress,
@@ -356,9 +357,7 @@ func resourceArmStorageExportJobRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.Properties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)
 		d.Set("backup_drive_manifest", props.BackupDriveManifest)
