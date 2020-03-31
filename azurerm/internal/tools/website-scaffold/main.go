@@ -502,12 +502,12 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	if name == "name" {
 		if blockName == "" {
 			if gen.isDataSource {
-				return fmt.Sprintf("The Name of this %s.", gen.brandName)
+				return fmt.Sprintf("The name of this %s.", gen.brandName)
 			}
 
-			return fmt.Sprintf("The Name which should be used for this %s.", gen.brandName)
+			return fmt.Sprintf("The name which should be used for this %s.", gen.brandName)
 		} else {
-			return "The Name which should be used for this TODO."
+			return "The name which should be used for this TODO."
 		}
 	}
 	if name == "location" {
@@ -567,9 +567,9 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 func (gen documentationGenerator) buildDescriptionForAttribute(name string, field *schema.Schema, blockName string) string {
 	if name == "name" {
 		if blockName == "" {
-			return fmt.Sprintf("The Name of this %s.", gen.brandName)
+			return fmt.Sprintf("The name of this %s.", gen.brandName)
 		} else {
-			return "The Name of this TODO."
+			return "The name of this TODO."
 		}
 	}
 	if name == "location" {

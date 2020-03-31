@@ -1,10 +1,12 @@
 package provider
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
@@ -75,9 +77,11 @@ import (
 
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
+		advisor.Registration{},
 		analysisservices.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
+		appplatform.Registration{},
 		applicationinsights.Registration{},
 		authorization.Registration{},
 		automation.Registration{},

@@ -982,6 +982,12 @@ type PolicyState struct {
 	PolicyEvaluationDetails *PolicyEvaluationDetails `json:"policyEvaluationDetails,omitempty"`
 	// PolicyDefinitionGroupNames - Policy definition group names.
 	PolicyDefinitionGroupNames *[]string `json:"policyDefinitionGroupNames,omitempty"`
+	// PolicyDefinitionVersion - READ-ONLY; Evaluated policy definition version.
+	PolicyDefinitionVersion *string `json:"policyDefinitionVersion,omitempty"`
+	// PolicySetDefinitionVersion - READ-ONLY; Evaluated policy set definition version.
+	PolicySetDefinitionVersion *string `json:"policySetDefinitionVersion,omitempty"`
+	// PolicyAssignmentVersion - READ-ONLY; Evaluated policy assignment version.
+	PolicyAssignmentVersion *string `json:"policyAssignmentVersion,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PolicyState.
@@ -1373,6 +1379,33 @@ func (ps *PolicyState) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ps.PolicyDefinitionGroupNames = &policyDefinitionGroupNames
+			}
+		case "policyDefinitionVersion":
+			if v != nil {
+				var policyDefinitionVersion string
+				err = json.Unmarshal(*v, &policyDefinitionVersion)
+				if err != nil {
+					return err
+				}
+				ps.PolicyDefinitionVersion = &policyDefinitionVersion
+			}
+		case "policySetDefinitionVersion":
+			if v != nil {
+				var policySetDefinitionVersion string
+				err = json.Unmarshal(*v, &policySetDefinitionVersion)
+				if err != nil {
+					return err
+				}
+				ps.PolicySetDefinitionVersion = &policySetDefinitionVersion
+			}
+		case "policyAssignmentVersion":
+			if v != nil {
+				var policyAssignmentVersion string
+				err = json.Unmarshal(*v, &policyAssignmentVersion)
+				if err != nil {
+					return err
+				}
+				ps.PolicyAssignmentVersion = &policyAssignmentVersion
 			}
 		}
 	}

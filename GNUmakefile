@@ -98,7 +98,7 @@ debugacc: fmtcheck
 
 website-lint:
 	@echo "==> Checking documentation spelling..."
-	@misspell -error -source=text -i hdinsight website/
+	@misspell -error -source=text -i hdinsight,exportfs website/
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories
