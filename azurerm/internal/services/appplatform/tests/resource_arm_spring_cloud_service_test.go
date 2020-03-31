@@ -58,8 +58,8 @@ func TestAccAzureRMSpringCloudService_update(t *testing.T) {
 				"config_server_git_settings.0.ssh_auth.0.private_key",
 				"config_server_git_settings.0.ssh_auth.0.host_key",
 				"config_server_git_settings.0.ssh_auth.0.host_key_algorithm",
-				"config_server_git_settings.0.repositories.0.http_basic_auth.0.username",
-				"config_server_git_settings.0.repositories.0.http_basic_auth.0.password",
+				"config_server_git_settings.0.repository.0.http_basic_auth.0.username",
+				"config_server_git_settings.0.repository.0.http_basic_auth.0.password",
 			),
 			{
 				Config: testAccAzureRMSpringCloudService_basic(data),
@@ -93,8 +93,8 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 				"config_server_git_settings.0.ssh_auth.0.private_key",
 				"config_server_git_settings.0.ssh_auth.0.host_key",
 				"config_server_git_settings.0.ssh_auth.0.host_key_algorithm",
-				"config_server_git_settings.0.repositories.0.http_basic_auth.0.username",
-				"config_server_git_settings.0.repositories.0.http_basic_auth.0.password",
+				"config_server_git_settings.0.repository.0.http_basic_auth.0.username",
+				"config_server_git_settings.0.repository.0.http_basic_auth.0.password",
 			),
 		},
 	})
