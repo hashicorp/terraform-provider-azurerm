@@ -28,6 +28,8 @@ output "id" {
 
 * `display_name` - Specifies the display name of the Policy Definition. Conflicts with `name`.
 
+~> **NOTE** Since `display_name` does not have uniqueness on Azure, therefore when using `display_name` to retrieve existing policy set definitions, only one of the policy set definitions with same `display_name` will be retrieved. 
+
 * `management_group_id` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
 
