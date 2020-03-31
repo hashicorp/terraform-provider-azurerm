@@ -55,11 +55,11 @@ func TestAccAzureRMSpringCloudService_update(t *testing.T) {
 			data.ImportStep(
 				// those field returned by api are "*"
 				// import state verify ignore those fields
-				"config_server_git_settings.0.ssh_auth.0.private_key",
-				"config_server_git_settings.0.ssh_auth.0.host_key",
-				"config_server_git_settings.0.ssh_auth.0.host_key_algorithm",
-				"config_server_git_settings.0.repository.0.http_basic_auth.0.username",
-				"config_server_git_settings.0.repository.0.http_basic_auth.0.password",
+				"config_server_git_setting.0.ssh_auth.0.private_key",
+				"config_server_git_setting.0.ssh_auth.0.host_key",
+				"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+				"config_server_git_setting.0.repository.0.http_basic_auth.0.username",
+				"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
 			),
 			{
 				Config: testAccAzureRMSpringCloudService_basic(data),
@@ -90,11 +90,11 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 			data.ImportStep(
 				// those field returned by api are "*"
 				// import state verify ignore those fields
-				"config_server_git_settings.0.ssh_auth.0.private_key",
-				"config_server_git_settings.0.ssh_auth.0.host_key",
-				"config_server_git_settings.0.ssh_auth.0.host_key_algorithm",
-				"config_server_git_settings.0.repository.0.http_basic_auth.0.username",
-				"config_server_git_settings.0.repository.0.http_basic_auth.0.password",
+				"config_server_git_setting.0.ssh_auth.0.private_key",
+				"config_server_git_setting.0.ssh_auth.0.host_key",
+				"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+				"config_server_git_setting.0.repository.0.http_basic_auth.0.username",
+				"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
 			),
 		},
 	})
@@ -208,7 +208,7 @@ resource "azurerm_spring_cloud_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  config_server_git_settings {
+  config_server_git_setting {
     uri          = "git@bitbucket.org:Azure-Samples/piggymetrics.git"
     label        = "config"
     search_paths = ["dir1", "dir4"]

@@ -43,7 +43,7 @@ The following attributes are exported:
 
 * `location` - The location of Spring Cloud Service.
 
-* `config_server_git_settings` - One or more `config_server_git_setting` block defined below.
+* `config_server_git_setting` - A `config_server_git_setting` block as defined below.
 
 * `tags` - A mapping of tags assigned to Spring Cloud Service.
 

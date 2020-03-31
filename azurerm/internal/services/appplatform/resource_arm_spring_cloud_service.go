@@ -53,7 +53,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"config_server_git_settings": {
+			"config_server_git_setting": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -79,9 +79,9 @@ func resourceArmSpringCloudService() *schema.Resource {
 							},
 						},
 
-						"http_basic_auth": SchemaConfigServerHttpBasicAuth([]string{"config_server_git_settings.0.ssh_auth"}),
+						"http_basic_auth": SchemaConfigServerHttpBasicAuth([]string{"config_server_git_setting.0.ssh_auth"}),
 
-						"ssh_auth": SchemaConfigServerSSHAuth([]string{"config_server_git_settings.0.http_basic_auth"}),
+						"ssh_auth": SchemaConfigServerSSHAuth([]string{"config_server_git_setting.0.http_basic_auth"}),
 
 						"repository": {
 							Type:     schema.TypeList,
@@ -168,7 +168,7 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("waiting for creation of Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	gitPropertyRaw := d.Get("config_server_git_settings").([]interface{})
+	gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
 	resource.Properties = &appplatform.ClusterResourceProperties{
 		ConfigServerProperties: &appplatform.ConfigServerProperties{
 			ConfigServer: &appplatform.ConfigServerSettings{
@@ -209,7 +209,7 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	gitPropertyRaw := d.Get("config_server_git_settings").([]interface{})
+	gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
 
 	springCloudService := appplatform.ServiceResource{
 		Properties: &appplatform.ClusterResourceProperties{
@@ -271,7 +271,7 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 
 	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
 		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
-			if err := d.Set("config_server_git_settings", flattenArmSpringCloudConfigServerGitSettings(props, d)); err != nil {
+			if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
 				return fmt.Errorf("failure setting AzureRM Spring Cloud Service error: %+v", err)
 			}
 		}
@@ -391,14 +391,14 @@ func expandArmSpringCloudGitPatternRepository(input []interface{}) *[]appplatfor
 	return &results
 }
 
-func flattenArmSpringCloudConfigServerGitSettings(input *appplatform.ConfigServerGitProperty, d *schema.ResourceData) []interface{} {
+func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerGitProperty, d *schema.ResourceData) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	// prepare old state to find sensitive props not returned by API.
 	oldGitSetting := make(map[string]interface{})
-	if oldGitSettings := d.Get("config_server_git_settings").([]interface{}); len(oldGitSettings) > 0 {
+	if oldGitSettings := d.Get("config_server_git_setting").([]interface{}); len(oldGitSettings) > 0 {
 		oldGitSetting = oldGitSettings[0].(map[string]interface{})
 	}
 
@@ -489,7 +489,7 @@ func flattenArmSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRe
 
 	// prepare old state to find sensitive props not returned by API.
 	oldGitPatternRepositories := []interface{}{}
-	if oldGitSettings := d.Get("config_server_git_settings").([]interface{}); len(oldGitSettings) > 0 {
+	if oldGitSettings := d.Get("config_server_git_setting").([]interface{}); len(oldGitSettings) > 0 {
 		oldGitSetting := oldGitSettings[0].(map[string]interface{})
 		oldGitPatternRepositories = oldGitSetting["repository"].([]interface{})
 	}

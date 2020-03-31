@@ -26,7 +26,7 @@ resource "azurerm_spring_cloud_service" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  config_server_git_settings {
+  config_server_git_setting {
     uri          = "https://github.com/Azure-Samples/piggymetrics"
     label        = "config"
     search_paths = ["dir1", "dir2"]
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 -> **Note:** At this time Azure Spring Cloud Service is only supported in a subset of regions (including `East US`, `South East Asia`, `West Europe` and `West US 2`.
 
-* `config_server_git_settings` - (Optional) One or more `config_server_git_setting` block defined below.
+* `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

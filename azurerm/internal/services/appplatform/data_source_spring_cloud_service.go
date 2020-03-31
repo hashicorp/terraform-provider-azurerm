@@ -32,7 +32,7 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"config_server_git_settings": {
+			"config_server_git_setting": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -136,7 +136,7 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 
 	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
 		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
-			if err := d.Set("config_server_git_settings", flattenArmSpringCloudConfigServerGitSettings(props, d)); err != nil {
+			if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
 				return fmt.Errorf("failure setting AzureRM Spring Cloud Service Config Server error: %+v", err)
 			}
 		}
