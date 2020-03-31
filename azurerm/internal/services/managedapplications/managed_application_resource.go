@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -66,13 +67,13 @@ func resourceManagedApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: resource.ValidateResourceGroupID,
 			},
 
 			"application_definition_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ManagedApplicationDefinitionID,
 			},
 
 			"parameters": {
@@ -84,7 +85,7 @@ func resourceManagedApplication() *schema.Resource {
 			},
 
 			"plan": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -151,7 +152,7 @@ func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interfa
 		parameters.ApplicationDefinitionID = utils.String(v.(string))
 	}
 	if v, ok := d.GetOk("plan"); ok {
-		parameters.Plan = expandManagedApplicationPlan(v.(*schema.Set).List())
+		parameters.Plan = expandManagedApplicationPlan(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("parameters"); ok {
 		expandedParams, err := structure.ExpandJsonFromString(v.(string))
@@ -255,6 +256,9 @@ func resourceManagedApplicationDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func expandManagedApplicationPlan(input []interface{}) *managedapplications.Plan {
+	if len(input) == 0 {
+		return nil
+	}
 	plan := input[0].(map[string]interface{})
 
 	return &managedapplications.Plan{

@@ -76,13 +76,13 @@ The following arguments are supported:
 
 * `kind` - (Required) The kind of the managed application. Possible values are `MarketPlace` and `ServiceCatalog`.
 
-* `managed_resource_group_id` - (Required) The Id of the managed resource group.
+* `managed_resource_group_id` - (Required) The ID of the managed resource group.
 
-* `application_definition_id` - (Optional) The fully qualified path of managed application definition Id.
+* `application_definition_id` - (Optional) The fully qualified path of managed application definition ID.
 
 * `parameters` - (Optional) The name and value pairs that define the managed application parameters.
 
-* `plan` - (Optional) One or more `plan` blocks as defined below.
+* `plan` - (Optional) One `plan` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

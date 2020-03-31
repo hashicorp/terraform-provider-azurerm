@@ -87,6 +87,7 @@ func TestAccAzureRMManagedApplication_update(t *testing.T) {
 				Config: testAccAzureRMManagedApplication_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "ServiceCatalog"),
 				),
 			},
 			data.ImportStep(),
@@ -94,6 +95,15 @@ func TestAccAzureRMManagedApplication_update(t *testing.T) {
 				Config: testAccAzureRMManagedApplication_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "MarketPlace"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMManagedApplication_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "ServiceCatalog"),
 				),
 			},
 			data.ImportStep(),
@@ -291,5 +301,5 @@ resource "azurerm_managed_application_definition" "test" {
     role_definition_id   = split("/", data.azurerm_role_definition.test.id)[length(split("/", data.azurerm_role_definition.test.id)) - 1]
   }
 }
-`, data.RandomInteger, "westus2", data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
