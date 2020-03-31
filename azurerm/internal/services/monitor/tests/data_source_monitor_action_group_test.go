@@ -361,7 +361,8 @@ resource "azurerm_function_app" "test" {
   resource_group_name        = "${azurerm_resource_group.test.name}"
   app_service_plan_id        = "${azurerm_app_service_plan.test.id}"
   storage_account_id         = azurerm_storage_account.test.id
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key}
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
 
 data "azurerm_monitor_action_group" "test" {
   name                = "${azurerm_monitor_action_group.test.name}"
