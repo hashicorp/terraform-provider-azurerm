@@ -747,11 +747,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
@@ -947,11 +948,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  name                       = "acctestFA-%d"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  app_service_plan_id        = "${azurerm_app_service_plan.test.id}"
+  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
