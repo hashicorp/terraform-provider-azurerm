@@ -42,27 +42,27 @@ The following attributes are exported:
 
 * `location` - The Azure Location where the Azure Import/Export Job exists.
 
-* `storage_account_id` - The resource ID of the storage account where data will be imported to or exported from .
+* `storage_account_id` - The resource ID of the storage account where data will be imported to or exported from.
 
 * `export_blob_paths` - The collection files of blob-path that need to be exported.
 
 * `export_blob_path_prefixes` - The collection files of blob-prefix that need to be exported.
 
-* `export_blob_list_path` - The relative URI to the block blob that contains the list of blob paths or blob path prefixes
+* `export_blob_list_path` - The relative URI to the block blob that contains the list of blob paths or blob path prefixes.
 
-* `backup_drive_manifest` - Indicates the manifest files on the drives should be copied to block blobs
+* `backup_drive_manifest` - The manifest files on the drives should be copied to block blobs.
 
 * `diagnostics_path` - The virtual blob directory to which the copy logs and backups of drive manifest files (if enabled) will be stored.
 
 * `log_level` - The log level of Azure Import/Export job.
 
-* `drives` - One or more `drive` block defined below.
+* `drives` - One or more `drive` blocks as defined below.
 
-* `return_address` - One `return_address` block defined below.
+* `return_address` - One `return_address` block as defined below.
 
-* `return_shipping` - One `return_shipping` block defined below.
+* `return_shipping` - One `return_shipping` block as defined below.
 
-* `shipping_information` - One `shipping_information` block defined below.
+* `shipping_information` - One `shipping_information` block as defined below.
 
 ---
 

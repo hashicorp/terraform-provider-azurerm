@@ -67,19 +67,19 @@ resource "azurerm_import_job" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Azure Export Job. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Azure Import Job. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the Azure Export Job should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure location where the Azure Import Job should exist. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Azure Export Job should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Azure Import Job should exist. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Required) The resource ID of the storage account where data will be imported to. Changing this forces a new resource to be created.
 
-* `drives` - (Required) One or more `drive` block defined below.
+* `drives` - (Required) One or more `drive` blocks as defined below.
 
-* `return_address` - (Required) One `return_address` block defined below.
+* `return_address` - (Required) One `return_address` block as defined below.
 
-* `return_shipping` - (Required) One `return_shipping` block defined below.
+* `return_shipping` - (Required) One `return_shipping` block as defined below.
 
 * `backup_drive_manifest` - (Optional) Should the manifest files on the drives be copied to block blobs? Defaults to `false`.
 
@@ -133,9 +133,9 @@ A `return_shipping` block exports the following:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the StorageImportExport Job.
+* `id` - The Resource ID of the Azure Import Job.
 
-* `shipping_information` - One `shipping_information` block defined below.
+* `shipping_information` - One `shipping_information` block as defined below.
 
 ---
 

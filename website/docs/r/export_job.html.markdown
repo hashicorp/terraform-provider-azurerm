@@ -75,9 +75,9 @@ The following arguments are supported:
 
 * `export_blob_list_path` - (Optional) The relative URI to the block blob that contains the list of blob paths or blob path prefixes as defined above, beginning with the container name. If the blob is in root container, the URI must begin with `$root`. At least one of `export_blob_paths`, `export_blob_path_prefixes` or `export_blob_list_path` must be specified. Changing this forces a new resource to be created.
 
-* `return_address` - (Required) One `return_address` block defined below.
+* `return_address` - (Required) One `return_address` block as defined below.
 
-* `return_shipping` - (Required) One `return_shipping` block defined below.
+* `return_shipping` - (Required) One `return_shipping` block as defined below.
 
 * `backup_drive_manifest` - (Optional) Should the manifest files on the drives be copied to block blobs? Defaults to `false`.
 
@@ -119,9 +119,9 @@ A `return_shipping` block exports the following:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the StorageImportExport Job.
+* `id` - The Resource ID of the Azure Export Job.
 
-* `shipping_information` - One `shipping_information` block defined below.
+* `shipping_information` - One `shipping_information` block as defined below.
 
 ---
 

@@ -404,15 +404,11 @@ func expandArmJobDrives(input []interface{}) *[]storageimportexport.DriveStatus 
 	results := make([]storageimportexport.DriveStatus, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		driveId := v["drive_id"].(string)
-		bitLockerKey := v["bit_locker_key"].(string)
-		manifestFile := v["manifest_file"].(string)
-		manifestHash := v["manifest_hash"].(string)
 		result := storageimportexport.DriveStatus{
-			DriveID:      utils.String(driveId),
-			BitLockerKey: utils.String(bitLockerKey),
-			ManifestFile: utils.String(manifestFile),
-			ManifestHash: utils.String(manifestHash),
+			DriveID:      utils.String(v["drive_id"].(string)),
+			BitLockerKey: utils.String(v["bit_locker_key"].(string)),
+			ManifestFile: utils.String(v["manifest_file"].(string)),
+			ManifestHash: utils.String(v["manifest_hash"].(string)),
 		}
 		results = append(results, result)
 	}
