@@ -2502,11 +2502,11 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                  = "acctest-%[1]d-func"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  app_service_plan_id   = azurerm_app_service_plan.test.id
-  storage_account_name  = azurerm_storage_account.test.name
+  name                 = "acctest-%[1]d-func"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  app_service_plan_id  = azurerm_app_service_plan.test.id
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
