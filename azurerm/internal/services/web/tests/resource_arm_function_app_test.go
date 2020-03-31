@@ -71,7 +71,7 @@ func TestAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(t *testing
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(data),
-				ExpectError: regexp.MustCompile("one of `storage_connection_string` or `storage_account_id` and `storage_account_access_key` must be specified"),
+				ExpectError: regexp.MustCompile("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified"),
 			},
 		},
 	})
@@ -88,7 +88,7 @@ func TestAccAzureRMFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMFunctionApp_deprecatedConnectionStringBothSpecifiedError(data),
-				ExpectError: regexp.MustCompile("both `storage_account_id` and `storage_account_access_key` must be specified"),
+				ExpectError: regexp.MustCompile("both `storage_account_name` and `storage_account_access_key` must be specified"),
 			},
 		},
 	})
@@ -1008,7 +1008,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1024,7 +1024,7 @@ resource "azurerm_function_app" "import" {
   location                   = azurerm_function_app.test.location
   resource_group_name        = azurerm_function_app.test.resource_group_name
   app_service_plan_id        = azurerm_function_app.test.app_service_plan_id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, template)
@@ -1065,7 +1065,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   tags = {
@@ -1110,7 +1110,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   tags = {
@@ -1157,7 +1157,7 @@ resource "azurerm_function_app" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
   version                    = "%[4]s"
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, version)
@@ -1198,7 +1198,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
@@ -1243,7 +1243,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -1292,7 +1292,7 @@ resource "azurerm_function_app" "test" {
   version                    = "~2"
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   os_type                    = "linux"
 
@@ -1338,7 +1338,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   connection_string {
@@ -1385,7 +1385,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
@@ -1438,7 +1438,7 @@ resource "azurerm_function_app" "test" {
   version                    = "~2"
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
@@ -1492,7 +1492,7 @@ resource "azurerm_function_app" "test" {
   version                    = "~2"
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
@@ -1548,7 +1548,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -1593,7 +1593,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   https_only                 = true
 }
@@ -1636,7 +1636,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   daily_memory_time_quota    = %d
 }
@@ -1679,7 +1679,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
@@ -1721,7 +1721,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
@@ -1762,7 +1762,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   identity {
@@ -1813,7 +1813,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   identity {
@@ -1871,7 +1871,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   identity {
@@ -1917,7 +1917,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   enable_builtin_logging     = false
 }
@@ -1959,7 +1959,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   auth_settings {
@@ -2026,7 +2026,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2080,7 +2080,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2125,7 +2125,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2170,7 +2170,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2215,7 +2215,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2276,7 +2276,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2323,7 +2323,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2382,7 +2382,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
@@ -2546,7 +2546,7 @@ resource "azurerm_function_app" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.secondary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

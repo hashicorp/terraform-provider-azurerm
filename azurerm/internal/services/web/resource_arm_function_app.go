@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"log"
 	"strings"
 	"time"
@@ -83,17 +84,17 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				Sensitive:     true,
-				Deprecated:    "Deprecated in favor of `storage_account_id` and `storage_account_access_key`",
-				ConflictsWith: []string{"storage_account_id", "storage_account_access_key"},
+				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
+				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
 			},
 
-			"storage_account_id": {
+			"storage_account_name": {
 				Type: schema.TypeString,
 				// Required: true, // Uncomment this in 3.0
 				Optional:      true,
 				Computed:      true, // Remove this in 3.0
 				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceID,
+				ValidateFunc:  storage.ValidateArmStorageAccountName,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
@@ -638,7 +639,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		if strings.HasPrefix(part, "AccountName") {
 			accountNameParts := strings.Split(part, "AccountName=")
 			if len(accountNameParts) > 1 {
-				d.Set("storage_account_id", accountNameParts[1])
+				d.Set("storage_account_name", accountNameParts[1])
 			}
 		}
 		if strings.HasPrefix(part, "AccountKey") {
@@ -735,7 +736,7 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 	}
 
 	storageAccount := ""
-	if v, ok := d.GetOk("storage_account_id"); ok {
+	if v, ok := d.GetOk("storage_account_name"); ok {
 		storageAccount = v.(string)
 	}
 
@@ -745,11 +746,11 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 	}
 
 	if storageConnection == "" && storageAccount == "" && connectionString == "" {
-		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_id` and `storage_account_access_key` must be specified")
+		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
 	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {
-		return nil, fmt.Errorf("both `storage_account_id` and `storage_account_access_key` must be specified")
+		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
 	if connectionString != "" && storageAccount != "" {

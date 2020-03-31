@@ -43,7 +43,7 @@ resource "azurerm_function_app" "example" {
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   app_service_plan_id        = azurerm_app_service_plan.example.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name         = azurerm_storage_account.test.id
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 ```
@@ -80,7 +80,7 @@ resource "azurerm_function_app" "example" {
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   app_service_plan_id        = azurerm_app_service_plan.example.id
-  storage_account_id         = azurerm_storage_account.test.id
+  storage_account_name         = azurerm_storage_account.test.id
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 ```
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
-* `storage_account_id` - (Required) The backend storage account id which will be used by this Function App (such as the dashboard, logs).
+* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
