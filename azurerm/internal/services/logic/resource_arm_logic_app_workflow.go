@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
+	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -70,12 +70,33 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				Default:  "1.0.0.0",
 			},
 
-			"tags": tags.Schema(),
-
 			"access_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"connector_endpoint_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"connector_outbound_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"workflow_endpoint_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"workflow_outbound_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -229,6 +250,21 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 
 		d.Set("access_endpoint", props.AccessEndpoint)
 
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
+			d.Set("connector_endpoint_ip_addresses", []interface{}{})
+			d.Set("connector_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
+			d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
+		}
+
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
+			d.Set("workflow_endpoint_ip_addresses", []interface{}{})
+			d.Set("workflow_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
+			d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
+		}
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
 				d.Set("workflow_schema", v["$schema"].(string))
@@ -297,4 +333,16 @@ func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter
 	}
 
 	return output
+}
+
+func flattenIPAddresses(input *[]logic.IPAddress) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var addresses []interface{}
+	for _, addr := range *input {
+		addresses = append(addresses, *addr.Address)
+	}
+	return addresses
 }

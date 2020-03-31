@@ -480,8 +480,6 @@ resource "azurerm_databox_job" "test" {
 }
 
 func testAccAzureRMDataBoxJob_template(data acceptance.TestData) string {
-	location := "westus"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -501,5 +499,5 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "RAGRS"
 }
-`, data.RandomInteger, location, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

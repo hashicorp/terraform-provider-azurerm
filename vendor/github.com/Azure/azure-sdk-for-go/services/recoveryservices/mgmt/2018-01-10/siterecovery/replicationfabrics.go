@@ -35,7 +35,9 @@ func NewReplicationFabricsClient(subscriptionID string, resourceGroupName string
 	return NewReplicationFabricsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationFabricsClientWithBaseURI creates an instance of the ReplicationFabricsClient client.
+// NewReplicationFabricsClientWithBaseURI creates an instance of the ReplicationFabricsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationFabricsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationFabricsClient {
 	return ReplicationFabricsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -94,9 +96,8 @@ func (client ReplicationFabricsClient) CheckConsistencyPreparer(ctx context.Cont
 // CheckConsistencySender sends the CheckConsistency request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) CheckConsistencySender(req *http.Request) (future ReplicationFabricsCheckConsistencyFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -174,9 +175,8 @@ func (client ReplicationFabricsClient) CreatePreparer(ctx context.Context, fabri
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) CreateSender(req *http.Request) (future ReplicationFabricsCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -251,9 +251,8 @@ func (client ReplicationFabricsClient) DeletePreparer(ctx context.Context, fabri
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) DeleteSender(req *http.Request) (future ReplicationFabricsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -333,8 +332,7 @@ func (client ReplicationFabricsClient) GetPreparer(ctx context.Context, fabricNa
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -408,8 +406,7 @@ func (client ReplicationFabricsClient) ListPreparer(ctx context.Context) (*http.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -516,9 +513,8 @@ func (client ReplicationFabricsClient) MigrateToAadPreparer(ctx context.Context,
 // MigrateToAadSender sends the MigrateToAad request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) MigrateToAadSender(req *http.Request) (future ReplicationFabricsMigrateToAadFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -592,9 +588,8 @@ func (client ReplicationFabricsClient) PurgePreparer(ctx context.Context, fabric
 // PurgeSender sends the Purge request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) PurgeSender(req *http.Request) (future ReplicationFabricsPurgeFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -671,9 +666,8 @@ func (client ReplicationFabricsClient) ReassociateGatewayPreparer(ctx context.Co
 // ReassociateGatewaySender sends the ReassociateGateway request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) ReassociateGatewaySender(req *http.Request) (future ReplicationFabricsReassociateGatewayFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -751,9 +745,8 @@ func (client ReplicationFabricsClient) RenewCertificatePreparer(ctx context.Cont
 // RenewCertificateSender sends the RenewCertificate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationFabricsClient) RenewCertificateSender(req *http.Request) (future ReplicationFabricsRenewCertificateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

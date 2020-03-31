@@ -989,15 +989,21 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"data": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 							StateFunc: base64EncodedStateFunc,
 						},
 
 						"password": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
+						},
+
+						"key_vault_secret_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateKeyVaultChildId,
 						},
 
 						"id": {
@@ -1362,6 +1368,11 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error expanding `redirect_configuration`: %+v", err)
 	}
 
+	sslCertificates, err := expandApplicationGatewaySslCertificates(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `ssl_certificate`: %+v", err)
+	}
+
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
 	gateway := network.ApplicationGateway{
@@ -1385,7 +1396,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			RequestRoutingRules:           requestRoutingRules,
 			RedirectConfigurations:        redirectConfigurations,
 			Sku:                           expandApplicationGatewaySku(d),
-			SslCertificates:               expandApplicationGatewaySslCertificates(d),
+			SslCertificates:               sslCertificates,
 			SslPolicy:                     expandApplicationGatewaySslPolicy(d),
 
 			RewriteRuleSets: expandApplicationGatewayRewriteRuleSets(d),
@@ -3185,7 +3196,7 @@ func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interf
 	return []interface{}{result}
 }
 
-func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.ApplicationGatewaySslCertificate {
+func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network.ApplicationGatewaySslCertificate, error) {
 	vs := d.Get("ssl_certificate").([]interface{})
 	results := make([]network.ApplicationGatewaySslCertificate, 0)
 
@@ -3195,22 +3206,38 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 		name := v["name"].(string)
 		data := v["data"].(string)
 		password := v["password"].(string)
-
-		// data must be base64 encoded
-		data = utils.Base64EncodeIfNot(data)
+		kvsid := v["key_vault_secret_id"].(string)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
-			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
-				Data:     utils.String(data),
-				Password: utils.String(password),
-			},
+			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{},
+		}
+
+		if data != "" && kvsid != "" {
+			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
+		} else if data != "" {
+			// data must be base64 encoded
+			output.ApplicationGatewaySslCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
+
+			if password == "" {
+				return nil, fmt.Errorf("'password' is required if `data` is specified for the `ssl_certificate` block %q", name)
+			}
+
+			output.ApplicationGatewaySslCertificatePropertiesFormat.Password = utils.String(password)
+		} else if kvsid != "" {
+			if password != "" {
+				return nil, fmt.Errorf("only one of `key_vault_secret_id` or `password` must be specified for the `ssl_certificate` block %q", name)
+			}
+
+			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else {
+			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}
 
 		results = append(results, output)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate, d *schema.ResourceData) []interface{} {
@@ -3236,6 +3263,10 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
 			if data := props.PublicCertData; data != nil {
 				output["public_cert_data"] = *data
+			}
+
+			if kvsid := props.KeyVaultSecretID; kvsid != nil {
+				output["key_vault_secret_id"] = *kvsid
 			}
 		}
 

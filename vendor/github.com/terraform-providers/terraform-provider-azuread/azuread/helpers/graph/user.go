@@ -35,3 +35,29 @@ func UserGetByObjectId(client *graphrbac.UsersClient, ctx context.Context, objec
 
 	return &user, nil
 }
+
+func UserGetByMailNickname(client *graphrbac.UsersClient, ctx context.Context, mailNickname string) (*graphrbac.User, error) {
+	filter := fmt.Sprintf("startswith(mailNickname,'%s')", mailNickname)
+	resp, err := client.ListComplete(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("Error listing Azure AD Users for filter %q: %+v", filter, err)
+	}
+
+	values := resp.Response().Value
+	if values == nil {
+		return nil, fmt.Errorf("nil values for AD Users matching %q", filter)
+	}
+	if len(*values) == 0 {
+		return nil, fmt.Errorf("Found no AD Users matching %q", filter)
+	}
+	if len(*values) > 2 {
+		return nil, fmt.Errorf("Found multiple AD Users matching %q", filter)
+	}
+
+	user := (*values)[0]
+	if user.DisplayName == nil {
+		return nil, fmt.Errorf("nil DisplayName for AD Users matching %q", filter)
+	}
+
+	return &user, nil
+}

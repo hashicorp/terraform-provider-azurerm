@@ -294,33 +294,21 @@ func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) (s
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob", ruleIndex)); ok {
 			baseBlob := &storage.ManagementPolicyBaseBlob{}
 			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than", ruleIndex)); ok {
-				if v == nil {
-					baseBlob.TierToCool = &storage.DateAfterModification{
-						DaysAfterModificationGreaterThan: nil,
-					}
-				} else {
+				if v != nil {
 					baseBlob.TierToCool = &storage.DateAfterModification{
 						DaysAfterModificationGreaterThan: utils.Float(float64(v.(int))),
 					}
 				}
 			}
 			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than", ruleIndex)); ok {
-				if v == nil {
-					baseBlob.TierToArchive = &storage.DateAfterModification{
-						DaysAfterModificationGreaterThan: nil,
-					}
-				} else {
+				if v != nil {
 					baseBlob.TierToArchive = &storage.DateAfterModification{
 						DaysAfterModificationGreaterThan: utils.Float(float64(v.(int))),
 					}
 				}
 			}
 			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", ruleIndex)); ok {
-				if v == nil {
-					baseBlob.Delete = &storage.DateAfterModification{
-						DaysAfterModificationGreaterThan: nil,
-					}
-				} else {
+				if v != nil {
 					baseBlob.Delete = &storage.DateAfterModification{
 						DaysAfterModificationGreaterThan: utils.Float(float64(v.(int))),
 					}
