@@ -32,10 +32,10 @@ func resourceArmLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 		Update: resourceArmLogAnalyticsDataSourceWindowsEventCreateUpdate,
 		Delete: resourceArmLogAnalyticsDataSourceWindowsEventDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.LogAnalyticsDataSourceID(id)
 			return err
-		}),
+		}, importLogAnalyticsDataSource(operationalinsights.WindowsEvent)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

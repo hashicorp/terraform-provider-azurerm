@@ -28,10 +28,10 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 		Update: resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate,
 		Delete: resourceArmLogAnalyticsDataSourceWindowsPerformanceCounterDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.LogAnalyticsDataSourceID(id)
 			return err
-		}),
+		}, importLogAnalyticsDataSource(operationalinsights.WindowsPerformanceCounter)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

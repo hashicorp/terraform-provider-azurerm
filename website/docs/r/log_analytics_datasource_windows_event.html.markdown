@@ -49,11 +49,11 @@ resource "azurerm_log_analytics_datasource_windows_event" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The Name which should be used for this Log Analytics Windows Event DataSource. Changing this forces a new Log Analytics Windows Event DataSource to be created.
+* `name` - (Required) The name which should be used for this Log Analytics Windows Event DataSource. Changing this forces a new Log Analytics Windows Event DataSource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Log Analytics Windows Event DataSource should exist. Changing this forces a new Log Analytics Windows Event DataSource to be created.
 
-* `workspace_name` - (Required) TODO. Changing this forces a new Log Analytics Windows Event DataSource to be created.
+* `workspace_name` - (Required) The name of the Log Analytics Workspace where the Log Analytics Windows Event DataSource should exist. Changing this forces a new Log Analytics Windows Event DataSource to be created.
 
 * `event_log_name` - (Required) Specifies the name of the Windows Event Log to collect events from.
 
