@@ -118,7 +118,7 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Service.
+* `create` - (Defaults to 60 minutes) Used when creating the Spring Cloud Service.
 * `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Service.

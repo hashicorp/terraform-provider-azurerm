@@ -28,7 +28,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 		Delete: resourceArmSpringCloudServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
@@ -79,9 +79,9 @@ func resourceArmSpringCloudService() *schema.Resource {
 							},
 						},
 
-						"http_basic_auth": SchemaConfigServerHttpBasicAuth([]string{"config_server_git_setting.0.ssh_auth"}),
+						"http_basic_auth": SchemaConfigServerHttpBasicAuth("config_server_git_setting.0.ssh_auth"),
 
-						"ssh_auth": SchemaConfigServerSSHAuth([]string{"config_server_git_setting.0.http_basic_auth"}),
+						"ssh_auth": SchemaConfigServerSSHAuth("config_server_git_setting.0.http_basic_auth"),
 
 						"repository": {
 							Type:     schema.TypeList,
@@ -93,15 +93,18 @@ func resourceArmSpringCloudService() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+
 									"uri": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ConfigServerURI,
 									},
+
 									"label": {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
+
 									"pattern": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -110,6 +113,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
+
 									"search_paths": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -119,9 +123,9 @@ func resourceArmSpringCloudService() *schema.Resource {
 										},
 									},
 
-									"http_basic_auth": SchemaConfigServerHttpBasicAuth(nil),
+									"http_basic_auth": SchemaConfigServerHttpBasicAuth(),
 
-									"ssh_auth": SchemaConfigServerSSHAuth(nil),
+									"ssh_auth": SchemaConfigServerSSHAuth(),
 								},
 							},
 						},
@@ -158,6 +162,11 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	gitProperty, err := expandArmSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
+	if err != nil {
+		return err
+	}
+
 	// current create api doesn't take care parameters of config server.
 	// so we need to invoke create api first and then update api
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, resource)
@@ -168,12 +177,11 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("waiting for creation of Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
-	if len(gitPropertyRaw) > 0 {
+	if gitProperty != nil {
 		resource.Properties = &appplatform.ClusterResourceProperties{
 			ConfigServerProperties: &appplatform.ConfigServerProperties{
 				ConfigServer: &appplatform.ConfigServerSettings{
-					GitProperty: expandArmSpringCloudConfigServerGitProperty(gitPropertyRaw),
+					GitProperty: gitProperty,
 				},
 			},
 		}
@@ -211,13 +219,18 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
 	gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
+	gitProperty, err := expandArmSpringCloudConfigServerGitProperty(gitPropertyRaw)
+	if err != nil {
+		return err
+	}
 
 	springCloudService := appplatform.ServiceResource{
 		Properties: &appplatform.ClusterResourceProperties{
 			ConfigServerProperties: &appplatform.ConfigServerProperties{
 				ConfigServer: &appplatform.ConfigServerSettings{
-					GitProperty: expandArmSpringCloudConfigServerGitProperty(gitPropertyRaw),
+					GitProperty: gitProperty,
 				},
 			},
 		},
@@ -306,14 +319,14 @@ func resourceArmSpringCloudServiceDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmSpringCloudConfigServerGitProperty(input []interface{}) *appplatform.ConfigServerGitProperty {
+func expandArmSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform.ConfigServerGitProperty, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return nil, nil
 	}
 
 	v := input[0].(map[string]interface{})
 	if v == nil {
-		return nil
+		return nil, nil
 	}
 
 	result := appplatform.ConfigServerGitProperty{
@@ -326,12 +339,18 @@ func expandArmSpringCloudConfigServerGitProperty(input []interface{}) *appplatfo
 	if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
 		result.SearchPaths = utils.ExpandStringSlice(searchPaths)
 	}
-	if httpBasicAuth := v["http_basic_auth"].([]interface{}); len(httpBasicAuth) > 0 {
+
+	httpBasicAuth := v["http_basic_auth"].([]interface{})
+	sshAuth := v["ssh_auth"].([]interface{})
+	if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
+		return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth`")
+	}
+	if len(httpBasicAuth) > 0 {
 		v := httpBasicAuth[0].(map[string]interface{})
 		result.Username = utils.String(v["username"].(string))
 		result.Password = utils.String(v["password"].(string))
 	}
-	if sshAuth := v["ssh_auth"].([]interface{}); len(sshAuth) > 0 {
+	if len(sshAuth) > 0 {
 		v := sshAuth[0].(map[string]interface{})
 		result.PrivateKey = utils.String(v["private_key"].(string))
 		result.StrictHostKeyChecking = utils.Bool(v["strict_host_key_checking_enabled"].(bool))
@@ -344,14 +363,18 @@ func expandArmSpringCloudConfigServerGitProperty(input []interface{}) *appplatfo
 		}
 	}
 
-	if warnings, ok := v["repository"]; ok {
-		result.Repositories = expandArmSpringCloudGitPatternRepository(warnings.([]interface{}))
+	if v, ok := v["repository"]; ok {
+		repositories, err := expandArmSpringCloudGitPatternRepository(v.([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		result.Repositories = repositories
 	}
 
-	return &result
+	return &result, nil
 }
 
-func expandArmSpringCloudGitPatternRepository(input []interface{}) *[]appplatform.GitPatternRepository {
+func expandArmSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.GitPatternRepository, error) {
 	results := make([]appplatform.GitPatternRepository, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -370,12 +393,18 @@ func expandArmSpringCloudGitPatternRepository(input []interface{}) *[]appplatfor
 		if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
 			result.SearchPaths = utils.ExpandStringSlice(searchPaths)
 		}
-		if httpBasicAuth := v["http_basic_auth"].([]interface{}); len(httpBasicAuth) > 0 {
+
+		httpBasicAuth := v["http_basic_auth"].([]interface{})
+		sshAuth := v["ssh_auth"].([]interface{})
+		if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
+			return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth` for the same repository")
+		}
+		if len(httpBasicAuth) > 0 {
 			v := httpBasicAuth[0].(map[string]interface{})
 			result.Username = utils.String(v["username"].(string))
 			result.Password = utils.String(v["password"].(string))
 		}
-		if sshAuth := v["ssh_auth"].([]interface{}); len(sshAuth) > 0 {
+		if len(sshAuth) > 0 {
 			v := sshAuth[0].(map[string]interface{})
 			result.PrivateKey = utils.String(v["private_key"].(string))
 			result.StrictHostKeyChecking = utils.Bool(v["strict_host_key_checking_enabled"].(bool))
@@ -390,7 +419,7 @@ func expandArmSpringCloudGitPatternRepository(input []interface{}) *[]appplatfor
 
 		results = append(results, result)
 	}
-	return &results
+	return &results, nil
 }
 
 func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerGitProperty, d *schema.ResourceData) []interface{} {
