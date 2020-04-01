@@ -30,8 +30,8 @@ resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
     default_action = "Deny"
     ip_rule {
       ip_mask = "10.0.0.0/16"
-	  action  = "Allow"
-	}
+      action  = "Allow"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -69,7 +69,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  
+
   properties {
     default_action = "Deny"
     virtual_network_rule {
@@ -137,9 +137,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}" 
+  resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  
+
   properties {
     default_action = "Deny"
     ip_rule {
@@ -148,7 +148,6 @@ resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
     }
   }
 }
-
 
 `, data.RandomInteger, data.Locations.Primary)
 }
