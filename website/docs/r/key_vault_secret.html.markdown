@@ -98,6 +98,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Key Vault Secret ID.
+* `value` - The Key Vault Value.
 * `version` - The current version of the Key Vault Secret.
 
 ## Timeouts
