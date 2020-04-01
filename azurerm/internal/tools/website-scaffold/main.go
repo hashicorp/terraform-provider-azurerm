@@ -569,7 +569,7 @@ func (gen documentationGenerator) buildDescriptionForAttribute(name string, fiel
 		if blockName == "" {
 			return fmt.Sprintf("The name of this %s.", gen.brandName)
 		} else {
-			return "The Name of this TODO."
+			return "The name of this TODO."
 		}
 	}
 	if name == "location" {
