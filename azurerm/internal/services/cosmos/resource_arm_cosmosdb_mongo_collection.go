@@ -82,6 +82,26 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
+
+			"index": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"keys": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+
+						"unique": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -121,7 +141,7 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &name,
-				Indexes: expandCosmosMongoCollectionIndexes(ttl),
+				Indexes: expandCosmosMongoCollectionIndex(d.Get("index").(*schema.Set).List(), ttl),
 			},
 			Options: map[string]*string{},
 		},
@@ -181,7 +201,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &id.Collection,
-				Indexes: expandCosmosMongoCollectionIndexes(ttl),
+				Indexes: expandCosmosMongoCollectionIndex(d.Get("index").(*schema.Set).List(), ttl),
 			},
 			Options: map[string]*string{},
 		},
@@ -264,7 +284,12 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 
 		if props.Indexes != nil {
-			d.Set("default_ttl_seconds", flattenCosmosMongoCollectionIndexes(props.Indexes))
+			ttl := flattenCosmosMongoCollectionIndex(props.Indexes)
+			if err := d.Set("default_ttl_seconds", ttl); err != nil {
+				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
+			}
+
+			d.Set("index", d.Get("index").(*schema.Set).List())
 		}
 	}
 
@@ -307,11 +332,26 @@ func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandCosmosMongoCollectionIndexes(defaultTtl *int) *[]documentdb.MongoIndex {
-	outputs := make([]documentdb.MongoIndex, 0)
+func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[]documentdb.MongoIndex {
+	results := make([]documentdb.MongoIndex, 0)
+
+	if len(indexes) != 0 {
+		for _, v := range indexes {
+			index := v.(map[string]interface{})
+
+			results = append(results, documentdb.MongoIndex{
+				Key: &documentdb.MongoIndexKeys{
+					Keys: utils.ExpandStringSlice(index["keys"].(*schema.Set).List()),
+				},
+				Options: &documentdb.MongoIndexOptions{
+					Unique: utils.Bool(index["unique"].(bool)),
+				},
+			})
+		}
+	}
 
 	if defaultTtl != nil {
-		outputs = append(outputs, documentdb.MongoIndex{
+		results = append(results, documentdb.MongoIndex{
 			Key: &documentdb.MongoIndexKeys{
 				Keys: &[]string{"_ts"},
 			},
@@ -321,24 +361,19 @@ func expandCosmosMongoCollectionIndexes(defaultTtl *int) *[]documentdb.MongoInde
 		})
 	}
 
-	return &outputs
+	return &results
 }
 
-func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *int {
-	var ttl int
-	for _, i := range *indexes {
-		if key := i.Key; key != nil {
-			var ttlInner int32
-
-			if keys := key.Keys; keys != nil && len(*keys) > 0 {
-				k := (*keys)[0]
-
-				if k == "_ts" {
-					ttl = int(ttlInner)
-				}
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) *int32 {
+	var ttl *int32
+	for _, v := range *input {
+		if v.Key != nil && v.Key.Keys != nil {
+			key := (*v.Key.Keys)[0]
+			if key == "_ts" && v.Options != nil && v.Options.ExpireAfterSeconds != nil {
+				ttl = v.Options.ExpireAfterSeconds
 			}
 		}
 	}
 
-	return &ttl
+	return ttl
 }
