@@ -2,9 +2,80 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
+	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
+
+func TestAccAzureRMServiceBusNamespaceNetworkRule_iprule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_namespace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusNamespaceNetworkRule_iprule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusNamespaceNetworkRule_vnetrule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_namespace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusNamespaceNetworkRule_vnet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusNamespaceNetworkRule_basicSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMServiceBusNamespaceNetworkRule_basicSKU(data),
+				ExpectError: regexp.MustCompile("network_rulesets cannot be used when the SKU is Basic or \"Standard\" "),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusNamespaceNetworkRule_standardSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMServiceBusNamespaceNetworkRule_standardSKU(data),
+				ExpectError: regexp.MustCompile("network_rulesets cannot be used when the SKU is Basic or \"Standard\" "),
+			},
+		},
+	})
+}
 
 func testAccAzureRMServiceBusNamespaceNetworkRule_iprule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
