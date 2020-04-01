@@ -23,6 +23,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_servicebus_namespace_authorization_rule": resourceArmServiceBusNamespaceAuthorizationRule(),
+		"azurerm_servicebus_namespace_network_rule_set":   resourceArmServiceBusNamespaceNetworkRuleSet(),
 		"azurerm_servicebus_namespace":                    resourceArmServiceBusNamespace(),
 		"azurerm_servicebus_queue_authorization_rule":     resourceArmServiceBusQueueAuthorizationRule(),
 		"azurerm_servicebus_queue":                        resourceArmServiceBusQueue(),
