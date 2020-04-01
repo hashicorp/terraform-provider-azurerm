@@ -169,20 +169,22 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 	}
 
 	gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
-	resource.Properties = &appplatform.ClusterResourceProperties{
-		ConfigServerProperties: &appplatform.ConfigServerProperties{
-			ConfigServer: &appplatform.ConfigServerSettings{
-				GitProperty: expandArmSpringCloudConfigServerGitProperty(gitPropertyRaw),
+	if len(gitPropertyRaw) > 0 {
+		resource.Properties = &appplatform.ClusterResourceProperties{
+			ConfigServerProperties: &appplatform.ConfigServerProperties{
+				ConfigServer: &appplatform.ConfigServerSettings{
+					GitProperty: expandArmSpringCloudConfigServerGitProperty(gitPropertyRaw),
+				},
 			},
-		},
-	}
+		}
 
-	updateFuture, err := client.Update(ctx, resourceGroup, name, resource)
-	if err != nil {
-		return fmt.Errorf("failure updating config server of Spring Cloud Service %q  (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failure waiting for setting config server of Spring Cloud Service %q config server (Resource Group %q): %+v", name, resourceGroup, err)
+		updateFuture, err := client.Update(ctx, resourceGroup, name, resource)
+		if err != nil {
+			return fmt.Errorf("failure updating config server of Spring Cloud Service %q  (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("failure waiting for setting config server of Spring Cloud Service %q config server (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
