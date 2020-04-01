@@ -538,19 +538,29 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 
 	if field.Elem != nil {
 		if _, ok := field.Elem.(*schema.Resource); ok {
-			if gen.blockIsBefore(name, blockName) {
-				return fmt.Sprintf("A `%s` block as defined above.", name)
-			} else {
-				return fmt.Sprintf("A `%s` block as defined below.", name)
+			fmtBlock := func(name string, minItem, maxItem int, blockIsBefore bool) string {
+				var head string
+				if maxItem == 1 {
+					head = fmt.Sprintf("A `%s` block", name)
+				} else {
+					head = fmt.Sprintf("One or more `%s` blocks", name)
+				}
+
+				var tail string
+				if blockIsBefore {
+					tail = "as defined above."
+				} else {
+					tail = "as defined below."
+				}
+				return head + " " + tail
 			}
+			return fmtBlock(name, field.MinItems, field.MaxItems, gen.blockIsBefore(name, blockName))
 		}
 	}
 
 	switch field.Type {
-	case schema.TypeList, schema.TypeSet:
-		return fmt.Sprintf("Specifies an array of TODO.")
-	case schema.TypeMap:
-		return fmt.Sprintf("Specifies a map of TODO.")
+	case schema.TypeList, schema.TypeSet, schema.TypeMap:
+		return "Specifies a list of TODO."
 	}
 
 	return "TODO."

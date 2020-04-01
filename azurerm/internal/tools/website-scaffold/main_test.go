@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,12 +18,13 @@ const (
 )
 
 func setupDocGen(isDataSource bool, resource *schema.Resource) documentationGenerator {
+	var toStrPtr = func(input string) *string {
+		return &input
+	}
 	return documentationGenerator{
-		resourceName: RESOURCE_NAME,
-		brandName:    BRAND_NAME,
-		resourceId: func(s string) *string {
-			return &s
-		}(RESOURCE_ID),
+		resourceName:      RESOURCE_NAME,
+		brandName:         BRAND_NAME,
+		resourceId:        toStrPtr(RESOURCE_ID),
 		isDataSource:      isDataSource,
 		websiteCategories: []string{WEBSITE_CATEGORY},
 		resource:          resource,
@@ -31,35 +32,53 @@ func setupDocGen(isDataSource bool, resource *schema.Resource) documentationGene
 }
 
 func TestResourceArgumentBlock(t *testing.T) {
-	expectedOut := fmt.Sprintf(`## Arguments Reference
+	expectedOut := strings.ReplaceAll(`## Arguments Reference
 
 The following arguments are supported:
 
-* %[1]sblock%[1]s - (Required) A %[1]sblock%[1]s block as defined below.
+* 'block2' - (Required) One or more 'block2' blocks as defined below.
 
-* %[1]sfoo_enabled%[1]s - (Required) Should the TODO be enabled?
+* 'foo_enabled' - (Required) Should the TODO be enabled?
 
-* %[1]sfoo_id%[1]s - (Required) The ID of the TODO.
+* 'foo_id' - (Required) The ID of the TODO.
 
-* %[1]slist%[1]s - (Required) Specifies an array of TODO.
+* 'list' - (Required) Specifies a list of TODO.
 
-* %[1]slocation%[1]s - (Required) The Azure Region where the Foobar should exist. Changing this forces a new Foobar to be created.
+* 'location' - (Required) The Azure Region where the Foobar should exist. Changing this forces a new Foobar to be created.
 
-* %[1]smap%[1]s - (Required) Specifies a map of TODO.
+* 'map' - (Required) Specifies a list of TODO.
 
-* %[1]sname%[1]s - (Required) The Name which should be used for this Foobar. Changing this forces a new Foobar to be created.
+* 'name' - (Required) The Name which should be used for this Foobar. Changing this forces a new Foobar to be created.
 
-* %[1]sresource_group_name%[1]s - (Required) The name of the Resource Group where the Foobar should exist. Changing this forces a new Foobar to be created.
+* 'resource_group_name' - (Required) The name of the Resource Group where the Foobar should exist. Changing this forces a new Foobar to be created.
 
-* %[1]sset%[1]s - (Required) Specifies an array of TODO.
-
----
-
-* %[1]stags%[1]s - (Optional) A mapping of tags which should be assigned to the Foobar.
+* 'set' - (Required) Specifies a list of TODO.
 
 ---
 
-A %[1]sblock%[1]s block supports the following:`, "`")
+* 'tags' - (Optional) A mapping of tags which should be assigned to the Foobar.
+
+---
+
+A 'block1' block supports the following:
+
+* 'nest_attr1' - (Optional) TODO.
+
+---
+
+A 'block2' block supports the following:
+
+* 'block1' - (Required) A 'block1' block as defined above.
+
+* 'block3' - (Required) One or more 'block3' blocks as defined below.
+
+* 'nest_attr2' - (Optional) TODO.
+
+---
+
+A 'block3' block supports the following:
+
+* 'nest_attr3' - (Optional) TODO.`, "'", "`")
 
 	resource := &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -78,12 +97,42 @@ A %[1]sblock%[1]s block supports the following:`, "`")
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"block": {
+			"block2": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Required: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{},
+					Schema: map[string]*schema.Schema{
+						"nest_attr2": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"block1": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"nest_attr1": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"block3": {
+							Type:     schema.TypeList,
+							MinItems: 1,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"nest_attr3": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 			"list": {
@@ -118,6 +167,6 @@ A %[1]sblock%[1]s block supports the following:`, "`")
 		}
 	}
 	if hasDiff {
-		t.Fatal(dmp.DiffText1(diffs))
+		t.Fatal(dmp.DiffPrettyText(diffs))
 	}
 }
