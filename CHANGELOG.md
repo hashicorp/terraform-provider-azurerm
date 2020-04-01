@@ -4,6 +4,7 @@
 FEATURES:
 
 * **New Data source:** `azurerm_managed_application_definition` [GH-6211]
+* **New resource:** `azurerm_hpc_cache_nfs_target` [GH-6191]
 * **New Resource:** `azurerm_log_analytics_datasource_windows_performance_counter` [GH-6274]
 * **New Resource:** `azurerm_managed_application_definition` [GH-6211]
 
