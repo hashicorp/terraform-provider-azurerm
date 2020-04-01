@@ -106,14 +106,11 @@ func resourceArmPrivateDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
-
 	parameters := privatedns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &privatedns.RecordSetProperties{
-			Metadata:   tags.Expand(t),
-			TTL:        &ttl,
+			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
+			TTL:        utils.Int64(int64(d.Get("ttl").(int))),
 			TxtRecords: expandAzureRmPrivateDnsTxtRecords(d),
 		},
 	}
