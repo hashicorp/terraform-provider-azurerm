@@ -80,7 +80,7 @@ func dataSourceStorageImportExportJob() *schema.Resource {
 			},
 
 			"drives": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -221,6 +221,7 @@ func dataSourceStorageImportExportJob() *schema.Resource {
 
 func dataSourceArmStorageImportExportJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ImportExport.JobClient
+	bitLockerKeysClient := meta.(*clients.Client).ImportExport.BitLockerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -236,6 +237,12 @@ func dataSourceArmStorageImportExportJobRead(d *schema.ResourceData, meta interf
 		}
 		return fmt.Errorf("Error retrieving Azure Import/Export Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	bitLockerKeysResp, err := bitLockerKeysClient.List(ctx, name, resourceGroup)
+	if err != nil {
+		return fmt.Errorf("failure listing bitlocker keys for Azure Import Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	d.SetId(*resp.ID)
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
@@ -257,7 +264,7 @@ func dataSourceArmStorageImportExportJobRead(d *schema.ResourceData, meta interf
 			}
 		}
 
-		if err := d.Set("drives", flattenArmJobDrives(props.DriveList, d)); err != nil {
+		if err := d.Set("drives", flattenArmJobDrives(props.DriveList, bitLockerKeysResp.Value)); err != nil {
 			return fmt.Errorf("failure setting drives: %+v", err)
 		}
 		if err := d.Set("return_address", flattenArmJobReturnAddress(props.ReturnAddress)); err != nil {

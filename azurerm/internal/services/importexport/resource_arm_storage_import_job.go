@@ -59,7 +59,7 @@ func resourceArmStorageImportJob() *schema.Resource {
 			},
 
 			"drives": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				MaxItems: 10,
@@ -72,8 +72,8 @@ func resourceArmStorageImportJob() *schema.Resource {
 						},
 						"bit_locker_key": {
 							Type:         schema.TypeString,
-							Sensitive:    true,
 							Required:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"manifest_file": {
@@ -265,7 +265,7 @@ func resourceArmStorageImportJobCreate(d *schema.ResourceData, meta interface{})
 
 	returnAddress := expandArmJobReturnAddress(d.Get("return_address").([]interface{}))
 	returnShipping := expandArmJobReturnShipping(d.Get("return_shipping").([]interface{}))
-	drives := expandArmJobDrives(d.Get("drives").([]interface{}))
+	drives := expandArmJobDrives(d.Get("drives").(*schema.Set).List())
 
 	body := storageimportexport.PutJobParameters{
 		Location: utils.String(location),
@@ -310,7 +310,7 @@ func resourceArmStorageImportJobUpdate(d *schema.ResourceData, meta interface{})
 
 	returnAddress := expandArmJobReturnAddress(d.Get("return_address").([]interface{}))
 	returnShipping := expandArmJobReturnShipping(d.Get("return_shipping").([]interface{}))
-	drives := expandArmJobDrives(d.Get("drives").([]interface{}))
+	drives := expandArmJobDrives(d.Get("drives").(*schema.Set).List())
 
 	body := storageimportexport.UpdateJobParameters{
 		UpdateJobParametersProperties: &storageimportexport.UpdateJobParametersProperties{
@@ -341,6 +341,7 @@ func resourceArmStorageImportJobUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmStorageImportJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ImportExport.JobClient
+	bitLockerKeysClient := meta.(*clients.Client).ImportExport.BitLockerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -359,6 +360,11 @@ func resourceArmStorageImportJobRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("failure retrieving Azure Import Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	bitLockerKeysResp, err := bitLockerKeysClient.List(ctx, id.Name, id.ResourceGroup)
+	if err != nil {
+		return fmt.Errorf("failure listing bitlocker keys for Azure Import Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -368,7 +374,7 @@ func resourceArmStorageImportJobRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("diagnostics_path", props.DiagnosticsPath)
 		d.Set("log_level", props.LogLevel)
 
-		if err := d.Set("drives", flattenArmJobDrives(props.DriveList, d)); err != nil {
+		if err := d.Set("drives", flattenArmJobDrives(props.DriveList, bitLockerKeysResp.Value)); err != nil {
 			return fmt.Errorf("failure setting drives: %+v", err)
 		}
 		if err := d.Set("return_address", flattenArmJobReturnAddress(props.ReturnAddress)); err != nil {
@@ -415,33 +421,32 @@ func expandArmJobDrives(input []interface{}) *[]storageimportexport.DriveStatus 
 	return &results
 }
 
-func flattenArmJobDrives(input *[]storageimportexport.DriveStatus, d *schema.ResourceData) []interface{} {
+func flattenArmJobDrives(input *[]storageimportexport.DriveStatus, bitLockerKeys *[]storageimportexport.DriveBitLockerKey) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	// prepare old state to find sensitive props not returned by API.
-	oldDriveInfosRaw := d.Get("drives").([]interface{})
-
-	for i, item := range *input {
-		// prepare old state to find sensitive props not returned by API.
-		oldDriveInfo := make(map[string]interface{})
-		if len(oldDriveInfosRaw) > 0 {
-			oldDriveInfo = oldDriveInfosRaw[i].(map[string]interface{})
+	bitLockerKeyMap := make(map[string]string)
+	if bitLockerKeys != nil {
+		for _, item := range *bitLockerKeys {
+			if item.DriveID != nil && item.BitLockerKey != nil {
+				bitLockerKeyMap[*item.DriveID] = *item.BitLockerKey
+			}
 		}
+	}
 
-		// bit_locker_key returned by API are empty string
-		// to avoid state diff, we get the props from old state
-		var bitLockerKey string
-		if v, ok := oldDriveInfo["bit_locker_key"]; ok {
-			bitLockerKey = v.(string)
-		}
-
+	for _, item := range *input {
 		var driveId string
 		if item.DriveID != nil {
 			driveId = *item.DriveID
 		}
+
+		var bitLockerKey string
+		if v, ok := bitLockerKeyMap[driveId]; ok {
+			bitLockerKey = v
+		}
+
 		var manifestFile string
 		if item.ManifestFile != nil {
 			manifestFile = *item.ManifestFile

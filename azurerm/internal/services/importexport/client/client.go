@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
-	JobClient *storageimportexport.JobsClient
+	BitLockerKeysClient *storageimportexport.BitLockerKeysClient
+	JobClient           *storageimportexport.JobsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	bitLockerKeysClient := storageimportexport.NewBitLockerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, "")
+	o.ConfigureClient(&bitLockerKeysClient.Client, o.ResourceManagerAuthorizer)
+
 	jobClient := storageimportexport.NewJobsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, "")
 	o.ConfigureClient(&jobClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		JobClient: &jobClient,
+		BitLockerKeysClient: &bitLockerKeysClient,
+		JobClient:           &jobClient,
 	}
 }

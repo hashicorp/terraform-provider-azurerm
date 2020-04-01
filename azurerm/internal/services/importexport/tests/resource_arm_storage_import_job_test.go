@@ -30,7 +30,7 @@ func TestAccAzureRMStorageImportJob_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "shipping_information.0.street_address1"),
 				),
 			},
-			data.ImportStep("drives.0.bit_locker_key"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -67,7 +67,7 @@ func TestAccAzureRMStorageImportJob_complete(t *testing.T) {
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drives.0.bit_locker_key"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -86,21 +86,21 @@ func TestAccAzureRMStorageImportJob_update(t *testing.T) {
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drives.0.bit_locker_key"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMStorageImportJob_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drives.0.bit_locker_key"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMStorageImportJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageImportJobExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("drives.0.bit_locker_key"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -155,7 +155,7 @@ func testAccAzureRMStorageImportJob_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_import_job" "test" {
-  name                = "acctest-export-job-%d"
+  name                = "acctest-import-job-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -229,7 +229,7 @@ func testAccAzureRMStorageImportJob_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_import_job" "test" {
-  name                = "acctest-export-job-%d"
+  name                = "acctest-import-job-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
