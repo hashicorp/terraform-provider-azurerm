@@ -6,7 +6,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func testAccAzureRMServiceBusNamespace_networkrule_iprule(data acceptance.TestData) string {
+func testAccAzureRMServiceBusNamespaceNetworkruleIprule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -22,7 +22,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 }
 
-resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
+resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
@@ -37,7 +37,7 @@ resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMServiceBusNamespace_networkrule_vnet(data acceptance.TestData) string {
+func testAccAzureRMServiceBusNamespaceNetworkruleVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-[1]%d"
@@ -66,7 +66,7 @@ resource "azurerm_servicebus_namespace" "test" {
   capacity            = 1
 }
 
-resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
+resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
@@ -83,7 +83,7 @@ resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMServiceBusNamespace_rule_set_basicSKU(data acceptance.TestData) string {
+func testAccAzureRMServiceBusNamespaceNetworkRuleBasicSKU(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -98,7 +98,7 @@ resource "azurerm_servicebus_namespace" "test" {
   capacity            = 0
 }
 
-resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
+resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
@@ -113,7 +113,7 @@ resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMServiceBusNamespace_rule_set_standardSKU(data acceptance.TestData) string {
+func testAccAzureRMServiceBusNamespaceRuleSetStandardSKU(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -136,7 +136,7 @@ resource "azurerm_servicebus_namespace" "test" {
   }
 }
 
-resource "azurerm_servicebuus_namespace_network_rule_set" "test" {
+resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
