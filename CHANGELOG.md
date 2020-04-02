@@ -15,6 +15,7 @@ IMPROVEMENTS:
 
 BUGS:
 
+* `azurerm_application_gateway` - can now set `include_path` with `target_url` [GH-6175]
 * `azurerm_policy_set_definition` - mark `metadata` as computed [GH-6266]
 
 ## 2.3.0 (March 27, 2020)
