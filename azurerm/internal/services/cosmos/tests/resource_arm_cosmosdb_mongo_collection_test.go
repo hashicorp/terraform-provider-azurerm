@@ -134,10 +134,10 @@ func TestAccAzureRMCosmosDbMongoCollection_withIndex(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl_seconds", "707"),
-					resource.TestCheckResourceAttr(data.ResourceName, "index.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "index.#", "3"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("index"),
 		},
 	})
 }
@@ -280,6 +280,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   index {
     keys   = ["day"]
     unique = false
+  }
+
+  index {
+    keys = ["month"]
   }
 }
 `, testAccAzureRMCosmosDbMongoDatabase_basic(data), data.RandomInteger)

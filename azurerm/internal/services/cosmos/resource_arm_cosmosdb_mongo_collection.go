@@ -288,8 +288,6 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			if err := d.Set("default_ttl_seconds", ttl); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
 			}
-
-			d.Set("index", d.Get("index").(*schema.Set).List())
 		}
 	}
 
