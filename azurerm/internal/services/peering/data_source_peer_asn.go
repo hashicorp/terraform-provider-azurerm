@@ -39,10 +39,10 @@ func dataSourceArmPeerAsnRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Peer Asn  %q was not found", name)
+			return fmt.Errorf("Peer Asn %q was not found", name)
 		}
 
-		return fmt.Errorf("failed to retrieve Peer Asn  %q: %+v", name, err)
+		return fmt.Errorf("failed to retrieve Peer Asn %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)

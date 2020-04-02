@@ -55,7 +55,6 @@ func resourceArmPeerAsn() *schema.Resource {
 			"contact": {
 				Type:     schema.TypeSet,
 				Required: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"role": {
@@ -121,15 +120,15 @@ func resourceArmPeerAsnCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, name, param); err != nil {
-		return fmt.Errorf("failed to create Peer Asn %q:  %+v", name, err)
+		return fmt.Errorf("failed to create Peer Asn %q: %+v", name, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Peer Asn  %q: %+v", name, err)
+		return fmt.Errorf("failed to retrieving Peer Asn %q: %+v", name, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read Peer Asn  %q ID", name)
+		return fmt.Errorf("Cannot read Peer Asn %q ID", name)
 	}
 	d.SetId(*resp.ID)
 
@@ -178,7 +177,7 @@ func resourceArmPeerAsnDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if _, err := client.Delete(ctx, id.Name); err != nil {
-		return fmt.Errorf("failed to delete Peer Asn  %q: %+v", id.Name, err)
+		return fmt.Errorf("failed to delete Peer Asn %q: %+v", id.Name, err)
 	}
 
 	return nil

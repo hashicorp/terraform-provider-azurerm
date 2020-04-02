@@ -13,7 +13,7 @@ type PeerAsnId struct {
 func PeerAsnID(input string) (*PeerAsnId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Peer Asn ID %q: %+v", input, err)
+		return nil, fmt.Errorf("Unable to parse Peer Asn ID %q: %+v", input, err)
 	}
 
 	asn := PeerAsnId{}
