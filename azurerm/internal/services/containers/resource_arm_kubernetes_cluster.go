@@ -489,10 +489,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
 
-	if err := validateKubernetesCluster(d, nil); err != nil {
-		return err
-	}
-
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -509,6 +505,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
 		}
+	}
+
+	if err := validateKubernetesCluster(d, nil, resGroup, name); err != nil {
+		return err
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -644,13 +644,14 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 
-	if err := validateKubernetesCluster(d, existing.ManagedClusterProperties); err != nil {
+	if err := validateKubernetesCluster(d, existing.ManagedClusterProperties, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
 
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
+		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
 		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
 
 		clientId := servicePrincipalRaw["client_id"].(string)
