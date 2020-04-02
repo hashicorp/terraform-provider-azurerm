@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -189,13 +190,14 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"type": {
 										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										Optional:     true,
+										Default:      "OWASP",
+										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetType,
 									},
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
 									},
 									"rule_group_override": {
 										Type:     schema.TypeList,
@@ -205,7 +207,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 												"rule_group_name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validation.NoZeroValues,
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
 												},
 												"disabled_rules": {
 													Type:     schema.TypeList,
