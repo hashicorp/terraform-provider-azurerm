@@ -49,7 +49,7 @@ func resourceArmRouteFilter() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"rules": {
+			"rule": {
 				Type:       schema.TypeList,
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Optional:   true,
@@ -180,7 +180,7 @@ func resourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if props := resp.RouteFilterPropertiesFormat; props != nil {
-		if err := d.Set("rules", flattenRouteFilterRules(props.Rules)); err != nil {
+		if err := d.Set("rule", flattenRouteFilterRules(props.Rules)); err != nil {
 			return err
 		}
 	}
@@ -213,7 +213,7 @@ func resourceArmRouteFilterDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func expandRouteFilterRules(d *schema.ResourceData) *[]network.RouteFilterRule {
-	configs := d.Get("rules").([]interface{})
+	configs := d.Get("rule").([]interface{})
 	rules := make([]network.RouteFilterRule, 0, len(configs))
 
 	for _, configRaw := range configs {

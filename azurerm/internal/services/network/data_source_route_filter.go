@@ -33,7 +33,7 @@ func dataSourceArmRouteFilter() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"rules": {
+			"rule": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -93,7 +93,7 @@ func dataSourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.RouteFilterPropertiesFormat; props != nil {
-		if err := d.Set("rules", flattenRouteFilterDataSourceRules(props.Rules)); err != nil {
+		if err := d.Set("rule", flattenRouteFilterDataSourceRules(props.Rules)); err != nil {
 			return err
 		}
 	}

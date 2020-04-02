@@ -119,22 +119,22 @@ func TestAccAzureRMRouteFilter_withRules(t *testing.T) {
 				Config: testAccAzureRMRouteFilter_withRules(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteFilterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.access", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.rule_type", "Community"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.communities.0", "12076:53005"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.communities.1", "12076:53006"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.access", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.rule_type", "Community"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.0", "12076:53005"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.1", "12076:53006"),
 				),
 			},
 			{
 				Config: testAccAzureRMRouteFilter_withRulesUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteFilterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.access", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.rule_type", "Community"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.communities.0", "12076:52005"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rules.0.communities.1", "12076:52006"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.access", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.rule_type", "Community"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.0", "12076:52005"),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.communities.1", "12076:52006"),
 				),
 			},
 		},
@@ -342,7 +342,7 @@ resource "azurerm_route_filter" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  rules {
+  rule {
     name      = "acctestrule%d"
     access    = "Allow"
     rule_type = "Community"
@@ -368,7 +368,7 @@ resource "azurerm_route_filter" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  rules {
+  rule {
     name      = "acctestrule%d"
     access    = "Allow"
     rule_type = "Community"

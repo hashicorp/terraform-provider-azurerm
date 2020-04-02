@@ -39,13 +39,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Route Filter exists.
 
-* `rules` - A `rules` block as defined below.
+* `rule` - A `rule` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Route Filter.
 
 ---
 
-A `rules` block exports the following:
+A `rule` block exports the following:
 
 * `access` - The access type of the rule
 

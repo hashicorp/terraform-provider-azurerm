@@ -18,7 +18,7 @@ resource "azurerm_route_filter" "example" {
   resource_group_name = "example"
   location = "East US"
 
-  rules {
+  rule {
     name = "rule"
     access = "Allow"
     rule_type = "Community"
@@ -39,13 +39,13 @@ The following arguments are supported:
 
 ---
 
-* `rules` - (Optional) A `rules` block as defined below.
+* `rule` - (Optional) A `rules` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Route Filter.
 
 ---
 
-A `rules` block supports the following:
+A `rule` block supports the following:
 
 * `access` - (Required) The access type of the rule. The only possible value is `Allow`.
 
