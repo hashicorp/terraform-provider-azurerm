@@ -1,5 +1,5 @@
 ---
-subcategory: "TODO - pick from: Load Balancer|Network"
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_route_filter"
 description: |-
@@ -39,7 +39,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Route Filter exists.
 
+* `rules` - A `rules` block as defined below.
+
 * `tags` - A mapping of tags assigned to the Route Filter.
+
+---
+
+A `rules` block exports the following:
+
+* `access` - The access type of the rule
+
+* `communities` - The collection for bgp community values.
+
+* `name` - The Name of Route Filter Rule
+
+* `rule_type` - The Route Filter Rule Type.
 
 ## Timeouts
 

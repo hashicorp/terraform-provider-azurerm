@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -31,6 +32,37 @@ func dataSourceArmRouteFilter() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
+
+			"rules": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"access": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"rule_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"communities": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -60,6 +92,32 @@ func dataSourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) erro
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+	if props := resp.RouteFilterPropertiesFormat; props != nil {
+		if err := d.Set("rules", flattenRouteFilterDataSourceRules(props.Rules)); err != nil {
+			return err
+		}
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func flattenRouteFilterDataSourceRules(input *[]network.RouteFilterRule) []interface{} {
+	results := make([]interface{}, 0)
+
+	if rules := input; rules != nil {
+		for _, rule := range *rules {
+			r := make(map[string]interface{})
+
+			r["name"] = *rule.Name
+			if props := rule.RouteFilterRulePropertiesFormat; props != nil {
+				r["access"] = string(props.Access)
+				r["rule_type"] = *props.RouteFilterRuleType
+				r["communities"] = utils.FlattenStringSlice(props.Communities)
+			}
+
+			results = append(results, r)
+		}
+	}
+
+	return results
 }

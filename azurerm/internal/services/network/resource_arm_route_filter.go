@@ -49,6 +49,49 @@ func resourceArmRouteFilter() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"rules": {
+				Type:       schema.TypeList,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"access": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Allow),
+							}, false),
+						},
+
+						"rule_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Community",
+							}, false),
+						},
+
+						"communities": {
+							Type:     schema.TypeList,
+							Required: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -82,7 +125,10 @@ func resourceArmRouteFilterCreateUpdate(d *schema.ResourceData, meta interface{}
 	routeSet := network.RouteFilter{
 		Name:     &name,
 		Location: &location,
-		Tags:     tags.Expand(t),
+		RouteFilterPropertiesFormat: &network.RouteFilterPropertiesFormat{
+			Rules: expandRouteFilterRules(d),
+		},
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, routeSet)
@@ -133,6 +179,12 @@ func resourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if props := resp.RouteFilterPropertiesFormat; props != nil {
+		if err := d.Set("rules", flattenRouteFilterRules(props.Rules)); err != nil {
+			return err
+		}
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -158,4 +210,47 @@ func resourceArmRouteFilterDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func expandRouteFilterRules(d *schema.ResourceData) *[]network.RouteFilterRule {
+	configs := d.Get("rules").([]interface{})
+	rules := make([]network.RouteFilterRule, 0, len(configs))
+
+	for _, configRaw := range configs {
+		data := configRaw.(map[string]interface{})
+
+		rule := network.RouteFilterRule{
+			Name: utils.String(data["name"].(string)),
+			RouteFilterRulePropertiesFormat: &network.RouteFilterRulePropertiesFormat{
+				Access:              network.Access(data["access"].(string)),
+				RouteFilterRuleType: utils.String(data["rule_type"].(string)),
+				Communities:         utils.ExpandStringSlice(data["communities"].([]interface{})),
+			},
+		}
+
+		rules = append(rules, rule)
+	}
+
+	return &rules
+}
+
+func flattenRouteFilterRules(input *[]network.RouteFilterRule) []interface{} {
+	results := make([]interface{}, 0)
+
+	if rules := input; rules != nil {
+		for _, rule := range *rules {
+			r := make(map[string]interface{})
+
+			r["name"] = *rule.Name
+			if props := rule.RouteFilterRulePropertiesFormat; props != nil {
+				r["access"] = string(props.Access)
+				r["rule_type"] = *props.RouteFilterRuleType
+				r["communities"] = utils.FlattenStringSlice(props.Communities)
+			}
+
+			results = append(results, r)
+		}
+	}
+
+	return results
 }
