@@ -49,6 +49,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/peering"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
@@ -122,6 +123,7 @@ func SupportedServices() []common.ServiceRegistration {
 		netapp.Registration{},
 		network.Registration{},
 		notificationhub.Registration{},
+		peering.Registration{},
 		policy.Registration{},
 		portal.Registration{},
 		postgres.Registration{},

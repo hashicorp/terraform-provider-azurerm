@@ -58,6 +58,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.NotificationHubs":        {},
 		"Microsoft.OperationalInsights":     {},
 		"Microsoft.OperationsManagement":    {},
+		"Microsoft.Peering":                 {},
 		"Microsoft.PowerBIDedicated":        {},
 		"Microsoft.Relay":                   {},
 		"Microsoft.RecoveryServices":        {},
