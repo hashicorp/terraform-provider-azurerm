@@ -56,8 +56,6 @@ github.com/aws/aws-sdk-go v1.15.78/go.mod h1:E3/ieXAlvM0XWO57iftYVDLLvQ824smPP3A
 github.com/aws/aws-sdk-go v1.25.3 h1:uM16hIw9BotjZKMZlX05SN2EFtaWfi/NonPKIARiBLQ=
 github.com/aws/aws-sdk-go v1.25.3/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/bflad/gopaniccheck v0.1.0/go.mod h1:ZCj2vSr7EqVeDaqVsWN4n2MwdROx1YL+LFo47TSWtsA=
-github.com/bflad/tfproviderlint v0.12.0 h1:vAl/8VOk/o3jEBbyMkWHrkCa6sisT4INDMCkXu0GNDw=
-github.com/bflad/tfproviderlint v0.12.0/go.mod h1:MsNI3eEj7uC7P/h7XmGvzMLtsotLkrvB+NF2/w3RZGc=
 github.com/bflad/tfproviderlint v0.12.1-0.20200321055902-7b384fffdf9b h1:4HNKUxGqpX1P93SJtyW9niuRdCaWrvIyOBO0wqZrmBI=
 github.com/bflad/tfproviderlint v0.12.1-0.20200321055902-7b384fffdf9b/go.mod h1:1Jtjs6DPKoyqPrbPyMiy33h0ViO2h831uzoOuikCA60=
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d h1:xDfNPAt8lFiC1UJrqV3uuy861HCTo708pDMbjHHdCas=
