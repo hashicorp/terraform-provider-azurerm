@@ -29,13 +29,6 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_datasource_windows_performance_counter" "example" {
-  object_name      = "CPU"
-  instance_name    = "*"
-  counter_name     = "CPU"
-  interval_seconds = 10
-}
-
 resource "azurerm_log_analytics_datasource_windows_event" "example" {
   name                = "example-lad-wpc"
   resource_group_name = azurerm_resource_group.example.name
