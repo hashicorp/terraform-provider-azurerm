@@ -10,9 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -137,7 +135,9 @@ func resourceArmServiceBusNamespaceNetworkRuleSetCreateUpdate(d *schema.Resource
 
 	sku := resp.Sku
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	// NOTE: this resource intentionally doesn't support Requires Import
+	//       since a network rule set   is created by default
+	/*if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetNetworkRuleSet(ctx, resourceGroup, namespaceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -148,7 +148,7 @@ func resourceArmServiceBusNamespaceNetworkRuleSetCreateUpdate(d *schema.Resource
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", *existing.ID)
 		}
-	}
+	}*/
 
 	if hasRuleSets {
 		rulesets := servicebus.NetworkRuleSet{
