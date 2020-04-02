@@ -2,6 +2,8 @@ package tests
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -14,6 +16,12 @@ import (
 )
 
 func TestAccAzureRMDataBoxJob_basic(t *testing.T) {
+	location, err := testGetLocationFromSubscription()
+	if err != nil {
+		t.Skip(fmt.Sprintf("%+v", err))
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databox_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -22,7 +30,7 @@ func TestAccAzureRMDataBoxJob_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataBoxJob_basic(data),
+				Config: testAccAzureRMDataBoxJob_basic(data, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataBoxJobExists(data.ResourceName),
 				),
@@ -33,6 +41,11 @@ func TestAccAzureRMDataBoxJob_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataBoxJob_complete(t *testing.T) {
+	location, err := testGetLocationFromSubscription()
+	if err != nil {
+		t.Skip(fmt.Sprintf("%+v", err))
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_databox_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +54,7 @@ func TestAccAzureRMDataBoxJob_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataBoxJob_complete(data),
+				Config: testAccAzureRMDataBoxJob_complete(data, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataBoxJobExists(data.ResourceName),
 				),
@@ -52,6 +65,12 @@ func TestAccAzureRMDataBoxJob_complete(t *testing.T) {
 }
 
 func TestAccAzureRMDataBoxJob_requiresImport(t *testing.T) {
+	location, err := testGetLocationFromSubscription()
+	if err != nil {
+		t.Skip(fmt.Sprintf("%+v", err))
+		return
+	}
+
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -65,7 +84,7 @@ func TestAccAzureRMDataBoxJob_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataBoxJob_basic(data),
+				Config: testAccAzureRMDataBoxJob_basic(data, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataBoxJobExists(data.ResourceName),
 				),
@@ -76,6 +95,12 @@ func TestAccAzureRMDataBoxJob_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDataBoxJob_update(t *testing.T) {
+	location, err := testGetLocationFromSubscription()
+	if err != nil {
+		t.Skip(fmt.Sprintf("%+v", err))
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databox_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -84,7 +109,7 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataBoxJob_complete(data),
+				Config: testAccAzureRMDataBoxJob_complete(data, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataBoxJobExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.name", "DataBoxJobTester"),
@@ -111,7 +136,7 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 			},
 			data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
 			{
-				Config: testAccAzureRMDataBoxJob_update(data),
+				Config: testAccAzureRMDataBoxJob_update(data, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataBoxJobExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "contact_details.0.name", "DataBoxJobTester2"),
@@ -142,6 +167,12 @@ func TestAccAzureRMDataBoxJob_update(t *testing.T) {
 }
 
 func TestAccAzureRMDataBoxJob_withCustomerManaged(t *testing.T) {
+	location, err := testGetLocationFromSubscription()
+	if err != nil {
+		t.Skip(fmt.Sprintf("%+v", err))
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databox_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -150,7 +181,7 @@ func TestAccAzureRMDataBoxJob_withCustomerManaged(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataBoxJob_withCustomerManaged(data),
+				Config: testAccAzureRMDataBoxJob_withCustomerManaged(data, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataBoxJobExists(data.ResourceName),
 				),
@@ -212,8 +243,23 @@ func testCheckAzureRMDataBoxJobDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataBoxJob_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDataBoxJob_template(data)
+func testGetLocationFromSubscription() (string, error) {
+	subscription := strings.ToLower(os.Getenv("ARM_SUBSCRIPTION_ID"))
+	location := ""
+
+	if strings.HasPrefix(subscription, "67a9759d") || strings.HasPrefix(subscription, "85b3dbca") {
+		location = "westus"
+	} else if strings.HasPrefix(subscription, "1a6092a6") || strings.HasPrefix(subscription, "88720cb0") {
+		location = "westcentralus"
+	} else {
+		return "", fmt.Errorf("Skipping since test is not running as one of the four valid subscriptions allowed to run DataBox tests")
+	}
+
+	return location, nil
+}
+
+func testAccAzureRMDataBoxJob_basic(data acceptance.TestData, location string) string {
+	template := testAccAzureRMDataBoxJob_template(data, location)
 	return fmt.Sprintf(`
 %s
 
@@ -248,6 +294,11 @@ resource "azurerm_databox_job" "test" {
 }
 
 func testAccAzureRMDataBoxJob_requiresImport(data acceptance.TestData) string {
+	location, err := testGetLocationFromSubscription()
+	if err != nil {
+		return ""
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -278,11 +329,11 @@ resource "azurerm_databox_job" "import" {
 
   sku_name = "DataBox"
 }
-`, testAccAzureRMDataBoxJob_basic(data))
+`, testAccAzureRMDataBoxJob_basic(data, location))
 }
 
-func testAccAzureRMDataBoxJob_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDataBoxJob_template(data)
+func testAccAzureRMDataBoxJob_complete(data acceptance.TestData, location string) string {
+	template := testAccAzureRMDataBoxJob_template(data, location)
 	return fmt.Sprintf(`
 %s
 
@@ -362,8 +413,8 @@ resource "azurerm_databox_job" "test" {
 `, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMDataBoxJob_update(data acceptance.TestData) string {
-	template := testAccAzureRMDataBoxJob_template(data)
+func testAccAzureRMDataBoxJob_update(data acceptance.TestData, location string) string {
+	template := testAccAzureRMDataBoxJob_template(data, location)
 	return fmt.Sprintf(`
 %s
 
@@ -443,8 +494,8 @@ resource "azurerm_databox_job" "test" {
 `, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMDataBoxJob_withCustomerManaged(data acceptance.TestData) string {
-	template := testAccAzureRMDataBoxJob_template(data)
+func testAccAzureRMDataBoxJob_withCustomerManaged(data acceptance.TestData, location string) string {
+	template := testAccAzureRMDataBoxJob_template(data, location)
 	return fmt.Sprintf(`
 %s
 
@@ -479,7 +530,7 @@ resource "azurerm_databox_job" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMDataBoxJob_template(data acceptance.TestData) string {
+func testAccAzureRMDataBoxJob_template(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -499,5 +550,5 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "RAGRS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, location, data.RandomString)
 }
