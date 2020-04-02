@@ -212,9 +212,8 @@ resource "azurerm_peer_asn" "import" {
 }
 
 func testAccAzureRMPeerAsn_template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
+	return `provider "azurerm" {
   features {}
 }
-`)
+`
 }
