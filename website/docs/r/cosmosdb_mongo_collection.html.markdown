@@ -45,7 +45,16 @@ The following arguments are supported:
 * `database_name` - (Required) The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
 * `default_ttl_seconds` - (Required) The default Time To Live in seconds. If the value is `0` items are not automatically expired.
 * `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys.
+* `index` - (Optional) One `index` block as defined below.
 * `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+
+---
+
+The `index` block exports the following:
+
+* `keys` - (Required) Specifies the set of keys for each Cosmos DB Mongo Collection.
+
+* `unique` - (Optional) Is the index unique or not? Defaults to `true`.
 
 ## Attributes Reference
 
