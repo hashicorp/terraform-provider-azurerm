@@ -99,7 +99,7 @@ The `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - The host key algorithm.
 
-* `strict_host_key_checking_enabled` - Indicates whether the Config Server instance will fail to start when leveraging the private host-key.
+* `strict_host_key_checking_enabled` - Indicates whether the Config Server instance will fail to start if the host_key does not match.
 
 ## Timeouts
 

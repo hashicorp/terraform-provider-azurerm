@@ -1,3 +1,4 @@
+---
 subcategory: "App Platform"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_service"
@@ -106,7 +107,7 @@ The `ssh_auth` block supports the following:
 
 * `host_key_algorithm` - (Optional) The host key algorithm, should be `ssh-dss`, `ssh-rsa`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`. Required only if `host-key` exists.
 
-* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start when leveraging the private host-key.
+* `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match.
 
 ## Attributes Reference
 

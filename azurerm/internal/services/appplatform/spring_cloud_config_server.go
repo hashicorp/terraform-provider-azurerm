@@ -68,6 +68,7 @@ func SchemaConfigServerSSHAuth(conflictsWith ...string) *schema.Schema {
 				"strict_host_key_checking_enabled": {
 					Type:     schema.TypeBool,
 					Optional: true,
+					Default:  true,
 				},
 			},
 		},
