@@ -78,6 +78,26 @@ func TestAccAzureRMRouteFilter_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRouteFilter_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRouteFilter_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteFilterExists(data.ResourceName),
+					testCheckAzureRMRouteFilterDisappears(data.ResourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRouteFilter_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 
@@ -343,10 +363,10 @@ resource "azurerm_route_filter" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   rule {
-    name      = "acctestrule%d"
-    access    = "Allow"
-    rule_type = "Community"
-    communities = ["12076:53005","12076:53006"]
+    name        = "acctestrule%d"
+    access      = "Allow"
+    rule_type   = "Community"
+    communities = ["12076:53005", "12076:53006"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -369,10 +389,10 @@ resource "azurerm_route_filter" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   rule {
-    name      = "acctestrule%d"
-    access    = "Allow"
-    rule_type = "Community"
-    communities = ["12076:52005","12076:52006"]
+    name        = "acctestrule%d"
+    access      = "Allow"
+    rule_type   = "Community"
+    communities = ["12076:52005", "12076:52006"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

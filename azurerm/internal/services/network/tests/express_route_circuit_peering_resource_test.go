@@ -125,7 +125,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpda
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testing.T) {
+func TestAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -420,10 +420,10 @@ resource "azurerm_route_filter" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   rule {
-    name      = "acctestrule%d"
-    access    = "Allow"
-    rule_type = "Community"
-    communities = ["12076:52005","12076:52006"]
+    name        = "acctestrule%d"
+    access      = "Allow"
+    rule_type   = "Community"
+    communities = ["12076:52005", "12076:52006"]
   }
 }
 
