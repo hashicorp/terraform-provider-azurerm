@@ -57,27 +57,21 @@ func resourceArmLogAnalyticsDataSourceIIS() *schema.Resource {
 				ValidateFunc:     ValidateAzureRmLogAnalyticsWorkspaceName,
 			},
 
-			"state": {
-				Type:     schema.TypeString,
+			"on_premise_enabled": {
+				Type:     schema.TypeBool,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(dataSourceIISStateOnPremiseEnabled),
-					string(dataSourceIISStateOnPremiseDisabled),
-				}, false),
 			},
 		},
 	}
 }
 
-type dataSourceIISState string
-
 const (
-	dataSourceIISStateOnPremiseEnabled  dataSourceIISState = "OnPremiseEnabled"
-	dataSourceIISStateOnPremiseDisabled dataSourceIISState = "OnPremiseDisabled"
+	dataSourceIISStateOnPremiseEnabled  = "OnPremiseEnabled"
+	dataSourceIISStateOnPremiseDisabled = "OnPremiseDisabled"
 )
 
 type dataSourceIISProperty struct {
-	State dataSourceIISState `json:"state"`
+	State string `json:"state"`
 }
 
 func resourceArmLogAnalyticsDataSourceIISCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -102,10 +96,14 @@ func resourceArmLogAnalyticsDataSourceIISCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
+	state := dataSourceIISStateOnPremiseDisabled
+	if d.Get("on_premise_enabled").(bool) {
+		state = dataSourceIISStateOnPremiseEnabled
+	}
 	param := operationalinsights.DataSource{
 		Kind: operationalinsights.IISLogs,
 		Properties: &dataSourceIISProperty{
-			State: dataSourceIISState(d.Get("state").(string)),
+			State: state,
 		},
 	}
 
@@ -160,7 +158,11 @@ func resourceArmLogAnalyticsDataSourceIISRead(d *schema.ResourceData, meta inter
 			return fmt.Errorf("failed to decode properties json for Log Analytics DataSource IIS %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
 
-		d.Set("state", prop.State)
+		onPremiseEnabled := false
+		if prop.State == dataSourceIISStateOnPremiseEnabled {
+			onPremiseEnabled = true
+		}
+		d.Set("on_premise_enabled", onPremiseEnabled)
 	}
 
 	return nil

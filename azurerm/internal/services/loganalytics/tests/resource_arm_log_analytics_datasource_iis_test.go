@@ -160,10 +160,10 @@ func testAccAzureRMLogAnalyticsDataSourceIIS_basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_log_analytics_datasource_iis" "test" {
-  name = "acctestLADS-IIS-%d"
+  name                = "acctestLADS-IIS-%d"
   resource_group_name = azurerm_resource_group.test.name
-  workspace_name = azurerm_log_analytics_workspace.test.name
-  state = "OnPremiseEnabled"
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+  on_premise_enabled  = true
 }
 `, template, data.RandomInteger)
 }
@@ -174,10 +174,10 @@ func testAccAzureRMLogAnalyticsDataSourceIIS_complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_log_analytics_datasource_iis" "test" {
-  name = "acctestLADS-IIS-%d"
+  name                = "acctestLADS-IIS-%d"
   resource_group_name = azurerm_resource_group.test.name
-  workspace_name = azurerm_log_analytics_workspace.test.name
-  state = "OnPremiseDisabled"
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+  on_premise_enabled  = false
 }
 `, template, data.RandomInteger)
 }
@@ -188,10 +188,10 @@ func testAccAzureRMLogAnalyticsDataSourceIIS_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_log_analytics_datasource_iis" "import" {
-  name = azurerm_log_analytics_datasource_iis.test.name
+  name                = azurerm_log_analytics_datasource_iis.test.name
   resource_group_name = azurerm_log_analytics_datasource_iis.test.resource_group_name
-  workspace_name = azurerm_log_analytics_datasource_iis.test.workspace_name
-  state = azurerm_log_analytics_datasource_iis.test.state
+  workspace_name      = azurerm_log_analytics_datasource_iis.test.workspace_name
+  on_premise_enabled  = azurerm_log_analytics_datasource_iis.test.on_premise_enabled
 }
 `, template)
 }
