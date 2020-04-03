@@ -644,7 +644,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 
-	if err := validateKubernetesCluster(d, existing.ManagedClusterProperties, id.ResourceGroup, id.Name); err != nil {
+	if err := validateKubernetesCluster(d, &existing, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
 

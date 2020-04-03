@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice.ManagedClusterProperties, resourceGroup, name string) error {
+func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice.ManagedCluster, resourceGroup, name string) error {
 	if v, exists := d.GetOk("network_profile"); exists {
 		rawProfiles := v.([]interface{})
 
@@ -53,10 +53,12 @@ func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice
 		// defined locally, if so, we need to error out
 		if cluster != nil {
 			servicePrincipalExists := false
-			if props := cluster.ServicePrincipalProfile; props != nil {
-				if cid := props.ClientID; cid != nil {
-					// if it's MSI we ignore the block
-					servicePrincipalExists = !strings.EqualFold(*cid, "msi")
+			if props := cluster.ManagedClusterProperties; props != nil {
+				if sp := props.ServicePrincipalProfile; sp != nil {
+					if cid := sp.ClientID; cid != nil {
+						// if it's MSI we ignore the block
+						servicePrincipalExists = !strings.EqualFold(*cid, "msi")
+					}
 				}
 			}
 
@@ -84,9 +86,11 @@ func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice
 	} else {
 		// for an existing cluster
 		servicePrincipalIsMsi := false
-		if props := cluster.ServicePrincipalProfile; props != nil {
-			if cid := props.ClientID; cid != nil {
-				servicePrincipalIsMsi = strings.EqualFold(*cid, "msi")
+		if props := cluster.ManagedClusterProperties; props != nil {
+			if sp := props.ServicePrincipalProfile; sp != nil {
+				if cid := sp.ClientID; cid != nil {
+					servicePrincipalIsMsi = strings.EqualFold(*cid, "msi")
+				}
 			}
 		}
 
@@ -95,9 +99,16 @@ func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice
 			return existingClusterHasBeenUpgradedErr
 		}
 
-		// there's a Service Principal block and an Identity block present - but it hasn't been upgraded
-		// tell the user to update it
-		return existingClusterRequiresUpgradingErr(resourceGroup, name)
+		hasIdentity := false
+		if identity := cluster.Identity; identity != nil {
+			hasIdentity = identity.Type != containerservice.None
+		}
+
+		if hasIdentity {
+			// there's a Service Principal block and an Identity block present - but it hasn't been upgraded
+			// tell the user to update it
+			return existingClusterRequiresUpgradingErr(resourceGroup, name)
+		}
 	}
 
 	return nil
