@@ -69,11 +69,20 @@ func TestAccAzureRMPrivateDnsTxtRecord_updateRecords(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "2"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMPrivateDnsTxtRecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsTxtRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "3"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPrivateDnsTxtRecord_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateDnsTxtRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "2"),
 				),
 			},
 		},
