@@ -68,7 +68,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"max_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(1, 100),
+					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"max_pods": {
@@ -81,7 +81,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"min_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(1, 100),
+					ValidateFunc: validation.IntBetween(0, 100),
 				},
 
 				"node_count": {
