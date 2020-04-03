@@ -144,7 +144,7 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							},
 						},
 
-    					"vm_size": {
+						"vm_size": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -161,10 +161,10 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
-// AT LEAST         	"os_type": {
-// NOT IN MANUAL		Type:     schema.TypeString,
-// 							Computed: true,
-// 						},
+						// AT LEAST         	"os_type": {
+						// NOT IN MANUAL		Type:     schema.TypeString,
+						// 							Computed: true,
+						// 						},
 
 						"max_pods": {
 							Type:     schema.TypeInt,
