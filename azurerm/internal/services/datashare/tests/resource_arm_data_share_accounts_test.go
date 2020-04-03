@@ -16,7 +16,7 @@ import (
 func TestAccAzureRMDataShareAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
@@ -24,8 +24,7 @@ func TestAccAzureRMDataShareAccount_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMDataShareAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
+					testCheckAzureRMDataShareAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -47,8 +46,7 @@ func TestAccAzureRMDataShareAccount_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMDataShareAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
+					testCheckAzureRMDataShareAccountExists(data.ResourceName),
 				),
 			},
 			{
@@ -69,32 +67,20 @@ func TestAccAzureRMDataShareAccount_complete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShareAccount_complete(data),
-				Check:  resource.ComposeTestCheckFunc(),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMDataShareAccount_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataShareAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
+					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "Test"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataShareAccount_complete(data),
-				Check:  resource.ComposeTestCheckFunc(),
+				Config: testAccAzureRMDataShareAccount_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "Stage"),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -146,17 +132,27 @@ func testCheckAzureRMDataShareAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccAzureRMDataShareAccount_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-datashare-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func testAccAzureRMDataShareAccount_basic(data acceptance.TestData) string {
 	template := testAccAzureRMDataShareAccount_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_data_share_account" "test" {
-  name = "acctest-dsa-%d"
-  location = azurerm_resource_group.test.location
+  name                = "acctest-dsa-%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  tags = {
-    ENV = "Test"
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -165,11 +161,11 @@ func testAccAzureRMDataShareAccount_requiresImport(data acceptance.TestData) str
 	config := testAccAzureRMDataShareAccount_basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_data_share_account" "import" {
-  name = azurerm_data_share_account.test.name
-  location = azurerm_data_share_account.test.location
-  resource_group_name = azurerm_data_share_account.test.resource_group_name
-  tags = azurerm_data_share_account.test.tags
+  name                = azurerm_data_share_account.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, config)
 }
@@ -178,25 +174,30 @@ func testAccAzureRMDataShareAccount_complete(data acceptance.TestData) string {
 	template := testAccAzureRMDataShareAccount_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_data_share_account" "test" {
-  name = "acctest-dsa-%d"
-  location = azurerm_resource_group.test.location
+  name                = "acctest-dsa-%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tags = {
-    ENV = "Test"
+    env = "Test"
   }
 }
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataShareAccount_template(data acceptance.TestData) string {
+func testAccAzureRMDataShareAccount_update(data acceptance.TestData) string {
+	template := testAccAzureRMDataShareAccount_template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+%s
+
+resource "azurerm_data_share_account" "test" {
+  name                = "acctest-dsa-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    env = "Stage"
+  }
 }
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
-  location = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }

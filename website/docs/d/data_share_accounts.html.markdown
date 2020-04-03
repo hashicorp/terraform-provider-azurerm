@@ -15,8 +15,9 @@ Uses this data source to access information about an existing DataShare Account
 
 ```hcl
 data "azurerm_data_share_account" "example" {
-  name = "example-account"
+  name                = "example-account"
   resource_group_name = "example-resource-group"
+}
 
 output "data_share_account_id" {
   value = data.azurerm_data_share_account.example.id
@@ -35,9 +36,9 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `name` - Specifies the name of the DataShare Account.
+* `id` - The Data Share Account ID.
 
-* `id` - The ID of DataShare Account.
+* `tags` - A mapping of tags to assign to the resource.
 
 ## Timeouts
 

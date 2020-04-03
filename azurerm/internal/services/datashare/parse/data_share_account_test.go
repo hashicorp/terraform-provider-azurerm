@@ -37,7 +37,7 @@ func TestDataShareAccountID(t *testing.T) {
 		},
 		{
 			Name:  "Datashare account ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1",
 			Expected: &DataShareAccountId{
 				Name:          "account1",
 				ResourceGroup: "resGroup1",

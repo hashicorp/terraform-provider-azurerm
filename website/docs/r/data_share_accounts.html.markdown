@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_data_share_account" "example" {
-  name = "example-dsa"
-  location = azurerm_resource_group.example.location
+  name                = "example-dsa"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   tags = {
     foo = "bar"
@@ -40,13 +40,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the DataShare Account should exist. Changing this forces a new resource to be created.
 
-* `created_at` - (Optional) Time at which the account was created.
-
-* `user_email` - (Optional) Email of the user who created the resource.
-
-* `user_name` - (Optional) Name of the user who created the resource.
-
-* `tags` - (Required) Tags on the azure resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 ---
 
 ## Attributes Reference

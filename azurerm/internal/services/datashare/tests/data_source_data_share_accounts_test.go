@@ -19,6 +19,8 @@ func TestAccDataSourceAzureRMDataShareAccount_basic(t *testing.T) {
 				Config: testAccDataSourceDataShareAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "Test"),
 				),
 			},
 		},
@@ -26,10 +28,12 @@ func TestAccDataSourceAzureRMDataShareAccount_basic(t *testing.T) {
 }
 
 func testAccDataSourceDataShareAccount_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareAccount_basic(data)
+	config := testAccAzureRMDataShareAccount_complete(data)
 	return fmt.Sprintf(`
 %s
 data "azurerm_data_shareaccount" "test" {
+  name                = azurerm_data_share_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, config)
 }
