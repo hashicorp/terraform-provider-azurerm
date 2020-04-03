@@ -106,7 +106,7 @@ func resourceArmPeerAsnCreateUpdate(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if resp.ID != nil && *resp.ID != "" {
 			return tf.ImportAsExistsError("azurerm_peer_asn", *resp.ID)
 		}
 	}
