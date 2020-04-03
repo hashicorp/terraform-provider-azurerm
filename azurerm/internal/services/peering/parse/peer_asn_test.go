@@ -37,6 +37,11 @@ func TestPeerAsnID(t *testing.T) {
 			Error: true,
 		},
 		{
+			Name:  "Unexpected casing of peerasn segment",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Peering/peerasns/peerasn1",
+			Error: true,
+		},
+		{
 			Name:  "Complete id",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Peering/peerAsns/peerasn1",
 			Expect: &PeerAsnId{

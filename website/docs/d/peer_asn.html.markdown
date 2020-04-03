@@ -13,6 +13,10 @@ Use this data source to access information about an existing Peer ASN.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_peer_asn" "example" {
   name = "existing"
 }

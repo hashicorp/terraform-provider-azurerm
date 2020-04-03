@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `asn` - (Required) The public Atonomous System Number. Changing this forces a new Peer ASN to be created.
 
-* `contact` - (Required) One or more `contact` block as defined below.
+* `contact` - (Required) One or more `contact` blocks as defined below.
 
 * `peer_name` - (Required) The name of the Peer, which needs to be as close as possible to your PeeringDB profile.
 

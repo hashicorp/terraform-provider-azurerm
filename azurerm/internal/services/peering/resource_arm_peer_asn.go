@@ -49,7 +49,7 @@ func resourceArmPeerAsn() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IntAtMost(math.MaxUint16),
+				ValidateFunc: validation.IntBetween(0, math.MaxUint16),
 			},
 
 			"contact": {
@@ -74,10 +74,9 @@ func resourceArmPeerAsn() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"phone": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							Default:      "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "",
 						},
 					},
 				},
@@ -103,7 +102,7 @@ func resourceArmPeerAsnCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		resp, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("failed to check for existing Peer Asn  %q: %+v", name, err)
+				return fmt.Errorf("failed to check for existing Peer Asn %q: %+v", name, err)
 			}
 		}
 
@@ -148,18 +147,20 @@ func resourceArmPeerAsnRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Peer Asn  %q was not found - removing from state!", id.Name)
+			log.Printf("[DEBUG] Peer Asn %q was not found - removing from state!", id.Name)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("failed to retrieve Peer Asn  %q: %+v", id.Name, err)
+		return fmt.Errorf("failed to retrieve Peer Asn %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
 	if props := resp.PeerAsnProperties; props != nil {
 		d.Set("asn", props.PeerAsn)
-		d.Set("contact", flattenPeerContact(props.PeerContactDetail))
+		if err := d.Set("contact", flattenPeerContact(props.PeerContactDetail)); err != nil {
+			return fmt.Errorf("failed to set `contact`: %+v", err)
+		}
 		d.Set("peer_name", props.PeerName)
 	}
 
