@@ -163,7 +163,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw)
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
-	t := d.Get("tags").(map[string]interface{})
+	t := raw["tags"].(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),

@@ -402,8 +402,14 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		if minCount > maxCount {
 			return fmt.Errorf("`max_count` must be >= `min_count`")
 		}
-	} else if minCount > 0 || maxCount > 0 {
-		return fmt.Errorf("`max_count` and `min_count` must be set to `0` when enable_auto_scaling is set to `false`")
+	} else {
+		if minCount > 0 || maxCount > 0 {
+			return fmt.Errorf("`max_count` and `min_count` must be set to `nil` when enable_auto_scaling is set to `false`")
+		}
+
+		// @tombuildsstuff: as of API version 2019-11-01 we need to explicitly nil these out
+		props.MaxCount = nil
+		props.MinCount = nil
 	}
 
 	log.Printf("[DEBUG] Updating existing Node Pool %q (Kubernetes Cluster %q / Resource Group %q)..", id.Name, id.ClusterName, id.ResourceGroup)

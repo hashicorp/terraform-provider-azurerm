@@ -44,7 +44,7 @@ func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Staging"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
 				),
 			},
 			data.ImportStep(),
@@ -926,7 +926,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   tags = {
-    Environment = "Staging"
+    environment = "Staging"
   }
 }
 `, template)
