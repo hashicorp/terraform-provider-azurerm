@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
 
+* `disable_ip_masking` - (Optional) In order to enable IP collection and storage this property must be set to true. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
