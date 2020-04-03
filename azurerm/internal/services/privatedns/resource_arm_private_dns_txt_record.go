@@ -163,7 +163,7 @@ func resourceArmPrivateDnsTxtRecordRead(d *schema.ResourceData, meta interface{}
 	d.Set("fqdn", resp.Fqdn)
 
 	if err := d.Set("record", flattenAzureRmPrivateDnsTxtRecords(resp.TxtRecords)); err != nil {
-		return err
+		return fmt.Errorf("setting `record`: %s", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Metadata)
