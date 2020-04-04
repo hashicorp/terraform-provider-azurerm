@@ -60,6 +60,29 @@ func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCognitiveAccount_cognitiveServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCognitiveAccount_cognitiveServices(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "CognitiveServices"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -274,6 +297,28 @@ resource "azurerm_cognitive_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "SpeechServices"
+
+  sku_name = "S0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMCognitiveAccount_cognitiveServices(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "CognitiveServices"
 
   sku_name = "S0"
 }
