@@ -158,18 +158,15 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties: &cognitiveservices.AccountAPIProperties{},
+			APIProperties: &cognitiveservices.AccountAPIProperties{
+				QnaRuntimeEndpoint: utils.String(d.Get("qna_runtime_endpoint").(string)),
+			},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if kind == "QnAMaker" && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
 		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
-	}
-
-	qnaRuntimeEndpoint, exists := d.GetOk("qna_runtime_endpoint")
-	if exists {
-		props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(qnaRuntimeEndpoint.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
