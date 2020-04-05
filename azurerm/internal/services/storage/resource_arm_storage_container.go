@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
@@ -136,7 +135,6 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 				}
 			}
 		}
-
 	}
 
 	log.Printf("[INFO] Creating Container %q in Storage Account %q", containerName, accountName)
@@ -292,38 +290,6 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func getBlobContainerPropertiesByAzure(accessLevelRaw string, metaDataRaw map[string]interface{}) (*storage.BlobContainer, error) {
-	// For backward compatibility, raw access value has to be converted.
-	// expandAzureStorageContainerAccessLevel will an empty string if it cannot find a value
-	// that maps to a storage.PublicAccess value.
-	// Therefore, if parsed value is an empty string, we are facing an error.
-	// It does not seem to be a good way, but it is the cost to use switch.
-	accessLevel := expandStorageContainerAccessLevelByAzure(accessLevelRaw)
-	if string(accessLevel) == "" {
-		return nil, fmt.Errorf("Error parse %q to a Azure blob container access level", accessLevelRaw)
-	}
-
-	metaData := expandMetaDataByAzure(metaDataRaw)
-
-	return &storage.BlobContainer{
-		ContainerProperties: &storage.ContainerProperties{
-			PublicAccess: accessLevel,
-			Metadata:     metaData,
-		},
-	}, nil
-}
-
-func getBlobContainerPropertiesByGiovanni(accessLevelRaw string, metaDataRaw map[string]interface{}) containers.CreateInput {
-	accessLevel := expandStorageContainerAccessLevelByGiovanni(accessLevelRaw)
-
-	metaData := ExpandMetaData(metaDataRaw)
-
-	return containers.CreateInput{
-		AccessLevel: accessLevel,
-		MetaData:    metaData,
-	}
-}
-
 func expandStorageContainerAccessLevelByAzure(input string) storage.PublicAccess {
 	switch input {
 	case "private":
@@ -348,12 +314,6 @@ func flattenStorageContainerAccessLevelByAzure(input storage.PublicAccess) strin
 	default:
 		return string(input)
 	}
-}
-
-func getResourceIdByAzure(baseUri, accountName, containerName string) string {
-	// For backforward compatible, generate resource ID in the same way as giovanni's.
-	domain := parsers.GetBlobEndpoint(baseUri, accountName)
-	return fmt.Sprintf("%s/%s", domain, containerName)
 }
 
 func expandMetaDataByAzure(input map[string]interface{}) map[string]*string {

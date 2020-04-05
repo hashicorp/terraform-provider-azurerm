@@ -98,7 +98,6 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 		resourceManagerId := giovanniClient.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
 		d.Set("resource_manager_id", resourceManagerId)
-
 	} else {
 		gvnProps, err := giovanniClient.GetProperties(ctx, accountName, containerName)
 		if err != nil {
@@ -118,7 +117,6 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 			resourceManagerId := giovanniClient.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
 			d.Set("resource_manager_id", resourceManagerId)
-
 		} else {
 			gvnPropsErr := setContainerPropertiesByGiovanni(gvnProps, d)
 			if gvnPropsErr != nil {
