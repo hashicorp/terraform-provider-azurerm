@@ -1,5 +1,5 @@
 ---
-subcategory: "App Platform"
+subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_service"
 description: |-
