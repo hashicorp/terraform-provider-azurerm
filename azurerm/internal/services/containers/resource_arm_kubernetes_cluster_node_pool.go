@@ -91,9 +91,10 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"max_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 100),
+				Type:     schema.TypeInt,
+				Optional: true,
+				// NOTE: rather than setting `0` users should instead pass `null` here
+				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
 			"max_pods": {
@@ -104,9 +105,10 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"min_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 100),
+				Type:     schema.TypeInt,
+				Optional: true,
+				// NOTE: rather than setting `0` users should instead pass `null` here
+				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
 			"node_labels": {
@@ -277,7 +279,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 			return fmt.Errorf("`max_count` must be >= `min_count`")
 		}
 	} else if minCount > 0 || maxCount > 0 {
-		return fmt.Errorf("`max_count` and `min_count` must be set to `0` when enable_auto_scaling is set to `false`")
+		return fmt.Errorf("`max_count` and `min_count` must be set to `null` when enable_auto_scaling is set to `false`")
 	}
 
 	parameters := containerservice.AgentPool{

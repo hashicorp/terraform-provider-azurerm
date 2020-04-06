@@ -66,8 +66,9 @@ func SchemaDefaultNodePool() *schema.Schema {
 				},
 
 				"max_count": {
-					Type:         schema.TypeInt,
-					Optional:     true,
+					Type:     schema.TypeInt,
+					Optional: true,
+					// NOTE: rather than setting `0` users should instead pass `null` here
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -79,8 +80,9 @@ func SchemaDefaultNodePool() *schema.Schema {
 				},
 
 				"min_count": {
-					Type:         schema.TypeInt,
-					Optional:     true,
+					Type:     schema.TypeInt,
+					Optional: true,
+					// NOTE: rather than setting `0` users should instead pass `null` here
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
