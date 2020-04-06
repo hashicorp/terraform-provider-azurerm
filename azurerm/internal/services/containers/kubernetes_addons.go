@@ -25,7 +25,7 @@ const (
 // as such unfortunately we can't just send "disabled" - we need to strip
 // the unsupported addons from the HTTP response. As such this defines
 // the list of unsupported addons in the defined region - e.g. by being
-// omited from this list an addon/environment combination will be supported
+// omitted from this list an addon/environment combination will be supported
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5510
