@@ -854,11 +854,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                  = "acctestaks%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  dns_prefix            = "acctestaks%d"
-  private_link_enabled  = %t
+  name                 = "acctestaks%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  dns_prefix           = "acctestaks%d"
+  private_link_enabled = %t
 
   linux_profile {
     admin_username = "acctestuser%d"
