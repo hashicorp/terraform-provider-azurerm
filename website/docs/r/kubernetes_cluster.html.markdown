@@ -146,11 +146,15 @@ A `addon_profile` block supports the following:
 
 * `aci_connector_linux` - (Optional) A `aci_connector_linux` block. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-portal).
 
+-> **NOTE:** At this time ACI Connector's are not supported in Azure China.
+
 * `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 -> **NOTE**: Azure Policy for Azure Kubernetes Service is currently in preview and not available to subscriptions that have not [opted-in](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks?toc=/azure/aks/toc.json) to join `Azure Policy` preview.
 
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
+
+-> **NOTE:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.
 
 * `kube_dashboard` - (Optional) A `kube_dashboard` block as defined below.
 
