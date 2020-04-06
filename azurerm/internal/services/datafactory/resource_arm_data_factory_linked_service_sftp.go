@@ -160,7 +160,7 @@ func resourceArmDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData,
 		Port:               port,
 		AuthenticationType: datafactory.SftpAuthenticationType(authenticationType),
 		UserName:           utils.String(username),
-		Password:           passwordSecureString,
+		Password:           &passwordSecureString,
 	}
 
 	description := d.Get("description").(string)

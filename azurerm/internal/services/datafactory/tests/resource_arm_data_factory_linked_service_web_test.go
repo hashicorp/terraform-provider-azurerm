@@ -26,7 +26,7 @@ func TestAccAzureRMDataFactoryLinkedServiceWeb_basic(t *testing.T) {
 					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("authentication_type", "url"),
 		},
 	})
 }
@@ -59,7 +59,7 @@ func TestAccAzureRMDataFactoryLinkedServiceWeb_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("authentication_type", "url"),
 		},
 	})
 }

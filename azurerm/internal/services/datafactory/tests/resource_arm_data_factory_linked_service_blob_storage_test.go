@@ -12,37 +12,37 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+func TestAccAzureRMDataFactoryLinkedServiceBlobStorage_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_blob_storage", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSFTPDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceBlobStorageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_basic(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceBlobStorage_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSFTPExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceBlobStorageExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("host", "port", "authentication_type", "username", "password"),
+			data.ImportStep("connection_string"),
 		},
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceSFTP_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+func TestAccAzureRMDataFactoryLinkedServiceBlobStorage_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_blob_storage", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSFTPDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceBlobStorageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_update1(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceBlobStorage_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSFTPExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceBlobStorageExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
@@ -50,21 +50,21 @@ func TestAccAzureRMDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_update2(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceBlobStorage_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSFTPExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceBlobStorageExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			data.ImportStep("host", "port", "authentication_type", "username", "password"),
+			data.ImportStep("connection_string"),
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceSFTPExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryLinkedServiceBlobStorageExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -88,19 +88,19 @@ func testCheckAzureRMDataFactoryLinkedServiceSFTPExists(name string) resource.Te
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service SFTP %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service BlobStorage %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceSFTPDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryLinkedServiceBlobStorageDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_sftp" {
+		if rs.Type != "azurerm_data_factory_linked_service_blob_storage" {
 			continue
 		}
 
@@ -115,14 +115,14 @@ func testCheckAzureRMDataFactoryLinkedServiceSFTPDestroy(s *terraform.State) err
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service SFTP still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service BlobStorage still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSFTP_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceBlobStorage_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -139,20 +139,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_sftp" "test" {
+resource "azurerm_data_factory_linked_service_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Basic"
-  host				  = "http://www.bing.com"
-  port				  = 22
-  username			  = "foo"
-  password			  = "bar"
+  connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSFTP_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceBlobStorage_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -169,15 +165,11 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_sftp" "test" {
+resource "azurerm_data_factory_linked_service_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Basic"
-  host				  = "http://www.bing.com"
-  port				  = 22
-  username			  = "foo"
-  password			  = "bar"
+  connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo2;AccountKey=bar"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
@@ -194,7 +186,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSFTP_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceBlobStorage_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -211,15 +203,12 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_sftp" "test" {
+resource "azurerm_data_factory_linked_service_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Basic"
-  host				  = "http://www.bing.com"
-  port				  = 22
-  username			  = "foo"
-  password			  = "bar"
+  
+  connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo3;AccountKey=bar"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
 
