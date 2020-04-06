@@ -71,28 +71,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"default_node_pool": SchemaDefaultNodePool(),
 
-			"service_principal": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"client_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: containerValidate.ClientID,
-						},
-
-						"client_secret": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
 			// Optional
 			"addon_profile": SchemaKubernetesAddOnProfiles(),
 
@@ -359,6 +337,28 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"service_principal": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: containerValidate.ClientID,
+						},
+
+						"client_secret": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
