@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/parse"
 )
 
@@ -30,24 +29,19 @@ func AdvisorSuppressionName() schema.SchemaValidateFunc {
 }
 
 func AdvisorSuppresionTTL(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
+	v, ok := i.(int)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
 		return warnings, errors
 	}
 
 	// -1 means dismiss the suppression forever
-	if v == "-1" {
+	if v == -1 {
 		return warnings, errors
 	}
 
-	ttl, err := helper.ParseAdvisorSuppresionTTL(v)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("not a valid %q: %v", k, err))
-		return warnings, errors
-	}
-	if ttl.IsZero() {
-		errors = append(errors, fmt.Errorf("expected %q not to be zero", k))
+	if v <0 || v> 2147472000 {
+		errors = append(errors, fmt.Errorf("%q is expected to be between 0 and 2147472000 or -1: %v", k))
 		return warnings, errors
 	}
 

@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"log"
 	"time"
-
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/validate"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -41,6 +39,7 @@ func resourceArmAdvisorSuppression() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.AdvisorSuppressionName(),
 			},
 
@@ -52,11 +51,10 @@ func resourceArmAdvisorSuppression() *schema.Resource {
 			},
 
 			"suppressed_duration": {
-				Type:             schema.TypeString,
+				Type:             schema.TypeInt,
 				Optional:         true,
-				Computed:         true,
+				Default:          -1,
 				ValidateFunc:     validate.AdvisorSuppresionTTL,
-				DiffSuppressFunc: advisorSuppressionTTLDiffSuppressFunc,
 			},
 		},
 	}
@@ -84,7 +82,7 @@ func resourceArmAdvisorSuppressionCreateUpdate(d *schema.ResourceData, meta inte
 
 	props := advisor.SuppressionContract{
 		SuppressionProperties: &advisor.SuppressionProperties{
-			TTL: utils.String(d.Get("suppressed_duration").(string)),
+			TTL: utils.String(helper.ConvertToAdvisorSuppresionTTL(d.Get("suppressed_duration").(int))),
 		},
 	}
 
@@ -132,7 +130,9 @@ func resourceArmAdvisorSuppressionRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", id.Name)
 	d.Set("recommendation_id", rResp.ID)
 	if props := resp.SuppressionProperties; props != nil {
-		d.Set("suppressed_duration", props.TTL)
+		if ttl := helper.ParseAdvisorSuppresionTTL(*props.TTL); ttl!=0{
+			d.Set("suppressed_duration", ttl)
+		}
 	}
 	return nil
 }
@@ -152,16 +152,4 @@ func resourceArmAdvisorSuppressionDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
-}
-
-func advisorSuppressionTTLDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	oldTTL, err := helper.ParseAdvisorSuppresionTTL(old)
-	if err != nil {
-		return false
-	}
-	newTTL, err := helper.ParseAdvisorSuppresionTTL(new)
-	if err != nil {
-		return false
-	}
-	return oldTTL.Equal(newTTL)
 }

@@ -222,7 +222,7 @@ provider "azurerm" {
 resource "azurerm_advisor_suppression" "test" {
   name                = "acctest-sp-%d"
   recommendation_id   = "%s"
-  suppressed_duration = "14"
+  suppressed_duration = "3000"
 }
 `, data.RandomInteger, recommendationId)
 }
@@ -234,9 +234,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_advisor_suppression" "test" {
-  name                = "acctest-sp2-%d"
+  name                = "acctest-sp-%d"
   recommendation_id   = "%s"
-  suppressed_duration = "7.10:30"
+  suppressed_duration = "259200"
 }
 `, data.RandomInteger, recommendationId)
 }
