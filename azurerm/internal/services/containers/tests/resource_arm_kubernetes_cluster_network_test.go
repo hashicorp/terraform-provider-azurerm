@@ -908,10 +908,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    max_pods       = 60
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+    max_pods   = 60
   }
 
   identity {
@@ -957,8 +957,8 @@ resource "azurerm_route_table" "test" {
   }
 
   route {
-    name = "second"
-    address_prefix = "0.0.0.0/0"
+    name                   = "second"
+    address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = "10.10.1.1"
   }
