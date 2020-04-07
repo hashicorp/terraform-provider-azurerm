@@ -88,6 +88,9 @@ func testAccAzureRMKubernetesCluster_managedClusterIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity_profile.0.kubelet_identity.0.client_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity_profile.0.kubelet_identity.0.object_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity_profile.0.kubelet_identity.0.resource_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_principal.%", "0"),
 				),
 			},
