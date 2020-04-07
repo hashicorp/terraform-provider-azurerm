@@ -282,6 +282,54 @@ func testAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t)
+}
+
+func testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_outboundTypeConfig(data, "loadBalancer"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_outboundTypeUserDefined(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_outboundTypeUserDefined(t)
+}
+
+func testAccAzureRMKubernetesCluster_outboundTypeUserDefined(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_outboundTypeConfig(data, "userDefinedRouting"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_privateLinkOn(t)
@@ -840,6 +888,47 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMKubernetesCluster_outboundTypeConfig(data acceptance.TestData, outboundType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    max_pods       = 60
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "kubenet"
+    load_balancer_sku  = "Basic"
+    pod_cidr           = "10.244.0.0/16"
+    service_cidr       = "10.0.0.0/16"
+    dns_service_ip     = "10.0.0.10"
+    docker_bridge_cidr = "172.17.0.1/16"
+    outbound_type      = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, outboundType)
 }
 
 func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, enablePrivateLink bool) string {

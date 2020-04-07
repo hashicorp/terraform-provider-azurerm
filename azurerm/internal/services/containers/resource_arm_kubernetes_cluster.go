@@ -230,12 +230,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"outbound_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(containerservice.LoadBalancer),
 							ForceNew: true,
+							Default:  string(containerservice.LoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.LoadBalancer),
 								string(containerservice.UserDefinedRouting),
-							}, true),
+							}, false),
 						},
 
 						"load_balancer_profile": {
