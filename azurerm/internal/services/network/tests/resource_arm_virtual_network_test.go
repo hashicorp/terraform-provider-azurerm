@@ -123,7 +123,11 @@ func TestAccAzureRMVirtualNetwork_subnetRouteTable(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet.1472110187.route_table"),
+					// Unfortunately, since the subnet hash is calculated using the ID of the route table,
+					// it is variable from run to run. So a test cannot specify the subnet hash to access
+					// it reliably. This can be tested maually by removing route table id from the hashing
+					// function, but otherwise should be left disabled.
+					// resource.TestCheckResourceAttrSet(data.ResourceName, "subnet.1472110187.route_table"),
 				),
 			},
 			data.ImportStep(),

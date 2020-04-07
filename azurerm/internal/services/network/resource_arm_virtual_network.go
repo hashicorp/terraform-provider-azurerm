@@ -460,6 +460,9 @@ func resourceAzureSubnetHash(v interface{}) int {
 			buf.WriteString(v.(string))
 		}
 
+		if v, ok := m["route_table"]; ok {
+			buf.WriteString(v.(string))
+		}
 	}
 
 	return hashcode.String(buf.String())
