@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
+
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
 
 -> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
@@ -92,7 +94,7 @@ The following arguments are supported:
 
 ---
 
-When `enable_auto_scaling` is set to `true` the following fields are applicable:
+If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
 
 * `max_count` - (Required) The maximum number of nodes which should exist within this Node Pool. Valid values are between `1` and `100` and must be greater than or equal to `min_count`.
 
@@ -102,7 +104,7 @@ When `enable_auto_scaling` is set to `true` the following fields are applicable:
 
 -> **NOTE:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
 
-When `enable_auto_scaling` is set to `false` the following fields are applicable:
+If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
 * `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `1` and `100`.
 

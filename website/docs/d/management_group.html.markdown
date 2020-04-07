@@ -14,7 +14,7 @@ Use this data source to access information about an existing Management Group.
 
 ```hcl
 data "azurerm_management_group" "example" {
-  group_id = "00000000-0000-0000-0000-000000000000"
+  name = "00000000-0000-0000-0000-000000000000"
 }
 
 output "display_name" {
@@ -26,7 +26,11 @@ output "display_name" {
 
 The following arguments are supported:
 
-* `group_id` - Specifies the UUID of this Management Group.
+* `name` - Specifies the name or UUID of this Management Group.
+
+* `group_id` - Specifies the name or UUID of this Management Group.
+
+~> **NOTE:** The field `group_id` has been deprecated in favor of `name`.
 
 ## Attributes Reference
 
