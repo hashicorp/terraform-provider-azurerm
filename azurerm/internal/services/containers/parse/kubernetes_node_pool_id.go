@@ -1,22 +1,22 @@
-package containers
+package parse
 
 import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type KubernetesNodePoolID struct {
+type KubernetesNodePoolId struct {
 	Name          string
 	ClusterName   string
 	ResourceGroup string
 }
 
-func ParseKubernetesNodePoolID(input string) (*KubernetesNodePoolID, error) {
+func KubernetesNodePoolID(input string) (*KubernetesNodePoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	pool := KubernetesNodePoolID{
+	pool := KubernetesNodePoolId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

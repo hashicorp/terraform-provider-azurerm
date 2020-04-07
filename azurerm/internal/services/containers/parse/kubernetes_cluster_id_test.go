@@ -1,4 +1,4 @@
-package containers
+package parse
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 func TestKubernetesClusterID(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *KubernetesClusterID
+		expected *KubernetesClusterId
 	}{
 		{
 			input:    "",
@@ -32,7 +32,7 @@ func TestKubernetesClusterID(t *testing.T) {
 		},
 		{
 			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/cluster1",
-			expected: &KubernetesClusterID{
+			expected: &KubernetesClusterId{
 				Name:          "cluster1",
 				ResourceGroup: "hello",
 			},
@@ -41,7 +41,7 @@ func TestKubernetesClusterID(t *testing.T) {
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := ParseKubernetesClusterID(v.input)
+		actual, err := KubernetesClusterID(v.input)
 
 		// if we get something there shouldn't be an error
 		if v.expected != nil && err == nil {

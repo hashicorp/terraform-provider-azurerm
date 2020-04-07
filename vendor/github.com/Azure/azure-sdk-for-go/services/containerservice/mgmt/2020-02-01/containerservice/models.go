@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-11-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
 
 // AgentPoolType enumerates the values for agent pool type.
 type AgentPoolType string
@@ -73,6 +73,21 @@ const (
 // PossibleLoadBalancerSkuValues returns an array of possible values for the LoadBalancerSku const type.
 func PossibleLoadBalancerSkuValues() []LoadBalancerSku {
 	return []LoadBalancerSku{Basic, Standard}
+}
+
+// NetworkMode enumerates the values for network mode.
+type NetworkMode string
+
+const (
+	// Bridge ...
+	Bridge NetworkMode = "bridge"
+	// Transparent ...
+	Transparent NetworkMode = "transparent"
+)
+
+// PossibleNetworkModeValues returns an array of possible values for the NetworkMode const type.
+func PossibleNetworkModeValues() []NetworkMode {
+	return []NetworkMode{Bridge, Transparent}
 }
 
 // NetworkPlugin enumerates the values for network plugin.
@@ -286,11 +301,13 @@ const (
 	Low ScaleSetPriority = "Low"
 	// Regular ...
 	Regular ScaleSetPriority = "Regular"
+	// Spot ...
+	Spot ScaleSetPriority = "Spot"
 )
 
 // PossibleScaleSetPriorityValues returns an array of possible values for the ScaleSetPriority const type.
 func PossibleScaleSetPriorityValues() []ScaleSetPriority {
-	return []ScaleSetPriority{Low, Regular}
+	return []ScaleSetPriority{Low, Regular, Spot}
 }
 
 // StorageProfileTypes enumerates the values for storage profile types.
@@ -1802,10 +1819,12 @@ type ManagedClusterAgentPoolProfile struct {
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Low', 'Regular'
+	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Low', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
+	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot or low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
+	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
+	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
 	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
 	Tags map[string]*string `json:"tags"`
 	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
@@ -1865,6 +1884,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.ScaleSetEvictionPolicy != "" {
 		objectMap["scaleSetEvictionPolicy"] = mcapp.ScaleSetEvictionPolicy
 	}
+	if mcapp.SpotMaxPrice != nil {
+		objectMap["spotMaxPrice"] = mcapp.SpotMaxPrice
+	}
 	if mcapp.Tags != nil {
 		objectMap["tags"] = mcapp.Tags
 	}
@@ -1907,10 +1929,12 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Low', 'Regular'
+	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Low', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
+	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot or low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
+	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
+	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
 	// Tags - Agent pool tags to be persisted on the agent pool virtual machine scale set.
 	Tags map[string]*string `json:"tags"`
 	// NodeLabels - Agent pool node labels to be persisted across all nodes in agent pool.
@@ -1966,6 +1990,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.ScaleSetEvictionPolicy != "" {
 		objectMap["scaleSetEvictionPolicy"] = mcappp.ScaleSetEvictionPolicy
+	}
+	if mcappp.SpotMaxPrice != nil {
+		objectMap["spotMaxPrice"] = mcappp.SpotMaxPrice
 	}
 	if mcappp.Tags != nil {
 		objectMap["tags"] = mcappp.Tags
@@ -2234,8 +2261,12 @@ type ManagedClusterProperties struct {
 	NetworkProfile *NetworkProfileType `json:"networkProfile,omitempty"`
 	// AadProfile - Profile of Azure Active Directory configuration.
 	AadProfile *ManagedClusterAADProfile `json:"aadProfile,omitempty"`
+	// AutoScalerProfile - Parameters to be applied to the cluster-autoscaler when enabled
+	AutoScalerProfile *ManagedClusterPropertiesAutoScalerProfile `json:"autoScalerProfile,omitempty"`
 	// APIServerAccessProfile - Access profile for managed cluster API server.
 	APIServerAccessProfile *ManagedClusterAPIServerAccessProfile `json:"apiServerAccessProfile,omitempty"`
+	// DiskEncryptionSetID - ResourceId of the disk encryption set to use for enabling encryption at rest.
+	DiskEncryptionSetID *string `json:"diskEncryptionSetID,omitempty"`
 	// IdentityProfile - Identities associated with the cluster.
 	IdentityProfile map[string]*ManagedClusterPropertiesIdentityProfileValue `json:"identityProfile"`
 }
@@ -2279,13 +2310,32 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.AadProfile != nil {
 		objectMap["aadProfile"] = mcp.AadProfile
 	}
+	if mcp.AutoScalerProfile != nil {
+		objectMap["autoScalerProfile"] = mcp.AutoScalerProfile
+	}
 	if mcp.APIServerAccessProfile != nil {
 		objectMap["apiServerAccessProfile"] = mcp.APIServerAccessProfile
+	}
+	if mcp.DiskEncryptionSetID != nil {
+		objectMap["diskEncryptionSetID"] = mcp.DiskEncryptionSetID
 	}
 	if mcp.IdentityProfile != nil {
 		objectMap["identityProfile"] = mcp.IdentityProfile
 	}
 	return json.Marshal(objectMap)
+}
+
+// ManagedClusterPropertiesAutoScalerProfile parameters to be applied to the cluster-autoscaler when
+// enabled
+type ManagedClusterPropertiesAutoScalerProfile struct {
+	ScanInterval                  *string `json:"scan-interval,omitempty"`
+	ScaleDownDelayAfterAdd        *string `json:"scale-down-delay-after-add,omitempty"`
+	ScaleDownDelayAfterDelete     *string `json:"scale-down-delay-after-delete,omitempty"`
+	ScaleDownDelayAfterFailure    *string `json:"scale-down-delay-after-failure,omitempty"`
+	ScaleDownUnneededTime         *string `json:"scale-down-unneeded-time,omitempty"`
+	ScaleDownUnreadyTime          *string `json:"scale-down-unready-time,omitempty"`
+	ScaleDownUtilizationThreshold *string `json:"scale-down-utilization-threshold,omitempty"`
+	MaxGracefulTerminationSec     *string `json:"max-graceful-termination-sec,omitempty"`
 }
 
 // ManagedClusterPropertiesIdentityProfileValue ...
@@ -2582,6 +2632,8 @@ type NetworkProfileType struct {
 	NetworkPlugin NetworkPlugin `json:"networkPlugin,omitempty"`
 	// NetworkPolicy - Network policy used for building Kubernetes network. Possible values include: 'NetworkPolicyCalico', 'NetworkPolicyAzure'
 	NetworkPolicy NetworkPolicy `json:"networkPolicy,omitempty"`
+	// NetworkMode - Network mode used for building Kubernetes network. Possible values include: 'Transparent', 'Bridge'
+	NetworkMode NetworkMode `json:"networkMode,omitempty"`
 	// PodCidr - A CIDR notation IP range from which to assign pod IPs when kubenet is used.
 	PodCidr *string `json:"podCidr,omitempty"`
 	// ServiceCidr - A CIDR notation IP range from which to assign service cluster IPs. It must not overlap with any Subnet IP ranges.

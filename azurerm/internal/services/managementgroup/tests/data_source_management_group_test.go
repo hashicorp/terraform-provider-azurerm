@@ -37,7 +37,7 @@ resource "azurerm_management_group" "test" {
 }
 
 data "azurerm_management_group" "test" {
-  group_id = azurerm_management_group.test.group_id
+  name = azurerm_management_group.test.name
 }
 `, data.RandomInteger)
 }
