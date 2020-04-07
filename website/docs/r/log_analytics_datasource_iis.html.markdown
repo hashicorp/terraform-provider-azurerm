@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) The name of the Log Analytics Workspace where the Log Analytics IIS DataSource should exist. Changing this forces a new Log Analytics Windows Event DataSource to be created.
 
-* `on_premise_enabled` - (Required) Whether enable collecting IIS log files?
+* `on_premise_enabled` - (Required) Should collecting IIS log files be enabled?
 
 ## Attributes Reference
 
