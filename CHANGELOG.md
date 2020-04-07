@@ -23,6 +23,8 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - ensuring that a value for `node_count` within the `default_node_pool` block is always passed to the API to match a requirement in the API [GH-6095]
 * `azurerm_kubernetes_cluster` - ensuring that `tags` are set into the state for the `default_node_pool` [GH-6095]
 * `azurerm_kubernetes_cluster_node_pool` - requiring that `min_count` and `max_count` are set to `null` rather than `0` when auto-scaling is disabled [GH-6095]
+* `azurerm_linux_virtual_machine` - if the `priority` property on read is empty assume it to be `Regular` [GH-6301]
+* `azurerm_windows_virtual_machine` - if the `priority` property on read is empty assume it to be `Regular` [GH-6301]
 
 ## 2.4.0 (April 02, 2020)
 
