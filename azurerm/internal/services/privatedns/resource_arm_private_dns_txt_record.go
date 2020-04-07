@@ -216,6 +216,10 @@ func expandAzureRmPrivateDnsTxtRecords(d *schema.ResourceData) *[]privatedns.Txt
 
 	segmentLen := 254
 	for i, v := range recordStrings {
+		if v == nil {
+			continue
+		}
+
 		record := v.(map[string]interface{})
 		v := record["value"].(string)
 
