@@ -239,6 +239,7 @@ func resourceArmStorageImportJob() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmStorageImportJobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ImportExport.JobClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

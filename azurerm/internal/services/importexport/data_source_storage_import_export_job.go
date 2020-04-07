@@ -86,23 +86,19 @@ func dataSourceStorageImportExportJob() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"bit_locker_key": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"drive_id": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 
 						"manifest_file": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"manifest_hash": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 					},
@@ -173,7 +169,6 @@ func dataSourceStorageImportExportJob() *schema.Resource {
 
 			"shipping_information": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -204,12 +199,10 @@ func dataSourceStorageImportExportJob() *schema.Resource {
 						},
 						"phone": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"street_address2": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 					},
@@ -235,7 +228,7 @@ func dataSourceArmStorageImportExportJobRead(d *schema.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Azure Import/Export Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving Azure Import/Export Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	bitLockerKeysResp, err := bitLockerKeysClient.List(ctx, name, resourceGroup)
