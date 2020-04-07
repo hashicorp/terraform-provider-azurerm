@@ -72,7 +72,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"default_node_pool": SchemaDefaultNodePool(),
 
 			// Optional
-			"addon_profile": SchemaKubernetesAddOnProfiles(),
+			"addon_profile": schemaKubernetesAddOnProfiles(),
 
 			"api_server_authorized_ip_ranges": {
 				Type:     schema.TypeSet,
@@ -485,6 +485,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
@@ -524,7 +525,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-	addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
+	addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+	if err != nil {
+		return err
+	}
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
 	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
@@ -560,7 +564,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
 			APIServerAccessProfile:  &apiAccessProfile,
 			AadProfile:              azureADProfile,
-			AddonProfiles:           addonProfiles,
+			AddonProfiles:           *addonProfiles,
 			AgentPoolProfiles:       agentProfiles,
 			DNSPrefix:               utils.String(dnsPrefix),
 			EnableRBAC:              utils.Bool(rbacEnabled),
@@ -622,6 +626,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	nodePoolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	clusterClient := meta.(*clients.Client).Containers.KubernetesClustersClient
+	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
@@ -715,8 +720,12 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("addon_profile") {
 		updateCluster = true
 		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-		addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
-		existing.ManagedClusterProperties.AddonProfiles = addonProfiles
+		addonProfiles, err := expandKubernetesAddOnProfiles(addOnProfilesRaw, env)
+		if err != nil {
+			return err
+		}
+
+		existing.ManagedClusterProperties.AddonProfiles = *addonProfiles
 	}
 
 	if d.HasChange("api_server_authorized_ip_ranges") {
@@ -887,7 +896,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 		}
 
-		addonProfiles := FlattenKubernetesAddOnProfiles(props.AddonProfiles)
+		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("setting `addon_profile`: %+v", err)
 		}
