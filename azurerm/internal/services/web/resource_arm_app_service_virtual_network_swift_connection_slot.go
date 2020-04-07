@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -118,41 +119,38 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionSlotRead(d *schema.Resour
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualNetworkSwitchConnectionSlotID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
-	slotName := id.Path["slots"]
 
-	slot, err := client.GetSlot(ctx, resourceGroup, name, slotName)
+	slot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(slot.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving existing App Service Slot %q (App Service %q / Resource Group %q): %s", slotName, name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving existing App Service Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
-	appService, err := client.Get(ctx, resourceGroup, name)
+	appService, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(appService.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
-	swiftVnet, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, resourceGroup, name, slotName)
+	swiftVnet, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(swiftVnet.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving App Service Slot VNet association for %q (App Service %q / Resource Group %q): %s", slotName, name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving App Service Slot VNet association for %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	if swiftVnet.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("Error retrieving virtual network properties (Slot Name %q / App Service %q / Resource Group %q): `properties` was nil", slotName, name, resourceGroup)
+		return fmt.Errorf("Error retrieving virtual network properties (Slot Name %q / App Service %q / Resource Group %q): `properties` was nil", id.SlotName, id.SiteName, id.ResourceGroup)
 	}
 	props := *swiftVnet.SwiftVirtualNetworkProperties
 	subnetID := props.SubnetResourceID
@@ -162,7 +160,7 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionSlotRead(d *schema.Resour
 	}
 	d.Set("subnet_id", subnetID)
 	d.Set("app_service_id", appService.ID)
-	d.Set("slot_name", slotName)
+	d.Set("slot_name", id.SlotName)
 	return nil
 }
 
@@ -171,17 +169,15 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionSlotDelete(d *schema.Reso
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
+	id, err := parse.VirtualNetworkSwitchConnectionSlotID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		return err
 	}
+
 	subnetID, err := azure.ParseAzureResourceID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", subnetID)
 	}
-	slotName := d.Get("slot_name").(string)
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
 	subnetName := subnetID.Path["subnets"]
 	virtualNetworkName := subnetID.Path["virtualNetworks"]
 
@@ -191,12 +187,12 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionSlotDelete(d *schema.Reso
 	locks.ByName(subnetName, network.SubnetResourceName)
 	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
-	read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, resourceGroup, name, slotName)
+	read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("Error making read request on virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", slotName, name, resourceGroup, err)
+		return fmt.Errorf("Error making read request on virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 	if read.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("Error retrieving virtual network properties (Slot Name %q / App Service %q / Resource Group %q): `properties` was nil", slotName, name, resourceGroup)
+		return fmt.Errorf("Error retrieving virtual network properties (Slot Name %q / App Service %q / Resource Group %q): `properties` was nil", id.SlotName, id.SiteName, id.ResourceGroup)
 	}
 	props := *read.SwiftVirtualNetworkProperties
 	subnet := props.SubnetResourceID
@@ -205,10 +201,10 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionSlotDelete(d *schema.Reso
 		return nil
 	}
 
-	resp, err := client.DeleteSwiftVirtualNetworkSlot(ctx, resourceGroup, name, slotName)
+	resp, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", slotName, name, resourceGroup, err)
+			return fmt.Errorf("Error deleting virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 		}
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -104,32 +105,30 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionRead(d *schema.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualNetworkSwitchConnectionID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
 
-	appService, err := client.Get(ctx, resourceGroup, name)
+	appService, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(appService.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
-	swiftVnet, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
+	swiftVnet, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(swiftVnet.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving App Service VNet association for %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving App Service VNet association for %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 
 	if swiftVnet.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("Error retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("Error retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", id.SiteName, id.ResourceGroup)
 	}
 	props := *swiftVnet.SwiftVirtualNetworkProperties
 	subnetID := props.SubnetResourceID
@@ -147,16 +146,15 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
+	id, err := parse.VirtualNetworkSwitchConnectionID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		return err
 	}
+
 	subnetID, err := azure.ParseAzureResourceID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", subnetID)
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
 	subnetName := subnetID.Path["subnets"]
 	virtualNetworkName := subnetID.Path["virtualNetworks"]
 
@@ -166,12 +164,12 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.Resource
 	locks.ByName(subnetName, network.SubnetResourceName)
 	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
-	read, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
+	read, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making read request on virtual network properties (App Service %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making read request on virtual network properties (App Service %q / Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 	if read.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("Error retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("Error retrieving virtual network properties (App Service %q / Resource Group %q): `properties` was nil", id.SiteName, id.ResourceGroup)
 	}
 	props := *read.SwiftVirtualNetworkProperties
 	subnet := props.SubnetResourceID
@@ -180,10 +178,10 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.Resource
 		return nil
 	}
 
-	resp, err := client.DeleteSwiftVirtualNetwork(ctx, resourceGroup, name)
+	resp, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting virtual network properties (App Service %q / Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting virtual network properties (App Service %q / Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 		}
 	}
 
