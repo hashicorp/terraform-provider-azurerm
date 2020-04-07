@@ -226,6 +226,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+
+						"outbound_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Default:  string(containerservice.LoadBalancer),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.LoadBalancer),
+								string(containerservice.UserDefinedRouting),
+							}, false),
+						},
+
 						"load_balancer_profile": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
@@ -1127,6 +1139,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	networkPlugin := config["network_plugin"].(string)
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerSku := config["load_balancer_sku"].(string)
+	outboundType := config["outbound_type"].(string)
 
 	loadBalancerProfile, err := expandLoadBalancerProfile(config["load_balancer_profile"].([]interface{}), loadBalancerSku)
 	if err != nil {
@@ -1138,6 +1151,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 		NetworkPolicy:       containerservice.NetworkPolicy(networkPolicy),
 		LoadBalancerSku:     containerservice.LoadBalancerSku(loadBalancerSku),
 		LoadBalancerProfile: loadBalancerProfile,
+		OutboundType:        containerservice.OutboundType(outboundType),
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -1300,6 +1314,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 			"network_policy":        string(profile.NetworkPolicy),
 			"pod_cidr":              podCidr,
 			"service_cidr":          serviceCidr,
+			"outbound_type":         string(profile.OutboundType),
 		},
 	}
 }
