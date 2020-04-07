@@ -20,6 +20,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var publicIpResourceName = "azurerm_public_ip"
+
 func resourceArmPublicIp() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmPublicIpCreateUpdate,
