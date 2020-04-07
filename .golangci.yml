@@ -35,3 +35,4 @@ linters-settings:
   misspell:
     ignore-words:
       - hdinsight
+      - exportfs

@@ -498,6 +498,8 @@ The deprecated `elastic_pool_properties` block will be removed. The fields insid
 
 ### Resource: `azurerm_network_interface`
 
+The deprecated field `network_security_group_id` will be removed. This has been replaced by the `azurerm_network_interface_security_group_association` resource.
+
 The `application_gateway_backend_address_pools_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.
 
 The `application_security_group_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_application_security_group_association` resource.
