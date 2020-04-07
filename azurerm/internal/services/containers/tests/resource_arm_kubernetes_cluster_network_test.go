@@ -920,7 +920,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "kubenet"
-    load_balancer_sku  = "Basic"
+    load_balancer_sku  = "Standard"
     pod_cidr           = "10.244.0.0/16"
     service_cidr       = "10.0.0.0/16"
     dns_service_ip     = "10.0.0.10"
