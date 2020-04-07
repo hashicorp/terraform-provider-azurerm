@@ -21,7 +21,7 @@ type AdvisorTtlTime struct {
 // TTL valid form includes: dd.hh:mm:ss, hh:mm:ss, dd, dd.hh, dd.hh:mm
 func ParseAdvisorSuppresionTTL(input string) (*AdvisorTtl, error) {
 	// dd.hh:mm:ss form
-	if strings.ContainsAny(input, ".") {
+	if strings.Contains(input, ".") {
 		daySplit := strings.Split(input, ".")
 		days, err := parseAdvisorSuppresionTTLDayshelper(daySplit[0])
 		if err != nil {
@@ -37,7 +37,7 @@ func ParseAdvisorSuppresionTTL(input string) (*AdvisorTtl, error) {
 		}, nil
 
 		// hh:mm:ss form
-	} else if strings.ContainsAny(input, ":") {
+	} else if strings.Contains(input, ":") {
 		times, err := parseAdvisorSuppresionTTLTimeshelper(input)
 		if err != nil {
 			return nil, err

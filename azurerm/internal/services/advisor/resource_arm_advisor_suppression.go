@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -65,17 +64,17 @@ func resourceArmAdvisorSuppression() *schema.Resource {
 
 func resourceArmAdvisorSuppressionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Advisor.SuppressionsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	recommendation, _ := parse.AdvisorRecommendationID(d.Get("recommendation_id").(string))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, recommendation.ResourceUri, recommendation.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failure in checking for present of existing Advisor Suppressions %q: %+v", name, err)
+				return fmt.Errorf("failure in checking for present of existing Advisor Suppressions %q: %+v", name, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -89,17 +88,16 @@ func resourceArmAdvisorSuppressionCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
-	_, err := client.Create(ctx, recommendation.ResourceUri, recommendation.Name, name, props)
-	if err != nil {
-		return fmt.Errorf("Failure in creating Advisor Suppressions %q: %+v", name, err)
+	if _, err := client.Create(ctx, recommendation.ResourceUri, recommendation.Name, name, props); err != nil {
+		return fmt.Errorf("failure in creating Advisor Suppressions %q: %+v", name, err)
 	}
 
 	resp, err := client.Get(ctx, recommendation.ResourceUri, recommendation.Name, name)
 	if err != nil {
-		return fmt.Errorf("Failure in retrieving Advisor Suppressions %q: %+v", name, err)
+		return fmt.Errorf("failure in retrieving Advisor Suppressions %q: %+v", name, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Advisor Suppressions %q ID", name)
+		return fmt.Errorf("cannot read Advisor Suppressions %q ID", name)
 	}
 	d.SetId(*resp.ID)
 
@@ -124,12 +122,12 @@ func resourceArmAdvisorSuppressionRead(d *schema.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Failure in reading Advisor Suppressions %q: %+v", id.Name, err)
+		return fmt.Errorf("failure in reading Advisor Suppressions %q: %+v", id.Name, err)
 	}
 
 	rResp, err := rclient.Get(ctx, id.ResourceUri, id.RecommendationName)
 	if err != nil || rResp.ID == nil {
-		return fmt.Errorf("Failure in reading Advisor Recommendations %q: %+v", id.RecommendationName, err)
+		return fmt.Errorf("failure in reading Advisor Recommendations %q: %+v", id.RecommendationName, err)
 	}
 	d.Set("name", id.Name)
 	d.Set("recommendation_id", rResp.ID)
@@ -150,7 +148,7 @@ func resourceArmAdvisorSuppressionDelete(d *schema.ResourceData, meta interface{
 	}
 
 	if _, err = client.Delete(ctx, id.ResourceUri, id.RecommendationName, id.Name); err != nil {
-		return fmt.Errorf("Failure in deleting Advisor Suppressions %q: %+v", id.Name, err)
+		return fmt.Errorf("failure in deleting Advisor Suppressions %q: %+v", id.Name, err)
 	}
 
 	return nil

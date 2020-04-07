@@ -18,7 +18,7 @@ func AdvisorRecommendationID(i interface{}, k string) (warnings []string, errors
 	}
 
 	if _, err := parse.AdvisorRecommendationID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as an Advisor Recommendation resource id: %v", k, err))
+		errors = append(errors, fmt.Errorf("can not parse %q as an Advisor Recommendation resource id: %v", k, err))
 	}
 
 	return warnings, errors

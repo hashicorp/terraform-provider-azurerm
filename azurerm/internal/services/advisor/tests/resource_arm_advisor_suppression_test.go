@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,11 +41,6 @@ func TestAccAzureRMAdvisorSuppression_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAdvisorSuppression_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
 	recommendationId = buildAzureRMAdvisorRecommendationData(t)
 
@@ -102,9 +96,12 @@ func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 
 func testCheckAzureRMAdvisorSuppressionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Advisor.SuppressionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Advisor Suppression not found: %s", resourceName)
+			return fmt.Errorf("advisor Suppression not found: %s", resourceName)
 		}
 
 		id, err := parse.AdvisorSuppressionID(rs.Primary.ID)
@@ -112,14 +109,11 @@ func testCheckAzureRMAdvisorSuppressionExists(resourceName string) resource.Test
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Advisor.SuppressionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		if resp, err := client.Get(ctx, id.ResourceUri, id.RecommendationName, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Advisor Suppression %q does not exist", id.Name)
+				return fmt.Errorf("bad: Advisor Suppression %q does not exist", id.Name)
 			}
-			return fmt.Errorf("Bad: Get on Advisor Suppression Client: %+v", err)
+			return fmt.Errorf("bad: Get on Advisor Suppression Client: %+v", err)
 		}
 
 		return nil
@@ -142,7 +136,7 @@ func testCheckAzureRMAdvisorSuppressionDestroy(s *terraform.State) error {
 
 		if resp, err := client.Get(ctx, id.ResourceUri, id.RecommendationName, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Advisor Suppression Client: %+v", err)
+				return fmt.Errorf("bad: Get on Advisor Suppression Client: %+v", err)
 			}
 		}
 
@@ -157,7 +151,7 @@ func buildAzureRMAdvisorRecommendationData(t *testing.T) string {
 		config := acceptance.GetAuthConfig(t)
 		if config == nil {
 			t.SkipNow()
-			t.Fatalf("Bad: Failure in building ARM Client")
+			t.Fatalf("bad: Failure in building ARM Client")
 		}
 
 		builder := clients.ClientBuilder{
@@ -170,7 +164,7 @@ func buildAzureRMAdvisorRecommendationData(t *testing.T) string {
 		}
 		client, err := clients.Build(context.Background(), builder)
 		if err != nil {
-			t.Fatal(fmt.Errorf("Bad: Failure in building ARM Client: %+v", err))
+			t.Fatal(fmt.Errorf("bad: Failure in building ARM Client: %+v", err))
 		}
 
 		client.StopContext = acceptance.AzureProvider.StopContext()
@@ -179,16 +173,16 @@ func buildAzureRMAdvisorRecommendationData(t *testing.T) string {
 		ctx := client.StopContext
 		recommendationIterator, err := rclient.ListComplete(ctx, "", nil, "")
 		if err != nil {
-			t.Fatalf("Failure in retrieving Advisor Recommendations: %+v", err)
+			t.Fatalf("failure in retrieving Advisor Recommendations: %+v", err)
 		}
 
 		if !recommendationIterator.NotDone() {
-			t.Fatalf("Bad: Advisor Recommendations are empty")
+			t.Fatalf("bad: Advisor Recommendations are empty")
 		}
 
 		recommendationId = *recommendationIterator.Value().ID
 		if recommendationId == "" {
-			t.Fatalf("Advisor Recommendation ID is empty")
+			t.Fatalf("advisor Recommendation ID is empty")
 		}
 	})
 	return recommendationId
