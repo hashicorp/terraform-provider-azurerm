@@ -114,6 +114,9 @@ The `subnet` block supports:
 * `security_group` - (Optional) The Network Security Group to associate with
     the subnet. (Referenced by `id`, ie. `azurerm_network_security_group.example.id`)
 
+* `route_table` = (Optional) The Route Table to associate with the subnet. (Referenced
+     by `id`, ie. `azurerm_route_table.example.id`)
+
 ## Attributes Reference
 
 The following attributes are exported:

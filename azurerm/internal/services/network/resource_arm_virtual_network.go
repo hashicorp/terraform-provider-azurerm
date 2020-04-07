@@ -116,6 +116,11 @@ func resourceArmVirtualNetwork() *schema.Resource {
 							Optional: true,
 						},
 
+						"route_table": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -309,6 +314,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 
 			prefix := subnet["address_prefix"].(string)
 			secGroup := subnet["security_group"].(string)
+			routeTable := subnet["route_table"].(string)
 
 			// set the props from config and leave the rest intact
 			subnetObj.Name = &name
@@ -324,6 +330,14 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 				}
 			} else {
 				subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = nil
+			}
+
+			if routeTable != "" {
+				subnetObj.SubnetPropertiesFormat.RouteTable = &network.RouteTable{
+					ID: &routeTable,
+				}
+			} else {
+				subnetObj.SubnetPropertiesFormat.RouteTable = nil
 			}
 
 			subnets = append(subnets, *subnetObj)
@@ -408,6 +422,12 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
 						output["security_group"] = *nsg.ID
 					}
 				}
+
+				if routeTable := props.RouteTable; routeTable != nil {
+					if routeTable.ID != nil {
+						output["route_table"] = *routeTable.ID
+					}
+				}
 			}
 
 			results.Add(output)
@@ -439,6 +459,7 @@ func resourceAzureSubnetHash(v interface{}) int {
 		if v, ok := m["security_group"]; ok {
 			buf.WriteString(v.(string))
 		}
+
 	}
 
 	return hashcode.String(buf.String())
@@ -488,4 +509,34 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *schema.Resou
 	}
 
 	return nsgNames, nil
+}
+
+func expandAzureRmVirtualNetworkVirtualRouteTableNames(d *schema.ResourceData) ([]string, error) {
+	routeTableNames := make([]string, 0)
+
+	if v, ok := d.GetOk("subnet"); ok {
+		subnets := v.(*schema.Set).List()
+		for _, subnet := range subnets {
+			subnet, ok := subnet.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("[ERROR] Subnet should be a Hash - was '%+v'", subnet)
+			}
+
+			routeTableId := subnet["route_table"].(string)
+			if routeTableId != "" {
+				parsedRouteTableID, err := azure.ParseAzureResourceID(routeTableId)
+				if err != nil {
+					return nil, fmt.Errorf("Error parsing Network Route Table ID %q: %+v", routeTableId, err)
+				}
+
+				routeTableName := parsedRouteTableID.Path["routeTables"]
+
+				if !azure.SliceContainsValue(routeTableNames, routeTableName) {
+					routeTableNames = append(routeTableNames, routeTableName)
+				}
+			}
+		}
+	}
+
+	return routeTableNames, nil
 }

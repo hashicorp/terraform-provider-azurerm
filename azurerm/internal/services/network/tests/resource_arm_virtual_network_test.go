@@ -110,6 +110,27 @@ func TestAccAzureRMVirtualNetwork_ddosProtectionPlan(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_subnetRouteTable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_subnetRouteTables(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet.1472110187.route_table"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 
@@ -417,4 +438,46 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualNetwork_subnetRouteTables(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_table" "main" {
+  name                = "acctestroutetable%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  route {
+    name           = "route1"
+    address_prefix = "8.0.0.0/8"
+    next_hop_type  = "Internet"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+    route_table    = azurerm_route_table.main.id
+  }
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
