@@ -13,6 +13,10 @@ Use this data source to access information about a Policy Definition, both custo
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_policy_definition" "example" {
   display_name = "Allowed resource types"
 }
@@ -28,10 +32,11 @@ output "id" {
 
 * `display_name` - Specifies the display name of the Policy Definition. Conflicts with `name`.
 
-~> **NOTE** Since `display_name` does not have uniqueness on Azure, therefore when using `display_name` to retrieve existing policy set definitions, only one of the policy set definitions with same `display_name` will be retrieved. 
+~> **NOTE** Since `display_name` does not have uniqueness on Azure, therefore when using `display_name` to retrieve existing policy set definitions, errors may occur when there are multiple policy definitions with same display name. 
 
-* `management_group_id` - (Optional) Only retrieve Policy Definitions from this Management Group.
+* `management_group_name` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
+* `management_group_id` - (Optional / **Deprecated in favor of `management_group_name`**) Only retrieve Policy Definitions from this Management Group.
 
 ## Attributes Reference
 

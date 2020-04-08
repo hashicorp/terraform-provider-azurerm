@@ -56,8 +56,8 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByDisplayName(t *testing.T) 
 			{
 				Config: testAccDataSourceAzureRMPolicyDefinition_customByDisplayName(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestpol-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestpol-display-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestPol-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestPol-display-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "Microsoft.Authorization/policyDefinitions"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_type", "Custom"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_rule", "{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
@@ -79,8 +79,8 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByName(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMPolicyDefinition_customByName(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestpol-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestpol-display-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestPol-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestPol-display-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "Microsoft.Authorization/policyDefinitions"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_type", "Custom"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_rule", "{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
@@ -149,10 +149,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_policy_definition" "test_policy" {
-  name         = "acctestpol-%d"
+  name         = "acctestPol-%d"
   policy_type  = "Custom"
   mode         = "All"
-  display_name = "acctestpol-display-%d"
+  display_name = "acctestPol-display-%d"
 
   policy_rule = <<POLICY_RULE
   {

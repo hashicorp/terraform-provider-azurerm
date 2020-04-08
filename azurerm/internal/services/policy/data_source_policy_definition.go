@@ -1,7 +1,6 @@
 package policy
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -28,6 +27,7 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
+
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -35,30 +35,45 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
+
 			"management_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"management_group_name"},
+				Deprecated:    "Deprecated in favor of `management_group_name`", // TODO -- remove this in next major version
 			},
+
+			"management_group_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"management_group_id"},
+			},
+
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"policy_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"policy_rule": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"parameters": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"metadata": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -74,22 +89,28 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 
 	displayName := d.Get("display_name").(string)
 	name := d.Get("name").(string)
-	managementGroupID := d.Get("management_group_id").(string)
+	managementGroupName := ""
+	if v, ok := d.GetOk("management_group_name"); ok {
+		managementGroupName = v.(string)
+	}
+	if v, ok := d.GetOk("management_group_id"); ok {
+		managementGroupName = v.(string)
+	}
 
 	var policyDefinition policy.Definition
 	var err error
+	// one of display_name and name must be non-empty, this is guaranteed by schema
 	if displayName != "" {
-		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupID)
+		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupName)
 		if err != nil {
 			return fmt.Errorf("failed to read Policy Definition (Display Name %q): %+v", displayName, err)
 		}
-	} else if name != "" {
-		policyDefinition, err = getPolicyDefinition(ctx, client, name, managementGroupID)
+	}
+	if name != "" {
+		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
 			return fmt.Errorf("failed to read Policy Definition %q: %+v", name, err)
 		}
-	} else {
-		return fmt.Errorf("one of `display_name` or `name` must be set")
 	}
 
 	d.SetId(*policyDefinition.ID)
@@ -112,31 +133,4 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-
-func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupID string) (policy.Definition, error) {
-	var policyDefinitions policy.DefinitionListResultIterator
-	var err error
-
-	if managementGroupID != "" {
-		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
-	} else {
-		policyDefinitions, err = client.ListComplete(ctx)
-	}
-	if err != nil {
-		return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: %+v", err)
-	}
-
-	for policyDefinitions.NotDone() {
-		def := policyDefinitions.Value()
-		if def.DisplayName != nil && *def.DisplayName == displayName && def.ID != nil {
-			return def, nil
-		}
-
-		if err := policyDefinitions.NextWithContext(ctx); err != nil {
-			return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: %s", err)
-		}
-	}
-
-	return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: could not find policy '%s'", displayName)
 }
