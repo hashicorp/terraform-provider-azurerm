@@ -20,7 +20,7 @@ provider "azurerm" {
 resource "azurerm_advisor_suppression" "test" {
   name                = "example-sp"
   recommendation_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/microsoft.web/sites/site1/providers/Microsoft.Advisor/recommendations/recommendation1"
-  suppressed_duration = "14"
+  suppressed_duration = "259200"
 }
 ```
 
@@ -28,13 +28,13 @@ resource "azurerm_advisor_suppression" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The Name which should be used for this Advisor Suppression.
+* `name` - (Required) The Name which should be used for this Advisor Suppression. Changing this forces a new Advisor Suppression to be created.
 
 * `recommendation_id` - (Required) The ID of the Advisor Recommendation to be postponed for a specific duration or infinitely. Changing this forces a new Advisor Suppression to be created.
 
 ---
 
-* `suppressed_duration` - (Optional) The duration of the Advisor Recommendation to be postponed or `-1` infinitely. For example, `7.10:30:00`(7 days, 10 hours and 30 minutes),`7`(7 days),`10:30`(10 hours and 30 minutes).
+* `suppressed_duration` - (Optional) The duration in seconds of the Advisor Recommendation to be postponed or `-1` infinitely.
 
 ## Attributes Reference
 

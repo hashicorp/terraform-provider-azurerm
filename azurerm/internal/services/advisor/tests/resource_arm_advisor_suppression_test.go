@@ -149,6 +149,8 @@ func testCheckAzureRMAdvisorSuppressionDestroy(s *terraform.State) error {
 	return nil
 }
 
+// Here we build test data advisor Recommendation ID.
+// Because if we refer the recommendation ID from datasource in acctest, we can't assure the returned recommendation list always the same for initial step and step "terraform plan -refresh=false".
 func buildAzureRMAdvisorRecommendationData(t *testing.T) string {
 	once.Do(func() {
 		config := acceptance.GetAuthConfig(t)

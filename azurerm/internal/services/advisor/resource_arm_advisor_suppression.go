@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"log"
 	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/helper"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/validate"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -51,10 +52,10 @@ func resourceArmAdvisorSuppression() *schema.Resource {
 			},
 
 			"suppressed_duration": {
-				Type:             schema.TypeInt,
-				Optional:         true,
-				Default:          -1,
-				ValidateFunc:     validate.AdvisorSuppresionTTL,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      -1,
+				ValidateFunc: validate.AdvisorSuppresionTTL,
 			},
 		},
 	}
@@ -130,7 +131,7 @@ func resourceArmAdvisorSuppressionRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", id.Name)
 	d.Set("recommendation_id", rResp.ID)
 	if props := resp.SuppressionProperties; props != nil {
-		if ttl := helper.ParseAdvisorSuppresionTTL(*props.TTL); ttl!=0{
+		if ttl := helper.ParseAdvisorSuppresionTTL(*props.TTL); ttl != 0 {
 			d.Set("suppressed_duration", ttl)
 		}
 	}
