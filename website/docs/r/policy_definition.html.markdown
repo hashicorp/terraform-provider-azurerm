@@ -16,7 +16,7 @@ Policy definitions do not take effect until they are assigned to a scope using a
 
 ```hcl
 provider "azurerm" {
-features {}
+  features {}
 }
 
 resource "azurerm_policy_definition" "policy" {
