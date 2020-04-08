@@ -13,6 +13,9 @@ import (
 
 func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		if rs.Type != "azurerm_windows_virtual_machine" {
 			continue
 		}
@@ -22,8 +25,6 @@ func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -39,6 +40,9 @@ func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
 
 func checkWindowsVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -49,8 +53,6 @@ func checkWindowsVirtualMachineExists(resourceName string) resource.TestCheckFun
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

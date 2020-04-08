@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 )
 
 func VMID(i interface{}, k string) (warnings []string, errors []error) {
@@ -14,7 +14,7 @@ func VMID(i interface{}, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	if _, err := compute.ParseVirtualMachineID(v); err != nil {
+	if _, err := parse.VirtualMachineID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a virtual machine id: %v", k, err))
 	}
 
