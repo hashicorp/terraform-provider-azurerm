@@ -592,8 +592,13 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `secret`: %+v", err)
 		}
 	}
-
-	d.Set("priority", string(props.Priority))
+	// Resources created with azurerm_virtual_machine have priority set to ""
+	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
+	priority := string(compute.Regular)
+	if props.Priority != "" {
+		priority = string(props.Priority)
+	}
+	d.Set("priority", priority)
 	proximityPlacementGroupId := ""
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
 		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID
