@@ -35,15 +35,6 @@ func dataSourceArmNatGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"public_ip_address_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
 			"public_ip_prefix_ids": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -109,10 +100,6 @@ func dataSourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error
 	if props := resp.NatGatewayPropertiesFormat; props != nil {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		d.Set("resource_guid", props.ResourceGUID)
-
-		if err := d.Set("public_ip_address_ids", flattenArmNatGatewaySubResourceID(props.PublicIPAddresses)); err != nil {
-			return fmt.Errorf("Error setting `public_ip_address_ids`: %+v", err)
-		}
 
 		if err := d.Set("public_ip_prefix_ids", flattenArmNatGatewaySubResourceID(props.PublicIPPrefixes)); err != nil {
 			return fmt.Errorf("Error setting `public_ip_prefix_ids`: %+v", err)

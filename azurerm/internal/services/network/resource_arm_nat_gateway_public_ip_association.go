@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -58,40 +59,27 @@ func resourceArmNatGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta
 	log.Printf("[INFO] preparing arguments for Nat Gateway <-> Public Ip Association creation.")
 	natGatewayId := d.Get("nat_gateway_id").(string)
 	publicIpAddressId := d.Get("public_ip_address_id").(string)
-	parsedNatGatewayId, err := azure.ParseAzureResourceID(natGatewayId)
+	parsedNatGatewayId, err := parse.NatGatewayID(natGatewayId)
 	if err != nil {
-		return fmt.Errorf("Error parsing nat_gateway_id '%s': %+v", natGatewayId, err)
+		return err
 	}
 
-	natGatewayName := parsedNatGatewayId.Path["natGateways"]
-	resourceGroup := parsedNatGatewayId.ResourceGroup
+	locks.ByName(parsedNatGatewayId.Name, natGatewayResourceName)
+	defer locks.UnlockByName(parsedNatGatewayId.Name, natGatewayResourceName)
 
-	parsedPublicIpAddressId, err := azure.ParseAzureResourceID(publicIpAddressId)
-	if err != nil {
-		return fmt.Errorf("Error parsing public_ip_address_id '%s': %+v", publicIpAddressId, err)
-	}
-
-	publicIpAddressName := parsedPublicIpAddressId.Path["publicIPAddresses"]
-
-	locks.ByName(natGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(natGatewayName, natGatewayResourceName)
-	locks.ByName(publicIpAddressName, publicIpResourceName)
-	defer locks.UnlockByName(publicIpAddressName, publicIpResourceName)
-
-	natGateway, err := client.Get(ctx, resourceGroup, natGatewayName, "")
+	natGateway, err := client.Get(ctx, parsedNatGatewayId.ResourceGroup, parsedNatGatewayId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(natGateway.Response) {
-			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found!", natGatewayName, resourceGroup)
+			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found!", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup)
 		}
-		return fmt.Errorf("Error retrieving Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
+		return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
 	}
 
 	publicIpAddresses := make([]network.SubResource, 0)
-
 	if natGateway.PublicIPAddresses != nil {
 		for _, existingPublicIPAddress := range *natGateway.PublicIPAddresses {
-			if id := existingPublicIPAddress.ID; id != nil {
-				if *id == publicIpAddressId {
+			if existingPublicIPAddress.ID != nil {
+				if *existingPublicIPAddress.ID == publicIpAddressId {
 					if features.ShouldResourcesBeImported() {
 						return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", *natGateway.ID)
 					}
@@ -110,18 +98,18 @@ func resourceArmNatGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta
 	publicIpAddresses = append(publicIpAddresses, publicIpAddress)
 	natGateway.PublicIPAddresses = &publicIpAddresses
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, natGatewayName, natGateway)
+	future, err := client.CreateOrUpdate(ctx, parsedNatGatewayId.ResourceGroup, parsedNatGatewayId.Name, natGateway)
 	if err != nil {
-		return fmt.Errorf("Error updating Public IP Association for Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
+		return fmt.Errorf("failed to update Public IP Association for Nat Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Public IP Association for Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
+		return fmt.Errorf("failed to wait for completion of Public IP Association for Nat Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, natGatewayName, "")
+	resp, err := client.Get(ctx, parsedNatGatewayId.ResourceGroup, parsedNatGatewayId.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
+		return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
 	}
 	d.SetId(*resp.ID)
 
@@ -133,60 +121,28 @@ func resourceArmNatGatewayPublicIpAssociationRead(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NatGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	natGatewayName := id.Path["natGateways"]
-	publicIpAddressId := d.Get("public_ip_address_id").(string)
-
-	natGateway, err := client.Get(ctx, resourceGroup, natGatewayName, "")
+	natGateway, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(natGateway.Response) {
-			log.Printf("[DEBUG] Nat Gateway %q (Resource Group %q) could not be found - removing from state!", natGatewayName, resourceGroup)
+			log.Printf("[DEBUG] Nat Gateway %q (Resource Group %q) could not be found - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
+		return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	props := natGateway.NatGatewayPropertiesFormat
-	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Nat Gateway %q (Resource Group %q)", natGatewayName, resourceGroup)
-	}
-	publicIpAddresses := props.PublicIPAddresses
-	if publicIpAddresses == nil {
-		log.Printf("[DEBUG] Nat Gateway %q (Resource Group %q) doesn't have a Public IP - removing from state!", natGatewayName, resourceGroup)
-		d.SetId("")
-		return nil
-	}
-
-	found := false
-	if props := natGateway.NatGatewayPropertiesFormat; props != nil {
-		if publicIPAddresses := props.PublicIPAddresses; publicIPAddresses != nil {
-			for _, publicIPAddress := range *publicIPAddresses {
-				if publicIPAddress.ID == nil {
-					continue
-				}
-
-				if *publicIPAddress.ID == publicIpAddressId {
-					found = true
-					break
-				}
-			}
-		}
-	}
-
-	if !found {
-		log.Printf("[DEBUG] Association between Nat Gateway %q (Resource Group %q) and Public IP %q was not found - removing from state!", natGatewayName, resourceGroup, publicIpAddressId)
+	if natGateway.PublicIPAddresses == nil {
+		log.Printf("[DEBUG] Nat Gateway %q (Resource Group %q) doesn't have a Public IP - removing from state!", id.Name, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
 	d.Set("nat_gateway_id", natGateway.ID)
-	d.Set("public_ip_address_id", publicIpAddressId)
 
 	return nil
 }
@@ -196,34 +152,27 @@ func resourceArmNatGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NatGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	natGatewayName := id.Path["natGateways"]
 	publicIpAddressId := d.Get("public_ip_address_id").(string)
 
-	locks.ByName(natGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(natGatewayName, natGatewayResourceName)
+	locks.ByName(id.Name, natGatewayResourceName)
+	defer locks.UnlockByName(id.Name, natGatewayResourceName)
 
-	natGateway, err := client.Get(ctx, resourceGroup, natGatewayName, "")
+	natGateway, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(natGateway.Response) {
-			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found!", natGatewayName, resourceGroup)
+			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found!", id.Name, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
-	}
-
-	props := natGateway.NatGatewayPropertiesFormat
-	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Nat Gateway %q (Resource Group %q)", natGatewayName, resourceGroup)
+		return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	publicIpAddresses := make([]network.SubResource, 0)
-	if publicIPAddresses := props.PublicIPAddresses; publicIPAddresses != nil {
+	if publicIPAddresses := natGateway.PublicIPAddresses; publicIPAddresses != nil {
 		for _, publicIPAddress := range *publicIPAddresses {
 			if publicIPAddress.ID == nil {
 				continue
@@ -234,15 +183,15 @@ func resourceArmNatGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta
 			}
 		}
 	}
-	props.PublicIPAddresses = &publicIpAddresses
+	natGateway.PublicIPAddresses = &publicIpAddresses
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, natGatewayName, natGateway)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, natGateway)
 	if err != nil {
-		return fmt.Errorf("Error removing Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
+		return fmt.Errorf("failed to remove Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for removal of Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", natGatewayName, resourceGroup, err)
+		return fmt.Errorf("failed to wait for removal of Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -28,8 +28,6 @@ The following attributes are exported:
 
 * `idle_timeout_in_minutes` - The idle timeout in minutes which is used for the NAT Gateway.
 
-* `public_ip_address_ids` - A list of existing Public IP Address resource IDs which the NAT Gateway is using.
-
 * `public_ip_prefix_ids` - A list of existing Public IP Prefix resource IDs which the NAT Gateway is using.
 
 * `resource_guid` - The Resource GUID of the NAT Gateway.

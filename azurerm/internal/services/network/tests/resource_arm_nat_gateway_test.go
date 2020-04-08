@@ -42,7 +42,6 @@ func TestAccAzureRMNatGateway_complete(t *testing.T) {
 				Config: testAccAzureRMNatGateway_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNatGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_prefix_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "10"),
@@ -72,7 +71,6 @@ func TestAccAzureRMNatGateway_update(t *testing.T) {
 				Config: testAccAzureRMNatGateway_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNatGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_prefix_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "10"),
@@ -185,7 +183,6 @@ resource "azurerm_nat_gateway" "test" {
   name                    = "acctestnatGateway-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  public_ip_address_ids   = [azurerm_public_ip.test.id]
   public_ip_prefix_ids    = [azurerm_public_ip_prefix.test.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10

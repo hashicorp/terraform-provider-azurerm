@@ -40,7 +40,6 @@ resource "azurerm_nat_gateway" "example" {
   name                    = "nat-Gateway"
   location                = azurerm_resource_group.example.location
   resource_group_name     = azurerm_resource_group.example.name
-  public_ip_address_ids   = [azurerm_public_ip.example.id]
   public_ip_prefix_ids    = [azurerm_public_ip_prefix.example.id]
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
@@ -59,8 +58,6 @@ The following arguments are supported:
 * `location` - (Optional) Specifies the supported Azure location where the NAT Gateway should exist. Changing this forces a new resource to be created.
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
-
-* `public_ip_address_ids` - (Optional) A list of Public IP Address ID's which should be associated with the NAT Gateway resource.
 
 * `public_ip_prefix_ids` - (Optional) A list of Public IP Prefix ID's which should be associated with the NAT Gateway resource.
 

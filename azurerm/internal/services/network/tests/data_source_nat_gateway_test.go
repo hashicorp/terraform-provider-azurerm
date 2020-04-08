@@ -35,7 +35,6 @@ func TestAccDataSourceAzureRMNatGateway_complete(t *testing.T) {
 			{
 				Config: testAccDataSourceNatGateway_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_address_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "public_ip_prefix_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "10"),
