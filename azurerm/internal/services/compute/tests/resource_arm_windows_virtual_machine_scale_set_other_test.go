@@ -614,6 +614,9 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTerminateNotification(t *t
 					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.0.enabled", "true"),
 				),
 			},
+			data.ImportStep(
+				"admin_password",
+			),
 			// turn terminate notification off
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherTerminateNotification(data, false),
@@ -621,6 +624,18 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTerminateNotification(t *t
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.0.enabled", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			// turn terminate notification on again
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherTerminateNotification(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.0.enabled", "true"),
 				),
 			},
 			data.ImportStep(
@@ -651,6 +666,16 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *
 			// turn automatic repair off
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			// turn automatic repair on again
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
