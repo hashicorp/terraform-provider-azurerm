@@ -1,12 +1,12 @@
-package compute
+package parse
 
 import "testing"
 
-func TestParseVirtualMachineScaleSetExtensionID(t *testing.T) {
+func TestVirtualMachineScaleSetID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualMachineScaleSetExtensionResourceID
+		Expected *VirtualMachineScaleSetId
 	}{
 		{
 			Name:     "Empty",
@@ -24,22 +24,11 @@ func TestParseVirtualMachineScaleSetExtensionID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "No Extensions Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/machine1",
-			Expected: nil,
-		},
-		{
-			Name:     "No Extensions Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/machine1/extensions/",
-			Expected: nil,
-		},
-		{
 			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/machine1/extensions/extension1",
-			Expected: &VirtualMachineScaleSetExtensionResourceID{
-				Name:               "extension1",
-				VirtualMachineName: "machine1",
-				ResourceGroup:      "foo",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/example",
+			Expected: &VirtualMachineScaleSetId{
+				Name:          "example",
+				ResourceGroup: "foo",
 			},
 		},
 	}
@@ -47,7 +36,7 @@ func TestParseVirtualMachineScaleSetExtensionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseVirtualMachineScaleSetExtensionID(v.Input)
+		actual, err := VirtualMachineScaleSetID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

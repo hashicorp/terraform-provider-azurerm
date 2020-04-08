@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -28,7 +30,7 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 		Delete: resourceArmVirtualMachineScaleSetExtensionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseVirtualMachineScaleSetExtensionID(id)
+			_, err := parse.VirtualMachineScaleSetExtensionID(id)
 			return err
 		}),
 
@@ -51,7 +53,7 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateScaleSetResourceID,
+				ValidateFunc: validate.VirtualMachineScaleSetID,
 			},
 
 			"publisher": {
@@ -117,7 +119,7 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualMachineScaleSetId, err := ParseVirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
+	virtualMachineScaleSetId, err := parse.VirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
 	if err != nil {
 		return err
 	}
@@ -197,7 +199,7 @@ func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetExtensionID(d.Id())
+	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -277,7 +279,7 @@ func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetExtensionID(d.Id())
+	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -337,7 +339,7 @@ func resourceArmVirtualMachineScaleSetExtensionDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetExtensionID(d.Id())
+	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}

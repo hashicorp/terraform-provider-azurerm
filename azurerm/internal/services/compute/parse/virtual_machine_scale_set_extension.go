@@ -1,4 +1,4 @@
-package compute
+package parse
 
 import (
 	"fmt"
@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualMachineScaleSetExtensionResourceID struct {
+type VirtualMachineScaleSetExtensionId struct {
 	ResourceGroup      string
 	VirtualMachineName string
 	Name               string
 }
 
-func ParseVirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExtensionResourceID, error) {
+func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set Extension ID %q: %+v", input, err)
 	}
 
-	extension := VirtualMachineScaleSetExtensionResourceID{
+	extension := VirtualMachineScaleSetExtensionId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
