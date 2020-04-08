@@ -32,10 +32,10 @@ resource "azurerm_public_ip" "example" {
 }
 
 resource "azurerm_nat_gateway" "example" {
-  name                    = "example-NatGateway"
-  location                = azurerm_resource_group.example.location
-  resource_group_name     = azurerm_resource_group.example.name
-  sku_name                = "Standard"
+  name                = "example-NatGateway"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard"
 }
 
 resource "azurerm_nat_gateway_public_ip_association" "example" {

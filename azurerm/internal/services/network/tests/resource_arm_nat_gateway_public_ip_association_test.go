@@ -262,10 +262,10 @@ func testAccAzureRMNatGatewayPublicIpAssociation_update(data acceptance.TestData
 %s
 
 resource "azurerm_nat_gateway" "test2" {
-  name                    = "acctest-NatGateway2-%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  sku_name                = "Standard"
+  name                = "acctest-NatGateway2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
 }
 
 resource "azurerm_nat_gateway_public_ip_association" "test" {
@@ -295,10 +295,10 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_nat_gateway" "test" {
-  name                    = "acctest-NatGateway-%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  sku_name                = "Standard"
+  name                = "acctest-NatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
