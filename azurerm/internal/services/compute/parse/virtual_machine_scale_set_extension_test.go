@@ -37,9 +37,9 @@ func TestParseVirtualMachineScaleSetExtensionID(t *testing.T) {
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/machine1/extensions/extension1",
 			Expected: &VirtualMachineScaleSetExtensionId{
-				Name:               "extension1",
-				VirtualMachineName: "machine1",
-				ResourceGroup:      "foo",
+				Name:                       "extension1",
+				VirtualMachineScaleSetName: "machine1",
+				ResourceGroup:              "foo",
 			},
 		},
 	}

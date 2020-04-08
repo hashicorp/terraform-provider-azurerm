@@ -7,9 +7,9 @@ import (
 )
 
 type VirtualMachineScaleSetExtensionId struct {
-	ResourceGroup      string
-	VirtualMachineName string
-	Name               string
+	ResourceGroup              string
+	VirtualMachineScaleSetName string
+	Name                       string
 }
 
 func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExtensionId, error) {
@@ -22,7 +22,7 @@ func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExt
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if extension.VirtualMachineName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
+	if extension.VirtualMachineScaleSetName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
 		return nil, err
 	}
 
