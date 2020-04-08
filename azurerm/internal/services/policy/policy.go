@@ -1,6 +1,7 @@
 package policy
 
-import ("context"
+import (
+	"context"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
@@ -50,6 +51,6 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 	if len(results) > 1 {
 		return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Set Definition List: found more than one policy set definition '%s'", displayName)
 	}
-	
+
 	return results[0], nil
 }
