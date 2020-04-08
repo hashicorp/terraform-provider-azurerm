@@ -392,11 +392,11 @@ The `identity_profile` block exports the following:
 
 The `kubelet_identity` block exports the following:
 
-* `client_id` - The client id of the user-defined Managed Identity assigned to the kubelets.
+* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
 
-* `object_id` - The object id of the user-defined Managed Identity assigned to the kubelets.
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
 
-* `resource_id` - The resource id of the user-defined Managed Identity assigned to the kubelets.
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
 
 ---
 

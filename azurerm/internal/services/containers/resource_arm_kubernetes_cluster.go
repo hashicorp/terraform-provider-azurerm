@@ -122,31 +122,24 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"identity_profile": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"kubelet_identity": {
 							Type:     schema.TypeList,
-							Optional: true,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"client_id": {
 										Type:     schema.TypeString,
-										Optional: true,
 										Computed: true,
 									},
 									"object_id": {
 										Type:     schema.TypeString,
-										Optional: true,
 										Computed: true,
 									},
-									"resource_id": {
+									"user_assigned_identity_id": {
 										Type:     schema.TypeString,
-										Optional: true,
 										Computed: true,
 									},
 								},
