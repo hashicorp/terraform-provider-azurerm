@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -248,15 +247,13 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionDestroy(s *terraform.State) 
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, "")
-
-		if err != nil {
-			return nil
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, ""); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on Compute.VMScaleSetExtensionsClient: %+v", err)
+			}
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Virtual Machine Scale Set Extension still exists:\n%#v", resp.VirtualMachineScaleSetExtensionProperties)
-		}
+		return nil
 	}
 
 	return nil
