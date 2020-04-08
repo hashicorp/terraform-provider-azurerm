@@ -11,8 +11,8 @@ func ConvertToAdvisorSuppresionTTL(ttl int) string {
 		return ""
 	}
 	//convert TTL to API TTL form, which is "dd.hh:mm:ss"
-	s, m, h, d := "0", "0", "0", "0"
-	s = strconv.Itoa(ttl % 60)
+	m, h, d := "0", "0", "0"
+	s := strconv.Itoa(ttl % 60)
 	ttl = ttl / 60
 	if ttl != 0 {
 		m = strconv.Itoa(ttl % 60)
