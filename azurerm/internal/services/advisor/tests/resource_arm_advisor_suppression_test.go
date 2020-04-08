@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"sync"
 	"testing"
 
@@ -24,7 +23,7 @@ func TestAccAzureRMAdvisorSuppression_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
 	recommendationId = buildAzureRMAdvisorRecommendationData(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
@@ -44,7 +43,7 @@ func TestAccAzureRMAdvisorSuppression_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
 	recommendationId = buildAzureRMAdvisorRecommendationData(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
@@ -67,17 +66,22 @@ func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
 	recommendationId = buildAzureRMAdvisorRecommendationData(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMAdvisorSuppression_basic(data, recommendationId),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
+				),
+			},
+			{
 				Config: testAccAzureRMAdvisorSuppression_complete(data, recommendationId),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "name", regexp.MustCompile("acctest-sp-/*")),
-					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "14.00:00:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "3000"),
 				),
 			},
 			data.ImportStep(),
@@ -85,8 +89,7 @@ func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 				Config: testAccAzureRMAdvisorSuppression_update(data, recommendationId),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "name", regexp.MustCompile("acctest-sp2-/*")),
-					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "7.10:30:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "259200"),
 				),
 			},
 			data.ImportStep(),

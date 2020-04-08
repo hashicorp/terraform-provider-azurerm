@@ -19,7 +19,7 @@ type AdvisorSuppressionId struct {
 }
 
 func AdvisorRecommendationID(input string) (*AdvisorRecommendationId, error) {
-	//recommendation ID is resourceuri/providers/Microsoft.Advisor/recommendations/recommendationID
+	//recommendation ID is resourceUri/providers/Microsoft.Advisor/recommendations/recommendationID
 	inputSplit := strings.Split(input, "/providers/Microsoft.Advisor/recommendations/")
 	if len(inputSplit) != 2 || inputSplit[1] == "" {
 		return nil, fmt.Errorf("advisor Recommendation ID was invalid")
