@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -493,8 +492,6 @@ func TestAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 
 func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -509,7 +506,8 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
-			}
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigManagedIPs(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -518,7 +516,8 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
-			}
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPIds(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -527,7 +526,8 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
-			}
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -536,6 +536,7 @@ func testAccAzureRMKubernetesCluster_changingLoadBalancerProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "1"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
