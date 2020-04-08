@@ -1,11 +1,13 @@
 package helper
 
 import (
+	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
-func ConvertToAdvisorSuppresionTTL(ttl int) string {
+func FormatSuppressionTTL(ttl int) string {
 	//API will return error if send ttl = "-1", and API will return ttl = "-1" if send ttl =""
 	if ttl == -1 {
 		return ""
@@ -28,37 +30,29 @@ func ConvertToAdvisorSuppresionTTL(ttl int) string {
 	return d + "." + h + ":" + m + ":" + s
 }
 
-//Possible api values include: dd.hh:mm:ss, hh:mm:ss
-func ParseAdvisorSuppresionTTL(ttl string) int {
+//Possible api values include: dd.hh:mm:ss, hh:mm:ss, return 0 if ttl string is in invalid format
+func ParseSuppresionTTL(ttl string) (int, error) {
 	if ttl == "-1" {
-		return -1
+		return -1, nil
 	}
-	if strings.Contains(ttl, ".") {
+	if matched, _ := regexp.Match(`^\d+\.\d+:\d+:\d+$`, []byte(ttl)); matched {
 		daysSplit := strings.Split(ttl, ".")
-		days, err := strconv.Atoi(daysSplit[0])
-		if err != nil || len(daysSplit) != 2 {
-			return 0
+		days, _ := strconv.Atoi(daysSplit[0])
+		time, err := ParseSuppresionTTL(daysSplit[1])
+		if err != nil {
+			return 0, err
 		}
-		return days*24*60*60 + ParseAdvisorSuppresionTTL(daysSplit[1])
+		return days*24*60*60 + time, nil
 	}
-	if strings.Contains(ttl, ":") {
+	if matched, _ := regexp.Match(`^\d+:\d+:\d+$`, []byte(ttl)); matched {
 		timesSplit := strings.Split(ttl, ":")
-		if len(timesSplit) != 3 {
-			return 0
+		hours, _ := strconv.Atoi(timesSplit[0])
+		mins, _ := strconv.Atoi(timesSplit[1])
+		secs, _ := strconv.Atoi(timesSplit[2])
+		if hours >= 24 || mins >= 60 || secs >= 60 {
+			return 0, fmt.Errorf("time in advisor suppression ttl string is not valid")
 		}
-		hours, err := strconv.Atoi(timesSplit[0])
-		if err != nil {
-			return 0
-		}
-		mins, err := strconv.Atoi(timesSplit[1])
-		if err != nil {
-			return 0
-		}
-		secs, err := strconv.Atoi(timesSplit[2])
-		if err != nil {
-			return 0
-		}
-		return hours*60*60 + mins*60 + secs
+		return hours*60*60 + mins*60 + secs, nil
 	}
-	return 0
+	return 0, fmt.Errorf("advisor suppression ttl string is not valid")
 }

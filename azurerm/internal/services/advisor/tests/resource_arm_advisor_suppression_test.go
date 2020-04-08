@@ -72,12 +72,6 @@ func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAdvisorSuppression_basic(data, recommendationId),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
-				),
-			},
-			{
 				Config: testAccAzureRMAdvisorSuppression_complete(data, recommendationId),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
@@ -90,6 +84,14 @@ func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "259200"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMAdvisorSuppression_basic(data, recommendationId),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "-1"),
 				),
 			},
 			data.ImportStep(),

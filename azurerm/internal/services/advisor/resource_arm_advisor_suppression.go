@@ -83,7 +83,7 @@ func resourceArmAdvisorSuppressionCreateUpdate(d *schema.ResourceData, meta inte
 
 	props := advisor.SuppressionContract{
 		SuppressionProperties: &advisor.SuppressionProperties{
-			TTL: utils.String(helper.ConvertToAdvisorSuppresionTTL(d.Get("suppressed_duration").(int))),
+			TTL: utils.String(helper.FormatSuppressionTTL(d.Get("suppressed_duration").(int))),
 		},
 	}
 
@@ -131,9 +131,11 @@ func resourceArmAdvisorSuppressionRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", id.Name)
 	d.Set("recommendation_id", rResp.ID)
 	if props := resp.SuppressionProperties; props != nil {
-		if ttl := helper.ParseAdvisorSuppresionTTL(*props.TTL); ttl != 0 {
-			d.Set("suppressed_duration", ttl)
+		ttl, err := helper.ParseSuppresionTTL(*props.TTL)
+		if err != nil {
+			return fmt.Errorf("failure in parsing Advisor Suppression %q TTL %q: %+v", id.Name, ttl, err)
 		}
+		d.Set("suppressed_duration", ttl)
 	}
 	return nil
 }

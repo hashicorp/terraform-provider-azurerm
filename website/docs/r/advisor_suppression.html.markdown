@@ -34,7 +34,7 @@ The following arguments are supported:
 
 ---
 
-* `suppressed_duration` - (Optional) The duration in seconds of the Advisor Recommendation to be postponed or `-1` infinitely.
+* `suppressed_duration` - (Optional) The interval in seconds during which the Advisor Recommendation will be suppressed. Specifying `-1` will suppress forever.
 
 ## Attributes Reference
 
