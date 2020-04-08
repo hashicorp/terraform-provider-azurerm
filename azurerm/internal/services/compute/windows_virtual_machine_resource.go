@@ -115,7 +115,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				// TODO: raise a GH issue for the broken API
 				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
-					// TODO: "virtual_machine_scale_set_id"
+					"virtual_machine_scale_set_id",
 					"zone",
 				},
 			},
@@ -237,6 +237,17 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				ValidateFunc: validate.VirtualMachineTimeZone(),
 			},
 
+			"virtual_machine_scale_set_id": {
+				Type: schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"availability_set_id",
+					"zone",
+				},
+				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+			},
+
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone": {
@@ -245,7 +256,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				ForceNew: true,
 				ConflictsWith: []string{
 					"availability_set_id",
-					// TODO: "virtual_machine_scale_set_id"
+					"virtual_machine_scale_set_id",
 				},
 			},
 
@@ -391,11 +402,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
-
-			// @tombuildsstuff: passing in a VMSS ID returns:
-			// > Code="InvalidParameter" Message="The value of parameter virtualMachineScaleSet is invalid." Target="virtualMachineScaleSet"
-			// presuming this isn't finished yet; note: this'll conflict with availability set id
-			VirtualMachineScaleSet: nil,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -450,6 +456,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		params.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
+		params.VirtualMachineScaleSet = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -567,6 +579,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
+
+	virtualMachineScaleSetId := ""
+	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
+		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
+	}
+	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
 
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)
