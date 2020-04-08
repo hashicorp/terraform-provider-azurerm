@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -283,9 +284,11 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					Type:     schema.TypeString,
+					Optional: true,
+					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc:     validate.DiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
@@ -409,11 +412,12 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				if diskSizeGb == 0 && disk.DiskProperties != nil && disk.DiskProperties.DiskSizeGB != nil {
 					diskSizeGb = int(*disk.DiskProperties.DiskSizeGB)
 				}
-			}
-		}
 
-		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
-			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+				// same goes for Disk Encryption Set Id apparently
+				if disk.Encryption != nil && disk.Encryption.DiskEncryptionSetID != nil {
+					diskEncryptionSetId = *disk.Encryption.DiskEncryptionSetID
+				}
+			}
 		}
 	}
 
