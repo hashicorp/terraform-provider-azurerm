@@ -120,30 +120,22 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"identity_profile": {
+			"kubelet_identity": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"kubelet_identity": {
-							Type:     schema.TypeList,
+						"client_id": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"client_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"object_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"user_assigned_identity_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+						},
+						"object_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"user_assigned_identity_id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -938,9 +930,9 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `default_node_pool`: %+v", err)
 		}
 
-		identityProfile := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
-		if err := d.Set("identity_profile", identityProfile); err != nil {
-			return fmt.Errorf("setting `identity_profile`: %+v", err)
+		kubeletIdentity := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
+			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
 		}
 
 		linuxProfile := flattenKubernetesClusterLinuxProfile(props.LinuxProfile)
@@ -1093,23 +1085,19 @@ func flattenKubernetesClusterIdentityProfile(profile map[string]*containerservic
 			objectId = *objectid
 		}
 
-		resourceId := ""
+		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceID; resourceid != nil {
-			resourceId = *resourceid
+			userAssignedIdentityId = *resourceid
 		}
 
 		kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
-			"client_id":   clientId,
-			"object_id":   objectId,
-			"resource_id": resourceId,
+			"client_id":                 clientId,
+			"object_id":                 objectId,
+			"user_assigned_identity_id": userAssignedIdentityId,
 		})
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"kubelet_identity": kubeletIdentity,
-		},
-	}
+	return kubeletIdentity
 }
 
 func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
