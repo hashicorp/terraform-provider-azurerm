@@ -133,7 +133,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	managementGroupID := d.Get("management_group_id").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := getPolicySetDefinition(ctx, client, name, managementGroupID)
+		existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Policy Set Definition %q: %s", name, err)
@@ -213,7 +213,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	var resp policy.SetDefinition
-	resp, err = getPolicySetDefinition(ctx, client, name, managementGroupID)
+	resp, err = getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Policy Set Definition %q: %s", name, err)
 	}
@@ -235,7 +235,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 
 	managementGroupID := parseManagementGroupIdFromPolicySetId(d.Id())
 
-	resp, err := getPolicySetDefinition(ctx, client, name, managementGroupID)
+	resp, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -342,21 +342,11 @@ func parseManagementGroupIdFromPolicySetId(id string) string {
 
 func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := getPolicySetDefinition(ctx, client, name, managementGroupId)
+		res, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupId)
 		if err != nil {
 			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policySetDefinitionRefreshFunc for Policy Set Definition %q: %s", name, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
-}
-
-func getPolicySetDefinition(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
-	if managementGroupID == "" {
-		res, err = client.Get(ctx, name)
-	} else {
-		res, err = client.GetAtManagementGroup(ctx, name, managementGroupID)
-	}
-
-	return res, err
 }

@@ -34,7 +34,7 @@ output "id" {
 
 ~> **NOTE** Since `display_name` does not have uniqueness on Azure, therefore when using `display_name` to retrieve existing policy set definitions, only one of the policy set definitions with same `display_name` will be retrieved. 
 
-* `management_group_id` - (Optional) Only retrieve Policy Set Definitions from this Management Group.
+* `management_group_name` - (Optional) Only retrieve Policy Set Definitions from this Management Group.
 
 ## Attributes Reference
 
@@ -42,9 +42,9 @@ output "id" {
 
 * `description` - The Description of the Policy Set Definition.
 
-* `policy_type` - The Type of the Policy Set Definition. Possible values are `BuiltIn` and `Custom`.
+* `policy_type` - The Type of the Policy Set Definition.
 
-* `policy_definitions` - The policy definitions in the policy set definition.
+* `policy_definitions` - The policy definitions contained within the policy set definition.
 
 * `parameters` - Any Parameters defined in the Policy Set Definition.
 

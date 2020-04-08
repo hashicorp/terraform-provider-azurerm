@@ -14,7 +14,7 @@ type PolicySetDefinitionId struct {
 func PolicySetDefinitionID(input string) (*PolicySetDefinitionId, error) {
 	// in general, the id of a set definition should be:
 	// {scope}/providers/Microsoft.Authorization/policySetDefinitions/set1
-	regex := regexp.MustCompile(`/providers/[Mm]icrosoft.[Aa]uthorization/policy[Ss]et[Dd]efinitions/`)
+	regex := regexp.MustCompile(`/providers/[Mm]icrosoft\.[Aa]uthorization/policy[Ss]et[Dd]efinitions/`)
 	if !regex.MatchString(input) {
 		return nil, fmt.Errorf("unable to parse Policy Set Definition ID %q", input)
 	}

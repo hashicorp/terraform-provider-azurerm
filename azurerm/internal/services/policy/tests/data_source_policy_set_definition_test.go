@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMPolicySetDefinition_customByName(t *testing.T) {
+func TestAccDataSourceAzureRMPolicySetDefinition_byName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -17,10 +17,10 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByName(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMPolicySetDefinition_customByName(data),
+				Config: testAccDataSourceAzureRMPolicySetDefinition_byName(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestpolset-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestpolset-display-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestPolSet-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestPolSet-display-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_type", "Custom"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "parameters"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "policy_definitions"),
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByName(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(t *testing.T) {
+func TestAccDataSourceAzureRMPolicySetDefinition_byDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,10 +39,10 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(t *testing.
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(data),
+				Config: testAccDataSourceAzureRMPolicySetDefinition_byDisplayName(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestpolset-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestpolset-display-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestPolSet-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestPolSet-display-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_type", "Custom"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "parameters"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "policy_definitions"),
@@ -52,7 +52,7 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(t *testing.
 	})
 }
 
-func testAccDataSourceAzureRMPolicySetDefinition_customByName(data acceptance.TestData) string {
+func testAccDataSourceAzureRMPolicySetDefinition_byName(data acceptance.TestData) string {
 	template := testAzureRMPolicySetDefinition_custom(data)
 	return fmt.Sprintf(`
 %s
@@ -63,7 +63,7 @@ data "azurerm_policy_set_definition" "test" {
 `, template)
 }
 
-func testAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(data acceptance.TestData) string {
+func testAccDataSourceAzureRMPolicySetDefinition_byDisplayName(data acceptance.TestData) string {
 	template := testAzureRMPolicySetDefinition_custom(data)
 	return fmt.Sprintf(`
 %s

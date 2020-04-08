@@ -180,9 +180,9 @@ PARAMETERS
 }
 
 resource "azurerm_policy_set_definition" "test" {
-  name         = "acctestpolset-%d"
+  name         = "acctestPolSet-%d"
   policy_type  = "Custom"
-  display_name = "acctestpolset-display-%d"
+  display_name = "acctestPolSet-display-%d"
 
   parameters = <<PARAMETERS
     {

@@ -38,7 +38,7 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
-			"management_group_id": {
+			"management_group_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -78,11 +78,12 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	displayName := d.Get("display_name").(string)
-	managementGroupID := d.Get("management_group_id").(string)
+	managementGroupID := d.Get("management_group_name").(string)
 
 	var setDefinition policy.SetDefinition
 	var err error
 
+	// we marked `display_name` and `name` as `ExactlyOneOf`, therefore there will only be one of display_name and name that have non-empty value here
 	if displayName != "" {
 		setDefinition, err = getPolicySetDefinitionByDisplayName(ctx, client, displayName, managementGroupID)
 		if err != nil {
@@ -90,7 +91,7 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 		}
 	}
 	if name != "" {
-		setDefinition, err = getPolicySetDefinition(ctx, client, name, managementGroupID)
+		setDefinition, err = getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
 		if err != nil {
 			return fmt.Errorf("failed to read Policy Set Definition %q: %+v", name, err)
 		}
@@ -111,31 +112,4 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	d.Set("policy_definitions", string(definitionBytes))
 
 	return nil
-}
-
-func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.SetDefinitionsClient, displayName, managementGroupID string) (policy.SetDefinition, error) {
-	var setDefinitions policy.SetDefinitionListResultIterator
-	var err error
-
-	if managementGroupID != "" {
-		setDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
-	} else {
-		setDefinitions, err = client.ListComplete(ctx)
-	}
-	if err != nil {
-		return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Definition List: %+v", err)
-	}
-
-	for setDefinitions.NotDone() {
-		def := setDefinitions.Value()
-		if def.DisplayName != nil && *def.DisplayName == displayName && def.ID != nil {
-			return def, nil
-		}
-
-		if err := setDefinitions.NextWithContext(ctx); err != nil {
-			return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Definition List: %s", err)
-		}
-	}
-
-	return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Definition List: could not find policy '%s'", displayName)
 }
