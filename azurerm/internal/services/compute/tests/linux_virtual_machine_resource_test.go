@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +17,14 @@ func checkLinuxVirtualMachineIsDestroyed(s *terraform.State) error {
 			continue
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.VirtualMachineID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -41,15 +44,17 @@ func checkLinuxVirtualMachineExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.VirtualMachineID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Linux Virtual Machine %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Linux Virtual Machine %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on VMClient: %+v", err)

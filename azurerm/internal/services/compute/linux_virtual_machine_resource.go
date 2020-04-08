@@ -35,7 +35,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 		Update: resourceLinuxVirtualMachineUpdate,
 		Delete: resourceLinuxVirtualMachineDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := ParseVirtualMachineID(id)
+			_, err := parse.VirtualMachineID(id)
 			return err
 		}, importVirtualMachine(compute.Linux, "azurerm_linux_virtual_machine")),
 
@@ -471,7 +471,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -626,7 +626,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -930,7 +930,7 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}

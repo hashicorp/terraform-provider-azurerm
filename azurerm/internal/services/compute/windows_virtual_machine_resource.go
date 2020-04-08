@@ -36,7 +36,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 		Update: resourceWindowsVirtualMachineUpdate,
 		Delete: resourceWindowsVirtualMachineDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := ParseVirtualMachineID(id)
+			_, err := parse.VirtualMachineID(id)
 			return err
 		}, importVirtualMachine(compute.Windows, "azurerm_windows_virtual_machine")),
 
@@ -494,7 +494,7 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -652,7 +652,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -925,7 +925,7 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
