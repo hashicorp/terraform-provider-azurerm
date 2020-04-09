@@ -537,8 +537,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test-secret" {
-  name      = "acctestsecret-%d"
-  value     = "terraform-test-%d"
+  name         = "acctestsecret-%d"
+  value        = "terraform-test-%d"
   key_vault_id = azurerm_key_vault.test.id
 }
 
