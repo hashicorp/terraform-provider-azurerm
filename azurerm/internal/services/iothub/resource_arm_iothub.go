@@ -30,7 +30,7 @@ import (
 
 var IothubResourceName = "azurerm_iothub"
 
-//nolint unparam
+// nolint unparam
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
 		path := strings.Split(k, ".")
@@ -39,7 +39,7 @@ func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	}
 }
 
-//nolint unparam
+// nolint unparam
 func supressWhenAll(fs ...schema.SchemaDiffSuppressFunc) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
 		for _, f := range fs {

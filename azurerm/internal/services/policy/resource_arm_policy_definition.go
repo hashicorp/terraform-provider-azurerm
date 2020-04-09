@@ -240,7 +240,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { //nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupName = scopeId.ManagementGroupId
 	}
@@ -294,7 +294,7 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	managementGroupID := ""
-	switch scopeId := id.PolicyScopeId.(type) { //nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupID = scopeId.ManagementGroupId
 	}

@@ -101,7 +101,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 	}
 }
 
-func policyDefinitionsDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	var oldPolicyDefinitions []policy.DefinitionReference
 	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitions)
 	if errOld != nil {

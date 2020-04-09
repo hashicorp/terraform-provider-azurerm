@@ -59,7 +59,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.Premium),
 					string(operationalinsights.Standalone),
 					string(operationalinsights.Standard),
-					string("Unlimited"), // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
+					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
