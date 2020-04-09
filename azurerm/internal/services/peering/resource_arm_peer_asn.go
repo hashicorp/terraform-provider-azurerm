@@ -216,7 +216,7 @@ func flattenPeerContact(input *[]peering.ContactDetail) []interface{} {
 			phone = *e.Phone
 		}
 		output = append(output, map[string]interface{}{
-			"role":  e.Role,
+			"role":  string(e.Role),
 			"email": email,
 			"phone": phone,
 		})
