@@ -34,7 +34,7 @@ func ParseSuppresionTTL(ttl string) (int, error) {
 	if ttl == "-1" {
 		return -1, nil
 	}
-	if re := regexp.MustCompile("^(\\d+\\.)?(\\d+):(\\d+):(\\d+)$"); re.Match([]byte(ttl)) {
+	if re := regexp.MustCompile(`^(\d+\.)?(\d+):(\d+):(\d+)$`); re.Match([]byte(ttl)) {
 		ttlList := re.FindStringSubmatch(ttl)
 		days := 0
 		if ttlList[1] != "" {
