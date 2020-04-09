@@ -3197,6 +3197,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{},
 		}
 
+		//nolint gocritic
 		if data != "" && kvsid != "" {
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		} else if data != "" {
