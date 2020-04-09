@@ -234,8 +234,7 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
-	if !r.MatchString(value) {
+	if !regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$").MatchString(value) {
 		errors = append(errors, fmt.Errorf("Workspace Name can only contain alphabet, number, and '-' character. You can not use '-' as the start and end of the name"))
 	}
 

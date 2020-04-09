@@ -265,11 +265,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	// only pay attention to the advanced schedule fields if frequency is either Week or Month
 	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
-		advancedRef, err := expandArmAutomationScheduleAdvanced(d, d.Id() != "")
-		if err != nil {
-			return err
-		}
-		properties.AdvancedSchedule = advancedRef
+		properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
@@ -374,7 +370,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) (*automation.AdvancedSchedule, error) {
+func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) *automation.AdvancedSchedule {
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
@@ -415,7 +411,7 @@ func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) 
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
 
-	return &expandedAdvancedSchedule, nil
+	return &expandedAdvancedSchedule
 }
 
 func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *schema.Set {

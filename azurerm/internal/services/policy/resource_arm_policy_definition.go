@@ -74,7 +74,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				ForceNew:      true,
 				Computed:      true,
 				ConflictsWith: []string{"management_group_name"},
-				Deprecated:    "Deprecated in favor of `management_group_name`", // TODO -- remove this in next major version
+				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
 			},
 
 			"management_group_name": {

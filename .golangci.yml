@@ -20,7 +20,6 @@ linters:
     - interfacer
     - nakedret
     - misspell
-    - scopelint
     - staticcheck
     - structcheck
     - typecheck
@@ -36,7 +35,6 @@ linters-settings:
   errcheck:
     ignore: github.com/hashicorp/terraform-plugin-sdk/helper/schema:ForceNew|Set,fmt:.*,io:Close
   misspell:
-    locale: uk
     ignore-words:
       - hdinsight
       - exportfs

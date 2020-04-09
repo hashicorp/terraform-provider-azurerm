@@ -238,16 +238,11 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
-	if err != nil {
-		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
-	}
-
 	endpoint := cdn.Endpoint{
 		Location: &location,
 		EndpointProperties: &cdn.EndpointProperties{
 			ContentTypesToCompress:     &contentTypes,
-			GeoFilters:                 geoFilters,
+			GeoFilters:                 expandArmCdnEndpointGeoFilters(d),
 			IsHTTPAllowed:              &httpAllowed,
 			IsHTTPSAllowed:             &httpsAllowed,
 			IsCompressionEnabled:       &compressionEnabled,
@@ -315,15 +310,10 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
-	if err != nil {
-		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
-	}
-
 	endpoint := cdn.EndpointUpdateParameters{
 		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
 			ContentTypesToCompress:     &contentTypes,
-			GeoFilters:                 geoFilters,
+			GeoFilters:                 expandArmCdnEndpointGeoFilters(d),
 			IsHTTPAllowed:              utils.Bool(httpAllowed),
 			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
 			IsCompressionEnabled:       utils.Bool(compressionEnabled),
@@ -443,7 +433,7 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandArmCdnEndpointGeoFilters(d *schema.ResourceData) (*[]cdn.GeoFilter, error) {
+func expandArmCdnEndpointGeoFilters(d *schema.ResourceData) *[]cdn.GeoFilter {
 	filters := make([]cdn.GeoFilter, 0)
 
 	inputFilters := d.Get("geo_filter").([]interface{})
@@ -468,7 +458,7 @@ func expandArmCdnEndpointGeoFilters(d *schema.ResourceData) (*[]cdn.GeoFilter, e
 		filters = append(filters, filter)
 	}
 
-	return &filters, nil
+	return &filters
 }
 
 func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {

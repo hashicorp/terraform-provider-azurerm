@@ -26,7 +26,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ExactlyOneOf: []string{"name", "group_id"},
-				Deprecated:   "Deprecated in favor of `name`",
+				Deprecated:   "Deprecated in favour of `name`",
 				ValidateFunc: validate.ManagementGroupName,
 			},
 

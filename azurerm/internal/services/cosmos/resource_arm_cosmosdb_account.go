@@ -474,12 +474,11 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	id := (*upsertResponse).ID
-	if id == nil {
+	if upsertResponse.ID == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
 	}
 
-	d.SetId(*id)
+	d.SetId(*upsertResponse.ID)
 
 	return resourceArmCosmosDbAccountRead(d, meta)
 }
@@ -722,7 +721,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 
 func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *documentdb.ConsistencyPolicy {
 	i := d.Get("consistency_policy").([]interface{})
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 	input := i[0].(map[string]interface{})
