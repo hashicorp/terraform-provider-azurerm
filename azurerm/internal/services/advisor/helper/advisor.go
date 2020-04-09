@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 func FormatSuppressionTTL(ttl int) string {
@@ -35,24 +34,19 @@ func ParseSuppresionTTL(ttl string) (int, error) {
 	if ttl == "-1" {
 		return -1, nil
 	}
-	if matched, _ := regexp.Match(`^\d+\.\d+:\d+:\d+$`, []byte(ttl)); matched {
-		daysSplit := strings.Split(ttl, ".")
-		days, _ := strconv.Atoi(daysSplit[0])
-		time, err := ParseSuppresionTTL(daysSplit[1])
-		if err != nil {
-			return 0, err
+	if re := regexp.MustCompile("^(\\d+\\.)?(\\d+):(\\d+):(\\d+)$"); re.Match([]byte(ttl)) {
+		ttlList := re.FindStringSubmatch(ttl)
+		days := 0
+		if ttlList[1] != "" {
+			days, _ = strconv.Atoi(ttlList[1][:len(ttlList[1])-1])
 		}
-		return days*24*60*60 + time, nil
-	}
-	if matched, _ := regexp.Match(`^\d+:\d+:\d+$`, []byte(ttl)); matched {
-		timesSplit := strings.Split(ttl, ":")
-		hours, _ := strconv.Atoi(timesSplit[0])
-		mins, _ := strconv.Atoi(timesSplit[1])
-		secs, _ := strconv.Atoi(timesSplit[2])
+		hours, _ := strconv.Atoi(ttlList[2])
+		mins, _ := strconv.Atoi(ttlList[3])
+		secs, _ := strconv.Atoi(ttlList[4])
 		if hours >= 24 || mins >= 60 || secs >= 60 {
 			return 0, fmt.Errorf("time in advisor suppression ttl string is not valid")
 		}
-		return hours*60*60 + mins*60 + secs, nil
+		return days*24*60*60 + hours*60*60 + mins*60 + secs, nil
 	}
 	return 0, fmt.Errorf("advisor suppression ttl string is not valid")
 }
