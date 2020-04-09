@@ -57,6 +57,16 @@ func resourceArmNatGateway() *schema.Resource {
 				ValidateFunc: validation.IntBetween(4, 120),
 			},
 
+			"public_ip_address_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+				Deprecated: "Deprecated in favor of `azurerm_nat_gateway_public_ip_association`",
+			},
+
 			"public_ip_prefix_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -109,6 +119,7 @@ func resourceArmNatGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	idleTimeoutInMinutes := d.Get("idle_timeout_in_minutes").(int)
+	publicIpAddressIds := d.Get("public_ip_address_ids").(*schema.Set).List()
 	publicIpPrefixIds := d.Get("public_ip_prefix_ids").(*schema.Set).List()
 	skuName := d.Get("sku_name").(string)
 	zones := d.Get("zones").([]interface{})
@@ -118,6 +129,7 @@ func resourceArmNatGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 		Location: utils.String(location),
 		NatGatewayPropertiesFormat: &network.NatGatewayPropertiesFormat{
 			IdleTimeoutInMinutes: utils.Int32(int32(idleTimeoutInMinutes)),
+			PublicIPAddresses:    expandArmNatGatewaySubResourceID(publicIpAddressIds),
 			PublicIPPrefixes:     expandArmNatGatewaySubResourceID(publicIpPrefixIds),
 		},
 		Sku: &network.NatGatewaySku{
@@ -179,6 +191,10 @@ func resourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.NatGatewayPropertiesFormat; props != nil {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		d.Set("resource_guid", props.ResourceGUID)
+
+		if err := d.Set("public_ip_address_ids", flattenArmNatGatewaySubResourceID(props.PublicIPAddresses)); err != nil {
+			return fmt.Errorf("Error setting `public_ip_address_ids`: %+v", err)
+		}
 
 		if err := d.Set("public_ip_prefix_ids", flattenArmNatGatewaySubResourceID(props.PublicIPPrefixes)); err != nil {
 			return fmt.Errorf("Error setting `public_ip_prefix_ids`: %+v", err)

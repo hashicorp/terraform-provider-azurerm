@@ -28,6 +28,8 @@ The following attributes are exported:
 
 * `idle_timeout_in_minutes` - The idle timeout in minutes which is used for the NAT Gateway.
 
+* `public_ip_address_ids` - A list of existing Public IP Address resource IDs which the NAT Gateway is using.
+
 * `public_ip_prefix_ids` - A list of existing Public IP Prefix resource IDs which the NAT Gateway is using.
 
 * `resource_guid` - The Resource GUID of the NAT Gateway.
@@ -37,6 +39,8 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the resource.
 
 * `zones` - A list of Availability Zones which the NAT Gateway exists in.
+
+~> **NOTE:** The field `public_ip_address_ids` has been deprecated in favor of `azurerm_nat_gateway_public_ip_association`.
 
 ## Timeouts
 
