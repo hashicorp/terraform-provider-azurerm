@@ -91,8 +91,8 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
 			"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
 			"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
-			"privateLinkOn":                  testAccAzureRMKubernetesCluster_privateLinkOn,
-			"privateLinkOff":                 testAccAzureRMKubernetesCluster_privateLinkOff,
+			"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
+			"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
 		},
 		"scaling": {
 			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
@@ -127,7 +127,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
 			"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
 			"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
-			"privateLink":                                 testAccDataSourceAzureRMKubernetesCluster_privateLink,
+			"privateCluster":                              testAccDataSourceAzureRMKubernetesCluster_privateCluster,
 		},
 	}
 
