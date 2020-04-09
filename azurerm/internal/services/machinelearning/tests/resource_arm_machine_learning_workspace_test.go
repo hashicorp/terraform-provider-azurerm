@@ -96,6 +96,7 @@ func TestAccAzureRMMachineLearningWorkspace_complete(t *testing.T) {
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "friendly_name", "test-workspace"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test machine learning workspace"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Enterprise"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
@@ -118,6 +119,7 @@ func TestAccAzureRMMachineLearningWorkspace_completeUpdate(t *testing.T) {
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "friendly_name", "test-workspace"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test machine learning workspace"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Enterprise"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
@@ -128,6 +130,7 @@ func TestAccAzureRMMachineLearningWorkspace_completeUpdate(t *testing.T) {
 					testCheckAzureRMMachineLearningWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "friendly_name", "test-workspace-updated"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test machine learning workspace update"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Enterprise"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
@@ -257,10 +260,12 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id            = azurerm_key_vault.test.id
   storage_account_id      = azurerm_storage_account.test.id
   container_registry_id   = azurerm_container_registry.test.id
+  sku_name                = "Enterprise"
 
   identity {
     type = "SystemAssigned"
   }
+
 
   tags = {
     ENV = "Test"
@@ -292,6 +297,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id            = azurerm_key_vault.test.id
   storage_account_id      = azurerm_storage_account.test.id
   container_registry_id   = azurerm_container_registry.test.id
+  sku_name                = "Enterprise"
 
   identity {
     type = "SystemAssigned"
