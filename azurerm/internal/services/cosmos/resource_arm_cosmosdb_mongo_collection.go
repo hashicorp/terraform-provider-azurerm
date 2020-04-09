@@ -284,8 +284,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 
 		if props.Indexes != nil {
-			ttl := flattenCosmosMongoCollectionIndex(props.Indexes)
-			if err := d.Set("default_ttl_seconds", ttl); err != nil {
+			if err := d.Set("default_ttl_seconds", flattenCosmosMongoCollectionIndex(props.Indexes)); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
 			}
 		}
