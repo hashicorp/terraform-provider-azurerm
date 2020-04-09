@@ -36,8 +36,6 @@ output "id" {
 
 * `management_group_name` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
-* `management_group_id` - (Optional / **Deprecated in favor of `management_group_name`**) Only retrieve Policy Definitions from this Management Group.
-
 ## Attributes Reference
 
 * `id` - The ID of the Policy Definition.
