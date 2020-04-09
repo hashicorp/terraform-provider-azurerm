@@ -63,7 +63,7 @@ resource "azurerm_policy_assignment" "example" {
 
   parameters = <<PARAMETERS
 {
-  "allowedLocations": {
+  "listOfAllowedLocations": {
     "value": [ "West Europe" ]
   }
 }
