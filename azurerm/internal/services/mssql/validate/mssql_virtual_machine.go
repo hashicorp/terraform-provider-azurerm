@@ -28,7 +28,7 @@ func MsSqlVMLoginUserName(i interface{}, k string) (warnings []string, errors []
 		return
 	}
 
-	if !regexp.MustCompile(`^[^\\/\"\[\]:|<>+=;,?\* .]{2,128}$`).MatchString(v) {
+	if !regexp.MustCompile(`^[^\\/"\[\]:|<>+=;,?* .]{2,128}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%v cannot contain special characters '\\/\"[]:|<>+=;,?* .'", k))
 	}
 
