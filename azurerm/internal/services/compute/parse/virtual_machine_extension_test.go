@@ -1,4 +1,4 @@
-package compute
+package parse
 
 import "testing"
 
@@ -6,7 +6,7 @@ func TestParseVirtualMachineExtensionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualMachineExtensionID
+		Expected *VirtualMachineExtensionId
 	}{
 		{
 			Name:     "Empty",
@@ -31,7 +31,7 @@ func TestParseVirtualMachineExtensionID(t *testing.T) {
 		{
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Compute/virtualMachines/machine1/extensions/extName",
-			Expected: &VirtualMachineExtensionID{
+			Expected: &VirtualMachineExtensionId{
 				ResourceGroup:  "myGroup1",
 				Name:           "extName",
 				VirtualMachine: "machine1",
@@ -41,7 +41,7 @@ func TestParseVirtualMachineExtensionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseVirtualMachineExtensionID(v.Input)
+		actual, err := VirtualMachineExtensionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -56,43 +56,6 @@ func TestParseVirtualMachineExtensionID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-	}
-}
-
-func TestValidateVirtualMachineExtensionID(t *testing.T) {
-	cases := []struct {
-		ID    string
-		Valid bool
-	}{
-		{
-			ID:    "",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/microsoft.compute/virtualMachines/machine1/extension/",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/microsoft.compute/virtualMachines/machine1/Extensions/extName",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Compute/virtualMachines/machine1/extensions/extName",
-			Valid: true,
-		},
-	}
-	for _, tc := range cases {
-		t.Logf("[DEBUG] Testing Value %s", tc.ID)
-		_, errors := ValidateVirtualMachineExtensionID(tc.ID, "test")
-		valid := len(errors) == 0
-
-		if tc.Valid != valid {
-			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
 		}
 	}
 }

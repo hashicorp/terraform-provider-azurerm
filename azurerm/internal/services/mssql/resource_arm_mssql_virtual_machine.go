@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	parseCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -184,7 +184,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	defer cancel()
 
 	vmId := d.Get("virtual_machine_id").(string)
-	id, err := compute.ParseVirtualMachineID(vmId)
+	id, err := parseCompute.VirtualMachineID(vmId)
 	if err != nil {
 		return err
 	}
