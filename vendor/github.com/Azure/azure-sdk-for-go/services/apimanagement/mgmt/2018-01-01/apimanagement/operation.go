@@ -143,8 +143,7 @@ func (client OperationClient) ListByTagsPreparer(ctx context.Context, resourceGr
 // ListByTagsSender sends the ListByTags request. The method will close the
 // http.Response Body if it receives an error.
 func (client OperationClient) ListByTagsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByTagsResponder handles the response to the ListByTags request. The method always
