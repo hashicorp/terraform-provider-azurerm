@@ -71,7 +71,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the policy definition. Changing this forces a
     new resource to be created.
 
-* `policy_type` - (Required) The policy type. Possible values are "BuiltIn", "Custom" and "NotSpecified". Changing this forces a new resource to be created.
+* `policy_type` - (Required) The policy type. Possible values are `BuiltIn`, `Custom` and `NotSpecified`. Changing this forces a new resource to be created.
 
 * `mode` - (Required) The policy mode that allows you to specify which resource
     types will be evaluated.  The value can be "All", "Indexed" or
@@ -83,10 +83,6 @@ The following arguments are supported:
 * `description` - (Optional) The description of the policy definition.
 
 * `management_group_name` - (Optional) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
-
-* `management_group_id` - (Optional / **Deprecated in favor of `management_group_name`**) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
-
-~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `.name` and not `.id`.
 
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a json object representing the rule that contains an if and
