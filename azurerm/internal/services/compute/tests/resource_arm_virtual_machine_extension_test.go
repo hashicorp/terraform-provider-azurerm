@@ -286,15 +286,13 @@ func testAccAzureRMVirtualMachineExtension_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_virtual_machine_extension" "import" {
-  name                 = "${azurerm_virtual_machine_extension.test.name}"
-  resource_group_name  = "${azurerm_virtual_machine_extension.test.resource_group_name}"
-  virtual_machine_id   = "${azurerm_virtual_machine_extension.test.virtual_machine_id}"
-  location             = "${azurerm_virtual_machine_extension.test.location}"
-  publisher            = "${azurerm_virtual_machine_extension.test.publisher}"
-  type                 = "${azurerm_virtual_machine_extension.test.type}"
-  type_handler_version = "${azurerm_virtual_machine_extension.test.type_handler_version}"
-  settings             = "${azurerm_virtual_machine_extension.test.settings}"
-  tags                 = "${azurerm_virtual_machine_extension.test.tags}"
+  name                 = azurerm_virtual_machine_extension.test.name
+  virtual_machine_id   = azurerm_virtual_machine_extension.test.virtual_machine_id
+  publisher            = azurerm_virtual_machine_extension.test.publisher
+  type                 = azurerm_virtual_machine_extension.test.type
+  type_handler_version = azurerm_virtual_machine_extension.test.type_handler_version
+  settings             = azurerm_virtual_machine_extension.test.settings
+  tags                 = azurerm_virtual_machine_extension.test.tags
 }
 `, template)
 }
