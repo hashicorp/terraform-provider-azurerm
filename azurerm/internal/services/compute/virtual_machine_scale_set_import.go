@@ -10,32 +10,30 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func importVirtualMachineScaleSetMode(resourceType string) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
-	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
-		id, err := ParseVirtualMachineScaleSetID(d.Id())
-		if err != nil {
-			return []*schema.ResourceData{}, err
-		}
-
-		client := meta.(*clients.Client).Compute.VMScaleSetClient
-		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-		defer cancel()
-
-		vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
-
-		if vm.VirtualMachineScaleSetProperties == nil {
-			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
-		}
-
-		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile != nil {
-			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): the virtual machine scale set is not in the orchestration mode of VM", id.Name, id.ResourceGroup)
-		}
-
-		return []*schema.ResourceData{d}, nil
+func importVirtualMachineScaleSetVMOMode(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
+	if err != nil {
+		return []*schema.ResourceData{}, err
 	}
+
+	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if vm.VirtualMachineScaleSetProperties == nil {
+		return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+	}
+
+	if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile != nil {
+		return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): the virtual machine scale set is not in the orchestration mode of VM", id.Name, id.ResourceGroup)
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceType string) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {

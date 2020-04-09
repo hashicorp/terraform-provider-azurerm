@@ -238,7 +238,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			},
 
 			"virtual_machine_scale_set_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ConflictsWith: []string{

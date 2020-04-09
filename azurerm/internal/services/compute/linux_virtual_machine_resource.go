@@ -218,7 +218,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"source_image_reference": sourceImageReferenceSchema(true),
 
 			"virtual_machine_scale_set_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ConflictsWith: []string{

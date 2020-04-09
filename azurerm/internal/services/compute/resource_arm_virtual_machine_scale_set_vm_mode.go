@@ -2,15 +2,17 @@ package compute
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,9 +27,9 @@ func resourceArmVirtualMachineScaleSetVMMode() *schema.Resource {
 		Delete: resourceArmVirtualMachineScaleSetVMModeDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := ParseVirtualMachineScaleSetID(id)
+			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
-		}, importVirtualMachineScaleSetMode("azurerm_virtual_machine_scale_set_vm_mode")),
+		}, importVirtualMachineScaleSetVMOMode),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -41,7 +43,7 @@ func resourceArmVirtualMachineScaleSetVMMode() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateLinuxName, // TODO -- get real rule
+				ValidateFunc: ValidateLinuxName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -84,7 +86,7 @@ func resourceArmVirtualMachineScaleSetVMModeCreateUpdate(d *schema.ResourceData,
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
@@ -129,7 +131,7 @@ func resourceArmVirtualMachineScaleSetVMModeRead(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -147,9 +149,7 @@ func resourceArmVirtualMachineScaleSetVMModeRead(d *schema.ResourceData, meta in
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if resp.VirtualMachineScaleSetProperties == nil {
 		return fmt.Errorf("Error retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
@@ -169,7 +169,7 @@ func resourceArmVirtualMachineScaleSetVMModeDelete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
