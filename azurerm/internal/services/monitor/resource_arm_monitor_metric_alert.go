@@ -96,12 +96,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Equals",
-								"NotEquals",
-								"GreaterThan",
-								"GreaterThanOrEqual",
-								"LessThan",
-								"LessThanOrEqual",
+								string(insights.OperatorEquals),
+								string(insights.OperatorGreaterThan),
+								string(insights.OperatorGreaterThanOrEqual),
+								string(insights.OperatorLessThan),
+								string(insights.OperatorLessThanOrEqual),
+								string(insights.OperatorNotEquals),
 							}, false),
 						},
 						"threshold": {
@@ -372,7 +372,7 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 			MetricNamespace: utils.String(v["metric_namespace"].(string)),
 			MetricName:      utils.String(v["metric_name"].(string)),
 			TimeAggregation: v["aggregation"].(string),
-			Operator:        v["operator"].(string),
+			Operator:        insights.Operator(v["operator"].(string)),
 			Threshold:       utils.Float(v["threshold"].(float64)),
 			Dimensions:      &dimensions,
 		})
@@ -425,9 +425,9 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 		if aggr, ok := metric.TimeAggregation.(string); ok {
 			v["aggregation"] = aggr
 		}
-		if op, ok := metric.Operator.(string); ok {
-			v["operator"] = op
-		}
+
+		v["operator"] = string(metric.Operator)
+
 		if metric.Threshold != nil {
 			v["threshold"] = *metric.Threshold
 		}

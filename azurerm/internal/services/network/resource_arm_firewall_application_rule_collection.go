@@ -195,10 +195,8 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 
 		ruleCollections[index] = newRuleCollection
 	} else {
-		if features.ShouldResourcesBeImported() && d.IsNewResource() {
-			if index != -1 {
-				return tf.ImportAsExistsError("azurerm_firewall_application_rule_collection", id)
-			}
+		if features.ShouldResourcesBeImported() && d.IsNewResource() && index != -1 {
+			return tf.ImportAsExistsError("azurerm_firewall_application_rule_collection", id)
 		}
 
 		ruleCollections = append(ruleCollections, newRuleCollection)

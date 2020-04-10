@@ -1701,6 +1701,7 @@ resource "azurerm_application_gateway" "test" {
 `, template, data.RandomInteger)
 }
 
+// nolint unused - mistakenly marked as unused
 func testAccAzureRMApplicationGateway_trustedRootCertificate_keyvault(data acceptance.TestData) string {
 	template := testAccAzureRMApplicationGateway_template(data)
 	return fmt.Sprintf(`

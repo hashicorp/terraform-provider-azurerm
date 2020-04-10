@@ -191,10 +191,8 @@ func resourceArmFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, me
 
 		ruleCollections[index] = newRuleCollection
 	} else {
-		if features.ShouldResourcesBeImported() && d.IsNewResource() {
-			if index != -1 {
-				return tf.ImportAsExistsError("azurerm_firewall_nat_rule_collection", id)
-			}
+		if features.ShouldResourcesBeImported() && d.IsNewResource() && index != -1 {
+			return tf.ImportAsExistsError("azurerm_firewall_nat_rule_collection", id)
 		}
 
 		// first double check it doesn't already exist

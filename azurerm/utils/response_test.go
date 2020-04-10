@@ -44,7 +44,7 @@ type testNetError struct {
 	temporary bool
 }
 
-// testNetError fulfills net.Error interface
+// testNetError fulfils net.Error interface
 func (e testNetError) Error() string   { return "testError" }
 func (e testNetError) Timeout() bool   { return e.timeout }
 func (e testNetError) Temporary() bool { return e.temporary }

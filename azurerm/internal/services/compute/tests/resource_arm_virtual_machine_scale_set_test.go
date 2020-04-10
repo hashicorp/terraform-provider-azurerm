@@ -1304,7 +1304,7 @@ func testCheckAzureRMVirtualMachineScaleSetSshKey(name string, expected string) 
 			return fmt.Errorf("Bad: Could not get linux configuration for scale set %v", name)
 		}
 
-		publicKey := *(*n).SSH.PublicKeys
+		publicKey := *n.SSH.PublicKeys
 		keyData := *(publicKey[0]).KeyData
 		if keyData != expected {
 			return fmt.Errorf("Bad: ssh_keys.key_data set incorrectly for scale set %v\n Wanted: %+v Received: %+v", name, expected, keyData)
