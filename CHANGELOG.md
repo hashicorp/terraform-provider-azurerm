@@ -1,5 +1,8 @@
 ## 2.6.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_policy_set_definition` [GH-6305]
 
 IMPROVEMENTS:
 
@@ -9,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
 
 BUG FIXES:
+
 * `azurerm_machine_learning_workspace` - the `Enterprise` sku will now propertly work [GH-6397]
 
 ## 2.5.0 (April 09, 2020)
