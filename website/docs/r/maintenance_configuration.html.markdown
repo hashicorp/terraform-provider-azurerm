@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+~> **NOTE** Because of restriction by the Maintenance backend service, the key in `tags` will be converted to small case. To avoid diff, please use lower case letters for the key.
+
 ## Attributes Reference
 
 The following attributes are exported:

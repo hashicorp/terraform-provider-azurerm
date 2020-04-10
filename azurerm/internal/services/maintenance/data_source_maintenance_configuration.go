@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -58,7 +59,7 @@ func dataSourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta inte
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("failure retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if id := resp.ID; id != nil {
@@ -67,11 +68,7 @@ func dataSourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta inte
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("scope", props.MaintenanceScope)
 	}

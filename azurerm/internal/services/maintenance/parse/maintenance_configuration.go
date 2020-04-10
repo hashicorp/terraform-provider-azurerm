@@ -21,9 +21,16 @@ func MaintenanceConfigurationID(input string) (*MaintenanceConfigurationId, erro
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if maintenanceConfiguration.Name, err = id.PopSegment("maintenanceconfigurations"); err != nil {
-		return nil, err
+	if name, err := id.PopSegment("maintenanceconfigurations"); err != nil {
+		if name, err = id.PopSegment("maintenanceConfigurations"); err != nil {
+			return nil, fmt.Errorf("[ERROR] Unable to parse maintenanceconfigurations/maintenanceConfigurations element %q: %+v", input, err)
+		} else {
+			maintenanceConfiguration.Name = name
+		}
+	} else {
+		maintenanceConfiguration.Name = name
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}

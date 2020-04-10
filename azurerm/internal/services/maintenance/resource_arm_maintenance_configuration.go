@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -78,11 +78,11 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *schema.ResourceData, met
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("failure checking for present of existing MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -104,16 +104,16 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *schema.ResourceData, met
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, configuration); err != nil {
-		return fmt.Errorf("Error creating/updating MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("failure creating/updating MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("failure retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read MaintenanceConfiguration %q (Resource Group %q) ID", name, resGroup)
+		return fmt.Errorf("cannot read MaintenanceConfiguration %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -137,15 +137,12 @@ func resourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failure retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ConfigurationProperties; props != nil {
 		d.Set("scope", props.MaintenanceScope)
 	}
@@ -163,7 +160,7 @@ func resourceArmMaintenanceConfigurationDelete(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("Error deleting MaintenanceConfiguration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failure deleting MaintenanceConfiguration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	return nil
 }
