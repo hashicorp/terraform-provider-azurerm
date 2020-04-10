@@ -328,7 +328,6 @@ func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Disabled"),
 				),
 			},
-			data.ImportStep(),
 		},
 	})
 }
