@@ -702,5 +702,4 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, template, data.RandomInteger, state)
-
 }
