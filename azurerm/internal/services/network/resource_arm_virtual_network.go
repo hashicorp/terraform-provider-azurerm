@@ -85,7 +85,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -249,9 +249,12 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error setting `subnets`: %+v", err)
 		}
 
-		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
-			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+		if dhcp := props.DhcpOptions; dhcp != nil {
+			if err := d.Set("dns_servers", utils.FlattenStringSlice(dhcp.DNSServers)); err != nil {
+				return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+			}
 		}
+
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -335,7 +338,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
 		},
 		DhcpOptions: &network.DhcpOptions{
-			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
+			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").(*schema.Set).List()),
 		},
 		Subnets: &subnets,
 	}
@@ -411,18 +414,6 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
 			}
 
 			results.Add(output)
-		}
-	}
-
-	return results
-}
-
-func flattenVirtualNetworkDNSServers(input *network.DhcpOptions) []string {
-	results := make([]string, 0)
-
-	if input != nil {
-		if servers := input.DNSServers; servers != nil {
-			results = *servers
 		}
 	}
 
