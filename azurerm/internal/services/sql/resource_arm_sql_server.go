@@ -71,9 +71,14 @@ func resourceArmSqlServer() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"fully_qualified_domain_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"connection_policy": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				ValidateFunc:validation.StringInSlice([]string{
+					string(sql.ServerConnectionTypeDefault),
+					string(sql.ServerConnectionTypeProxy),
+					string(sql.ServerConnectionTypeRedirect),
+				}, false),
 			},
 
 			"identity": {
@@ -103,6 +108,11 @@ func resourceArmSqlServer() *schema.Resource {
 
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
+			"fully_qualified_domain_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -110,6 +120,8 @@ func resourceArmSqlServer() *schema.Resource {
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
+	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
+	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -174,7 +186,15 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*resp.ID)
 
-	auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
+	connectionClient := sql.ServerConnectionPolicy{
+		ServerConnectionPolicyProperties: &sql.ServerConnectionPolicyProperties{
+			ConnectionType: sql.ServerConnectionType(d.Get("connection_type").(string))
+		},
+	}
+	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, auditingProps); err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+	}
+
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
 	}
@@ -225,7 +245,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
+	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error reading SQL Server %s Blob Auditing Policies: %v ", name, err)
