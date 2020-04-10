@@ -254,7 +254,6 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error setting `dns_servers`: %+v", err)
 			}
 		}
-
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
