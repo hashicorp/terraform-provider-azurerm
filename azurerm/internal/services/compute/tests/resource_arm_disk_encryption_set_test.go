@@ -24,13 +24,6 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
@@ -55,13 +48,6 @@ func TestAccAzureRMDiskEncryptionSet_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
@@ -81,13 +67,6 @@ func TestAccAzureRMDiskEncryptionSet_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
 				Config: testAccAzureRMDiskEncryptionSet_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
@@ -106,13 +85,6 @@ func TestAccAzureRMDiskEncryptionSet_update(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
-			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
 			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -183,6 +155,7 @@ func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
 	return nil
 }
 
+// nolint unparam
 func enableSoftDeleteAndPurgeProtectionForKeyVault(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient

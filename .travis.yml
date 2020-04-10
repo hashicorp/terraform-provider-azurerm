@@ -30,9 +30,9 @@ matrix:
     - name: "make lintrest"
       script:
       - TRAVIS=ci GOGC=5 make lintrest
-    # results in a OOM error
-    #- name: "make lintunused"
-    #  script: GOGC=5 make lintunused
+      # results in a OOM error
+      #- name: "make lintunused"
+      #  script: GOGC=5 make lintunused
     - name: "make tflint"
       script: TRAVIS=ci make tflint
     - name: "make test"

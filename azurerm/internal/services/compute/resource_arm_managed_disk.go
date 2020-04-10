@@ -207,10 +207,8 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 			diskMBps := int32(v.(int))
 			props.DiskMBpsReadWrite = &diskMBps
 		}
-	} else {
-		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-			return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
-		}
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.Import {
@@ -347,10 +345,8 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 			diskMBps := int32(v.(int))
 			diskUpdate.DiskMBpsReadWrite = &diskMBps
 		}
-	} else {
-		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-			return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
-		}
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
 	}
 
 	if d.HasChange("os_type") {

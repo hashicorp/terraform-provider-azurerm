@@ -64,7 +64,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				ValidateFunc: validate.MsSqlDatabaseAutoPauseDelay,
 			},
 
-			//recovery is not support in version 2017-10-01-preview
+			// recovery is not support in version 2017-10-01-preview
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,

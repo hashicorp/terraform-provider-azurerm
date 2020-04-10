@@ -167,10 +167,8 @@ func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, m
 		}
 
 		d.SetId(*read.ID)
-	} else {
-		if _, err := client.Update(ctx, function, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
+	} else if _, err := client.Update(ctx, function, resourceGroup, jobName, name, ""); err != nil {
+		return fmt.Errorf("Error Updating Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	return resourceArmStreamAnalyticsFunctionUDFRead(d, meta)

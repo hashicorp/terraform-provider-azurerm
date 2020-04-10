@@ -380,10 +380,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	threatDetection, err := expandArmSqlServerThreatDetectionPolicy(d, location)
-	if err != nil {
-		return fmt.Errorf("Error parsing the database threat detection policy: %+v", err)
-	}
+	threatDetection := expandArmSqlServerThreatDetectionPolicy(d, location)
 
 	properties := sql.Database{
 		Location: utils.String(location),
@@ -717,7 +714,7 @@ func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionR
 	}
 }
 
-func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) (*sql.DatabaseSecurityAlertPolicy, error) {
+func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
 		Location: utils.String(location),
 		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
@@ -728,7 +725,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 
 	td, ok := d.GetOk("threat_detection_policy")
 	if !ok {
-		return &policy, nil
+		return &policy
 	}
 
 	if tdl := td.([]interface{}); len(tdl) > 0 {
@@ -764,8 +761,8 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 
-		return &policy, nil
+		return &policy
 	}
 
-	return &policy, nil
+	return &policy
 }

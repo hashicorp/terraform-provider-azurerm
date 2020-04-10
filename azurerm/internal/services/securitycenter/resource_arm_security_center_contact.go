@@ -118,10 +118,8 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		d.SetId(*resp.ID)
-	} else {
-		if _, err := client.Update(ctx, name, contact); err != nil {
-			return fmt.Errorf("Error updating Security Center Contact: %+v", err)
-		}
+	} else if _, err := client.Update(ctx, name, contact); err != nil {
+		return fmt.Errorf("Error updating Security Center Contact: %+v", err)
 	}
 
 	return resourceArmSecurityCenterContactRead(d, meta)

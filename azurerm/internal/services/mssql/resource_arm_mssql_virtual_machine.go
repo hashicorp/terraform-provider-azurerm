@@ -104,7 +104,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							//api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
+							// api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
 							DiffSuppressFunc: mssqlVMCredentialNameDiffSuppressFunc,
 						},
 
@@ -410,7 +410,7 @@ func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.K
 	}
 }
 
-func mssqlVMCredentialNameDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	oldNamelist := strings.Split(old, ",")
 	for _, n := range oldNamelist {
 		cur := strings.Split(n, ":")

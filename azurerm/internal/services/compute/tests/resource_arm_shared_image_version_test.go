@@ -234,6 +234,7 @@ func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.Test
 	}
 }
 
+// nolint: unparam
 func testAccAzureRMSharedImageVersion_setup(data acceptance.TestData, username, password, hostname string) string {
 	return testAccAzureRMImage_standaloneImage_setup(data, username, password, hostname, "LRS")
 }

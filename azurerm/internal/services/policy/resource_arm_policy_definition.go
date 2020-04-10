@@ -74,7 +74,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				ForceNew:      true,
 				Computed:      true,
 				ConflictsWith: []string{"management_group_name"},
-				Deprecated:    "Deprecated in favor of `management_group_name`", // TODO -- remove this in next major version
+				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
 			},
 
 			"management_group_name": {
@@ -240,7 +240,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) {
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupName = scopeId.ManagementGroupId
 	}
@@ -294,7 +294,7 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	managementGroupID := ""
-	switch scopeId := id.PolicyScopeId.(type) {
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupID = scopeId.ManagementGroupId
 	}
