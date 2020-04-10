@@ -298,7 +298,7 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_policy_set_definition" "test" {
-  name         = "testPolicySet"
+  name         = "testPolicySet-%[1]d"
   policy_type  = "Custom"
   display_name = "Test Policy Set"
 

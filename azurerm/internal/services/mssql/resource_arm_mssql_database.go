@@ -296,7 +296,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	serverResp, err := serverClient.Get(ctx, serverId.ResourceGroup, serverId.Name)
 	if err != nil {
-		return fmt.Errorf("Failure in making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("making Read request on MsSql Server %q (Resource Group %q): %s", serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	location := *serverResp.Location
@@ -360,16 +360,16 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, params)
 	if err != nil {
-		return fmt.Errorf("Failure in creating MsSql Database %q (Sql Server %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("creating MsSql Database %q (Sql Server %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Failure in waiting for creation of MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
 	if err != nil {
-		return fmt.Errorf("Failure in retrieving MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
+		return fmt.Errorf("retrieving MsSql Database %q (MsSql Server Name %q / Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	if read.ID == nil || *read.ID == "" {
@@ -379,7 +379,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	d.SetId(*read.ID)
 
 	if _, err = threatClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, *expandArmMsSqlServerThreatDetectionPolicy(d, location)); err != nil {
-		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
+		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
 	return resourceArmMsSqlDatabaseRead(d, meta)
@@ -402,7 +402,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Failure in reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.MsSqlServer, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -411,7 +411,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 
 	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.MsSqlServer)
 	if err != nil || *serverResp.ID == "" {
-		return fmt.Errorf("Failure in making Read request on MsSql Server  %q (Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
 	}
 	d.Set("server_id", serverResp.ID)
 
@@ -437,7 +437,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
 	if err == nil {
 		if err := d.Set("threat_detection_policy", flattenArmMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
-			return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
+			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
 
@@ -456,14 +456,14 @@ func resourceArmMsSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
 	if err != nil {
-		return fmt.Errorf("Failure in deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Failure in waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
 	}
 
 	return nil
