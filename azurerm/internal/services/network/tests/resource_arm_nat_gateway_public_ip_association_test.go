@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
@@ -27,22 +26,17 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_basic(t *testing.T) {
 					testCheckAzureRMNatGatewayPublicIpAssociationExists(data.ResourceName),
 				),
 			},
+			// `public_ip_address_id` cannot be retrieved in read function while importing.
 			data.ImportStep("public_ip_address_id"),
 		},
 	})
 }
 
 func TestAccAzureRMNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,9 +53,8 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 func TestAccAzureRMNatGatewayPublicIpAssociation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,9 +71,8 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_complete(t *testing.T) {
 func TestAccAzureRMNatGatewayPublicIpAssociation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,21 +148,15 @@ func testCheckAzureRMNatGatewayPublicIpAssociationExists(resourceName string) re
 			return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
-		found := false
 		if publicIpAddresses := resp.PublicIPAddresses; publicIpAddresses != nil {
 			for _, publicIpAddress := range *publicIpAddresses {
 				if *publicIpAddress.ID == publicIpAddressId {
-					found = true
-					break
+					return nil
 				}
 			}
 		}
 
-		if !found {
-			return fmt.Errorf("Association between Nat Gateway %q and Public Ip %q was not found!", id.Name, publicIpAddressId)
-		}
-
-		return nil
+		return fmt.Errorf("Association between Nat Gateway %q and Public Ip %q was not found.", id.Name, publicIpAddressId)
 	}
 }
 

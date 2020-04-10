@@ -10,9 +10,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +24,10 @@ func resourceArmNatGatewayPublicIpAssociation() *schema.Resource {
 		Read:   resourceArmNatGatewayPublicIpAssociationRead,
 		Delete: resourceArmNatGatewayPublicIpAssociationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.NatGatewayID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +40,7 @@ func resourceArmNatGatewayPublicIpAssociation() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.NatGatewayID,
 			},
 
 			"public_ip_address_id": {
@@ -70,7 +72,7 @@ func resourceArmNatGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta
 	natGateway, err := client.Get(ctx, parsedNatGatewayId.ResourceGroup, parsedNatGatewayId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(natGateway.Response) {
-			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found!", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup)
+			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found.", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup)
 		}
 		return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
 	}
@@ -80,11 +82,7 @@ func resourceArmNatGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta
 		for _, existingPublicIPAddress := range *natGateway.PublicIPAddresses {
 			if existingPublicIPAddress.ID != nil {
 				if *existingPublicIPAddress.ID == publicIpAddressId {
-					if features.ShouldResourcesBeImported() {
-						return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", *natGateway.ID)
-					}
-
-					continue
+					return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", *natGateway.ID)
 				}
 
 				publicIpAddresses = append(publicIpAddresses, existingPublicIPAddress)
@@ -92,10 +90,9 @@ func resourceArmNatGatewayPublicIpAssociationCreate(d *schema.ResourceData, meta
 		}
 	}
 
-	publicIpAddress := network.SubResource{
+	publicIpAddresses = append(publicIpAddresses, network.SubResource{
 		ID: utils.String(publicIpAddressId),
-	}
-	publicIpAddresses = append(publicIpAddresses, publicIpAddress)
+	})
 	natGateway.PublicIPAddresses = &publicIpAddresses
 
 	future, err := client.CreateOrUpdate(ctx, parsedNatGatewayId.ResourceGroup, parsedNatGatewayId.Name, natGateway)
@@ -165,7 +162,7 @@ func resourceArmNatGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta
 	natGateway, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(natGateway.Response) {
-			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found!", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Nat Gateway %q (Resource Group %q) was not found.", id.Name, id.ResourceGroup)
 		}
 
 		return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
