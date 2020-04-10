@@ -234,6 +234,9 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode,
+				// the VMO mode VMSS will assign a zone for each of its instance
+				Computed: true,
 				ConflictsWith: []string{
 					"availability_set_id",
 					"virtual_machine_scale_set_id",

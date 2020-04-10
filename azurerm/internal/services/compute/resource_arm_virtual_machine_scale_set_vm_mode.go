@@ -58,7 +58,13 @@ func resourceArmVirtualMachineScaleSetVMMode() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 5),
 			},
 
-			"zones": azure.SchemaZones(),
+			// the VMO mode can only be deployed into one zone, and its zone will also be assigned to all its VM instances
+			"zones": azure.SchemaSingleZone(),
+
+			"unique_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -150,12 +156,11 @@ func resourceArmVirtualMachineScaleSetVMModeRead(d *schema.ResourceData, meta in
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	if resp.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
-	}
-	props := *resp.VirtualMachineScaleSetProperties
 
-	d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+	if props := resp.VirtualMachineScaleSetProperties; props != nil {
+		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+		d.Set("unique_id", props.UniqueID)
+	}
 
 	if err := d.Set("zones", resp.Zones); err != nil {
 		return fmt.Errorf("Error setting `zones`: %+v", err)
