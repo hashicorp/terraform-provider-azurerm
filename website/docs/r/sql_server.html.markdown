@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
+* `connection_policy` - (Optional) The connection policy the server will use. Possible values are `Default`, `Proxy`, and `Redirect`. Defaults to `Default`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
