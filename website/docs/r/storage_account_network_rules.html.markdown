@@ -6,7 +6,7 @@ description: |-
   Manages network rules inside of a Azure Storage Account.
 ---
 
-# azurerm_storage_account
+# azurerm_storage_account_network_rules
 
 Manages network rules inside of a Azure Storage Account.
 

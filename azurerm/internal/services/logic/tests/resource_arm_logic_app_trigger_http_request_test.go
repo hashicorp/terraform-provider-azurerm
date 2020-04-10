@@ -135,7 +135,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 				// delete it
 				Config: testAccAzureRMLogicAppTriggerHttpRequest_template(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists("azurerm_logic_app_workflow"),
+					testCheckAzureRMLogicAppWorkflowExists("azurerm_logic_app_workflow.test"),
 				),
 			},
 			{

@@ -370,6 +370,7 @@ func checkAccAzureRMAutomationSchedule_oneTime_complete(resourceName, startTime 
 	)
 }
 
+// nolint unparam
 func testAccAzureRMAutomationSchedule_recurring_basic(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
 %s
@@ -384,6 +385,7 @@ resource "azurerm_automation_schedule" "test" {
 `, testAccAzureRMAutomationSchedule_prerequisites(data), data.RandomInteger, frequency, interval)
 }
 
+// nolint unparam
 func checkAccAzureRMAutomationSchedule_recurring_basic(resourceName string, frequency string, interval int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMAutomationScheduleExists(resourceName),

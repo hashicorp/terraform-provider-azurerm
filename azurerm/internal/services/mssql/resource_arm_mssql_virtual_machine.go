@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	parseCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -104,7 +104,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							//api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
+							// api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
 							DiffSuppressFunc: mssqlVMCredentialNameDiffSuppressFunc,
 						},
 
@@ -184,7 +184,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	defer cancel()
 
 	vmId := d.Get("virtual_machine_id").(string)
-	id, err := compute.ParseVirtualMachineID(vmId)
+	id, err := parseCompute.VirtualMachineID(vmId)
 	if err != nil {
 		return err
 	}
@@ -410,7 +410,7 @@ func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.K
 	}
 }
 
-func mssqlVMCredentialNameDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	oldNamelist := strings.Split(old, ",")
 	for _, n := range oldNamelist {
 		cur := strings.Split(n, ":")

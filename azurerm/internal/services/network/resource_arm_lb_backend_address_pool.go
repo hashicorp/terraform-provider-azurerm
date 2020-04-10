@@ -130,7 +130,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	}
 
 	var poolId string
-	for _, BackendAddressPool := range *(*read.LoadBalancerPropertiesFormat).BackendAddressPools {
+	for _, BackendAddressPool := range *read.LoadBalancerPropertiesFormat.BackendAddressPools {
 		if *BackendAddressPool.Name == name {
 			poolId = *BackendAddressPool.ID
 		}

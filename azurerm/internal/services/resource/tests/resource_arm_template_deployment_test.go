@@ -492,39 +492,37 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
 output "test" {
-  value = "${azurerm_template_deployment.test.outputs["testOutput"]}"
+  value = azurerm_template_deployment.test.outputs["testOutput"]
 }
 
 resource "azurerm_storage_container" "using-outputs" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_template_deployment.test.outputs["accountName"]}"
+  storage_account_name  = azurerm_template_deployment.test.outputs["accountName"]
   container_access_type = "private"
 }
 
-data "azurerm_client_config" "current" {}
 
-resource "azurerm_key_vault" "test-kv" {
+resource "azurerm_key_vault" "test" {
   location            = "%s"
   name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
-  tenant_id                       = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id                       = data.azurerm_client_config.current.tenant_id
   enabled_for_template_deployment = true
 
   access_policy {
     key_permissions = []
-    object_id       = "${data.azurerm_client_config.current.object_id}"
+    object_id       = data.azurerm_client_config.current.object_id
 
     secret_permissions = [
       "delete",
@@ -539,9 +537,9 @@ resource "azurerm_key_vault" "test-kv" {
 }
 
 resource "azurerm_key_vault_secret" "test-secret" {
-  name      = "acctestsecret-%d"
-  value     = "terraform-test-%d"
-  vault_uri = "${azurerm_key_vault.test-kv.vault_uri}"
+  name         = "acctestsecret-%d"
+  value        = "terraform-test-%d"
+  key_vault_id = azurerm_key_vault.test.id
 }
 
 locals {
@@ -550,7 +548,7 @@ locals {
 "dnsLabelPrefix": {
     "reference": {
       "keyvault": {
-        "id": "${azurerm_key_vault.test-kv.id}"
+        "id": "${azurerm_key_vault.test.id}"
       },
       "secretName": "${azurerm_key_vault_secret.test-secret.name}"
     }
@@ -564,7 +562,7 @@ TPL
 
 resource "azurerm_template_deployment" "test" {
   name                = "acctesttemplate-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   template_body = <<DEPLOY
 {

@@ -817,10 +817,10 @@ func getSoftDeletedStateForKeyVault(ctx context.Context, client *keyvault.Vaults
 
 	result := keyVaultDeletionStatus{}
 	if props.DeletionDate != nil {
-		result.deleteDate = (*props.DeletionDate).Format(time.RFC3339)
+		result.deleteDate = props.DeletionDate.Format(time.RFC3339)
 	}
 	if props.ScheduledPurgeDate != nil {
-		result.purgeDate = (*props.ScheduledPurgeDate).Format(time.RFC3339)
+		result.purgeDate = props.ScheduledPurgeDate.Format(time.RFC3339)
 	}
 
 	if result.deleteDate == "" && result.purgeDate == "" {
