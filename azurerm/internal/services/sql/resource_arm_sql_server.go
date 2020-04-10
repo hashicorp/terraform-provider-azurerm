@@ -72,9 +72,10 @@ func resourceArmSqlServer() *schema.Resource {
 			},
 
 			"connection_policy": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				ValidateFunc:validation.StringInSlice([]string{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(sql.ServerConnectionTypeDefault),
+				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.ServerConnectionTypeDefault),
 					string(sql.ServerConnectionTypeProxy),
 					string(sql.ServerConnectionTypeRedirect),
@@ -186,13 +187,13 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*resp.ID)
 
-	connectionClient := sql.ServerConnectionPolicy{
+	connection := sql.ServerConnectionPolicy{
 		ServerConnectionPolicyProperties: &sql.ServerConnectionPolicyProperties{
-			ConnectionType: sql.ServerConnectionType(d.Get("connection_type").(string))
+			ConnectionType: sql.ServerConnectionType(d.Get("connection_policy").(string)),
 		},
 	}
-	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, auditingProps); err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, connection); err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
@@ -207,6 +208,8 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
+	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
+	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -245,14 +248,21 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
+	connection, err := connectionClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error reading SQL Server %s Blob Connection Policy: %v ", name, err)
+	}
+
+	if props := connection.ServerConnectionPolicyProperties; props != nil {
+		d.Set("connection_policy", string(props.ConnectionType))
+	}
+
 	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error reading SQL Server %s Blob Auditing Policies: %v ", name, err)
 	}
 
-	flattenBlobAuditing := helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)
-	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
+	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
 		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
 	}
 

@@ -55,7 +55,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&serverExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatabasesClient:                            &databasesClient,
+		DatabasesClient: &databasesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient: &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseThreatDetectionPoliciesClient:      &databaseThreatDetectionPoliciesClient,
 		ElasticPoolsClient:                         &elasticPoolsClient,
@@ -63,7 +63,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		FirewallRulesClient:                        &firewallRulesClient,
 		ServersClient:                              &serversClient,
 		ServerAzureADAdministratorsClient:          &serverAzureADAdministratorsClient,
-		ServerConnectionPoliciesClient:				&serverConnectionPoliciesClient,
+		ServerConnectionPoliciesClient:             &serverConnectionPoliciesClient,
 		ServerExtendedBlobAuditingPoliciesClient:   &serverExtendedBlobAuditingPoliciesClient,
 		VirtualNetworkRulesClient:                  &virtualNetworkRulesClient,
 	}
