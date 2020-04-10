@@ -852,11 +852,14 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 }
 
 func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	ipSecurityRestrictions := input.([]interface{})
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	for i, ipSecurityRestriction := range ipSecurityRestrictions {
-		restriction := ipSecurityRestriction.(map[string]interface{})
+	for i, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		restriction := r.(map[string]interface{})
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := restriction["subnet_id"].(string)
