@@ -319,7 +319,7 @@ func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
 			{
 				Config: testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data, "Disabled"),
 				Check: resource.ComposeTestCheckFunc(
@@ -328,6 +328,7 @@ func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Disabled"),
 				),
 			},
+			data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
 		},
 	})
 }
