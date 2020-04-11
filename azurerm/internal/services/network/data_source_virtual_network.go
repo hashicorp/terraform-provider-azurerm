@@ -31,7 +31,6 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
-
 			"address_space": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -46,6 +45,11 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+
+			"guid": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"subnets": {
@@ -88,6 +92,10 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("API returns a nil/empty id on Virtual Network %q (resource group %q): %+v", name, resGroup, err)
 	}
 	d.SetId(*resp.ID)
+
+	if guid := resp.ResourceGUID; guid != nil {
+		d.Set("guid", resp.ResourceGUID)
+	}
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
