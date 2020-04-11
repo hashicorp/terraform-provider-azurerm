@@ -21,6 +21,7 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "pergb2018"),
 					resource.TestCheckResourceAttr(data.ResourceName, "retention_in_days", "30"),
+					resource.TestCheckResourceAttr(data.ResourceName, "datasource_linux_syslog_enabled", "true"),
 				),
 			},
 		},

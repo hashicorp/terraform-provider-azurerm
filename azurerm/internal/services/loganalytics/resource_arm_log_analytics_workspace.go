@@ -64,6 +64,12 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			"datasource_linux_syslog_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"retention_in_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -100,6 +106,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	dsclient := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
@@ -160,11 +167,17 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
+	// Enable/disable data sources which have workspace-level toggle.
+	if err := createDataSourceCollection(ctx, dsclient, resGroup, name, operationalinsights.LinuxSyslogCollection, d.Get("datasource_linux_syslog_enabled").(bool)); err != nil {
+		return err
+	}
+
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
 }
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	dsclient := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -203,6 +216,12 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("primary_shared_key", sharedKeys.PrimarySharedKey)
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
 	}
+
+	linuxSyslogState, err := getDataSourceCollectionState(ctx, dsclient, resGroup, name, operationalinsights.LinuxSyslogCollection)
+	if err != nil {
+		return err
+	}
+	d.Set("datasource_linux_syslog_enabled", linuxSyslogState)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

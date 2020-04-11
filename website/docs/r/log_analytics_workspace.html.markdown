@@ -41,6 +41,8 @@ The following arguments are supported:
 
 ~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKU's defined above. More information about [the Pricing SKU's is available at the following URI](http://aka.ms/PricingTierWarning).
 
+* `datasource_linux_syslog_enabled` - (Optional) Whether to apply [Log Analytics DataSource Linux Syslog](log_analytics_datasource_linux_syslog.html) to all machines belongs to this Log Analytics Workspacek? Defaults to `false`.
+
 * `retention_in_days` - (Optional) The workspace data retention in days. Possible values range between 30 and 730.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

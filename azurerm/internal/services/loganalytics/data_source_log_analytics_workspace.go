@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -30,6 +31,11 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"datasource_linux_syslog_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -70,6 +76,7 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 
 func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	dsclient := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -106,6 +113,12 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 		d.Set("primary_shared_key", sharedKeys.PrimarySharedKey)
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
 	}
+
+	linuxSyslogState, err := getDataSourceCollectionState(ctx, dsclient, resGroup, name, operationalinsights.LinuxSyslogCollection)
+	if err != nil {
+		return err
+	}
+	d.Set("datasource_linux_syslog_enabled", linuxSyslogState)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

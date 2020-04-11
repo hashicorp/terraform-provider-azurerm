@@ -120,6 +120,39 @@ func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsWorkspace_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -221,11 +254,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
+  name                            = "acctestLAW-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  sku                             = "PerGB2018"
+  datasource_linux_syslog_enabled = true
+  retention_in_days               = 30
+
 
   tags = {
     Environment = "Test"

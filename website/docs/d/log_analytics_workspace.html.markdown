@@ -46,6 +46,8 @@ The following attributes are exported:
 
 * `sku` - The Sku of the Log Analytics Workspace.
 
+* `datasource_linux_syslog_enabled` - Whether to apply [Log Analytics DataSource Linux Syslog](../r/log_analytics_datasource_linux_syslog.html) to all machines belongs to this Log Analytics Workspacek or not.
+
 * `retention_in_days` - The workspace data retention in days.
 
 * `tags` - A mapping of tags assigned to the resource.
