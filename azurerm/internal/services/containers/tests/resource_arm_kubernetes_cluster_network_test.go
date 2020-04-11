@@ -348,7 +348,7 @@ func testAccAzureRMKubernetesCluster_privateClusterOn(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_private_cluster", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -373,7 +373,7 @@ func testAccAzureRMKubernetesCluster_privateClusterOff(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_privateClusterConfig(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_private_cluster", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -1026,11 +1026,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                   = "acctestaks%d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  dns_prefix             = "acctestaks%d"
-  enable_private_cluster = %t
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  private_cluster_enabled = %t
 
   linux_profile {
     admin_username = "acctestuser%d"

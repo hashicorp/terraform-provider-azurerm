@@ -62,7 +62,7 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `enable_private_cluster` - If the cluster has the Kubernetes API only exposed on internal IP addresses.                           
+* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.                           
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 

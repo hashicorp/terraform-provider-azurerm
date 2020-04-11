@@ -215,11 +215,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Type:          schema.TypeBool,
 				Computed:      true,
 				Optional:      true,
-				ConflictsWith: []string{"enable_private_cluster"},
-				Deprecated:    "Deprecated in favor of `enable_private_cluster`", // TODO -- remove this in next major version
+				ConflictsWith: []string{"private_cluster_enabled"},
+				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
 			},
 
-			"enable_private_cluster": {
+			"private_cluster_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
@@ -503,7 +503,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			}
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
-			d.Set("enable_private_cluster", accessProfile.EnablePrivateCluster)
+			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 		}
 
 		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)

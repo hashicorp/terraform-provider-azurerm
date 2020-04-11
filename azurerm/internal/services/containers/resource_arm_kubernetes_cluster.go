@@ -302,11 +302,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true,
-				ConflictsWith: []string{"enable_private_cluster"},
-				Deprecated:    "Deprecated in favor of `enable_private_cluster`", // TODO -- remove this in next major version
+				ConflictsWith: []string{"private_cluster_enabled"},
+				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
 			},
 
-			"enable_private_cluster": {
+			"private_cluster_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
@@ -574,7 +574,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	if v, ok := d.GetOk("private_link_enabled"); ok {
 		enablePrivateCluster = v.(bool)
 	}
-	if v, ok := d.GetOk("enable_private_cluster"); ok {
+	if v, ok := d.GetOk("private_cluster_enabled"); ok {
 		enablePrivateCluster = v.(bool)
 	}
 
@@ -765,7 +765,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		if v, ok := d.GetOk("private_link_enabled"); ok {
 			enablePrivateCluster = v.(bool)
 		}
-		if v, ok := d.GetOk("enable_private_cluster"); ok {
+		if v, ok := d.GetOk("private_cluster_enabled"); ok {
 			enablePrivateCluster = v.(bool)
 		}
 		existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{
@@ -930,7 +930,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
-			d.Set("enable_private_cluster", accessProfile.EnablePrivateCluster)
+			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)

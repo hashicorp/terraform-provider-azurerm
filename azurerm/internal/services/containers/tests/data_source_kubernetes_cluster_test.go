@@ -60,7 +60,7 @@ func testAccDataSourceAzureRMKubernetesCluster_privateCluster(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_private_cluster", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "true"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),
