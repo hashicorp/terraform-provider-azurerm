@@ -251,7 +251,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 
 		if dhcp := props.DhcpOptions; dhcp != nil {
 			if err := d.Set("dns_servers", utils.FlattenStringSlice(dhcp.DNSServers)); err != nil {
-				return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+				return fmt.Errorf("setting `dns_servers`: %+v", err)
 			}
 		}
 	}
