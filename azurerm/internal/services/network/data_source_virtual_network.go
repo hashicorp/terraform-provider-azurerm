@@ -93,15 +93,13 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.SetId(*resp.ID)
 
-	if guid := resp.ResourceGUID; guid != nil {
-		d.Set("guid", resp.ResourceGUID)
-	}
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
+		d.Set("guid", props.ResourceGUID)
+
 		if as := props.AddressSpace; as != nil {
 			if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
 				return fmt.Errorf("error setting `address_space`: %v", err)
