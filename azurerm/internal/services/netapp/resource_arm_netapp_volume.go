@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-11-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -469,17 +469,15 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 	return results
 }
 
-func flattenArmNetAppVolumeMountIPAddresses(input interface{}) []interface{} {
-	// Improve code for parsing MountTargets once the issue https://github.com/Azure/azure-rest-api-specs/issues/8604 is fixed.
+func flattenArmNetAppVolumeMountIPAddresses(input *[]netapp.MountTarget) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, item := range input.([]interface{}) {
-		if item != nil {
-			v := item.(map[string]interface{})
-			results = append(results, v["ipAddress"].(string))
+	for _, item := range *input {
+		if item.IPAddress != nil {
+			results = append(results, item.IPAddress)
 		}
 	}
 
