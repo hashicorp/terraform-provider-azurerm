@@ -37,6 +37,7 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -55,6 +56,7 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_complete(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,6 +75,7 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
