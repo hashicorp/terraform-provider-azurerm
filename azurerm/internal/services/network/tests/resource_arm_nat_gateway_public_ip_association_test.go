@@ -35,8 +35,8 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_basic(t *testing.T) {
 func TestAccAzureRMNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -54,8 +54,8 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 func TestAccAzureRMNatGatewayPublicIpAssociation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -73,8 +73,8 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_complete(t *testing.T) {
 func TestAccAzureRMNatGatewayPublicIpAssociation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
