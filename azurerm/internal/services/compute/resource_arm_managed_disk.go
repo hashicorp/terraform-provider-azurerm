@@ -116,10 +116,10 @@ func resourceArmManagedDisk() *schema.Resource {
 			},
 
 			"disk_size_gb": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateManagedDiskSizeGB,
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+				// ValidateFunc: validateManagedDiskSizeGB,
 			},
 
 			"disk_iops_read_write": {
