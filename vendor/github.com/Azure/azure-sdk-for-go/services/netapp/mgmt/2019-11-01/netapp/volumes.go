@@ -49,13 +49,13 @@ func NewVolumesClientWithBaseURI(baseURI string, subscriptionID string) VolumesC
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
 // body - authorize request object supplied in the body of the operation.
-func (client VolumesClient) AuthorizeReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, body AuthorizeRequest) (result autorest.Response, err error) {
+func (client VolumesClient) AuthorizeReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, body AuthorizeRequest) (result VolumesAuthorizeReplicationFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.AuthorizeReplication")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -64,7 +64,15 @@ func (client VolumesClient) AuthorizeReplication(ctx context.Context, resourceGr
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "AuthorizeReplication", err.Error())
 	}
 
@@ -74,16 +82,10 @@ func (client VolumesClient) AuthorizeReplication(ctx context.Context, resourceGr
 		return
 	}
 
-	resp, err := client.AuthorizeReplicationSender(req)
+	result, err = client.AuthorizeReplicationSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "AuthorizeReplication", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "AuthorizeReplication", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.AuthorizeReplicationResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "AuthorizeReplication", resp, "Failure responding to request")
 	}
 
 	return
@@ -99,7 +101,7 @@ func (client VolumesClient) AuthorizeReplicationPreparer(ctx context.Context, re
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -116,8 +118,14 @@ func (client VolumesClient) AuthorizeReplicationPreparer(ctx context.Context, re
 
 // AuthorizeReplicationSender sends the AuthorizeReplication request. The method will close the
 // http.Response Body if it receives an error.
-func (client VolumesClient) AuthorizeReplicationSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VolumesClient) AuthorizeReplicationSender(req *http.Request) (future VolumesAuthorizeReplicationFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // AuthorizeReplicationResponder handles the response to the AuthorizeReplication request. The method always
@@ -138,13 +146,13 @@ func (client VolumesClient) AuthorizeReplicationResponder(resp *http.Response) (
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-func (client VolumesClient) BreakReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result autorest.Response, err error) {
+func (client VolumesClient) BreakReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result VolumesBreakReplicationFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.BreakReplication")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -153,7 +161,15 @@ func (client VolumesClient) BreakReplication(ctx context.Context, resourceGroupN
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "BreakReplication", err.Error())
 	}
 
@@ -163,16 +179,10 @@ func (client VolumesClient) BreakReplication(ctx context.Context, resourceGroupN
 		return
 	}
 
-	resp, err := client.BreakReplicationSender(req)
+	result, err = client.BreakReplicationSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "BreakReplication", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "BreakReplication", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.BreakReplicationResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "BreakReplication", resp, "Failure responding to request")
 	}
 
 	return
@@ -188,7 +198,7 @@ func (client VolumesClient) BreakReplicationPreparer(ctx context.Context, resour
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -203,8 +213,14 @@ func (client VolumesClient) BreakReplicationPreparer(ctx context.Context, resour
 
 // BreakReplicationSender sends the BreakReplication request. The method will close the
 // http.Response Body if it receives an error.
-func (client VolumesClient) BreakReplicationSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VolumesClient) BreakReplicationSender(req *http.Request) (future VolumesBreakReplicationFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // BreakReplicationResponder handles the response to the BreakReplication request. The method always
@@ -246,7 +262,11 @@ func (client VolumesClient) CreateOrUpdate(ctx context.Context, body Volume, res
 							{Target: "body.VolumeProperties.FileSystemID", Name: validation.MinLength, Rule: 36, Chain: nil},
 							{Target: "body.VolumeProperties.FileSystemID", Name: validation.Pattern, Rule: `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`, Chain: nil},
 						}},
-						{Target: "body.VolumeProperties.CreationToken", Name: validation.Null, Rule: true, Chain: nil},
+						{Target: "body.VolumeProperties.CreationToken", Name: validation.Null, Rule: true,
+							Chain: []validation.Constraint{{Target: "body.VolumeProperties.CreationToken", Name: validation.MaxLength, Rule: 80, Chain: nil},
+								{Target: "body.VolumeProperties.CreationToken", Name: validation.MinLength, Rule: 1, Chain: nil},
+								{Target: "body.VolumeProperties.CreationToken", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-]{0,79}$`, Chain: nil},
+							}},
 						{Target: "body.VolumeProperties.UsageThreshold", Name: validation.Null, Rule: true,
 							Chain: []validation.Constraint{{Target: "body.VolumeProperties.UsageThreshold", Name: validation.InclusiveMaximum, Rule: int64(109951162777600), Chain: nil},
 								{Target: "body.VolumeProperties.UsageThreshold", Name: validation.InclusiveMinimum, Rule: int64(107374182400), Chain: nil},
@@ -270,7 +290,15 @@ func (client VolumesClient) CreateOrUpdate(ctx context.Context, body Volume, res
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -299,7 +327,7 @@ func (client VolumesClient) CreateOrUpdatePreparer(ctx context.Context, body Vol
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -363,7 +391,15 @@ func (client VolumesClient) Delete(ctx context.Context, resourceGroupName string
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "Delete", err.Error())
 	}
 
@@ -392,7 +428,7 @@ func (client VolumesClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -436,13 +472,13 @@ func (client VolumesClient) DeleteResponder(resp *http.Response) (result autores
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-func (client VolumesClient) DeleteReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result autorest.Response, err error) {
+func (client VolumesClient) DeleteReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result VolumesDeleteReplicationFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.DeleteReplication")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -451,7 +487,15 @@ func (client VolumesClient) DeleteReplication(ctx context.Context, resourceGroup
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "DeleteReplication", err.Error())
 	}
 
@@ -461,16 +505,10 @@ func (client VolumesClient) DeleteReplication(ctx context.Context, resourceGroup
 		return
 	}
 
-	resp, err := client.DeleteReplicationSender(req)
+	result, err = client.DeleteReplicationSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "DeleteReplication", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "DeleteReplication", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.DeleteReplicationResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "DeleteReplication", resp, "Failure responding to request")
 	}
 
 	return
@@ -486,7 +524,7 @@ func (client VolumesClient) DeleteReplicationPreparer(ctx context.Context, resou
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -501,8 +539,14 @@ func (client VolumesClient) DeleteReplicationPreparer(ctx context.Context, resou
 
 // DeleteReplicationSender sends the DeleteReplication request. The method will close the
 // http.Response Body if it receives an error.
-func (client VolumesClient) DeleteReplicationSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VolumesClient) DeleteReplicationSender(req *http.Request) (future VolumesDeleteReplicationFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteReplicationResponder handles the response to the DeleteReplication request. The method always
@@ -538,7 +582,15 @@ func (client VolumesClient) Get(ctx context.Context, resourceGroupName string, a
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "Get", err.Error())
 	}
 
@@ -573,7 +625,7 @@ func (client VolumesClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -625,7 +677,11 @@ func (client VolumesClient) List(ctx context.Context, resourceGroupName string, 
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "List", err.Error())
 	}
 
@@ -659,7 +715,7 @@ func (client VolumesClient) ListPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -712,7 +768,15 @@ func (client VolumesClient) ReplicationStatusMethod(ctx context.Context, resourc
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "ReplicationStatusMethod", err.Error())
 	}
 
@@ -747,7 +811,7 @@ func (client VolumesClient) ReplicationStatusMethodPreparer(ctx context.Context,
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -786,13 +850,13 @@ func (client VolumesClient) ReplicationStatusMethodResponder(resp *http.Response
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-func (client VolumesClient) ResyncReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result autorest.Response, err error) {
+func (client VolumesClient) ResyncReplication(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result VolumesResyncReplicationFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.ResyncReplication")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -801,7 +865,15 @@ func (client VolumesClient) ResyncReplication(ctx context.Context, resourceGroup
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "ResyncReplication", err.Error())
 	}
 
@@ -811,16 +883,10 @@ func (client VolumesClient) ResyncReplication(ctx context.Context, resourceGroup
 		return
 	}
 
-	resp, err := client.ResyncReplicationSender(req)
+	result, err = client.ResyncReplicationSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "ResyncReplication", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "ResyncReplication", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.ResyncReplicationResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "ResyncReplication", resp, "Failure responding to request")
 	}
 
 	return
@@ -836,7 +902,7 @@ func (client VolumesClient) ResyncReplicationPreparer(ctx context.Context, resou
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -851,13 +917,117 @@ func (client VolumesClient) ResyncReplicationPreparer(ctx context.Context, resou
 
 // ResyncReplicationSender sends the ResyncReplication request. The method will close the
 // http.Response Body if it receives an error.
-func (client VolumesClient) ResyncReplicationSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VolumesClient) ResyncReplicationSender(req *http.Request) (future VolumesResyncReplicationFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // ResyncReplicationResponder handles the response to the ResyncReplication request. The method always
 // closes the http.Response Body.
 func (client VolumesClient) ResyncReplicationResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// Revert revert a volume to the snapshot specified in the body
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// accountName - the name of the NetApp account
+// poolName - the name of the capacity pool
+// volumeName - the name of the volume
+// body - object for snapshot to revert supplied in the body of the operation.
+func (client VolumesClient) Revert(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, body VolumeRevert) (result VolumesRevertFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.Revert")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("netapp.VolumesClient", "Revert", err.Error())
+	}
+
+	req, err := client.RevertPreparer(ctx, resourceGroupName, accountName, poolName, volumeName, body)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Revert", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RevertSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Revert", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RevertPreparer prepares the Revert request.
+func (client VolumesClient) RevertPreparer(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, body VolumeRevert) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"poolName":          autorest.Encode("path", poolName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"volumeName":        autorest.Encode("path", volumeName),
+	}
+
+	const APIVersion = "2019-11-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/revert", pathParameters),
+		autorest.WithJSON(body),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RevertSender sends the Revert request. The method will close the
+// http.Response Body if it receives an error.
+func (client VolumesClient) RevertSender(req *http.Request) (future VolumesRevertFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RevertResponder handles the response to the Revert request. The method always
+// closes the http.Response Body.
+func (client VolumesClient) RevertResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -874,13 +1044,13 @@ func (client VolumesClient) ResyncReplicationResponder(resp *http.Response) (res
 // accountName - the name of the NetApp account
 // poolName - the name of the capacity pool
 // volumeName - the name of the volume
-func (client VolumesClient) Update(ctx context.Context, body VolumePatch, resourceGroupName string, accountName string, poolName string, volumeName string) (result Volume, err error) {
+func (client VolumesClient) Update(ctx context.Context, body VolumePatch, resourceGroupName string, accountName string, poolName string, volumeName string) (result VolumesUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VolumesClient.Update")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -889,7 +1059,15 @@ func (client VolumesClient) Update(ctx context.Context, body VolumePatch, resour
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: poolName,
+			Constraints: []validation.Constraint{{Target: "poolName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "poolName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "poolName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}},
+		{TargetValue: volumeName,
+			Constraints: []validation.Constraint{{Target: "volumeName", Name: validation.MaxLength, Rule: 64, Chain: nil},
+				{Target: "volumeName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "volumeName", Name: validation.Pattern, Rule: `^[a-zA-Z][a-zA-Z0-9\-_]{0,63}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("netapp.VolumesClient", "Update", err.Error())
 	}
 
@@ -899,16 +1077,10 @@ func (client VolumesClient) Update(ctx context.Context, body VolumePatch, resour
 		return
 	}
 
-	resp, err := client.UpdateSender(req)
+	result, err = client.UpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Update", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Update", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.UpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.VolumesClient", "Update", resp, "Failure responding to request")
 	}
 
 	return
@@ -924,7 +1096,7 @@ func (client VolumesClient) UpdatePreparer(ctx context.Context, body VolumePatch
 		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-10-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -944,8 +1116,14 @@ func (client VolumesClient) UpdatePreparer(ctx context.Context, body VolumePatch
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client VolumesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client VolumesClient) UpdateSender(req *http.Request) (future VolumesUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // UpdateResponder handles the response to the Update request. The method always
