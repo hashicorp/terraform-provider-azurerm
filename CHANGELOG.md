@@ -13,12 +13,12 @@ IMPROVEMENTS:
 * `azurerm_mssql_database` - support the `threat_detection_policy` property [GH-6437]
 * `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
 * `azurerm_sql_server` - support for the `connection_policy` property [GH-6438]
+* `azurerm_virtual_network` - export the `guid` attribute [GH-6445]
 
 BUG FIXES:
 
 * `azurerm_function_app` - prevent a panic from the API returning an empty IP Security Restriction [GH-6442]
 * `azurerm_machine_learning_workspace` - the `Enterprise` sku will now propertly work [GH-6397]
-* `azurerm_virtual_network` - the `dns_servers` is now `TypeSet` as the API was not preserving order [GH-6443]
 
 ## 2.5.0 (April 09, 2020)
 
