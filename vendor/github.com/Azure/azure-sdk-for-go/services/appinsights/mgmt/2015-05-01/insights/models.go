@@ -883,6 +883,8 @@ type ApplicationInsightsComponentProperties struct {
 	DisableIPMasking *bool `json:"DisableIpMasking,omitempty"`
 	// ImmediatePurgeDataOn30Days - Purge data immediately after 30 days.
 	ImmediatePurgeDataOn30Days *bool `json:"ImmediatePurgeDataOn30Days,omitempty"`
+	// PrivateLinkScopedResources - READ-ONLY; List of linked private link scope resources.
+	PrivateLinkScopedResources *[]PrivateLinkScopedResource `json:"PrivateLinkScopedResources,omitempty"`
 }
 
 // ApplicationInsightsComponentQuotaStatus an Application Insights component daily data volume cap status
@@ -1203,6 +1205,14 @@ func (page OperationListResultPage) Values() []Operation {
 // Creates a new instance of the OperationListResultPage type.
 func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
 	return OperationListResultPage{fn: getNextPage}
+}
+
+// PrivateLinkScopedResource the private link scope resource reference.
+type PrivateLinkScopedResource struct {
+	// ResourceID - The full resource Id of the private link scope resource.
+	ResourceID *string `json:"ResourceId,omitempty"`
+	// ScopeID - The private link scope unique Identifier.
+	ScopeID *string `json:"ScopeId,omitempty"`
 }
 
 // TagsResource a container holding only the Tags for a resource, allowing the user to update the tags on a

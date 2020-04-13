@@ -37,7 +37,8 @@ func NewAssignmentsClient(subscriptionID string) AssignmentsClient {
 	return NewAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAssignmentsClientWithBaseURI creates an instance of the AssignmentsClient client.
+// NewAssignmentsClientWithBaseURI creates an instance of the AssignmentsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) AssignmentsClient {
 	return AssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -120,8 +121,7 @@ func (client AssignmentsClient) CreatePreparer(ctx context.Context, scope string
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -215,8 +215,7 @@ func (client AssignmentsClient) CreateByIDPreparer(ctx context.Context, policyAs
 // CreateByIDSender sends the CreateByID request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) CreateByIDSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CreateByIDResponder handles the response to the CreateByID request. The method always
@@ -297,8 +296,7 @@ func (client AssignmentsClient) DeletePreparer(ctx context.Context, scope string
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -378,8 +376,7 @@ func (client AssignmentsClient) DeleteByIDPreparer(ctx context.Context, policyAs
 // DeleteByIDSender sends the DeleteByID request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) DeleteByIDSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // DeleteByIDResponder handles the response to the DeleteByID request. The method always
@@ -458,8 +455,7 @@ func (client AssignmentsClient) GetPreparer(ctx context.Context, scope string, p
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -538,8 +534,7 @@ func (client AssignmentsClient) GetByIDPreparer(ctx context.Context, policyAssig
 // GetByIDSender sends the GetByID request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) GetByIDSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetByIDResponder handles the response to the GetByID request. The method always
@@ -624,8 +619,7 @@ func (client AssignmentsClient) ListPreparer(ctx context.Context, filter string)
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -777,8 +771,7 @@ func (client AssignmentsClient) ListForResourcePreparer(ctx context.Context, res
 // ListForResourceSender sends the ListForResource request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) ListForResourceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListForResourceResponder handles the response to the ListForResource request. The method always
@@ -911,8 +904,7 @@ func (client AssignmentsClient) ListForResourceGroupPreparer(ctx context.Context
 // ListForResourceGroupSender sends the ListForResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssignmentsClient) ListForResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListForResourceGroupResponder handles the response to the ListForResourceGroup request. The method always

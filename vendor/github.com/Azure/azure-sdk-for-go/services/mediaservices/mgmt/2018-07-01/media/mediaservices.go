@@ -35,7 +35,8 @@ func NewMediaservicesClient(subscriptionID string) MediaservicesClient {
 	return NewMediaservicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMediaservicesClientWithBaseURI creates an instance of the MediaservicesClient client.
+// NewMediaservicesClientWithBaseURI creates an instance of the MediaservicesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewMediaservicesClientWithBaseURI(baseURI string, subscriptionID string) MediaservicesClient {
 	return MediaservicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +104,7 @@ func (client MediaservicesClient) CreateOrUpdatePreparer(ctx context.Context, re
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -180,8 +180,7 @@ func (client MediaservicesClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -256,8 +255,7 @@ func (client MediaservicesClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -331,8 +329,7 @@ func (client MediaservicesClient) GetBySubscriptionPreparer(ctx context.Context,
 // GetBySubscriptionSender sends the GetBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) GetBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetBySubscriptionResponder handles the response to the GetBySubscription request. The method always
@@ -407,8 +404,7 @@ func (client MediaservicesClient) ListPreparer(ctx context.Context, resourceGrou
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -517,8 +513,7 @@ func (client MediaservicesClient) ListBySubscriptionPreparer(ctx context.Context
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -634,8 +629,7 @@ func (client MediaservicesClient) SyncStorageKeysPreparer(ctx context.Context, r
 // SyncStorageKeysSender sends the SyncStorageKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) SyncStorageKeysSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SyncStorageKeysResponder handles the response to the SyncStorageKeys request. The method always
@@ -713,8 +707,7 @@ func (client MediaservicesClient) UpdatePreparer(ctx context.Context, resourceGr
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

@@ -454,6 +454,8 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
+  soft_delete_enabled         = true
+  purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
 

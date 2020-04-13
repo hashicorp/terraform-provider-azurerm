@@ -36,7 +36,8 @@ func NewTenantAccessClient(subscriptionID string) TenantAccessClient {
 	return NewTenantAccessClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTenantAccessClientWithBaseURI creates an instance of the TenantAccessClient client.
+// NewTenantAccessClientWithBaseURI creates an instance of the TenantAccessClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTenantAccessClientWithBaseURI(baseURI string, subscriptionID string) TenantAccessClient {
 	return TenantAccessClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -110,8 +111,7 @@ func (client TenantAccessClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantAccessClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -196,8 +196,7 @@ func (client TenantAccessClient) RegeneratePrimaryKeyPreparer(ctx context.Contex
 // RegeneratePrimaryKeySender sends the RegeneratePrimaryKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantAccessClient) RegeneratePrimaryKeySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegeneratePrimaryKeyResponder handles the response to the RegeneratePrimaryKey request. The method always
@@ -281,8 +280,7 @@ func (client TenantAccessClient) RegenerateSecondaryKeyPreparer(ctx context.Cont
 // RegenerateSecondaryKeySender sends the RegenerateSecondaryKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantAccessClient) RegenerateSecondaryKeySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateSecondaryKeyResponder handles the response to the RegenerateSecondaryKey request. The method always
@@ -372,8 +370,7 @@ func (client TenantAccessClient) UpdatePreparer(ctx context.Context, resourceGro
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantAccessClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

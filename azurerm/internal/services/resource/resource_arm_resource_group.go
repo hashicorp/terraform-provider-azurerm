@@ -5,17 +5,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,7 +53,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	defer cancel()
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -110,9 +110,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", resp.Name)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(resp.Location))
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

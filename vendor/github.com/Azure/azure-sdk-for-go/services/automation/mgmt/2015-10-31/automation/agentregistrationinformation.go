@@ -37,7 +37,8 @@ func NewAgentRegistrationInformationClient(subscriptionID string) AgentRegistrat
 }
 
 // NewAgentRegistrationInformationClientWithBaseURI creates an instance of the AgentRegistrationInformationClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewAgentRegistrationInformationClientWithBaseURI(baseURI string, subscriptionID string) AgentRegistrationInformationClient {
 	return AgentRegistrationInformationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -110,8 +111,7 @@ func (client AgentRegistrationInformationClient) GetPreparer(ctx context.Context
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentRegistrationInformationClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -198,8 +198,7 @@ func (client AgentRegistrationInformationClient) RegenerateKeyPreparer(ctx conte
 // RegenerateKeySender sends the RegenerateKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentRegistrationInformationClient) RegenerateKeySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateKeyResponder handles the response to the RegenerateKey request. The method always

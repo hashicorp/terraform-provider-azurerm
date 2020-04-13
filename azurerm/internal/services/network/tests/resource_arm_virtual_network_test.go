@@ -33,6 +33,25 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetwork_basicUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 
@@ -50,7 +69,7 @@ func TestAccAzureRMVirtualNetwork_basicUpdated(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualNetwork_basicUpdated(data),
+				Config: testAccAzureRMVirtualNetwork_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "2"),
@@ -275,7 +294,7 @@ resource "azurerm_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetwork_basicUpdated(data acceptance.TestData) string {
+func testAccAzureRMVirtualNetwork_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -291,6 +310,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16", "10.10.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  dns_servers         = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
 
   subnet {
     name           = "subnet1"

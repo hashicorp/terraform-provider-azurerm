@@ -36,7 +36,8 @@ func NewProductGroupClient(subscriptionID string) ProductGroupClient {
 	return NewProductGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProductGroupClientWithBaseURI creates an instance of the ProductGroupClient client.
+// NewProductGroupClientWithBaseURI creates an instance of the ProductGroupClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProductGroupClientWithBaseURI(baseURI string, subscriptionID string) ProductGroupClient {
 	return ProductGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -121,8 +122,7 @@ func (client ProductGroupClient) CheckEntityExistsPreparer(ctx context.Context, 
 // CheckEntityExistsSender sends the CheckEntityExists request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProductGroupClient) CheckEntityExistsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckEntityExistsResponder handles the response to the CheckEntityExists request. The method always
@@ -217,8 +217,7 @@ func (client ProductGroupClient) CreateOrUpdatePreparer(ctx context.Context, res
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProductGroupClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -314,8 +313,7 @@ func (client ProductGroupClient) DeletePreparer(ctx context.Context, resourceGro
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProductGroupClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -428,8 +426,7 @@ func (client ProductGroupClient) ListByProductPreparer(ctx context.Context, reso
 // ListByProductSender sends the ListByProduct request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProductGroupClient) ListByProductSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByProductResponder handles the response to the ListByProduct request. The method always

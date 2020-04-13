@@ -36,8 +36,8 @@ func testAccDataSourceRecoveryServicesVault_basic(data acceptance.TestData) stri
 %s
 
 data "azurerm_recovery_services_vault" "test" {
-  name                = "${azurerm_recovery_services_vault.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_recovery_services_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
 }

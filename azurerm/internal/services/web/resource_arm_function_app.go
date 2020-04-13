@@ -392,7 +392,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmFunctionAppUpdate(d, meta)
@@ -694,11 +694,12 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	// If the application plan is NOT dynamic (consumption plan), we do NOT want to include WEBSITE_CONTENT components
-	if !strings.EqualFold(appServiceTier, "dynamic") {
-		return basicSettings
+	// On consumption and premium plans include WEBSITE_CONTENT components
+	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
+		return append(basicSettings, consumptionSettings...)
 	}
-	return append(basicSettings, consumptionSettings...)
+
+	return basicSettings
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
@@ -851,11 +852,14 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 }
 
 func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	ipSecurityRestrictions := input.([]interface{})
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	for i, ipSecurityRestriction := range ipSecurityRestrictions {
-		restriction := ipSecurityRestriction.(map[string]interface{})
+	for i, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		restriction := r.(map[string]interface{})
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := restriction["subnet_id"].(string)

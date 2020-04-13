@@ -36,7 +36,8 @@ func NewRegionsClient(subscriptionID string) RegionsClient {
 	return NewRegionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRegionsClientWithBaseURI creates an instance of the RegionsClient client.
+// NewRegionsClientWithBaseURI creates an instance of the RegionsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRegionsClientWithBaseURI(baseURI string, subscriptionID string) RegionsClient {
 	return RegionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -110,8 +111,7 @@ func (client RegionsClient) ListByServicePreparer(ctx context.Context, resourceG
 // ListByServiceSender sends the ListByService request. The method will close the
 // http.Response Body if it receives an error.
 func (client RegionsClient) ListByServiceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServiceResponder handles the response to the ListByService request. The method always

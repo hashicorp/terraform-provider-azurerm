@@ -180,7 +180,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	var natRuleId string
-	for _, InboundNatRule := range *(*read.LoadBalancerPropertiesFormat).InboundNatRules {
+	for _, InboundNatRule := range *read.LoadBalancerPropertiesFormat.InboundNatRules {
 		if *InboundNatRule.Name == name {
 			natRuleId = *InboundNatRule.ID
 		}

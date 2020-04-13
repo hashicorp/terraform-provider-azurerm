@@ -26,7 +26,7 @@ func ValidateAutomationRunbookName() schema.SchemaValidateFunc {
 // ValidateAutomationScheduleName validates Automation Account Schedule names
 func ValidateAutomationScheduleName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile(`^[^<>*%&:\\?.+\/]{0,127}[^<>*%&:\\?.+\/\s]$`),
+		regexp.MustCompile(`^[^<>*%&:\\?.+/]{0,127}[^<>*%&:\\?.+/\s]$`),
 		`The name length must be from 1 to 128 characters. The name cannot contain special characters < > * % & : \ ? . + / and cannot end with a whitespace character.`,
 	)
 }

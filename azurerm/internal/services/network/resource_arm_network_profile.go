@@ -121,11 +121,6 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	cniConfigs, err := expandNetworkProfileContainerNetworkInterface(d)
-	if err != nil {
-		return fmt.Errorf("Error building list of Container Network Interface Configurations: %+v", err)
-	}
-
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
@@ -144,7 +139,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 		Location: &location,
 		Tags:     tags.Expand(t),
 		ProfilePropertiesFormat: &network.ProfilePropertiesFormat{
-			ContainerNetworkInterfaceConfigurations: cniConfigs,
+			ContainerNetworkInterfaceConfigurations: expandNetworkProfileContainerNetworkInterface(d),
 		},
 	}
 
@@ -254,7 +249,7 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
-func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) (*[]network.ContainerNetworkInterfaceConfiguration, error) {
+func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) *[]network.ContainerNetworkInterfaceConfiguration {
 	cniConfigs := d.Get("container_network_interface").([]interface{})
 	retCNIConfigs := make([]network.ContainerNetworkInterfaceConfiguration, 0)
 
@@ -291,7 +286,7 @@ func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) (*[]n
 		retCNIConfigs = append(retCNIConfigs, retCNIConfig)
 	}
 
-	return &retCNIConfigs, nil
+	return &retCNIConfigs
 }
 
 func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]string, *[]string, error) {

@@ -103,6 +103,10 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
+* `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
+
+~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
+
 ---
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Hadoop Cluster.
