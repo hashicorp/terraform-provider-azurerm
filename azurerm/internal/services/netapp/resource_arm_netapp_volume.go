@@ -469,7 +469,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 	return results
 }
 
-func flattenArmNetAppVolumeMountIPAddresses(input *[]netapp.MountTarget) []interface{} {
+func flattenArmNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
