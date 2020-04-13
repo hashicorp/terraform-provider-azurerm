@@ -137,8 +137,7 @@ func TestAccAzureRMCosmosDbMongoCollection_withIndex(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "index.#", "3"),
 				),
 			},
-			// Service API would return additional system indexes aside from user specified indexes. So index needs to be ignored. Otherwise, it would occur diff.
-			data.ImportStep("index"),
+			data.ImportStep(),
 		},
 	})
 }

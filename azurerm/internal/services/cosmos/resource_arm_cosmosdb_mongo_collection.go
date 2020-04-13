@@ -97,7 +97,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 						"unique": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  false,
 						},
 					},
 				},
@@ -284,8 +284,16 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 
 		if props.Indexes != nil {
-			if err := d.Set("default_ttl_seconds", flattenCosmosMongoCollectionIndex(props.Indexes)); err != nil {
+
+		}
+
+		if props.Indexes != nil {
+			indexes, ttl := flattenCosmosMongoCollectionIndex(props.Indexes)
+			if err := d.Set("default_ttl_seconds", ttl); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
+			}
+			if err := d.Set("index", indexes); err != nil {
+				return fmt.Errorf("failed to set `index`: %+v", err)
 			}
 		}
 	}
@@ -361,16 +369,36 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 	return &results
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) *int32 {
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[string]interface{}, *int32) {
+	indexes := make([]map[string]interface{}, 0)
 	var ttl *int32
+
 	for _, v := range *input {
+		index := map[string]interface{}{}
+
 		if v.Key != nil && v.Key.Keys != nil {
 			key := (*v.Key.Keys)[0]
-			if key == "_ts" && v.Options != nil && v.Options.ExpireAfterSeconds != nil {
-				ttl = v.Options.ExpireAfterSeconds
+
+			// Updating `DocumentDBDefaultIndex` system index is not a supported scenario.
+			// `_id` system index is always unique.
+			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they should be ignored.
+			if key != "_id" && key != "DocumentDBDefaultIndex" {
+				if key == "_ts" && v.Options.ExpireAfterSeconds != nil {
+					ttl = v.Options.ExpireAfterSeconds
+				} else {
+					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+
+					if v.Options != nil {
+						if v.Options.Unique != nil {
+							index["unique"] = *v.Options.Unique
+						}
+					}
+
+					indexes = append(indexes, index)
+				}
 			}
 		}
 	}
 
-	return ttl
+	return &indexes, ttl
 }

@@ -54,7 +54,7 @@ The `index` block supports the following:
 
 * `keys` - (Required) Specifies the set of keys for each Cosmos DB Mongo Collection.
 
-* `unique` - (Optional) Is the index unique or not? Defaults to `true`.
+* `unique` - (Optional) Is the index unique or not? Defaults to `false`.
 
 ## Attributes Reference
 
