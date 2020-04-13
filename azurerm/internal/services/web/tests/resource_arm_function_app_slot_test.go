@@ -510,6 +510,32 @@ func TestAccAzureRMFunctionAppSlot_updateManageServiceIdentity(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionAppSlot_updateVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionAppSlot_version(data, "~1"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "~1"),
+				),
+			},
+			{
+				Config: testAccAzureRMFunctionAppSlot_version(data, "~2"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "~2"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFunctionAppSlot_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
 
@@ -1796,6 +1822,56 @@ resource "azurerm_function_app_slot" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionAppSlot_version(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctestFA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  app_service_plan_id       = azurerm_app_service_plan.test.id
+  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_function_app_slot" "test" {
+  name                      = "acctestFASlot-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  app_service_plan_id       = azurerm_app_service_plan.test.id
+  function_app_name         = azurerm_function_app.test.name
+  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  version                   = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, version)
 }
 
 func testAccAzureRMFunctionAppSlot_userAssignedIdentity(data acceptance.TestData) string {
