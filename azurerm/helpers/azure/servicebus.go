@@ -40,6 +40,13 @@ func ValidateServiceBusTopicName() schema.SchemaValidateFunc {
 	)
 }
 
+func ValidateServiceBusVirtualNetworkRuleName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z][-._a-zA-Z0-9]{0,62}[_a-zA-Z0-9]$"),
+		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start with a letter, and it must end with a letter, number or underscore and be between 2 and 64 characters long.",
+	)
+}
+
 func ValidateServiceBusAuthorizationRuleName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z0-9][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
