@@ -184,7 +184,7 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 func flattenAzureRmDnsTxtRecords(records *[]dns.TxtRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
+	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {

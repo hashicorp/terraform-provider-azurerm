@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -106,8 +107,8 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				StateFunc:        azure.NormalizeLocation,
-				DiffSuppressFunc: azure.SuppressLocationDiff,
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
 			"min_child_endpoints": {
@@ -356,7 +357,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 
 	if resourceId := d.Get("target_resource_id").(string); resourceId != "" {
 		endpointProps.TargetResourceID = utils.String(resourceId)
-		//NOTE: Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error
+		// NOTE: Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error
 		if target == "" {
 			endpointProps.Target = nil
 		}

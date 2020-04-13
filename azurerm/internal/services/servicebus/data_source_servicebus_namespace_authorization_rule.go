@@ -78,6 +78,9 @@ func dataSourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceDat
 		return fmt.Errorf("Error retrieving ServiceBus Namespace Authorization Rule %q (Resource Group %q, Namespace %q): %s", name, resourceGroup, namespaceName, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returned a nil/empty id for ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 	d.SetId(*resp.ID)
 
 	keysResp, err := client.ListKeys(ctx, resourceGroup, namespaceName, name)

@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -94,16 +96,19 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 												"tier_to_cool_after_days_since_modification_greater_than": {
 													Type:         schema.TypeInt,
 													Optional:     true,
+													Default:      nil,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
 													Type:         schema.TypeInt,
 													Optional:     true,
+													Default:      nil,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"delete_after_days_since_modification_greater_than": {
 													Type:         schema.TypeInt,
 													Optional:     true,
+													Default:      nil,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 											},
@@ -153,8 +158,7 @@ func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, me
 		Name: &name,
 	}
 
-	rules := d.Get("rule").([]interface{})
-	armRules, err := expandStorageManagementPolicyRules(rules)
+	armRules, err := expandStorageManagementPolicyRules(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding Azure Storage Management Policy Rules %q: %+v", storageAccountId, err)
 	}
@@ -236,32 +240,30 @@ func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandStorageManagementPolicyRules(list []interface{}) (*[]storage.ManagementPolicyRule, error) {
-	result := []storage.ManagementPolicyRule{}
+// nolint unparam
+func expandStorageManagementPolicyRules(d *schema.ResourceData) (*[]storage.ManagementPolicyRule, error) {
+	var result []storage.ManagementPolicyRule
 
-	for _, tempItem := range list {
-		if tempItem != nil {
-			item := tempItem.(map[string]interface{})
-			policyRule, err := expandStorageManagementPolicyRule(item)
-			if err != nil {
-				return nil, err
-			}
-			result = append(result, policyRule)
+	rules := d.Get("rule").([]interface{})
+
+	for k, v := range rules {
+		if v != nil {
+			result = append(result, expandStorageManagementPolicyRule(d, k))
 		}
 	}
 	return &result, nil
 }
 
-func expandStorageManagementPolicyRule(ref map[string]interface{}) (storage.ManagementPolicyRule, error) {
-	name := ref["name"].(string)
-	enabled := ref["enabled"].(bool)
+func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) storage.ManagementPolicyRule {
+	name := d.Get(fmt.Sprintf("rule.%d.name", ruleIndex)).(string)
+	enabled := d.Get(fmt.Sprintf("rule.%d.enabled", ruleIndex)).(bool)
 	typeVal := "Lifecycle"
 
 	definition := storage.ManagementPolicyDefinition{
 		Filters: &storage.ManagementPolicyFilter{},
 		Actions: &storage.ManagementPolicyAction{},
 	}
-	filtersRef := ref["filters"].([]interface{})
+	filtersRef := d.Get(fmt.Sprintf("rule.%d.filters", ruleIndex)).([]interface{})
 	if len(filtersRef) == 1 {
 		if filtersRef[0] != nil {
 			filterRef := filtersRef[0].(map[string]interface{})
@@ -285,34 +287,36 @@ func expandStorageManagementPolicyRule(ref map[string]interface{}) (storage.Mana
 			definition.Filters.BlobTypes = &blobTypes
 		}
 	}
-	actionsRef := ref["actions"].([]interface{})
-	if len(actionsRef) == 1 {
-		actionRef := actionsRef[0].(map[string]interface{})
-
-		baseBlobsRef := actionRef["base_blob"].([]interface{})
-		if len(baseBlobsRef) == 1 {
+	if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions", ruleIndex)); ok {
+		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob", ruleIndex)); ok {
 			baseBlob := &storage.ManagementPolicyBaseBlob{}
-			baseBlobRef := baseBlobsRef[0].(map[string]interface{})
-			if v, ok := baseBlobRef["tier_to_cool_after_days_since_modification_greater_than"]; ok {
-				v2 := float64(v.(int))
-				baseBlob.TierToCool = &storage.DateAfterModification{DaysAfterModificationGreaterThan: &v2}
+			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than", ruleIndex)); ok {
+				if v != nil {
+					baseBlob.TierToCool = &storage.DateAfterModification{
+						DaysAfterModificationGreaterThan: utils.Float(float64(v.(int))),
+					}
+				}
 			}
-			if v, ok := baseBlobRef["tier_to_archive_after_days_since_modification_greater_than"]; ok {
-				v2 := float64(v.(int))
-				baseBlob.TierToArchive = &storage.DateAfterModification{DaysAfterModificationGreaterThan: &v2}
+			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than", ruleIndex)); ok {
+				if v != nil {
+					baseBlob.TierToArchive = &storage.DateAfterModification{
+						DaysAfterModificationGreaterThan: utils.Float(float64(v.(int))),
+					}
+				}
 			}
-			if v, ok := baseBlobRef["delete_after_days_since_modification_greater_than"]; ok {
-				v2 := float64(v.(int))
-				baseBlob.Delete = &storage.DateAfterModification{DaysAfterModificationGreaterThan: &v2}
+			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", ruleIndex)); ok {
+				if v != nil {
+					baseBlob.Delete = &storage.DateAfterModification{
+						DaysAfterModificationGreaterThan: utils.Float(float64(v.(int))),
+					}
+				}
 			}
 			definition.Actions.BaseBlob = baseBlob
 		}
 
-		snapshotRef := actionRef["snapshot"].([]interface{})
-		if len(snapshotRef) == 1 {
+		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot", ruleIndex)); ok {
 			snapshot := &storage.ManagementPolicySnapShot{}
-			snapshotRef := snapshotRef[0].(map[string]interface{})
-			if v, ok := snapshotRef["delete_after_days_since_creation_greater_than"]; ok {
+			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", ruleIndex)); ok {
 				v2 := float64(v.(int))
 				snapshot.Delete = &storage.DateAfterCreation{DaysAfterCreationGreaterThan: &v2}
 			}
@@ -326,7 +330,7 @@ func expandStorageManagementPolicyRule(ref map[string]interface{}) (storage.Mana
 		Type:       &typeVal,
 		Definition: &definition,
 	}
-	return rule, nil
+	return rule
 }
 
 func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRule) []interface{} {

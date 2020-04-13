@@ -22,7 +22,7 @@ if ${error}; then
   echo "$ find . | egrep html.markdown | sort | while read f; do terrafmt fmt \$f; done"
   echo ""
   echo "on windows:"
-  echo "$ Get-ChildItem -Path . -Recurse -Filter \"*html.markdown\" | foreach {terrafmt fmt $.name}"
+  echo "$ Get-ChildItem -Path . -Recurse -Filter \"*html.markdown\" | foreach {terrafmt fmt $_.fullName}"
   echo ""
   exit 1
 fi

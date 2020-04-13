@@ -36,7 +36,9 @@ func NewWorkItemConfigurationsClient(subscriptionID string) WorkItemConfiguratio
 	return NewWorkItemConfigurationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkItemConfigurationsClientWithBaseURI creates an instance of the WorkItemConfigurationsClient client.
+// NewWorkItemConfigurationsClientWithBaseURI creates an instance of the WorkItemConfigurationsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewWorkItemConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) WorkItemConfigurationsClient {
 	return WorkItemConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,8 +117,7 @@ func (client WorkItemConfigurationsClient) CreatePreparer(ctx context.Context, r
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkItemConfigurationsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -205,8 +206,7 @@ func (client WorkItemConfigurationsClient) DeletePreparer(ctx context.Context, r
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkItemConfigurationsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -291,8 +291,7 @@ func (client WorkItemConfigurationsClient) GetDefaultPreparer(ctx context.Contex
 // GetDefaultSender sends the GetDefault request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkItemConfigurationsClient) GetDefaultSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetDefaultResponder handles the response to the GetDefault request. The method always
@@ -381,8 +380,7 @@ func (client WorkItemConfigurationsClient) GetItemPreparer(ctx context.Context, 
 // GetItemSender sends the GetItem request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkItemConfigurationsClient) GetItemSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetItemResponder handles the response to the GetItem request. The method always
@@ -468,8 +466,7 @@ func (client WorkItemConfigurationsClient) ListPreparer(ctx context.Context, res
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkItemConfigurationsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -562,8 +559,7 @@ func (client WorkItemConfigurationsClient) UpdateItemPreparer(ctx context.Contex
 // UpdateItemSender sends the UpdateItem request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkItemConfigurationsClient) UpdateItemSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateItemResponder handles the response to the UpdateItem request. The method always

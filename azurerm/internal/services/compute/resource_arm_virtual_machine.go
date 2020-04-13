@@ -178,7 +178,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_image_reference": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -421,7 +421,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -457,7 +457,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Set: resourceArmVirtualMachineStorageOsProfileHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -544,7 +544,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -735,17 +735,11 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		vmIdentity := expandAzureRmVirtualMachineIdentity(d)
-		vm.Identity = vmIdentity
+		vm.Identity = expandAzureRmVirtualMachineIdentity(d)
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
-		plan, err2 := expandAzureRmVirtualMachinePlan(d)
-		if err2 != nil {
-			return err2
-		}
-
-		vm.Plan = plan
+		vm.Plan = expandAzureRmVirtualMachinePlan(d)
 	}
 
 	locks.ByName(name, virtualMachineResourceName)
@@ -1412,10 +1406,10 @@ func flattenAzureRmVirtualMachineReviseDiskInfo(result map[string]interface{}, d
 	}
 }
 
-func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, error) {
+func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) *compute.Plan {
 	planConfigs := d.Get("plan").([]interface{})
 	if len(planConfigs) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	planConfig := planConfigs[0].(map[string]interface{})
@@ -1428,7 +1422,7 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, err
 		Publisher: &publisher,
 		Name:      &name,
 		Product:   &product,
-	}, nil
+	}
 }
 
 func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.VirtualMachineIdentity {
@@ -1472,20 +1466,14 @@ func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSPr
 	}
 
 	if _, ok := d.GetOk("os_profile_windows_config"); ok {
-		winConfig, err := expandAzureRmVirtualMachineOsProfileWindowsConfig(d)
-		if err != nil {
-			return nil, err
-		}
+		winConfig := expandAzureRmVirtualMachineOsProfileWindowsConfig(d)
 		if winConfig != nil {
 			profile.WindowsConfiguration = winConfig
 		}
 	}
 
 	if _, ok := d.GetOk("os_profile_linux_config"); ok {
-		linuxConfig, err := expandAzureRmVirtualMachineOsProfileLinuxConfig(d)
-		if err != nil {
-			return nil, err
-		}
+		linuxConfig := expandAzureRmVirtualMachineOsProfileLinuxConfig(d)
 		if linuxConfig != nil {
 			profile.LinuxConfiguration = linuxConfig
 		}
@@ -1556,7 +1544,7 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 	return &secrets
 }
 
-func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*compute.LinuxConfiguration, error) {
+func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) *compute.LinuxConfiguration {
 	osProfilesLinuxConfig := d.Get("os_profile_linux_config").(*schema.Set).List()
 
 	linuxConfig := osProfilesLinuxConfig[0].(map[string]interface{})
@@ -1590,10 +1578,10 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 		}
 	}
 
-	return config, nil
+	return config
 }
 
-func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (*compute.WindowsConfiguration, error) {
+func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) *compute.WindowsConfiguration {
 	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*schema.Set).List()
 
 	osProfileConfig := osProfilesWindowsConfig[0].(map[string]interface{})
@@ -1661,7 +1649,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 			config.AdditionalUnattendContent = &additionalConfigContent
 		}
 	}
-	return config, nil
+	return config
 }
 
 func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.DataDisk, error) {
@@ -1856,14 +1844,14 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 		osDisk.ManagedDisk = managedDisk
 	}
 
-	//BEGIN: code to be removed after GH-13016 is merged
+	// BEGIN: code to be removed after GH-13016 is merged
 	if vhdURI != "" && managedDiskID != "" {
 		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 	}
 	if vhdURI != "" && managedDiskType != "" {
 		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 	}
-	//END: code to be removed after GH-13016 is merged
+	// END: code to be removed after GH-13016 is merged
 	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(compute.Attach)) {
 		return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 	}

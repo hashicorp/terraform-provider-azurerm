@@ -3,12 +3,14 @@ package clients
 import (
 	"context"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	analysisServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/client"
+	appPlatform "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/client"
 	authorization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/client"
 	automation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/client"
 	batch "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/client"
@@ -18,6 +20,8 @@ import (
 	compute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
+	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
+	customproviders "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/client"
 	datamigration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/client"
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
@@ -30,15 +34,19 @@ import (
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
+	iotcentral "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
+	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
+	managedapplication "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/client"
 	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
 	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
 	media "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/client"
+	mixedreality "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality/client"
 	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
@@ -49,6 +57,7 @@ import (
 	policy "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/client"
 	portal "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/client"
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
+	powerBI "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
 	recoveryServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
@@ -74,71 +83,81 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
-	AnalysisServices  *analysisServices.Client
-	ApiManagement     *apiManagement.Client
-	AppConfiguration  *appConfiguration.Client
-	AppInsights       *applicationInsights.Client
-	Authorization     *authorization.Client
-	Automation        *automation.Client
-	Batch             *batch.Client
-	Bot               *bot.Client
-	Cdn               *cdn.Client
-	Cognitive         *cognitiveServices.Client
-	Compute           *compute.Client
-	Containers        *containerServices.Client
-	Cosmos            *cosmosdb.Client
-	DatabaseMigration *datamigration.Client
-	DataBricks        *databricks.Client
-	DataFactory       *datafactory.Client
-	Datalake          *datalake.Client
-	DevSpace          *devspace.Client
-	DevTestLabs       *devtestlabs.Client
-	Dns               *dns.Client
-	EventGrid         *eventgrid.Client
-	Eventhub          *eventhub.Client
-	Frontdoor         *frontdoor.Client
-	HDInsight         *hdinsight.Client
-	HealthCare        *healthcare.Client
-	IoTHub            *iothub.Client
-	KeyVault          *keyvault.Client
-	Kusto             *kusto.Client
-	LogAnalytics      *loganalytics.Client
-	Logic             *logic.Client
-	ManagementGroups  *managementgroup.Client
-	Maps              *maps.Client
-	MariaDB           *mariadb.Client
-	Media             *media.Client
-	Monitor           *monitor.Client
-	MSI               *msi.Client
-	MSSQL             *mssql.Client
-	MySQL             *mysql.Client
-	NetApp            *netapp.Client
-	Network           *network.Client
-	NotificationHubs  *notificationhub.Client
-	Policy            *policy.Client
-	Portal            *portal.Client
-	Postgres          *postgres.Client
-	PrivateDns        *privatedns.Client
-	RecoveryServices  *recoveryServices.Client
-	Redis             *redis.Client
-	Relay             *relay.Client
-	Resource          *resource.Client
-	Search            *search.Client
-	SecurityCenter    *securityCenter.Client
-	ServiceBus        *serviceBus.Client
-	ServiceFabric     *serviceFabric.Client
-	SignalR           *signalr.Client
-	Storage           *storage.Client
-	StreamAnalytics   *streamAnalytics.Client
-	Subscription      *subscription.Client
-	Sql               *sql.Client
-	TrafficManager    *trafficManager.Client
-	Web               *web.Client
+	AnalysisServices   *analysisServices.Client
+	ApiManagement      *apiManagement.Client
+	AppConfiguration   *appConfiguration.Client
+	AppInsights        *applicationInsights.Client
+	AppPlatform        *appPlatform.Client
+	Authorization      *authorization.Client
+	Automation         *automation.Client
+	Batch              *batch.Client
+	Bot                *bot.Client
+	Cdn                *cdn.Client
+	Cognitive          *cognitiveServices.Client
+	Compute            *compute.Client
+	Containers         *containerServices.Client
+	Cosmos             *cosmosdb.Client
+	CostManagement     *costmanagement.Client
+	CustomProviders    *customproviders.Client
+	DatabaseMigration  *datamigration.Client
+	DataBricks         *databricks.Client
+	DataFactory        *datafactory.Client
+	Datalake           *datalake.Client
+	DevSpace           *devspace.Client
+	DevTestLabs        *devtestlabs.Client
+	Dns                *dns.Client
+	EventGrid          *eventgrid.Client
+	Eventhub           *eventhub.Client
+	Frontdoor          *frontdoor.Client
+	HDInsight          *hdinsight.Client
+	HealthCare         *healthcare.Client
+	IoTHub             *iothub.Client
+	IoTCentral         *iotcentral.Client
+	KeyVault           *keyvault.Client
+	Kusto              *kusto.Client
+	LogAnalytics       *loganalytics.Client
+	Logic              *logic.Client
+	MachineLearning    *machinelearning.Client
+	ManagedApplication *managedapplication.Client
+	ManagementGroups   *managementgroup.Client
+	Maps               *maps.Client
+	MariaDB            *mariadb.Client
+	Media              *media.Client
+	MixedReality       *mixedreality.Client
+	Monitor            *monitor.Client
+	MSI                *msi.Client
+	MSSQL              *mssql.Client
+	MySQL              *mysql.Client
+	NetApp             *netapp.Client
+	Network            *network.Client
+	NotificationHubs   *notificationhub.Client
+	Policy             *policy.Client
+	Portal             *portal.Client
+	Postgres           *postgres.Client
+	PowerBI            *powerBI.Client
+	PrivateDns         *privatedns.Client
+	RecoveryServices   *recoveryServices.Client
+	Redis              *redis.Client
+	Relay              *relay.Client
+	Resource           *resource.Client
+	Search             *search.Client
+	SecurityCenter     *securityCenter.Client
+	ServiceBus         *serviceBus.Client
+	ServiceFabric      *serviceFabric.Client
+	SignalR            *signalr.Client
+	Storage            *storage.Client
+	StreamAnalytics    *streamAnalytics.Client
+	Subscription       *subscription.Client
+	Sql                *sql.Client
+	TrafficManager     *trafficManager.Client
+	Web                *web.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
 
 func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
+	autorest.Count429AsRetry = false
+
 	client.Features = o.Features
 	client.StopContext = ctx
 
@@ -146,6 +165,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ApiManagement = apiManagement.NewClient(o)
 	client.AppConfiguration = appConfiguration.NewClient(o)
 	client.AppInsights = applicationInsights.NewClient(o)
+	client.AppPlatform = appPlatform.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.Batch = batch.NewClient(o)
@@ -155,6 +175,8 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Compute = compute.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
+	client.CostManagement = costmanagement.NewClient(o)
+	client.CustomProviders = customproviders.NewClient(o)
 	client.DatabaseMigration = datamigration.NewClient(o)
 	client.DataBricks = databricks.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
@@ -168,14 +190,18 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
+	client.IoTCentral = iotcentral.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
+	client.MachineLearning = machinelearning.NewClient(o)
+	client.ManagedApplication = managedapplication.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
 	client.Maps = maps.NewClient(o)
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
+	client.MixedReality = mixedreality.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
 	client.MSI = msi.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
@@ -186,6 +212,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
+	client.PowerBI = powerBI.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
 	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)

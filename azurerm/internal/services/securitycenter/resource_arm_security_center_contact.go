@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-//seems you can only set one contact:
+// seems you can only set one contact:
 // Invalid security contact name was provided - only 'defaultX' is allowed where X is an index
 // Invalid security contact name 'default0' was provided. Expected 'default1'
 // Message="Invalid security contact name 'default2' was provided. Expected 'default1'"
@@ -118,10 +118,8 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		d.SetId(*resp.ID)
-	} else {
-		if _, err := client.Update(ctx, name, contact); err != nil {
-			return fmt.Errorf("Error updating Security Center Contact: %+v", err)
-		}
+	} else if _, err := client.Update(ctx, name, contact); err != nil {
+		return fmt.Errorf("Error updating Security Center Contact: %+v", err)
 	}
 
 	return resourceArmSecurityCenterContactRead(d, meta)

@@ -276,6 +276,23 @@ func PossibleEnforcementMode1Values() []EnforcementMode1 {
 	return []EnforcementMode1{EnforcementMode1Audit, EnforcementMode1Enforce, EnforcementMode1None}
 }
 
+// EnforcementSupport enumerates the values for enforcement support.
+type EnforcementSupport string
+
+const (
+	// NotSupported ...
+	NotSupported EnforcementSupport = "NotSupported"
+	// Supported ...
+	Supported EnforcementSupport = "Supported"
+	// Unknown ...
+	Unknown EnforcementSupport = "Unknown"
+)
+
+// PossibleEnforcementSupportValues returns an array of possible values for the EnforcementSupport const type.
+func PossibleEnforcementSupportValues() []EnforcementSupport {
+	return []EnforcementSupport{NotSupported, Supported, Unknown}
+}
+
 // EventSource enumerates the values for event source.
 type EventSource string
 
@@ -523,6 +540,27 @@ func PossibleProtocolValues() []Protocol {
 	return []Protocol{All, TCP, UDP}
 }
 
+// Rank enumerates the values for rank.
+type Rank string
+
+const (
+	// RankCritical ...
+	RankCritical Rank = "Critical"
+	// RankHigh ...
+	RankHigh Rank = "High"
+	// RankLow ...
+	RankLow Rank = "Low"
+	// RankMedium ...
+	RankMedium Rank = "Medium"
+	// RankNone ...
+	RankNone Rank = "None"
+)
+
+// PossibleRankValues returns an array of possible values for the Rank const type.
+func PossibleRankValues() []Rank {
+	return []Rank{RankCritical, RankHigh, RankLow, RankMedium, RankNone}
+}
+
 // RecommendationAction enumerates the values for recommendation action.
 type RecommendationAction string
 
@@ -648,17 +686,17 @@ func PossibleSeverityValues() []Severity {
 type Source string
 
 const (
-	// SourceAws ...
-	SourceAws Source = "Aws"
 	// SourceAzure ...
 	SourceAzure Source = "Azure"
+	// SourceOnPremise ...
+	SourceOnPremise Source = "OnPremise"
 	// SourceResourceDetails ...
 	SourceResourceDetails Source = "ResourceDetails"
 )
 
 // PossibleSourceValues returns an array of possible values for the Source const type.
 func PossibleSourceValues() []Source {
-	return []Source{SourceAws, SourceAzure, SourceResourceDetails}
+	return []Source{SourceAzure, SourceOnPremise, SourceResourceDetails}
 }
 
 // SourceSystem enumerates the values for source system.
@@ -2553,7 +2591,8 @@ func (aa AutomationAction) AsBasicAutomationAction() (BasicAutomationAction, boo
 	return &aa, true
 }
 
-// AutomationActionEventHub the target Event Hub to which event data will be exported.
+// AutomationActionEventHub the target Event Hub to which event data will be exported. To learn more about
+// Security Center continuous export capabilities, visit https://aka.ms/ASCExportLearnMore
 type AutomationActionEventHub struct {
 	// EventHubResourceID - The target Event Hub Azure Resource ID.
 	EventHubResourceID *string `json:"eventHubResourceId,omitempty"`
@@ -2606,7 +2645,8 @@ func (aaeh AutomationActionEventHub) AsBasicAutomationAction() (BasicAutomationA
 	return &aaeh, true
 }
 
-// AutomationActionLogicApp the logic app action that should be triggered.
+// AutomationActionLogicApp the logic app action that should be triggered. To learn more about Security
+// Center's Workflow Automation capabilities, visit https://aka.ms/ASCWorkflowAutomationLearnMore
 type AutomationActionLogicApp struct {
 	// LogicAppResourceID - The triggered Logic App Azure Resource ID. This can also reside on other subscriptions, given that you have permissions to trigger the Logic App
 	LogicAppResourceID *string `json:"logicAppResourceId,omitempty"`
@@ -2661,7 +2701,8 @@ func (aala AutomationActionLogicApp) AsBasicAutomationAction() (BasicAutomationA
 // alerts data will reside in the 'SecurityAlert' table and the assessments data will reside in the
 // 'SecurityRecommendation' table (under the 'Security'/'SecurityCenterFree' solutions). Note that in order
 // to view the data in the workspace, the Security Center Log Analytics free/standard solution needs to be
-// enabled on that workspace.
+// enabled on that workspace. To learn more about Security Center continuous export capabilities, visit
+// https://aka.ms/ASCExportLearnMore
 type AutomationActionWorkspace struct {
 	// WorkspaceResourceID - The fully qualified Log Analytics Workspace Azure Resource ID.
 	WorkspaceResourceID *string `json:"workspaceResourceId,omitempty"`
@@ -2962,7 +3003,7 @@ type AutomationTriggeringRule struct {
 	PropertyType PropertyType `json:"propertyType,omitempty"`
 	// ExpectedValue - The expected value.
 	ExpectedValue *string `json:"expectedValue,omitempty"`
-	// Operator - A valid comparer operator to use. Possible values include: 'Equals', 'GreaterThan', 'GreaterThanOrEqualTo', 'LesserThan', 'LesserThanOrEqualTo', 'NotEquals', 'Contains', 'StartsWith', 'EndsWith'
+	// Operator - A valid comparer operator to use. A case-insensitive comparison will be applied for String PropertyType. Possible values include: 'Equals', 'GreaterThan', 'GreaterThanOrEqualTo', 'LesserThan', 'LesserThanOrEqualTo', 'NotEquals', 'Contains', 'StartsWith', 'EndsWith'
 	Operator Operator `json:"operator,omitempty"`
 }
 
@@ -3201,51 +3242,11 @@ type AutoProvisioningSettingProperties struct {
 	AutoProvision AutoProvision `json:"autoProvision,omitempty"`
 }
 
-// AwsResourceDetails details of the resource that was assessed
-type AwsResourceDetails struct {
-	// AccountID - READ-ONLY; AWS account ID
-	AccountID *string `json:"accountId,omitempty"`
-	// AwsResourceID - READ-ONLY; AWS resource ID. can be ARN or other
-	AwsResourceID *string `json:"awsResourceId,omitempty"`
-	// Source - Possible values include: 'SourceResourceDetails', 'SourceAzure', 'SourceAws'
-	Source Source `json:"source,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AwsResourceDetails.
-func (ard AwsResourceDetails) MarshalJSON() ([]byte, error) {
-	ard.Source = SourceAws
-	objectMap := make(map[string]interface{})
-	if ard.Source != "" {
-		objectMap["source"] = ard.Source
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsAzureResourceDetails is the BasicResourceDetails implementation for AwsResourceDetails.
-func (ard AwsResourceDetails) AsAzureResourceDetails() (*AzureResourceDetails, bool) {
-	return nil, false
-}
-
-// AsAwsResourceDetails is the BasicResourceDetails implementation for AwsResourceDetails.
-func (ard AwsResourceDetails) AsAwsResourceDetails() (*AwsResourceDetails, bool) {
-	return &ard, true
-}
-
-// AsResourceDetails is the BasicResourceDetails implementation for AwsResourceDetails.
-func (ard AwsResourceDetails) AsResourceDetails() (*ResourceDetails, bool) {
-	return nil, false
-}
-
-// AsBasicResourceDetails is the BasicResourceDetails implementation for AwsResourceDetails.
-func (ard AwsResourceDetails) AsBasicResourceDetails() (BasicResourceDetails, bool) {
-	return &ard, true
-}
-
-// AzureResourceDetails details of the resource that was assessed
+// AzureResourceDetails details of the Azure resource that was assessed
 type AzureResourceDetails struct {
-	// ID - READ-ONLY; Azure resource ID of the assessed resource
+	// ID - READ-ONLY; Azure resource Id of the assessed resource
 	ID *string `json:"id,omitempty"`
-	// Source - Possible values include: 'SourceResourceDetails', 'SourceAzure', 'SourceAws'
+	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremise', 'SourceAzure'
 	Source Source `json:"source,omitempty"`
 }
 
@@ -3259,14 +3260,14 @@ func (ard AzureResourceDetails) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AsOnPremiseResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
+func (ard AzureResourceDetails) AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool) {
+	return nil, false
+}
+
 // AsAzureResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
 func (ard AzureResourceDetails) AsAzureResourceDetails() (*AzureResourceDetails, bool) {
 	return &ard, true
-}
-
-// AsAwsResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
-func (ard AzureResourceDetails) AsAwsResourceDetails() (*AwsResourceDetails, bool) {
-	return nil, false
 }
 
 // AsResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
@@ -5319,6 +5320,8 @@ func (ippp InformationProtectionPolicyProperties) MarshalJSON() ([]byte, error) 
 type InformationType struct {
 	// DisplayName - The name of the information type.
 	DisplayName *string `json:"displayName,omitempty"`
+	// Description - The description of the information type.
+	Description *string `json:"description,omitempty"`
 	// Order - The order of the information type.
 	Order *float64 `json:"order,omitempty"`
 	// RecommendedLabelID - The recommended label id to be associated with this information type.
@@ -5692,6 +5695,62 @@ type ListCustomAlertRule struct {
 type Location struct {
 	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
+}
+
+// OnPremiseResourceDetails details of the On Premise resource that was assessed
+type OnPremiseResourceDetails struct {
+	// WorkspaceID - Azure resource Id of the workspace the machine is attached to
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	// Vmuuid - The unique Id of the machine
+	Vmuuid *string `json:"vmuuid,omitempty"`
+	// SourceComputerID - The oms agent Id installed on the machine
+	SourceComputerID *string `json:"sourceComputerId,omitempty"`
+	// MachineName - The name of the machine
+	MachineName *string `json:"machineName,omitempty"`
+	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremise', 'SourceAzure'
+	Source Source `json:"source,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OnPremiseResourceDetails.
+func (oprd OnPremiseResourceDetails) MarshalJSON() ([]byte, error) {
+	oprd.Source = SourceOnPremise
+	objectMap := make(map[string]interface{})
+	if oprd.WorkspaceID != nil {
+		objectMap["workspaceId"] = oprd.WorkspaceID
+	}
+	if oprd.Vmuuid != nil {
+		objectMap["vmuuid"] = oprd.Vmuuid
+	}
+	if oprd.SourceComputerID != nil {
+		objectMap["sourceComputerId"] = oprd.SourceComputerID
+	}
+	if oprd.MachineName != nil {
+		objectMap["machineName"] = oprd.MachineName
+	}
+	if oprd.Source != "" {
+		objectMap["source"] = oprd.Source
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsOnPremiseResourceDetails is the BasicResourceDetails implementation for OnPremiseResourceDetails.
+func (oprd OnPremiseResourceDetails) AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool) {
+	return &oprd, true
+}
+
+// AsAzureResourceDetails is the BasicResourceDetails implementation for OnPremiseResourceDetails.
+func (oprd OnPremiseResourceDetails) AsAzureResourceDetails() (*AzureResourceDetails, bool) {
+	return nil, false
+}
+
+// AsResourceDetails is the BasicResourceDetails implementation for OnPremiseResourceDetails.
+func (oprd OnPremiseResourceDetails) AsResourceDetails() (*ResourceDetails, bool) {
+	return nil, false
+}
+
+// AsBasicResourceDetails is the BasicResourceDetails implementation for OnPremiseResourceDetails.
+func (oprd OnPremiseResourceDetails) AsBasicResourceDetails() (BasicResourceDetails, bool) {
+	return &oprd, true
 }
 
 // Operation possible operation in the REST API of Microsoft.Security
@@ -6848,14 +6907,14 @@ type Resource struct {
 
 // BasicResourceDetails details of the resource that was assessed
 type BasicResourceDetails interface {
+	AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool)
 	AsAzureResourceDetails() (*AzureResourceDetails, bool)
-	AsAwsResourceDetails() (*AwsResourceDetails, bool)
 	AsResourceDetails() (*ResourceDetails, bool)
 }
 
 // ResourceDetails details of the resource that was assessed
 type ResourceDetails struct {
-	// Source - Possible values include: 'SourceResourceDetails', 'SourceAzure', 'SourceAws'
+	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremise', 'SourceAzure'
 	Source Source `json:"source,omitempty"`
 }
 
@@ -6867,12 +6926,12 @@ func unmarshalBasicResourceDetails(body []byte) (BasicResourceDetails, error) {
 	}
 
 	switch m["source"] {
+	case string(SourceOnPremise):
+		var oprd OnPremiseResourceDetails
+		err := json.Unmarshal(body, &oprd)
+		return oprd, err
 	case string(SourceAzure):
 		var ard AzureResourceDetails
-		err := json.Unmarshal(body, &ard)
-		return ard, err
-	case string(SourceAws):
-		var ard AwsResourceDetails
 		err := json.Unmarshal(body, &ard)
 		return ard, err
 	default:
@@ -6910,13 +6969,13 @@ func (rd ResourceDetails) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsAzureResourceDetails is the BasicResourceDetails implementation for ResourceDetails.
-func (rd ResourceDetails) AsAzureResourceDetails() (*AzureResourceDetails, bool) {
+// AsOnPremiseResourceDetails is the BasicResourceDetails implementation for ResourceDetails.
+func (rd ResourceDetails) AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool) {
 	return nil, false
 }
 
-// AsAwsResourceDetails is the BasicResourceDetails implementation for ResourceDetails.
-func (rd ResourceDetails) AsAwsResourceDetails() (*AwsResourceDetails, bool) {
+// AsAzureResourceDetails is the BasicResourceDetails implementation for ResourceDetails.
+func (rd ResourceDetails) AsAzureResourceDetails() (*AzureResourceDetails, bool) {
 	return nil, false
 }
 
@@ -6949,6 +7008,10 @@ type Rule struct {
 type SensitivityLabel struct {
 	// DisplayName - The name of the sensitivity label.
 	DisplayName *string `json:"displayName,omitempty"`
+	// Description - The description of the sensitivity label.
+	Description *string `json:"description,omitempty"`
+	// Rank - The rank of the sensitivity label. Possible values include: 'RankNone', 'RankLow', 'RankMedium', 'RankHigh', 'RankCritical'
+	Rank Rank `json:"rank,omitempty"`
 	// Order - The order of the sensitivity label.
 	Order *float64 `json:"order,omitempty"`
 	// Enabled - Indicates whether the label is enabled or not.
@@ -8239,6 +8302,8 @@ type VMRecommendation struct {
 	// RecommendationAction - Possible values include: 'RecommendationActionRecommended', 'RecommendationActionAdd', 'RecommendationActionRemove'
 	RecommendationAction RecommendationAction `json:"recommendationAction,omitempty"`
 	ResourceID           *string              `json:"resourceId,omitempty"`
+	// EnforcementSupport - Possible values include: 'Supported', 'NotSupported', 'Unknown'
+	EnforcementSupport EnforcementSupport `json:"enforcementSupport,omitempty"`
 }
 
 // WorkspaceSetting configures where to store the OMS agent data for workspaces under a scope

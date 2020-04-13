@@ -95,13 +95,10 @@ func formatUsernameForAuthorizedKeysPath(username string) string {
 func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	// the Azure VM agent hard-codes this to `/home/username/.ssh/authorized_keys`
 	// as such we can hard-code this for a better UX
-	compiled, err := regexp.Compile("(/home/)+(?P<username>.*?)(/.ssh/authorized_keys)+")
-	if err != nil {
-		return nil
-	}
+	r := regexp.MustCompile("(/home/)+(?P<username>.*?)(/.ssh/authorized_keys)+")
 
-	keys := compiled.SubexpNames()
-	values := compiled.FindStringSubmatch(input)
+	keys := r.SubexpNames()
+	values := r.FindStringSubmatch(input)
 
 	if values == nil {
 		return nil
@@ -143,7 +140,7 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 		if pubKey.Type() != ssh.KeyAlgoRSA {
 			return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by Azure")}
 		} else {
-			//check length - held at bytes 20 and 21 for ssh-rsa
+			// check length - held at bytes 20 and 21 for ssh-rsa
 			sizeRaw := []byte{byteStr[20], byteStr[21]}
 			sizeDec := binary.BigEndian.Uint16(sizeRaw)
 			if sizeDec < 257 {

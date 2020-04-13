@@ -42,9 +42,7 @@ resource "azurerm_key_vault" "example" {
   enabled_for_template_deployment = true
   tenant_id                       = "00000000-0000-0000-0000-000000000002"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "00000000-0000-0000-0000-000000000002"

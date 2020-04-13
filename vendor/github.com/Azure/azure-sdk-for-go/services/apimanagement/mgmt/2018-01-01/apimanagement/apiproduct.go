@@ -36,7 +36,8 @@ func NewAPIProductClient(subscriptionID string) APIProductClient {
 	return NewAPIProductClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAPIProductClientWithBaseURI creates an instance of the APIProductClient client.
+// NewAPIProductClientWithBaseURI creates an instance of the APIProductClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAPIProductClientWithBaseURI(baseURI string, subscriptionID string) APIProductClient {
 	return APIProductClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -136,8 +137,7 @@ func (client APIProductClient) ListByApisPreparer(ctx context.Context, resourceG
 // ListByApisSender sends the ListByApis request. The method will close the
 // http.Response Body if it receives an error.
 func (client APIProductClient) ListByApisSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByApisResponder handles the response to the ListByApis request. The method always

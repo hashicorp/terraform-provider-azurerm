@@ -84,23 +84,23 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 
 	if resourceGroupName != "" {
 		v := fmt.Sprintf("resourceGroup eq '%s'", resourceGroupName)
-		filter = filter + v
+		filter += v
 	}
 
 	if resourceName != "" {
 		if strings.Contains(filter, "eq") {
-			filter = filter + " and "
+			filter += " and "
 		}
 		v := fmt.Sprintf("name eq '%s'", resourceName)
-		filter = filter + v
+		filter += v
 	}
 
 	if resourceType != "" {
 		if strings.Contains(filter, "eq") {
-			filter = filter + " and "
+			filter += " and "
 		}
 		v := fmt.Sprintf("resourceType eq '%s'", resourceType)
-		filter = filter + v
+		filter += v
 	}
 
 	resources := make([]map[string]interface{}, 0)

@@ -85,12 +85,17 @@ func resourceArmVirtualNetwork() *schema.Resource {
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+			},
+
+			"guid": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"subnet": {
@@ -232,11 +237,14 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
+		d.Set("guid", props.ResourceGUID)
+
 		if space := props.AddressSpace; space != nil {
 			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
 		}
@@ -249,8 +257,10 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error setting `subnets`: %+v", err)
 		}
 
-		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
-			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+		if dhcp := props.DhcpOptions; dhcp != nil {
+			if err := d.Set("dns_servers", utils.FlattenStringSlice(dhcp.DNSServers)); err != nil {
+				return fmt.Errorf("setting `dns_servers`: %+v", err)
+			}
 		}
 	}
 
@@ -297,7 +307,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 
 			name := subnet["name"].(string)
 			log.Printf("[INFO] setting subnets inside vNet, processing %q", name)
-			//since subnets can also be created outside of vNet definition (as root objects)
+			// since subnets can also be created outside of vNet definition (as root objects)
 			// do a GET on subnet properties from the server before setting them
 			resGroup := d.Get("resource_group_name").(string)
 			vnetName := d.Get("name").(string)
@@ -310,7 +320,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			prefix := subnet["address_prefix"].(string)
 			secGroup := subnet["security_group"].(string)
 
-			//set the props from config and leave the rest intact
+			// set the props from config and leave the rest intact
 			subnetObj.Name = &name
 			if subnetObj.SubnetPropertiesFormat == nil {
 				subnetObj.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{}
@@ -335,7 +345,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
 		},
 		DhcpOptions: &network.DhcpOptions{
-			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
+			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").(*schema.Set).List()),
 		},
 		Subnets: &subnets,
 	}
@@ -417,18 +427,6 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
 	return results
 }
 
-func flattenVirtualNetworkDNSServers(input *network.DhcpOptions) []string {
-	results := make([]string, 0)
-
-	if input != nil {
-		if servers := input.DNSServers; servers != nil {
-			results = *servers
-		}
-	}
-
-	return results
-}
-
 func resourceAzureSubnetHash(v interface{}) int {
 	var buf bytes.Buffer
 
@@ -452,7 +450,7 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 		if resp.StatusCode == http.StatusNotFound {
 			return &network.Subnet{}, nil
 		}
-		//raise an error if there was an issue other than 404 in getting subnet properties
+		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 

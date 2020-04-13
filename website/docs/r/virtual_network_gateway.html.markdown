@@ -130,9 +130,9 @@ The following arguments are supported:
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
-    gateway is created will be routed (*forced tunneling*). Refer to the
-    [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
-    If not specified, forced tunneling is disabled.
+    gateway is created will be routed (*forced tunnelling*). Refer to the
+    [Azure documentation on forced tunnelling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
+    If not specified, forced tunnelling is disabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,

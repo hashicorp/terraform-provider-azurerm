@@ -7,12 +7,18 @@ import (
 
 type Client struct {
 	ServicesClient *datamigration.ServicesClient
+	ProjectsClient *datamigration.ProjectsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	servicesClient := datamigration.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
+
+	projectsClient := datamigration.NewProjectsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&projectsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ServicesClient: &servicesClient,
+		ProjectsClient: &projectsClient,
 	}
 }

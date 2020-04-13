@@ -13,7 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -29,7 +30,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 		Delete: resourceArmLinuxVirtualMachineScaleSetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := ParseVirtualMachineScaleSetID(id)
+			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
 		}, importVirtualMachineScaleSet(compute.Linux, "azurerm_linux_virtual_machine_scale_set")),
 
@@ -180,7 +181,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.ProximityPlacementGroupID,
+				ValidateFunc: validate.ProximityPlacementGroupID,
 				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -199,9 +200,9 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					computeValidate.ImageID,
-					computeValidate.SharedImageID,
-					computeValidate.SharedImageVersionID,
+					validate.ImageID,
+					validate.SharedImageID,
+					validate.SharedImageVersionID,
 				),
 			},
 
@@ -227,6 +228,19 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 				Default:  false,
 			},
+
+			"scale_in_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.Default),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Default),
+					string(compute.NewestVM),
+					string(compute.OldestVM),
+				}, false),
+			},
+
+			"terminate_notification": VirtualMachineScaleSetTerminateNotificationSchema(),
 
 			"zones": azure.SchemaZones(),
 
@@ -411,6 +425,12 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
+	if v, ok := d.GetOk("terminate_notification"); ok {
+		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+	}
+
+	scaleInPolicy := d.Get("scale_in_policy").(string)
+
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
 		Sku: &compute.Sku{
@@ -430,6 +450,9 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 			SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
 			VirtualMachineProfile:                  &virtualMachineProfile,
 			UpgradePolicy:                          &upgradePolicy,
+			ScaleInPolicy: &compute.ScaleInPolicy{
+				Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
+			},
 		},
 		Zones: zones,
 	}
@@ -479,7 +502,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -646,6 +669,18 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
+	if d.HasChange("scale_in_policy") {
+		scaleInPolicy := d.Get("scale_in_policy").(string)
+		updateProps.ScaleInPolicy = &compute.ScaleInPolicy{
+			Rules: &[]compute.VirtualMachineScaleSetScaleInRules{compute.VirtualMachineScaleSetScaleInRules(scaleInPolicy)},
+		}
+	}
+
+	if d.HasChange("terminate_notification") {
+		notificationRaw := d.Get("terminate_notification").([]interface{})
+		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+	}
+
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
 		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
@@ -707,7 +742,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -767,6 +802,14 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 	d.Set("single_placement_group", props.SinglePlacementGroup)
 	d.Set("unique_id", props.UniqueID)
 	d.Set("zone_balance", props.ZoneBalance)
+
+	rule := string(compute.Default)
+	if props.ScaleInPolicy != nil {
+		if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
+			rule = string((*rules)[0])
+		}
+	}
+	d.Set("scale_in_policy", rule)
 
 	if profile := props.VirtualMachineProfile; profile != nil {
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
@@ -838,6 +881,12 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 			}
 			d.Set("health_probe_id", healthProbeId)
 		}
+
+		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
+			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+				return fmt.Errorf("Error setting `terminate_notification`: %+v", err)
+			}
+		}
 	}
 
 	if policy := props.UpgradePolicy; policy != nil {
@@ -866,7 +915,7 @@ func resourceArmLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -8,11 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,11 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 		Read:   resourceArmVirtualMachineExtensionsRead,
 		Update: resourceArmVirtualMachineExtensionsCreateUpdate,
 		Delete: resourceArmVirtualMachineExtensionsDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.VirtualMachineExtensionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -45,7 +49,7 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVirtualMachineID,
+				ValidateFunc: validate.VirtualMachineID,
 			},
 
 			"publisher": {
@@ -96,7 +100,7 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualMachineId, err := ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
+	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
@@ -188,32 +192,29 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineExtensionID(d.Id())
+	id, err := parse.VirtualMachineExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	vmName := id.VirtualMachine
-	name := id.Name
 
-	virtualMachine, err := vmClient.Get(ctx, resourceGroup, vmName, "")
+	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualMachine.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", id.Name, err)
 	}
 
 	d.Set("virtual_machine_id", virtualMachine.ID)
 
-	resp, err := vmExtensionClient.Get(ctx, resourceGroup, vmName, name, "")
+	resp, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine Extension %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Virtual Machine Extension %s: %s", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -242,15 +243,12 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["extensions"]
-	vmName := id.Path["virtualMachines"]
 
-	future, err := client.Delete(ctx, resGroup, vmName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachine, id.Name)
 	if err != nil {
 		return err
 	}

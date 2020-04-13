@@ -37,7 +37,9 @@ func NewServerBlobAuditingPoliciesClient(subscriptionID string) ServerBlobAuditi
 	return NewServerBlobAuditingPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerBlobAuditingPoliciesClientWithBaseURI creates an instance of the ServerBlobAuditingPoliciesClient client.
+// NewServerBlobAuditingPoliciesClientWithBaseURI creates an instance of the ServerBlobAuditingPoliciesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewServerBlobAuditingPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ServerBlobAuditingPoliciesClient {
 	return ServerBlobAuditingPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -101,9 +103,8 @@ func (client ServerBlobAuditingPoliciesClient) CreateOrUpdatePreparer(ctx contex
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.Request) (future ServerBlobAuditingPoliciesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -186,8 +187,7 @@ func (client ServerBlobAuditingPoliciesClient) GetPreparer(ctx context.Context, 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerBlobAuditingPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -265,8 +265,7 @@ func (client ServerBlobAuditingPoliciesClient) ListByServerPreparer(ctx context.
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerBlobAuditingPoliciesClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

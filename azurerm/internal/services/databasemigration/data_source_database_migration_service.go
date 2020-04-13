@@ -25,7 +25,7 @@ func dataSourceArmDatabaseMigrationService() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateDatabasesMigrationServiceName,
+				ValidateFunc: validateDatabaseMigrationServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

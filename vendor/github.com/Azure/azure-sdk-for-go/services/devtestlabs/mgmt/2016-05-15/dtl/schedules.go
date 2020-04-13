@@ -36,7 +36,8 @@ func NewSchedulesClient(subscriptionID string) SchedulesClient {
 	return NewSchedulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSchedulesClientWithBaseURI creates an instance of the SchedulesClient client.
+// NewSchedulesClientWithBaseURI creates an instance of the SchedulesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSchedulesClientWithBaseURI(baseURI string, subscriptionID string) SchedulesClient {
 	return SchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -112,8 +113,7 @@ func (client SchedulesClient) CreateOrUpdatePreparer(ctx context.Context, resour
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -191,8 +191,7 @@ func (client SchedulesClient) DeletePreparer(ctx context.Context, resourceGroupN
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -263,9 +262,8 @@ func (client SchedulesClient) ExecutePreparer(ctx context.Context, resourceGroup
 // ExecuteSender sends the Execute request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) ExecuteSender(req *http.Request) (future SchedulesExecuteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -351,8 +349,7 @@ func (client SchedulesClient) GetPreparer(ctx context.Context, resourceGroupName
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -445,8 +442,7 @@ func (client SchedulesClient) ListPreparer(ctx context.Context, resourceGroupNam
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -562,8 +558,7 @@ func (client SchedulesClient) ListApplicablePreparer(ctx context.Context, resour
 // ListApplicableSender sends the ListApplicable request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) ListApplicableSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListApplicableResponder handles the response to the ListApplicable request. The method always
@@ -681,8 +676,7 @@ func (client SchedulesClient) UpdatePreparer(ctx context.Context, resourceGroupN
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client SchedulesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

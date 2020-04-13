@@ -15,6 +15,14 @@ import (
 )
 
 func AzureProvider() terraform.ResourceProvider {
+	return azureProvider(false)
+}
+
+func TestAzureProvider() terraform.ResourceProvider {
+	return azureProvider(true)
+}
+
+func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
@@ -149,7 +157,7 @@ func AzureProvider() terraform.ResourceProvider {
 				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
 
-			"features": schemaFeatures(),
+			"features": schemaFeatures(supportLegacyTestSuite),
 
 			// Advanced feature flags
 			"skip_credentials_validation": {
@@ -188,10 +196,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
-		} else {
-			if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
-				auxTenants = strings.Split(v, ";")
-			}
+		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
+			auxTenants = strings.Split(v, ";")
 		}
 
 		if len(auxTenants) > 3 {

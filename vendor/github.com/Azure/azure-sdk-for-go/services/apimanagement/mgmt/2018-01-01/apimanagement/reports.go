@@ -36,7 +36,8 @@ func NewReportsClient(subscriptionID string) ReportsClient {
 	return NewReportsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewReportsClientWithBaseURI creates an instance of the ReportsClient client.
+// NewReportsClientWithBaseURI creates an instance of the ReportsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReportsClientWithBaseURI(baseURI string, subscriptionID string) ReportsClient {
 	return ReportsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -126,8 +127,7 @@ func (client ReportsClient) ListByAPIPreparer(ctx context.Context, resourceGroup
 // ListByAPISender sends the ListByAPI request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListByAPISender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAPIResponder handles the response to the ListByAPI request. The method always
@@ -267,8 +267,7 @@ func (client ReportsClient) ListByGeoPreparer(ctx context.Context, resourceGroup
 // ListByGeoSender sends the ListByGeo request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListByGeoSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByGeoResponder handles the response to the ListByGeo request. The method always
@@ -406,8 +405,7 @@ func (client ReportsClient) ListByOperationPreparer(ctx context.Context, resourc
 // ListByOperationSender sends the ListByOperation request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListByOperationSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByOperationResponder handles the response to the ListByOperation request. The method always
@@ -545,8 +543,7 @@ func (client ReportsClient) ListByProductPreparer(ctx context.Context, resourceG
 // ListByProductSender sends the ListByProduct request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListByProductSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByProductResponder handles the response to the ListByProduct request. The method always
@@ -683,8 +680,7 @@ func (client ReportsClient) ListByRequestPreparer(ctx context.Context, resourceG
 // ListByRequestSender sends the ListByRequest request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListByRequestSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByRequestResponder handles the response to the ListByRequest request. The method always
@@ -787,8 +783,7 @@ func (client ReportsClient) ListBySubscriptionPreparer(ctx context.Context, reso
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -932,8 +927,7 @@ func (client ReportsClient) ListByTimePreparer(ctx context.Context, resourceGrou
 // ListByTimeSender sends the ListByTime request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListByTimeSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByTimeResponder handles the response to the ListByTime request. The method always
@@ -1071,8 +1065,7 @@ func (client ReportsClient) ListByUserPreparer(ctx context.Context, resourceGrou
 // ListByUserSender sends the ListByUser request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReportsClient) ListByUserSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByUserResponder handles the response to the ListByUser request. The method always

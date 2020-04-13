@@ -304,9 +304,11 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	update := network.Interface{
-		Name:                      utils.String(name),
-		Location:                  utils.String(location),
-		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{},
+		Name:     utils.String(name),
+		Location: utils.String(location),
+		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
+			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
+		},
 	}
 
 	if d.HasChange("dns_servers") {
@@ -318,10 +320,6 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
 		update.InterfacePropertiesFormat.DNSSettings.DNSServers = &dnsServers
-	}
-
-	if d.HasChange("enable_accelerated_networking") {
-		update.InterfacePropertiesFormat.EnableAcceleratedNetworking = utils.Bool(d.Get("enable_accelerated_networking").(bool))
 	}
 
 	if d.HasChange("enable_ip_forwarding") {

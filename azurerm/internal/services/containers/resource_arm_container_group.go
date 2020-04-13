@@ -545,7 +545,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if props := resp.ContainerGroupProperties; props != nil {
-		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress, props.Volumes)
+		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("Error setting `container`: %+v", err)
 		}
@@ -1039,8 +1039,8 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 	return output
 }
 
-func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, ipAddress *containerinstance.IPAddress, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
-	//map old container names to index so we can look up things up
+func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
 	for i, c := range d.Get("container").([]interface{}) {
 		cfg := c.(map[string]interface{})
@@ -1049,10 +1049,10 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 	containerCfg := make([]interface{}, 0, len(*containers))
 	for _, container := range *containers {
-		//TODO fix this crash point
+		// TODO fix this crash point
 		name := *container.Name
 
-		//get index from name
+		// get index from name
 		index := nameIndexMap[name]
 
 		containerConfig := make(map[string]interface{})

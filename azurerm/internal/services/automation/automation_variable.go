@@ -150,17 +150,18 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 	encrypted := d.Get("encrypted").(bool)
 	value := ""
 
-	if varTypeLower == "datetime" {
+	switch varTypeLower {
+	case "datetime":
 		vTime, parseErr := time.Parse(time.RFC3339, d.Get("value").(string))
 		if parseErr != nil {
 			return fmt.Errorf("Error invalid time format: %+v", parseErr)
 		}
 		value = fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000)
-	} else if varTypeLower == "bool" {
+	case "bool":
 		value = strconv.FormatBool(d.Get("value").(bool))
-	} else if varTypeLower == "int" {
+	case "int":
 		value = strconv.Itoa(d.Get("value").(int))
-	} else if varTypeLower == "string" {
+	case "string":
 		value = strconv.Quote(d.Get("value").(string))
 	}
 

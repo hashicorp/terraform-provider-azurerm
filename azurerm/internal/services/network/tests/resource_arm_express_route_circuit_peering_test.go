@@ -29,7 +29,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "0"),
 				),
 			},
-			data.ImportStep("shared_key"), //is not returned by the API
+			data.ImportStep("shared_key"), // is not returned by the API
 		},
 	})
 }
@@ -103,7 +103,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpda
 					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "0"),
 				),
 			},
-			data.ImportStep("shared_key"), //is not returned by the API
+			data.ImportStep("shared_key"), // is not returned by the API
 		},
 	})
 }

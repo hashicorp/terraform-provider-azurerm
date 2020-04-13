@@ -35,7 +35,9 @@ func NewResourceProviderCommonClient(subscriptionID string) ResourceProviderComm
 	return NewResourceProviderCommonClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceProviderCommonClientWithBaseURI creates an instance of the ResourceProviderCommonClient client.
+// NewResourceProviderCommonClientWithBaseURI creates an instance of the ResourceProviderCommonClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewResourceProviderCommonClientWithBaseURI(baseURI string, subscriptionID string) ResourceProviderCommonClient {
 	return ResourceProviderCommonClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -95,8 +97,7 @@ func (client ResourceProviderCommonClient) GetSubscriptionQuotaPreparer(ctx cont
 // GetSubscriptionQuotaSender sends the GetSubscriptionQuota request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceProviderCommonClient) GetSubscriptionQuotaSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSubscriptionQuotaResponder handles the response to the GetSubscriptionQuota request. The method always

@@ -22,6 +22,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_database_migration_service": dataSourceArmDatabaseMigrationService(),
+		"azurerm_database_migration_project": dataSourceArmDatabaseMigrationProject(),
 	}
 }
 
@@ -29,6 +30,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	resources := map[string]*schema.Resource{
 		"azurerm_database_migration_service": resourceArmDatabaseMigrationService(),
+		"azurerm_database_migration_project": resourceArmDatabaseMigrationProject(),
 	}
 
 	return resources
