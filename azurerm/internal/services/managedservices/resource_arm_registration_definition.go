@@ -3,11 +3,13 @@ package managedservices
 import (
 	"fmt"
 	"time"
+	"strings"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -37,24 +39,25 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
-			},
-
-			"registration_definition_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
-			},
-
-			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
+				Computed: 	  true,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew: 	  true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+			},
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
@@ -81,11 +84,6 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
-						"principal_display_name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringLenBetween(3, 128),
-						},
 						"role_definition_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -103,14 +101,23 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	registrationDefinitionID := d.Get("registration_definition_id").(string)
+	registrationDefinitionId := d.Get("registration_definition_id").(string)
+	if registrationDefinitionId == "" {
+		uuid, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("Error generating UUID for Registration Definition: %+v", err)
+		}
+
+		registrationDefinitionId = uuid
+	}
+	
 	scope := d.Get("scope").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, registrationDefinitionID)
+		existing, err := client.Get(ctx, scope, registrationDefinitionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
+				return fmt.Errorf("Error checking for presence of existing Registration Definition %q (Scope %q): %+v", registrationDefinitionId, scope, err)
 			}
 		}
 
@@ -123,23 +130,23 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 		Properties: &managedservices.RegistrationDefinitionProperties{
 			Description: 				utils.String(d.Get("description").(string)),
 			Authorizations: 			expandManagedServicesDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
-			RegistrationDefinitionName: utils.String(d.Get("registration_definition_name").(string)),
+			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
 			ManagedByTenantID: 			utils.String(d.Get("managed_by_tenant_id").(string)),
 			ManagedByTenantName:		utils.String(d.Get("managed_by_tenant_name").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, registrationDefinitionID, scope, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
+	if _, err := client.CreateOrUpdate(ctx, registrationDefinitionId, scope, parameters); err != nil {
+		return fmt.Errorf("Error Creating/Updating Registration Definition %q (Scope %q): %+v", registrationDefinitionId, scope, err)
 	}
 
-	read, err := client.Get(ctx, scope, registrationDefinitionID)
+	read, err := client.Get(ctx, scope, registrationDefinitionId)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Registration Definition %q ID (scope %q) ID", registrationDefinitionID, scope)
+		return fmt.Errorf("Cannot read Registration Definition %q ID (scope %q) ID", registrationDefinitionId, scope)
 	}
 
 	d.SetId(*read.ID)
@@ -165,37 +172,55 @@ func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parseAzureRegistrationDefinitionId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	registrationDefinitionID:= id.Path["registrationDefinitionID"]
-	scope:= id.Path["scope"]
-
-	resp, err := client.Get(ctx, scope, registrationDefinitionID)
+	resp, err := client.Get(ctx, id.Scope, id.RegistrationDefinitionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", id.registrationDefinitionId, id.scope)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Registration Assignment %q (Scope %q): %+v", registrationDefinitionID, scope, err)
+
+		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", id.registrationDefinitionId, id.scope, err)
 	}
 
 	d.Set("registration_definition_id", resp.Name)
-	d.Set("scope", scope)
+	d.Set("scope", id.scope)
 
 	if props := resp.Properties; props != nil {
 		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(props.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
-		d.Set("registration_definition_name", props.RegistrationDefinitionName)
+		d.Set("name", props.RegistrationDefinitionName)
 		d.Set("managed_by_tenant_id", props.ManagedByTenantID)
 		d.Set("managed_by_tenant_name", props.ManagedByTenantName)
 	}
 
 	return nil
+}
+
+type registrationDefinitionID struct {
+	scope 						string
+	registrationDefinitionId 	string
+}
+
+func parseAzureRegistrationDefinitionId(id string) (*registrationDefinitionID, error) {
+	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationDefinitions/")
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationDefinitions/{name} - got %d segments", len(segments))
+	}
+
+	azureRegistrationDefinitionId := registrationDefinitionID{
+		scope: 						strings.TrimPrefix(segments[0], "/"),
+		registrationDefinitionId:  	segments[1],
+	}
+
+	return &azureRegistrationDefinitionId, nil
 }
 
 func flattenManagedServicesDefinitionAuthorization(input *[]managedservices.Authorization) []interface{} {
@@ -229,17 +254,14 @@ func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parseAzureRegistrationDefinitionId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	registrationDefinitionID:= id.Path["registrationDefinitionID"]
-	scope:= id.Path["scope"]
-
-	_, err = client.Delete(ctx, registrationDefinitionID, scope)
+	_, err = client.Delete(ctx, id.registrationDefinitionId, id.scope)
 	if err != nil {
-		return fmt.Errorf("Error deleting Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
+		return fmt.Errorf("Error deleting Registration Definition %q at Scope %q: %+v", id.registrationDefinitionId, id.scope, err)
 	}
 
 	return nil
