@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_hdinsight_rserver_cluster` - support for the `tls_min_version` property [GH-6440]
 * `azurerm_hdinsight_spark_cluster` - support for the `tls_min_version` property [GH-6440]
 * `azurerm_hdinsight_storm_cluster` - support the `threat_detection_policy` property [GH-6437]
+* `azurerm_network_interface` - export the `internal_domain_name_suffix` property [GH-6455]
 * `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
 * `azurerm_sql_server` - support for the `connection_policy` property [GH-6438]
 * `azurerm_virtual_network` - export the `guid` attribute [GH-6445]
