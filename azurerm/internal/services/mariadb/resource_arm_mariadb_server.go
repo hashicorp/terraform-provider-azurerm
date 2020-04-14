@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -139,13 +141,47 @@ func resourceArmMariaDbServer() *schema.Resource {
 				},
 			},
 
-			"ssl_enforcement": {
-				Type:     schema.TypeString,
-				Required: true,
+			"infrastructure_encryption_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"ssl_minimal_tls_version_enforced": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"ssl_enforcement"},
 				ValidateFunc: validation.StringInSlice([]string{
-					string(mariadb.SslEnforcementEnumDisabled),
-					string(mariadb.SslEnforcementEnumEnabled),
+					string(postgresql.TLSEnforcementDisabled),
+					string(postgresql.TLS10),
+					string(postgresql.TLS11),
+					string(postgresql.TLS12),
 				}, false),
+			},
+
+			"ssl_enforcement_enabled": {
+				Type:         schema.TypeBool,
+				Optional:     true, // required in 3.0
+				Computed:     true, // remove computed in 3.0
+				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
+			},
+
+			"ssl_enforcement": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Deprecated:   "this has been renamed to the boolean `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
+				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
+				ValidateFunc: validation.StringInSlice([]string{
+					string(postgresql.SslEnforcementEnumDisabled),
+					string(postgresql.SslEnforcementEnumEnabled),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"fqdn": {
