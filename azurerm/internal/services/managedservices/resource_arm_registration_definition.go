@@ -97,7 +97,7 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 }
 
 func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedService.RegistrationDefinitionsClient
+	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -168,7 +168,7 @@ func expandManagedServicesDefinitionAuthorization(input []interface{}) *[]manage
 }
 
 func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedService.RegistrationDefinitionsClient
+	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -250,7 +250,7 @@ func flattenManagedServicesDefinitionAuthorization(input *[]managedservices.Auth
 }
 
 func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedService.RegistrationDefinitionsClient
+	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

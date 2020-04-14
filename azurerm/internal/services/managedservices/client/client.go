@@ -14,6 +14,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&RegistrationDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		RegistrationDefinitionsClient: &RegistrationDefinitionsClient,
+		RegistrationDefinitionsClient: &RegistrationDefinitionsClient, 
 	}
 }
