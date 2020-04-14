@@ -177,7 +177,7 @@ func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Scope, id.RegistrationDefinitionId)
+	resp, err := client.Get(ctx, id.scope, id.registrationDefinitionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", id.registrationDefinitionId, id.scope)
