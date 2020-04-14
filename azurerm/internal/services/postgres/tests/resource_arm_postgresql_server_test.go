@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -25,7 +26,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -43,7 +44,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -61,7 +62,7 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -79,7 +80,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -120,7 +121,7 @@ func TestAccAzureRMPostgreSQLServer_complete(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -138,21 +139,21 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_complete(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_basic(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -170,14 +171,14 @@ func TestAccAzureRMPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_complete(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -195,19 +196,97 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_sku(data, "10.0", "MO_Gen5_16"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
 
-//
+func TestAccAzureRMPostgreSQLServer_createReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basic(data, "11"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password", "create_mode"),
+			{
+				Config: testAccAzureRMPostgreSQLServer_createReplica(data, "11"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.replica"),
+				),
+			},
+			data.ImportStep("administrator_login_password", "create_mode"),
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basic(data, "11"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password", "create_mode"),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMPostgreSQLServer_createPointInTimeRestore(data, "11"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.pitr"),
+				),
+			},
+			data.ImportStep("administrator_login_password", "create_mode"),
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLServer_createGeoRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basic(data, "11"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password", "create_mode"),
+			{
+				PreConfig: func() { time.Sleep(7 * time.Minute) },
+				Config:    testAccAzureRMPostgreSQLServer_createGeoRestore(data, "11"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.pitr"),
+				),
+			},
+			data.ImportStep("administrator_login_password", "create_mode"),
+		},
+	})
+}
 
 func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -287,6 +366,7 @@ resource "azurerm_postgresql_server" "test" {
 
   storage_profile {
     storage_mb = 51200
+auto_grow_enabled = false
   }
 
   administrator_login          = "acctestun"
@@ -390,7 +470,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb                   = 640000
     backup_retention_days        = 7
     geo_redundant_backup_enabled = true
-    auto_grow_true               = true
+    auto_grow_enabled            = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
@@ -424,4 +504,79 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
+}
+
+func testAccAzureRMPostgreSQLServer_createReplica(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_postgresql_server" "replica" {
+  name                = "acctest-psql-server-%[2]d-replica"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "GP_Gen5_2"
+
+  create_mode = "Replica"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+
+  storage_profile {
+    storage_mb = 51200
+    auto_grow_enabled = false
+  }
+
+  version                      = "%[3]s"
+  ssl_enforcement_enabled      = true
+}
+`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, version)
+}
+
+func testAccAzureRMPostgreSQLServer_createPointInTimeRestore(data acceptance.TestData, version string) string {
+	restoreTime := time.Now().Add(time.Duration(7) * time.Minute).UTC().Format(time.RFC3339)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_postgresql_server" "restore" {
+  name                = "acctest-psql-server-%[2]d-restore"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "GP_Gen5_2"
+
+  create_mode = "PointInTimeRestore"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+  restore_point_in_time = "%[3]s"
+
+  storage_profile {
+    storage_mb = 51200
+  }
+
+  version                      = "%[4]s"
+  ssl_enforcement_enabled      = true
+}
+`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, restoreTime, version)
+}
+
+func testAccAzureRMPostgreSQLServer_createGeoRestore(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_postgresql_server" "restore" {
+  name                = "acctest-psql-server-%[2]d-restore"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "GP_Gen5_2"
+
+  create_mode = "GeoRestore"
+  creation_source_server_id = azurerm_postgresql_server.test.id
+
+  storage_profile {
+    storage_mb = 51200
+  }
+
+  version                      = "%[4]s"
+  ssl_enforcement_enabled      = true
+}
+`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, data.Locations.Secondary, version)
 }
