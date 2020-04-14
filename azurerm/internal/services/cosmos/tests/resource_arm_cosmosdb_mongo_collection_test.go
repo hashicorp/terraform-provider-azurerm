@@ -135,6 +135,7 @@ func TestAccAzureRMCosmosDbMongoCollection_withIndex(t *testing.T) {
 					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl_seconds", "707"),
 					resource.TestCheckResourceAttr(data.ResourceName, "index.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "system_index.#", "2"),
 				),
 			},
 			data.ImportStep(),

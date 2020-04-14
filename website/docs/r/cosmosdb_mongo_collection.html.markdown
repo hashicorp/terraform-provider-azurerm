@@ -47,14 +47,23 @@ The following arguments are supported:
 * `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys.
 * `index` - (Optional) One or more `index` blocks as defined below.
 * `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+* `system_index` - (Computed) One or more `system_index` blocks as defined below.
 
 ---
 
 The `index` block supports the following:
 
-* `keys` - (Required) Specifies the set of keys for each Cosmos DB Mongo Collection.
+* `keys` - (Required) Specifies the list of user settable keys for each Cosmos DB Mongo Collection.
 
 * `unique` - (Optional) Is the index unique or not? Defaults to `false`.
+
+---
+
+The `system_index` block supports the following:
+
+* `keys` - (Computed) The list of system keys which are not settable for each Cosmos DB Mongo Collection.
+
+* `unique` - (Computed) The unique status of index.
 
 ## Attributes Reference
 
