@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_policy_definition`: can now lookup with `name` [GH-6275]
 * Data Source: `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
 * `azurerm_application_insights` - support for the `disable_ip_masking` property [GH-6354]
+* `azurerm_function_app` - support for the `pre_warmed_instance_count` property [GH-6333]
 * `azurerm_hdinsight_hadoop_cluster` - support for the `tls_min_version` property [GH-6440]
 * `azurerm_hdinsight_hbase_cluster` - support for the `tls_min_version` property [GH-6440]
 * `azurerm_hdinsight_interactive_query_cluster` - support for the `tls_min_version` property [GH-6440]
