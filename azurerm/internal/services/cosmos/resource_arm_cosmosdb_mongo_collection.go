@@ -399,30 +399,39 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[s
 		if v.Key != nil && v.Key.Keys != nil {
 			key := (*v.Key.Keys)[0]
 
+			switch key {
 			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_index`.
-			if key == "_id" {
+			case "_id":
 				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
 				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
-			} else if key == "DocumentDBDefaultIndex" {
+			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
 				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+
+				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {
-					systemIndex["unique"] = *v.Options.Unique
+					isUnique = *v.Options.Unique
 				}
+				systemIndex["unique"] = isUnique
 
 				systemIndexes = append(systemIndexes, systemIndex)
-			} else if key == "_ts" && v.Options.ExpireAfterSeconds != nil {
-				// As `ExpireAfterSeconds` only can be applied to system index `_ts`, so it would be set in `default_ttl_seconds`.
-				ttl = v.Options.ExpireAfterSeconds
-			} else {
+			case "_ts":
+				if v.Options != nil && v.Options.ExpireAfterSeconds != nil {
+					// As `ExpireAfterSeconds` only can be applied to system index `_ts`, so it would be set in `default_ttl_seconds`.
+					ttl = v.Options.ExpireAfterSeconds
+				}
+			default:
 				// The other settable indexes would be set in `index`
 				index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+
+				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {
-					index["unique"] = *v.Options.Unique
+					isUnique = *v.Options.Unique
 				}
+				index["unique"] = isUnique
 
 				indexes = append(indexes, index)
 			}
