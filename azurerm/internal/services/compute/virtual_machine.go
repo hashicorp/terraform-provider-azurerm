@@ -7,52 +7,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-type VirtualMachineID struct {
-	ResourceGroup string
-	Name          string
-}
-
-func ParseVirtualMachineID(input string) (*VirtualMachineID, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine ID %q: %+v", input, err)
-	}
-
-	virtualMachine := VirtualMachineID{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if virtualMachine.Name, err = id.PopSegment("virtualMachines"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &virtualMachine, nil
-}
-
-func ValidateVirtualMachineID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := ParseVirtualMachineID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
-	return warnings, errors
-}
 
 func virtualMachineAdditionalCapabilitiesSchema() *schema.Schema {
 	return &schema.Schema{
@@ -283,9 +242,11 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					Type:     schema.TypeString,
+					Optional: true,
+					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc:     validate.DiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
@@ -409,11 +370,12 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				if diskSizeGb == 0 && disk.DiskProperties != nil && disk.DiskProperties.DiskSizeGB != nil {
 					diskSizeGb = int(*disk.DiskProperties.DiskSizeGB)
 				}
-			}
-		}
 
-		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
-			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+				// same goes for Disk Encryption Set Id apparently
+				if disk.Encryption != nil && disk.Encryption.DiskEncryptionSetID != nil {
+					diskEncryptionSetId = *disk.Encryption.DiskEncryptionSetID
+				}
+			}
 		}
 	}
 

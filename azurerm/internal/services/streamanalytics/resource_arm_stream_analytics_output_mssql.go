@@ -145,16 +145,13 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 		read, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Stream Analytics Output SQL %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
-		if read.ID == nil {
+		} else if read.ID == nil {
 			return fmt.Errorf("Cannot read ID of Stream Analytics Output SQL %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
 		}
 
 		d.SetId(*read.ID)
-	} else {
-		if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Output SQL %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
+	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
+		return fmt.Errorf("Error Updating Stream Analytics Output SQL %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	return resourceArmStreamAnalyticsOutputSqlRead(d, meta)

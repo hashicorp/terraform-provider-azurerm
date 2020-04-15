@@ -211,10 +211,8 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 			maxSizeBytes := v.(float64) * 1073741824
 			elasticPool.MaxSizeBytes = utils.Int64(int64(maxSizeBytes))
 		}
-	} else {
-		if v, ok := d.GetOk("max_size_bytes"); ok {
-			elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
-		}
+	} else if v, ok := d.GetOk("max_size_bytes"); ok {
+		elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)

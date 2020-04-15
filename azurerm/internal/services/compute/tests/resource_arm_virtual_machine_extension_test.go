@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 
@@ -11,7 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
@@ -120,21 +120,16 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		virtualMachineId, err := compute.ParseVirtualMachineID(rs.Primary.Attributes["virtual_machine_id"])
+		id, err := parse.VirtualMachineExtensionID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
+			return err
 		}
-		vmName := virtualMachineId.Name
-		resourceGroup := virtualMachineId.ResourceGroup
 
-		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
-		if err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, ""); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: VirtualMachine Extension %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			}
 			return fmt.Errorf("Bad: Get on vmExtensionClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: VirtualMachine Extension %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -150,23 +145,18 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		virtualMachineId, err := compute.ParseVirtualMachineID(rs.Primary.Attributes["virtual_machine_id"])
+		id, err := parse.VirtualMachineExtensionID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
-		}
-		vmName := virtualMachineId.Name
-		resourceGroup := virtualMachineId.ResourceGroup
-
-		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
-
-		if err != nil {
-			return nil
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Virtual Machine Extension still exists:\n%#v", resp.VirtualMachineExtensionProperties)
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, ""); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on Compute.VMExtensionClient: %+v", err)
+			}
 		}
+
+		return nil
 	}
 
 	return nil
@@ -286,15 +276,13 @@ func testAccAzureRMVirtualMachineExtension_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_virtual_machine_extension" "import" {
-  name                 = "${azurerm_virtual_machine_extension.test.name}"
-  resource_group_name  = "${azurerm_virtual_machine_extension.test.resource_group_name}"
-  virtual_machine_id   = "${azurerm_virtual_machine_extension.test.virtual_machine_id}"
-  location             = "${azurerm_virtual_machine_extension.test.location}"
-  publisher            = "${azurerm_virtual_machine_extension.test.publisher}"
-  type                 = "${azurerm_virtual_machine_extension.test.type}"
-  type_handler_version = "${azurerm_virtual_machine_extension.test.type_handler_version}"
-  settings             = "${azurerm_virtual_machine_extension.test.settings}"
-  tags                 = "${azurerm_virtual_machine_extension.test.tags}"
+  name                 = azurerm_virtual_machine_extension.test.name
+  virtual_machine_id   = azurerm_virtual_machine_extension.test.virtual_machine_id
+  publisher            = azurerm_virtual_machine_extension.test.publisher
+  type                 = azurerm_virtual_machine_extension.test.type
+  type_handler_version = azurerm_virtual_machine_extension.test.type_handler_version
+  settings             = azurerm_virtual_machine_extension.test.settings
+  tags                 = azurerm_virtual_machine_extension.test.tags
 }
 `, template)
 }

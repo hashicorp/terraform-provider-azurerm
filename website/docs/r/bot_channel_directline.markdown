@@ -83,6 +83,15 @@ A `site` block exports the following:
 
 - `id` - Id for the site
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Directline Channel.
+
 ## Import
 
 The Directline Channel for a Bot can be imported using the `resource id`, e.g.

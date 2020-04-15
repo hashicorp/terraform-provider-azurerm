@@ -616,7 +616,7 @@ resource "azurerm_cosmosdb_account" "test" {
 func testAccAzureRMCosmosDBAccount_capabilities(data acceptance.TestData, kind documentdb.DatabaseAccountKind, capabilities []string) string {
 	capeTf := ""
 	for _, c := range capabilities {
-		capeTf = capeTf + fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
+		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
 	}
 
 	return fmt.Sprintf(`

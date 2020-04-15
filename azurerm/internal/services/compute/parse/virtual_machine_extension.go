@@ -1,4 +1,4 @@
-package compute
+package parse
 
 import (
 	"fmt"
@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualMachineExtensionID struct {
+type VirtualMachineExtensionId struct {
 	ResourceGroup  string
 	Name           string
 	VirtualMachine string
 }
 
-func ParseVirtualMachineExtensionID(input string) (*VirtualMachineExtensionID, error) {
+func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
 	}
 
-	virtualMachineExtension := VirtualMachineExtensionID{
+	virtualMachineExtension := VirtualMachineExtensionId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -31,19 +31,4 @@ func ParseVirtualMachineExtensionID(input string) (*VirtualMachineExtensionID, e
 	}
 
 	return &virtualMachineExtension, nil
-}
-
-func ValidateVirtualMachineExtensionID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := ParseVirtualMachineExtensionID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
-	return warnings, errors
 }

@@ -254,10 +254,8 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
 			ID: utils.String(v.(string)),
 		}
-	} else {
-		if strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
-		}
+	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
+		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
@@ -336,10 +334,8 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
 			ID: utils.String(v.(string)),
 		}
-	} else {
-		if strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
-		}
+	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
+		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 	}
 
 	// geo replication is only supported by Premium Sku
