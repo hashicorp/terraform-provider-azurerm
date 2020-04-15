@@ -172,6 +172,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 

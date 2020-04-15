@@ -13,34 +13,26 @@ A CDN Endpoint is the entity within a CDN Profile containing configuration infor
 ## Example Usage
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
-}
-
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_cdn_profile" "example" {
-  name                = "exampleCdnProfile"
+  name                = "example-cdn"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "example" {
-  name                = random_id.server.hex
+  name                = "example"
   profile_name        = azurerm_cdn_profile.example.name
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   origin {
-    name      = "exampleCdnOrigin"
+    name      = "example"
     host_name = "www.example.com"
   }
 }
@@ -126,9 +118,9 @@ A `global_delivery_rule` block supports the following:
 
 A `delivery_rule` block supports the following:
 
-* `name` - (Required) The Name which should be used for this TODO.
+* `name` - (Required) The Name which should be used for this Delivery Rule.
 
-* `order` - (Required) TODO.
+* `order` - (Required) The order used for this rule, which must be larger than 1.
 
 * `cache_expiration_action` - (Optional) A `cache_expiration_action` block as defined above.
 
