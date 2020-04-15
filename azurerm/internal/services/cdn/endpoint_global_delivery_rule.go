@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func EndpointGlobalDeliveryRule() *schema.Schema {
+func endpointGlobalDeliveryRule() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -74,6 +74,14 @@ func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.D
 }
 
 func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]interface{}, error) {
-	// intentionally wrapping this incase this expands
-	return flattenDeliveryRuleActions(deliveryRule.Actions)
+	actions, err := flattenDeliveryRuleActions(deliveryRule.Actions)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string]interface{}, 0)
+	for key, value := range *actions {
+		output[key] = value
+	}
+	return &output, nil
 }

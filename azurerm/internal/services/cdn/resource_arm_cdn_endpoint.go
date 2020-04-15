@@ -196,9 +196,9 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
-			"global_delivery_rule": EndpointGlobalDeliveryRule(),
+			"global_delivery_rule": endpointGlobalDeliveryRule(),
 
-			"delivery_rule": EndpointDeliveryRule(),
+			"delivery_rule": endpointDeliveryRule(),
 
 			"tags": tags.Schema(),
 		},
