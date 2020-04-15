@@ -73,14 +73,7 @@ func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.D
 	return &deliveryRule, nil
 }
 
-func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule *cdn.DeliveryRule) map[string]interface{} {
-	res := make(map[string]interface{})
-
-	if deliveryRule == nil {
-		return res
-	}
-
-	flattenDeliveryRuleActions(deliveryRule.Actions, &res)
-
-	return res
+func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]interface{}, error) {
+	// intentionally wrapping this incase this expands
+	return flattenDeliveryRuleActions(deliveryRule.Actions)
 }

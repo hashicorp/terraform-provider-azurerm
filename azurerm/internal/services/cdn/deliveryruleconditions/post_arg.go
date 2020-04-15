@@ -1,6 +1,8 @@
 package deliveryruleconditions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -63,55 +65,76 @@ func PostArg() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionPostArg(pac map[string]interface{}) *cdn.DeliveryRulePostArgsCondition {
-	cookiesCondition := cdn.DeliveryRulePostArgsCondition{
-		Name: cdn.NameCookies,
-		Parameters: &cdn.PostArgsMatchConditionParameters{
-			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRulePostArgsConditionParameters"),
-			Selector:        utils.String(pac["selector"].(string)),
-			Operator:        cdn.PostArgsOperator(pac["operator"].(string)),
-			NegateCondition: utils.Bool(pac["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(pac["match_values"].(*schema.Set).List()),
-		},
-	}
+func ExpandArmCdnEndpointConditionPostArg(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
-	if rawTransforms := pac["transforms"].([]interface{}); len(rawTransforms) != 0 {
-		transforms := make([]cdn.Transform, 0)
-		for _, t := range rawTransforms {
-			transforms = append(transforms, cdn.Transform(t.(string)))
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		condition := cdn.DeliveryRulePostArgsCondition{
+			Name: cdn.NameCookies,
+			Parameters: &cdn.PostArgsMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRulePostArgsConditionParameters"),
+				Selector:        utils.String(item["selector"].(string)),
+				Operator:        cdn.PostArgsOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+			},
 		}
-		cookiesCondition.Parameters.Transforms = &transforms
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			condition.Parameters.Transforms = &transforms
+		}
+
+		output = append(output, condition)
 	}
 
-	return &cookiesCondition
+	return output
 }
 
-func FlattenArmCdnEndpointConditionPostArg(pac *cdn.DeliveryRulePostArgsCondition) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointConditionPostArg(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRulePostArgsCondition()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule post args condition")
+	}
 
-	if params := pac.Parameters; params != nil {
+	operator := ""
+	matchValues := make([]interface{}, 0)
+	negateCondition := false
+	selector := ""
+	transforms := make([]string, 0)
+
+	if params := condition.Parameters; params != nil {
 		if params.Selector != nil {
-			res["selector"] = *params.Selector
+			selector = *params.Selector
 		}
 
-		res["operator"] = string(params.Operator)
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
-			res["negate_condition"] = *params.NegateCondition
+			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
+			matchValues = utils.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
-			transforms := make([]string, 0)
 			for _, transform := range *params.Transforms {
 				transforms = append(transforms, string(transform))
 			}
-			res["transforms"] = &transforms
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"operator":         operator,
+		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"negate_condition": negateCondition,
+		"selector":         selector,
+		"transforms":       transforms,
+	}, nil
 }

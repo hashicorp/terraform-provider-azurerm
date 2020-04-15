@@ -31,36 +31,52 @@ func CacheKeyQueryString() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionCacheKeyQueryString(ckqsa map[string]interface{}) (*cdn.DeliveryRuleCacheKeyQueryStringAction, error) {
-	cacheKeyQueryStringAction := cdn.DeliveryRuleCacheKeyQueryStringAction{
-		Name: cdn.NameCacheKeyQueryString,
-		Parameters: &cdn.CacheKeyQueryStringActionParameters{
-			OdataType:           utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheKeyQueryStringBehaviorActionParameters"),
-			QueryStringBehavior: cdn.QueryStringBehavior(ckqsa["behavior"].(string)),
-		},
-	}
+func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
-	if parameters := ckqsa["parameters"].(string); parameters == "" {
-		if behavior := cacheKeyQueryStringAction.Parameters.QueryStringBehavior; behavior == cdn.Include || behavior == cdn.Exclude {
-			return nil, fmt.Errorf("Parameters can not be empty if the behavior is either Include or Exclude.")
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		cacheKeyQueryStringAction := cdn.DeliveryRuleCacheKeyQueryStringAction{
+			Name: cdn.NameCacheKeyQueryString,
+			Parameters: &cdn.CacheKeyQueryStringActionParameters{
+				OdataType:           utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheKeyQueryStringBehaviorActionParameters"),
+				QueryStringBehavior: cdn.QueryStringBehavior(item["behavior"].(string)),
+			},
 		}
-	} else {
-		cacheKeyQueryStringAction.Parameters.QueryParameters = utils.String(parameters)
+
+		if parameters := item["parameters"].(string); parameters == "" {
+			if behavior := cacheKeyQueryStringAction.Parameters.QueryStringBehavior; behavior == cdn.Include || behavior == cdn.Exclude {
+				return nil, fmt.Errorf("Parameters can not be empty if the behavior is either Include or Exclude.")
+			}
+		} else {
+			cacheKeyQueryStringAction.Parameters.QueryParameters = utils.String(parameters)
+		}
+
+		output = append(output, cacheKeyQueryStringAction)
 	}
 
-	return &cacheKeyQueryStringAction, nil
+	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionCacheKeyQueryString(ckqsa *cdn.DeliveryRuleCacheKeyQueryStringAction) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+	action, ok := input.AsDeliveryRuleCacheKeyQueryStringAction()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule cache key query string action!")
+	}
 
-	if params := ckqsa.Parameters; params != nil {
-		res["behavior"] = string(params.QueryStringBehavior)
+	behaviour := ""
+	parameters := ""
+	if params := action.Parameters; params != nil {
+		behaviour = string(params.QueryStringBehavior)
 
 		if params.QueryParameters != nil {
-			res["parameters"] = *params.QueryParameters
+			parameters = *params.QueryParameters
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"behavior":   behaviour,
+		"parameters": parameters,
+	}, nil
 }

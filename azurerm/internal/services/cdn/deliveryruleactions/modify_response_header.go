@@ -1,6 +1,8 @@
 package deliveryruleactions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -33,34 +35,54 @@ func ModifyResponseHeader() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionModifyResponseHeader(mrha map[string]interface{}) *cdn.DeliveryRuleResponseHeaderAction {
-	requestHeaderAction := cdn.DeliveryRuleResponseHeaderAction{
-		Name: cdn.NameModifyResponseHeader,
-		Parameters: &cdn.HeaderActionParameters{
-			OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleHeaderActionParameters"),
-			HeaderAction: cdn.HeaderAction(mrha["action"].(string)),
-			HeaderName:   utils.String(mrha["name"].(string)),
-		},
+func ExpandArmCdnEndpointActionModifyResponseHeader(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+	output := make([]cdn.BasicDeliveryRuleAction, 0)
+
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		requestHeaderAction := cdn.DeliveryRuleResponseHeaderAction{
+			Name: cdn.NameModifyResponseHeader,
+			Parameters: &cdn.HeaderActionParameters{
+				OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleHeaderActionParameters"),
+				HeaderAction: cdn.HeaderAction(item["action"].(string)),
+				HeaderName:   utils.String(item["name"].(string)),
+			},
+		}
+
+		if value := item["value"].(string); value != "" {
+			requestHeaderAction.Parameters.Value = utils.String(value)
+		}
+
+		output = append(output, requestHeaderAction)
 	}
 
-	if value := mrha["value"].(string); value != "" {
-		requestHeaderAction.Parameters.Value = utils.String(value)
-	}
-
-	return &requestHeaderAction
+	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionModifyResponseHeader(mrha *cdn.DeliveryRuleResponseHeaderAction) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointActionModifyResponseHeader(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+	action, ok := input.AsDeliveryRuleResponseHeaderAction()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule response header action!")
+	}
 
-	if params := mrha.Parameters; params != nil {
-		res["action"] = string(params.HeaderAction)
-		res["name"] = *params.HeaderName
+	headerAction := ""
+	headerName := ""
+	value := ""
+	if params := action.Parameters; params != nil {
+		headerAction = string(params.HeaderAction)
+		if params.HeaderName != nil {
+			headerName = *params.HeaderName
+		}
 
 		if params.Value != nil {
-			res["value"] = *params.Value
+			value = *params.Value
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"action": headerAction,
+		"name":   headerName,
+		"value":  value,
+	}, nil
 }

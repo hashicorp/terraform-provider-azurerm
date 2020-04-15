@@ -1,6 +1,8 @@
 package deliveryruleconditions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -43,34 +45,51 @@ func HTTPVersion() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionHTTPVersion(hvc map[string]interface{}) *cdn.DeliveryRuleHTTPVersionCondition {
-	return &cdn.DeliveryRuleHTTPVersionCondition{
-		Name: cdn.NameHTTPVersion,
-		Parameters: &cdn.HTTPVersionMatchConditionParameters{
-			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleHttpVersionConditionParameters"),
-			Operator:        utils.String(hvc["operator"].(string)),
-			NegateCondition: utils.Bool(hvc["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(hvc["match_values"].(*schema.Set).List()),
-		},
+func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
+
+	for _, v := range input {
+		item := v.(map[string]interface{})
+		output = append(output, cdn.DeliveryRuleHTTPVersionCondition{
+			Name: cdn.NameHTTPVersion,
+			Parameters: &cdn.HTTPVersionMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleHttpVersionConditionParameters"),
+				Operator:        utils.String(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+			},
+		})
 	}
+
+	return output
 }
 
-func FlattenArmCdnEndpointConditionHTTPVersion(hvc *cdn.DeliveryRuleHTTPVersionCondition) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointConditionHTTPVersion(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleHTTPVersionCondition()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule http version condition")
+	}
 
-	if params := hvc.Parameters; params != nil {
+	operator := ""
+	matchValues := make([]interface{}, 0)
+	negateCondition := false
+	if params := condition.Parameters; params != nil {
 		if params.Operator != nil {
-			res["operator"] = *params.Operator
+			operator = *params.Operator
 		}
 
 		if params.NegateCondition != nil {
-			res["negate_condition"] = *params.NegateCondition
+			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
+			matchValues = utils.FlattenStringSlice(params.MatchValues)
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"operator":         operator,
+		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"negate_condition": negateCondition,
+	}, nil
 }

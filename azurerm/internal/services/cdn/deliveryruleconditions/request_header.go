@@ -63,27 +63,34 @@ func RequestHeader() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestHeader(cc map[string]interface{}) *cdn.DeliveryRuleRequestHeaderCondition {
-	requestHeaderCondition := cdn.DeliveryRuleRequestHeaderCondition{
-		Name: cdn.NameRequestHeader,
-		Parameters: &cdn.RequestHeaderMatchConditionParameters{
-			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestHeaderConditionParameters"),
-			Selector:        utils.String(cc["selector"].(string)),
-			Operator:        cdn.RequestHeaderOperator(cc["operator"].(string)),
-			NegateCondition: utils.Bool(cc["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(cc["match_values"].(*schema.Set).List()),
-		},
-	}
+func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
-	if rawTransforms := cc["transforms"].([]interface{}); len(rawTransforms) != 0 {
-		transforms := make([]cdn.Transform, 0)
-		for _, t := range rawTransforms {
-			transforms = append(transforms, cdn.Transform(t.(string)))
+	for _, v := range input {
+		item := v.(map[string]interface{})
+		requestHeaderCondition := cdn.DeliveryRuleRequestHeaderCondition{
+			Name: cdn.NameRequestHeader,
+			Parameters: &cdn.RequestHeaderMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestHeaderConditionParameters"),
+				Selector:        utils.String(item["selector"].(string)),
+				Operator:        cdn.RequestHeaderOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+			},
 		}
-		requestHeaderCondition.Parameters.Transforms = &transforms
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			requestHeaderCondition.Parameters.Transforms = &transforms
+		}
+
+		output = append(output, requestHeaderCondition)
 	}
 
-	return &requestHeaderCondition
+	return output
 }
 
 func FlattenArmCdnEndpointConditionRequestHeader(cc *cdn.DeliveryRuleRequestHeaderCondition) map[string]interface{} {

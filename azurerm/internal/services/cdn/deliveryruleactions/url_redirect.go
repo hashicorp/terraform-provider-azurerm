@@ -1,6 +1,8 @@
 package deliveryruleactions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -59,65 +61,86 @@ func URLRedirect() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionUrlRedirect(ura map[string]interface{}) *cdn.URLRedirectAction {
-	urlRedirectAction := cdn.URLRedirectAction{
-		Name: cdn.NameURLRedirect,
+func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+	output := make([]cdn.BasicDeliveryRuleAction, 0)
+
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		params := cdn.URLRedirectActionParameters{
+			OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
+			RedirectType: cdn.RedirectType(item["redirect_type"].(string)),
+		}
+
+		if destProt := item["protocol"]; destProt.(string) != "" {
+			params.DestinationProtocol = cdn.DestinationProtocol(destProt.(string))
+		}
+
+		if hostname := item["hostname"]; hostname.(string) != "" {
+			params.CustomHostname = utils.String(hostname.(string))
+		}
+
+		if path := item["path"]; path.(string) != "" {
+			params.CustomPath = utils.String(path.(string))
+		}
+
+		if queryString := item["query_string"]; queryString.(string) != "" {
+			params.CustomQueryString = utils.String(queryString.(string))
+		}
+
+		if fragment := item["fragment"]; fragment.(string) != "" {
+			params.CustomFragment = utils.String(fragment.(string))
+		}
+
+		output = append(output, cdn.URLRedirectAction{
+			Name:       cdn.NameURLRedirect,
+			Parameters: &params,
+		})
 	}
 
-	params := cdn.URLRedirectActionParameters{
-		OdataType:    utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
-		RedirectType: cdn.RedirectType(ura["redirect_type"].(string)),
-	}
-
-	if destProt := ura["protocol"]; destProt.(string) != "" {
-		params.DestinationProtocol = cdn.DestinationProtocol(destProt.(string))
-	}
-
-	if hostname := ura["hostname"]; hostname.(string) != "" {
-		params.CustomHostname = utils.String(hostname.(string))
-	}
-
-	if path := ura["path"]; path.(string) != "" {
-		params.CustomPath = utils.String(path.(string))
-	}
-
-	if queryString := ura["query_string"]; queryString.(string) != "" {
-		params.CustomQueryString = utils.String(queryString.(string))
-	}
-
-	if fragment := ura["fragment"]; fragment.(string) != "" {
-		params.CustomFragment = utils.String(fragment.(string))
-	}
-
-	urlRedirectAction.Parameters = &params
-
-	return &urlRedirectAction
+	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionUrlRedirect(ura *cdn.URLRedirectAction) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+	action, ok := input.AsURLRedirectAction()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule url redirect action!")
+	}
 
-	if params := ura.Parameters; params != nil {
-		res["redirect_type"] = string(params.RedirectType)
+	customHostname := ""
+	customPath := ""
+	fragment := ""
+	queryString := ""
+	protocol := ""
+	redirectType := ""
 
-		res["protocol"] = string(params.DestinationProtocol)
+	if params := action.Parameters; params != nil {
+		redirectType = string(params.RedirectType)
+		protocol = string(params.DestinationProtocol)
 
 		if params.CustomHostname != nil {
-			res["hostname"] = *params.CustomHostname
+			customHostname = *params.CustomHostname
 		}
 
 		if params.CustomPath != nil {
-			res["path"] = *params.CustomPath
+			customPath = *params.CustomPath
 		}
 
 		if params.CustomQueryString != nil {
-			res["query_string"] = *params.CustomQueryString
+			queryString = *params.CustomQueryString
 		}
 
 		if params.CustomFragment != nil {
-			res["fragment"] = *params.CustomFragment
+			fragment = *params.CustomFragment
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"fragment":      fragment,
+		"hostname":      customHostname,
+		"query_string":  queryString,
+		"path":          customPath,
+		"protocol":      protocol,
+		"redirect_type": redirectType,
+	}, nil
 }

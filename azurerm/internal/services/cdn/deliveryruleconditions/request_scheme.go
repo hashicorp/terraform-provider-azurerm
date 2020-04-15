@@ -1,6 +1,8 @@
 package deliveryruleconditions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -41,39 +43,57 @@ func RequestScheme() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestScheme(rsc map[string]interface{}) *cdn.DeliveryRuleRequestSchemeCondition {
-	requestSchemeCondition := cdn.DeliveryRuleRequestSchemeCondition{
-		Name: cdn.NameRequestScheme,
-		Parameters: &cdn.RequestSchemeMatchConditionParameters{
-			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestSchemeConditionParameters"),
-			NegateCondition: utils.Bool(rsc["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(rsc["match_values"].(*schema.Set).List()),
-		},
+func ExpandArmCdnEndpointConditionRequestScheme(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
+
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		requestSchemeCondition := cdn.DeliveryRuleRequestSchemeCondition{
+			Name: cdn.NameRequestScheme,
+			Parameters: &cdn.RequestSchemeMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestSchemeConditionParameters"),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+			},
+		}
+
+		if operator := item["operator"]; operator.(string) != "" {
+			requestSchemeCondition.Parameters.Operator = utils.String(operator.(string))
+		}
+
+		output = append(output, requestSchemeCondition)
 	}
 
-	if operator := rsc["operator"]; operator.(string) != "" {
-		requestSchemeCondition.Parameters.Operator = utils.String(operator.(string))
-	}
-
-	return &requestSchemeCondition
+	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestScheme(condition *cdn.DeliveryRuleRequestSchemeCondition) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointConditionRequestScheme(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleRequestSchemeCondition()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule request scheme condition")
+	}
 
+	operator := ""
+	negateCondition := false
+	matchValues := make([]interface{}, 0)
 	if params := condition.Parameters; params != nil {
 		if params.Operator != nil {
-			res["operator"] = *params.Operator
+			operator = *params.Operator
 		}
 
 		if params.NegateCondition != nil {
-			res["negate_condition"] = *params.NegateCondition
+			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
+			matchValues = utils.FlattenStringSlice(params.MatchValues)
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"operator":         operator,
+		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"negate_condition": negateCondition,
+	}, nil
 }

@@ -1,6 +1,8 @@
 package deliveryruleconditions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -57,50 +59,68 @@ func URLFileExtension() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionURLFileExtension(ufec map[string]interface{}) *cdn.DeliveryRuleURLFileExtensionCondition {
-	requestURICondition := cdn.DeliveryRuleURLFileExtensionCondition{
-		Name: cdn.NameURLFileExtension,
-		Parameters: &cdn.URLFileExtensionMatchConditionParameters{
-			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlFileExtensionMatchConditionParameters"),
-			Operator:        cdn.URLFileExtensionOperator(ufec["operator"].(string)),
-			NegateCondition: utils.Bool(ufec["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(ufec["match_values"].(*schema.Set).List()),
-		},
-	}
+func ExpandArmCdnEndpointConditionURLFileExtension(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
-	if rawTransforms := ufec["transforms"].([]interface{}); len(rawTransforms) != 0 {
-		transforms := make([]cdn.Transform, 0)
-		for _, t := range rawTransforms {
-			transforms = append(transforms, cdn.Transform(t.(string)))
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		requestURICondition := cdn.DeliveryRuleURLFileExtensionCondition{
+			Name: cdn.NameURLFileExtension,
+			Parameters: &cdn.URLFileExtensionMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlFileExtensionMatchConditionParameters"),
+				Operator:        cdn.URLFileExtensionOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+			},
 		}
-		requestURICondition.Parameters.Transforms = &transforms
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			requestURICondition.Parameters.Transforms = &transforms
+		}
+
+		output = append(output, requestURICondition)
 	}
 
-	return &requestURICondition
+	return output
 }
 
-func FlattenArmCdnEndpointConditionURLFileExtension(ufec *cdn.DeliveryRuleURLFileExtensionCondition) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointConditionURLFileExtension(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleURLFileExtensionCondition()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule url file extension condition")
+	}
 
-	if params := ufec.Parameters; params != nil {
-		res["operator"] = string(params.Operator)
+	matchValues := make([]interface{}, 0)
+	negateCondition := false
+	operator := ""
+	transforms := make([]string, 0)
+	if params := condition.Parameters; params != nil {
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
-			res["negate_condition"] = *params.NegateCondition
+			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
+			matchValues = utils.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
-			transforms := make([]string, 0)
 			for _, transform := range *params.Transforms {
 				transforms = append(transforms, string(transform))
 			}
-			res["transforms"] = &transforms
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"operator":         operator,
+		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"negate_condition": negateCondition,
+		"transforms":       transforms,
+	}, nil
 }

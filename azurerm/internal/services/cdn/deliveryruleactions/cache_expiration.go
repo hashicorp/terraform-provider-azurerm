@@ -32,37 +32,53 @@ func CacheExpiration() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionCacheExpiration(cea map[string]interface{}) (*cdn.DeliveryRuleCacheExpirationAction, error) {
-	cacheExpirationAction := cdn.DeliveryRuleCacheExpirationAction{
-		Name: cdn.NameCacheExpiration,
-		Parameters: &cdn.CacheExpirationActionParameters{
-			OdataType:     utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheExpirationActionParameters"),
-			CacheBehavior: cdn.CacheBehavior(cea["behavior"].(string)),
-			CacheType:     utils.String("All"),
-		},
-	}
+func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
-	if duration := cea["duration"].(string); duration != "" {
-		if cacheExpirationAction.Parameters.CacheBehavior == cdn.BypassCache {
-			return nil, fmt.Errorf("Cache expiration duration must not be set when using behavior `BypassCache`")
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		cacheExpirationAction := cdn.DeliveryRuleCacheExpirationAction{
+			Name: cdn.NameCacheExpiration,
+			Parameters: &cdn.CacheExpirationActionParameters{
+				OdataType:     utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheExpirationActionParameters"),
+				CacheBehavior: cdn.CacheBehavior(item["behavior"].(string)),
+				CacheType:     utils.String("All"),
+			},
 		}
 
-		cacheExpirationAction.Parameters.CacheDuration = utils.String(duration)
+		if duration := item["duration"].(string); duration != "" {
+			if cacheExpirationAction.Parameters.CacheBehavior == cdn.BypassCache {
+				return nil, fmt.Errorf("Cache expiration duration must not be set when using behavior `BypassCache`")
+			}
+
+			cacheExpirationAction.Parameters.CacheDuration = utils.String(duration)
+		}
+
+		output = append(output, cacheExpirationAction)
 	}
 
-	return &cacheExpirationAction, nil
+	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionCacheExpiration(cea *cdn.DeliveryRuleCacheExpirationAction) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointActionCacheExpiration(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+	action, ok := input.AsDeliveryRuleCacheExpirationAction()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule cache expiration action!")
+	}
 
-	if params := cea.Parameters; params != nil {
-		res["behavior"] = string(params.CacheBehavior)
+	behaviour := ""
+	duration := ""
+	if params := action.Parameters; params != nil {
+		behaviour = string(params.CacheBehavior)
 
 		if params.CacheDuration != nil {
-			res["duration"] = *params.CacheDuration
+			duration = *params.CacheDuration
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"behavior": behaviour,
+		"duration": duration,
+	}, nil
 }

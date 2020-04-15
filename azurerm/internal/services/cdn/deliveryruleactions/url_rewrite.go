@@ -1,6 +1,8 @@
 package deliveryruleactions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -31,31 +33,52 @@ func URLRewrite() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionURLRewrite(ura map[string]interface{}) *cdn.URLRewriteAction {
-	return &cdn.URLRewriteAction{
-		Name: cdn.NameURLRewrite,
-		Parameters: &cdn.URLRewriteActionParameters{
-			OdataType:             utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRewriteActionParameters"),
-			SourcePattern:         utils.String(ura["source_pattern"].(string)),
-			Destination:           utils.String(ura["destination"].(string)),
-			PreserveUnmatchedPath: utils.Bool(ura["preserve_unmatched_path"].(bool)),
-		},
+func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+	output := make([]cdn.BasicDeliveryRuleAction, 0)
+
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		output = append(output, cdn.URLRewriteAction{
+			Name: cdn.NameURLRewrite,
+			Parameters: &cdn.URLRewriteActionParameters{
+				OdataType:             utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRewriteActionParameters"),
+				SourcePattern:         utils.String(item["source_pattern"].(string)),
+				Destination:           utils.String(item["destination"].(string)),
+				PreserveUnmatchedPath: utils.Bool(item["preserve_unmatched_path"].(bool)),
+			},
+		})
 	}
+
+	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionURLRewrite(ura *cdn.URLRewriteAction) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+	action, ok := input.AsURLRewriteAction()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule url rewrite action!")
+	}
 
-	if params := ura.Parameters; params != nil {
-		res["source_pattern"] = *params.SourcePattern
-		res["destination"] = *params.Destination
+	sourcePattern := ""
+	destination := ""
+	preserveUnmatchedPath := true
+	if params := action.Parameters; params != nil {
+		if params.Destination != nil {
+			destination = *params.Destination
+		}
+
+		if params.SourcePattern != nil {
+			sourcePattern = *params.SourcePattern
+		}
 
 		if params.PreserveUnmatchedPath != nil {
-			res["preserve_unmatched_path"] = *params.PreserveUnmatchedPath
-		} else {
-			res["preserve_unmatched_path"] = true
+			preserveUnmatchedPath = *params.PreserveUnmatchedPath
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"destination":             destination,
+		"preserve_unmatched_path": preserveUnmatchedPath,
+		"source_pattern":          sourcePattern,
+	}, nil
 }

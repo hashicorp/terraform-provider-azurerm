@@ -1,6 +1,8 @@
 package deliveryruleconditions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -57,50 +59,68 @@ func URLPath() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionURLPath(upc map[string]interface{}) *cdn.DeliveryRuleURLPathCondition {
-	requestURICondition := cdn.DeliveryRuleURLPathCondition{
-		Name: cdn.NameURLPath,
-		Parameters: &cdn.URLPathMatchConditionParameters{
-			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlPathMatchConditionParameters"),
-			Operator:        cdn.URLPathOperator(upc["operator"].(string)),
-			NegateCondition: utils.Bool(upc["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(upc["match_values"].(*schema.Set).List()),
-		},
-	}
+func ExpandArmCdnEndpointConditionURLPath(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
-	if rawTransforms := upc["transforms"].([]interface{}); len(rawTransforms) != 0 {
-		transforms := make([]cdn.Transform, 0)
-		for _, t := range rawTransforms {
-			transforms = append(transforms, cdn.Transform(t.(string)))
+	for _, v := range input {
+		item := v.(map[string]interface{})
+
+		requestURICondition := cdn.DeliveryRuleURLPathCondition{
+			Name: cdn.NameURLPath,
+			Parameters: &cdn.URLPathMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlPathMatchConditionParameters"),
+				Operator:        cdn.URLPathOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+			},
 		}
-		requestURICondition.Parameters.Transforms = &transforms
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			requestURICondition.Parameters.Transforms = &transforms
+		}
+
+		output = append(output, requestURICondition)
 	}
 
-	return &requestURICondition
+	return output
 }
 
-func FlattenArmCdnEndpointConditionURLPath(upc *cdn.DeliveryRuleURLPathCondition) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointConditionURLPath(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleURLPathCondition()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule url path condition")
+	}
 
-	if params := upc.Parameters; params != nil {
-		res["operator"] = string(params.Operator)
+	matchValues := make([]interface{}, 0)
+	negateCondition := false
+	operator := ""
+	transforms := make([]string, 0)
+	if params := condition.Parameters; params != nil {
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
-			res["negate_condition"] = *params.NegateCondition
+			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
+			matchValues = utils.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
-			transforms := make([]string, 0)
 			for _, transform := range *params.Transforms {
 				transforms = append(transforms, string(transform))
 			}
-			res["transforms"] = &transforms
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"negate_condition": negateCondition,
+		"operator":         operator,
+		"transforms":       transforms,
+	}, nil
 }

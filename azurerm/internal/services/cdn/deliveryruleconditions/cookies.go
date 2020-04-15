@@ -1,6 +1,8 @@
 package deliveryruleconditions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -63,55 +65,74 @@ func Cookies() *schema.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionCookies(cc map[string]interface{}) *cdn.DeliveryRuleCookiesCondition {
-	cookiesCondition := cdn.DeliveryRuleCookiesCondition{
-		Name: cdn.NameCookies,
-		Parameters: &cdn.CookiesMatchConditionParameters{
-			OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCookiesConditionParameters"),
-			Selector:        utils.String(cc["selector"].(string)),
-			Operator:        cdn.CookiesOperator(cc["operator"].(string)),
-			NegateCondition: utils.Bool(cc["negate_condition"].(bool)),
-			MatchValues:     utils.ExpandStringSlice(cc["match_values"].(*schema.Set).List()),
-		},
-	}
-
-	if rawTransforms := cc["transforms"].([]interface{}); len(rawTransforms) != 0 {
-		transforms := make([]cdn.Transform, 0)
-		for _, t := range rawTransforms {
-			transforms = append(transforms, cdn.Transform(t.(string)))
+func ExpandArmCdnEndpointConditionCookies(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
+	for _, v := range input {
+		item := v.(map[string]interface{})
+		cookiesCondition := cdn.DeliveryRuleCookiesCondition{
+			Name: cdn.NameCookies,
+			Parameters: &cdn.CookiesMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCookiesConditionParameters"),
+				Selector:        utils.String(item["selector"].(string)),
+				Operator:        cdn.CookiesOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*schema.Set).List()),
+			},
 		}
-		cookiesCondition.Parameters.Transforms = &transforms
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			cookiesCondition.Parameters.Transforms = &transforms
+		}
+
+		output = append(output, cookiesCondition)
 	}
 
-	return &cookiesCondition
+	return output
 }
 
-func FlattenArmCdnEndpointConditionCookies(cc *cdn.DeliveryRuleCookiesCondition) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointConditionCookies(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleCookiesCondition()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule cookie condition")
+	}
 
-	if params := cc.Parameters; params != nil {
+	selector := ""
+	operator := ""
+	negateCondition := false
+	matchValues := make([]interface{}, 0)
+	transforms := make([]string, 0)
+
+	if params := condition.Parameters; params != nil {
 		if params.Selector != nil {
-			res["selector"] = *params.Selector
+			selector = *params.Selector
 		}
 
-		res["operator"] = string(params.Operator)
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
-			res["negate_condition"] = *params.NegateCondition
+			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
+			matchValues = utils.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
-			transforms := make([]string, 0)
 			for _, transform := range *params.Transforms {
 				transforms = append(transforms, string(transform))
 			}
-			res["transforms"] = &transforms
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"negate_condition": negateCondition,
+		"operator":         operator,
+		"selector":         selector,
+		"transforms":       transforms,
+	}, nil
 }
