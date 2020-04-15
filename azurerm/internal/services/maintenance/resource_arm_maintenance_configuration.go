@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -48,7 +49,7 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			// There's a bug in the Azure API where this is returned in upper-case
+			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/8653
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -64,8 +65,17 @@ func resourceArmMaintenanceConfiguration() *schema.Resource {
 				}, false),
 			},
 
-			// can not contain upper case key
-			"tags": tags.Schema(),
+			// There's a bug in the Azure API where the the key of tags is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/9075
+			// use custom tags defition here to prevent inputting upper case key
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				ValidateFunc: validate.TagsWithLowerCaseKey,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }

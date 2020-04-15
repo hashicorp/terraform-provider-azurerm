@@ -46,9 +46,9 @@ The following arguments are supported:
 
 * `scope` - (Optional) The scope of the Maintenance Configuration. Possible values are `All`, `Host`, `Resource` or `InResource`. Default to `All`.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource. The key could not contain upper case letter.
 
-~> **NOTE** Because of restriction by the Maintenance backend service, the key in `tags` will be converted to small case. To avoid diff, please use lower case letters for the key.
+~> **NOTE** Because of restriction by the Maintenance backend service, the key in `tags` will be converted to lower case. 
 
 ## Attributes Reference
 
