@@ -23,7 +23,7 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"registration_definition_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				Computed: 	  true,
 				ValidateFunc: validation.IsUUID,
@@ -31,7 +31,7 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 
 			"scope": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew: 	  true,
 				Computed: 	  true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -52,7 +52,7 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 
 			"managed_by_tenant_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				Computed: 	  true,
 				ValidateFunc: validation.IsUUID,
 			},

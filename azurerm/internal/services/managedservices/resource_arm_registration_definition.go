@@ -37,45 +37,45 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"registration_definition_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				Computed: 	  true,
-				ValidateFunc: validation.IsUUID,
+				//ValidateFunc: validation.IsUUID,
 			},
 
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew: 	  true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				//ForceNew: 	  true,
+				//ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"name": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 			},
 
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
+				//ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
 			"managed_by_tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IsUUID,
+				//ValidateFunc: validation.IsUUID,
 			},
 
 			"managed_by_tenant_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
+				//ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
-			"authorizations": {
+			"authorization": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -158,6 +158,7 @@ func expandManagedServicesDefinitionAuthorization(input []interface{}) *[]manage
 	results := make([]managedservices.Authorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
+
 		result := managedservices.Authorization{
 			RoleDefinitionID: utils.String(v["role_definition_id"].(string)),
 			PrincipalID:      utils.String(v["principal_id"].(string)),
