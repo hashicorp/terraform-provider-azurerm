@@ -20,9 +20,7 @@ func TestAccDataSourceAzureRMApiManagement_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "publisher_email", "pub1@email.com"),
 					resource.TestCheckResourceAttr(data.ResourceName, "publisher_name", "pub1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Developer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer_1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
 				),

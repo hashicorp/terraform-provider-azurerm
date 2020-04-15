@@ -124,9 +124,11 @@ The following attributes are exported:
 
 * `resource_group_name` - The name of the resource group in which to create the virtual network.
 
-* `location` - The location/region where the virtual network is created
+* `location` - The location/region where the virtual network is created.
 
 * `address_space` - The address space that is used the virtual network.
+
+* `guid` - The GUID of the virtual network.
 
 * `subnet`- One or more `subnet` blocks as defined below.
 
