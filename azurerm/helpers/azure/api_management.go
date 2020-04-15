@@ -141,6 +141,7 @@ func ExpandApiManagementOperationRepresentation(input []interface{}) (*[]apimana
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
 		// Representation typeName can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
+		// nolint gocritic
 		if !contentTypeIsFormData {
 			output.SchemaID = utils.String(schemaId)
 			output.TypeName = utils.String(typeName)

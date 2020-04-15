@@ -112,6 +112,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Network Interface.
 
+* `internal_domain_name_suffix` - Even if `internal_dns_name_label` is not specified, a DNS entry is created for the primary NIC of the VM. This DNS name can be constructed by concatenating the VM name with the value of `internal_domain_name_suffix`.
+
 * `mac_address` - The Media Access Control (MAC) Address of the Network Interface.
 
 * `private_ip_address` - The first private IP address of the network interface.

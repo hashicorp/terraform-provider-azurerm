@@ -177,7 +177,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_customImage_fromVHD_setup(data, userName, password, hostName, data.Locations.Primary),
+				Config:  testAccAzureRMImage_customImage_fromVHD_setup(data, userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
@@ -185,7 +185,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMImage_customImage_fromVHD_provision(data, userName, password, hostName, data.Locations.Primary),
+				Config: testAccAzureRMImage_customImage_fromVHD_provision(data, userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testdestination", true),
 				),
@@ -210,7 +210,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImage_customImage_fromVM_sourceVM(data, userName, password, hostName, data.Locations.Primary),
+				Config:  testAccAzureRMImage_customImage_fromVM_sourceVM(data, userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
@@ -218,7 +218,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMImage_customImage_fromVM_destinationVM(data, userName, password, hostName, data.Locations.Primary),
+				Config: testAccAzureRMImage_customImage_fromVM_destinationVM(data, userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testdestination", true),
 				),
@@ -243,7 +243,7 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMImageVMSS_customImage_fromVHD_setup(data, userName, password, hostName, data.Locations.Primary),
+				Config:  testAccAzureRMImageVMSS_customImage_fromVHD_setup(data, userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
@@ -251,7 +251,7 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMImageVMSS_customImage_fromVHD_provision(data, userName, password, hostName, data.Locations.Primary),
+				Config: testAccAzureRMImageVMSS_customImage_fromVHD_provision(data, userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMSSExists("azurerm_virtual_machine_scale_set.testdestination", true),
 				),
@@ -302,6 +302,7 @@ func testGeneralizeWindowsVMImage(resourceGroup string, name string) resource.Te
 	}
 }
 
+// nolint unparam
 func testGeneralizeVMImage(resourceGroup string, vmName string, userName string, password string, hostName string, port string, location string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		armClient := acceptance.AzureProvider.Meta().(*clients.Client)
@@ -367,6 +368,7 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	return nil
 }
 
+// nolint unparam
 func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ImagesClient
@@ -401,6 +403,7 @@ func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource
 	}
 }
 
+// nolint unparam
 func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
@@ -760,7 +763,7 @@ resource "azurerm_image" "import" {
 `, template)
 }
 
-func testAccAzureRMImage_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -864,7 +867,7 @@ resource "azurerm_virtual_machine" "testsource" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImage_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1032,7 +1035,7 @@ resource "azurerm_virtual_machine" "testdestination" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, userName, password, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImage_customImage_fromVM_sourceVM(data acceptance.TestData, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_customImage_fromVM_sourceVM(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1116,7 +1119,7 @@ resource "azurerm_virtual_machine" "testsource" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImage_customImage_fromVM_destinationVM(data acceptance.TestData, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImage_customImage_fromVM_destinationVM(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1257,7 +1260,7 @@ resource "azurerm_virtual_machine" "testdestination" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, userName, password, data.RandomInteger, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImageVMSS_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImageVMSS_customImage_fromVHD_setup(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1361,7 +1364,7 @@ resource "azurerm_virtual_machine" "testsource" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostName, data.RandomInteger, data.RandomInteger, userName, password)
 }
 
-func testAccAzureRMImageVMSS_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string, location string) string {
+func testAccAzureRMImageVMSS_customImage_fromVHD_provision(data acceptance.TestData, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

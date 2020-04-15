@@ -930,7 +930,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		apimTripleDesCiphers:      utils.String(strconv.FormatBool(tripleDesCiphers)),
 	}
 
-	if vp := d.Get("protocols").(([]interface{})); len(vp) > 0 {
+	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
 		if p, ok := d.GetOkExists("protocols.0.enable_http2"); ok {
 			customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(p.(bool)))
 		}

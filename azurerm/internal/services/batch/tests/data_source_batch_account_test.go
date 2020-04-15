@@ -160,9 +160,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_template_deployment = true
   tenant_id                       = "%s"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "%s"

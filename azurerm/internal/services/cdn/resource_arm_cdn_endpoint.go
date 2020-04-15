@@ -269,10 +269,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		endpoint.EndpointProperties.ProbePath = utils.String(probePath)
 	}
 
-	origins, err := expandAzureRmCdnEndpointOrigins(d)
-	if err != nil {
-		return fmt.Errorf("Error Building list of CDN Endpoint Origins: %s", err)
-	}
+	origins := expandAzureRmCdnEndpointOrigins(d)
 	if len(origins) > 0 {
 		endpoint.EndpointProperties.Origins = &origins
 	}
@@ -580,7 +577,7 @@ func flattenAzureRMCdnEndpointContentTypes(input *[]string) []interface{} {
 	return output
 }
 
-func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedOrigin, error) {
+func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) []cdn.DeepCreatedOrigin {
 	configs := d.Get("origin").(*schema.Set).List()
 	origins := make([]cdn.DeepCreatedOrigin, 0)
 
@@ -610,7 +607,7 @@ func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedO
 		origins = append(origins, origin)
 	}
 
-	return origins, nil
+	return origins
 }
 
 func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface{} {

@@ -305,11 +305,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	patchSchedule, err := expandRedisPatchSchedule(d)
-	if err != nil {
-		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
-	}
-
+	patchSchedule := expandRedisPatchSchedule(d)
 	redisConfiguration, err := expandRedisConfiguration(d)
 	if err != nil {
 		return fmt.Errorf("Error parsing Redis Configuration: %+v", err)
@@ -476,10 +472,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*read.ID)
 
-	patchSchedule, err := expandRedisPatchSchedule(d)
-	if err != nil {
-		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
-	}
+	patchSchedule := expandRedisPatchSchedule(d)
 
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
@@ -731,10 +724,10 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 	return output, nil
 }
 
-func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, error) {
+func expandRedisPatchSchedule(d *schema.ResourceData) *redis.PatchSchedule {
 	v, ok := d.GetOk("patch_schedule")
 	if !ok {
-		return nil, nil
+		return nil
 	}
 
 	scheduleValues := v.([]interface{})
@@ -756,7 +749,7 @@ func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, err
 			ScheduleEntries: &entries,
 		},
 	}
-	return &schedule, nil
+	return &schedule
 }
 
 func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {

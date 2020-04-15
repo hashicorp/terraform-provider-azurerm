@@ -216,13 +216,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iotcentral_application" "test" {
   name                = "acctest-iotcentralapp-%[2]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sub_domain          = "acctest-iotcentralapp-%[2]d"
   display_name        = "acctest-iotcentralapp-%[2]d"
   sku                 = "ST1"
   tags = {
-
     ENV = "Test"
   }
 }
