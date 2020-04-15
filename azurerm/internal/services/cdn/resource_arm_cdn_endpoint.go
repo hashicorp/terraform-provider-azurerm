@@ -208,8 +208,9 @@ func resourceArmCdnEndpoint() *schema.Resource {
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
-	endpointCreateCtx, endpointCreateCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer endpointCreateCancel()
+	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
 
@@ -218,7 +219,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	profileName := d.Get("profile_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := endpointsClient.Get(endpointCreateCtx, resourceGroup, profileName, name)
+		existing, err := endpointsClient.Get(ctx, resourceGroup, profileName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
@@ -279,11 +280,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		endpoint.EndpointProperties.Origins = &origins
 	}
 
-	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
-	profileGetCtx, profileGetCancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer profileGetCancel()
-
-	profile, err := profilesClient.Get(profileGetCtx, resourceGroup, profileName)
+	profile, err := profilesClient.Get(ctx, resourceGroup, profileName)
 	if err != nil {
 		return fmt.Errorf("Error creating CDN Endpoint %q while getting CDN Profile (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
@@ -303,16 +300,16 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	future, err := endpointsClient.Create(endpointCreateCtx, resourceGroup, profileName, name, endpoint)
+	future, err := endpointsClient.Create(ctx, resourceGroup, profileName, name, endpoint)
 	if err != nil {
 		return fmt.Errorf("Error creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(endpointCreateCtx, endpointsClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
 		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
 	}
 
-	read, err := endpointsClient.Get(endpointCreateCtx, resourceGroup, profileName, name)
+	read, err := endpointsClient.Get(ctx, resourceGroup, profileName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
