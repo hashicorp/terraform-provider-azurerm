@@ -23,51 +23,42 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"registration_definition_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Computed: 	  true,
+				Required:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"scope": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew: 	  true,
-				Computed: 	  true,
+				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"name": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Computed: 	  true,
+				Required:     true,
 			},
 
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed: 	  true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
+				//ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
 			"managed_by_tenant_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Computed: 	  true,
-				ValidateFunc: validation.IsUUID,
+				Required:     true,
+				//ValidateFunc: validation.IsUUID,
 			},
 
 			"managed_by_tenant_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed: 	  true,
-				ValidateFunc: validation.StringLenBetween(3, 128),
+				//ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
-			"authorizations": {
+			"authorization": {
 				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -93,24 +84,22 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationDefinitionId(d.Id())
-	if err != nil {
-		return err
-	}
+	registrationDefinitionId := d.Get("registration_definition_id").(string)
+	scope := d.Get("scope").(string)
 
-	resp, err := client.Get(ctx, id.scope, id.registrationDefinitionId)
+	resp, err := client.Get(ctx, scope, registrationDefinitionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", id.registrationDefinitionId, id.scope)
+			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", registrationDefinitionId, scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", id.registrationDefinitionId, id.scope, err)
+		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", registrationDefinitionId, scope, err)
 	}
 
-	d.Set("registration_definition_id", resp.Name)
-	d.Set("scope", id.scope)
+	d.SetId(*resp.Name)
+	d.Set("scope", scope)
 
 	if props := resp.Properties; props != nil {
 		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(props.Authorizations)); err != nil {

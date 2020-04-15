@@ -38,8 +38,8 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 			"registration_definition_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Computed: 	  true,
+				//ForceNew:     true,
 				//ValidateFunc: validation.IsUUID,
 			},
 
@@ -47,7 +47,7 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				//ForceNew: 	  true,
-				//ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"name": {
@@ -65,12 +65,6 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				//ValidateFunc: validation.IsUUID,
-			},
-
-			"managed_by_tenant_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				//ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
 			"authorization": {
@@ -132,7 +126,6 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 			Authorizations: 			expandManagedServicesDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
 			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
 			ManagedByTenantID: 			utils.String(d.Get("managed_by_tenant_id").(string)),
-			ManagedByTenantName:		utils.String(d.Get("managed_by_tenant_name").(string)),
 		},
 	}
 
@@ -199,7 +192,6 @@ func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interfac
 		d.Set("description", props.Description)
 		d.Set("name", props.RegistrationDefinitionName)
 		d.Set("managed_by_tenant_id", props.ManagedByTenantID)
-		d.Set("managed_by_tenant_name", props.ManagedByTenantName)
 	}
 
 	return nil
@@ -217,7 +209,7 @@ func parseAzureRegistrationDefinitionId(id string) (*registrationDefinitionID, e
 	}
 
 	azureRegistrationDefinitionId := registrationDefinitionID{
-		scope: 						strings.TrimPrefix(segments[0], "/"),
+		scope: 						segments[0],
 		registrationDefinitionId:  	segments[1],
 	}
 
@@ -260,6 +252,8 @@ func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
+	time.Sleep(10 * time.Second)
+	
 	_, err = client.Delete(ctx, id.registrationDefinitionId, id.scope)
 	if err != nil {
 		return fmt.Errorf("Error deleting Registration Definition %q at Scope %q: %+v", id.registrationDefinitionId, id.scope, err)
