@@ -103,7 +103,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				},
 			},
 
-			"system_index": {
+			"system_indexes": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -310,8 +310,8 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			if err := d.Set("index", indexes); err != nil {
 				return fmt.Errorf("failed to set `index`: %+v", err)
 			}
-			if err := d.Set("system_index", systemIndexes); err != nil {
-				return fmt.Errorf("failed to set `system_index`: %+v", err)
+			if err := d.Set("system_indexes", systemIndexes); err != nil {
+				return fmt.Errorf("failed to set `system_indexes`: %+v", err)
 			}
 		}
 	}
@@ -400,7 +400,7 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[s
 			key := (*v.Key.Keys)[0]
 
 			switch key {
-			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_index`.
+			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_indexes`.
 			case "_id":
 				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
 				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.

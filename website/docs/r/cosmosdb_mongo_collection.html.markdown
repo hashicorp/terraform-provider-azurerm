@@ -62,11 +62,11 @@ The following attributes are exported:
 
 * `id` - The ID of the Cosmos DB Mongo Collection.
 
-* `system_index` - One or more `system_index` blocks as defined below.
+* `system_indexes` - One or more `system_indexes` blocks as defined below.
 
 ---
 
-The `system_index` block supports the following:
+The `system_indexes` block supports the following:
 
 * `keys` - The list of system keys which are not settable for each Cosmos DB Mongo Collection.
 
