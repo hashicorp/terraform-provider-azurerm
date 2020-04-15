@@ -345,33 +345,6 @@ func TestAccAzureRMPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_createGeoRestore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basic(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "create_mode"),
-			{
-				PreConfig: func() { time.Sleep(7 * time.Minute) },
-				Config:    testAccAzureRMPostgreSQLServer_createGeoRestore(data, "11"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.restore"),
-				),
-			},
-			data.ImportStep("administrator_login_password", "create_mode"),
-		},
-	})
-}
-
 func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
@@ -477,8 +450,8 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "GP_Gen5_2"
-  version    = "%s"
+  sku_name          = "GP_Gen5_2"
+  version           = "%s"
   auto_grow_enabled = true
 
   ssl_enforcement_enabled = true
@@ -505,8 +478,8 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "GP_Gen5_2"
-  version    = "%s"
+  sku_name = "GP_Gen5_2"
+  version  = "%s"
 
   storage_profile {
     storage_mb = 51200
@@ -649,8 +622,8 @@ resource "azurerm_postgresql_server" "replica" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name          = "GP_Gen5_2"
-  version           = "%[3]s"
+  sku_name = "GP_Gen5_2"
+  version  = "%[3]s"
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
@@ -680,25 +653,4 @@ resource "azurerm_postgresql_server" "restore" {
   ssl_enforcement_enabled = true
 }
 `, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, restoreTime, version)
-}
-
-func testAccAzureRMPostgreSQLServer_createGeoRestore(data acceptance.TestData, version string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_postgresql_server" "restore" {
-  name                = "acctest-psql-server-%[2]d-restore"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name   = "GP_Gen5_2"
-  version    = "%[4]s"
-  storage_mb = 51200
-
-  create_mode               = "GeoRestore"
-  creation_source_server_id = azurerm_postgresql_server.test.id
-
-  ssl_enforcement_enabled = true
-}
-`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, data.Locations.Secondary, version)
 }
