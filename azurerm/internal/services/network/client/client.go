@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/preview/peering/mgmt/2020-01-01-preview/peering"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -19,6 +20,7 @@ type Client struct {
 	InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *network.LoadBalancersClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
+	PeerAsnsClient                       *peering.PeerAsnsClient
 	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
 	ProfileClient                        *network.ProfilesClient
 	PacketCapturesClient                 *network.PacketCapturesClient
@@ -84,6 +86,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
+
+	peerAsnsClient := peering.NewPeerAsnsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&peerAsnsClient.Client, o.ResourceManagerAuthorizer)
 
 	pointToSiteVpnGatewaysClient := network.NewP2sVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&pointToSiteVpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
@@ -171,6 +176,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
+		PeerAsnsClient:                       &peerAsnsClient,
 		PointToSiteVpnGatewaysClient:         &pointToSiteVpnGatewaysClient,
 		ProfileClient:                        &ProfileClient,
 		PacketCapturesClient:                 &PacketCapturesClient,

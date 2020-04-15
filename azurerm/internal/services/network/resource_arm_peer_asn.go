@@ -1,4 +1,4 @@
-package peering
+package network
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/peering/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/peering/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -92,7 +92,7 @@ func resourceArmPeerAsn() *schema.Resource {
 }
 
 func resourceArmPeerAsnCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Peering.PeerAsnsClient
+	client := meta.(*clients.Client).Network.PeerAsnsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -135,7 +135,7 @@ func resourceArmPeerAsnCreateUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmPeerAsnRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Peering.PeerAsnsClient
+	client := meta.(*clients.Client).Network.PeerAsnsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -168,7 +168,7 @@ func resourceArmPeerAsnRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmPeerAsnDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Peering.PeerAsnsClient
+	client := meta.(*clients.Client).Network.PeerAsnsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

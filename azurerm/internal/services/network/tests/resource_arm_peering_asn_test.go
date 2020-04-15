@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/peering/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -104,7 +104,7 @@ func TestAccAzureRMPeerAsn_requiresImport(t *testing.T) {
 
 func testCheckAzureRMPeerAsnExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Peering.PeerAsnsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PeerAsnsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -129,7 +129,7 @@ func testCheckAzureRMPeerAsnExists(resourceName string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMPeerAsnDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Peering.PeerAsnsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PeerAsnsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {

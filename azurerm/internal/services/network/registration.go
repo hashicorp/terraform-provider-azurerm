@@ -16,6 +16,7 @@ func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Load Balancer",
 		"Network",
+		"Peering",
 	}
 }
 
@@ -32,6 +33,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_network_interface":                         dataSourceArmNetworkInterface(),
 		"azurerm_network_security_group":                    dataSourceArmNetworkSecurityGroup(),
 		"azurerm_network_watcher":                           dataSourceArmNetworkWatcher(),
+		"azurerm_peer_asn":                                  dataSourceArmPeerAsn(),
 		"azurerm_private_endpoint_connection":               dataSourceArmPrivateEndpointConnection(),
 		"azurerm_private_link_service":                      dataSourceArmPrivateLinkService(),
 		"azurerm_private_link_service_endpoint_connections": dataSourceArmPrivateLinkServiceEndpointConnections(),
@@ -81,6 +83,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_network_interface_security_group_association":                           resourceArmNetworkInterfaceSecurityGroupAssociation(),
 		"azurerm_network_packet_capture":                                                 resourceArmNetworkPacketCapture(),
 		"azurerm_network_profile":                                                        resourceArmNetworkProfile(),
+		"azurerm_peer_asn":                                                               resourceArmPeerAsn(),
 		"azurerm_packet_capture":                                                         resourceArmPacketCapture(),
 		"azurerm_point_to_site_vpn_gateway":                                              resourceArmPointToSiteVPNGateway(),
 		"azurerm_private_endpoint":                                                       resourceArmPrivateEndpoint(),
