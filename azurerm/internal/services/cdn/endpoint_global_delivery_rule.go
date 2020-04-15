@@ -79,7 +79,7 @@ func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule cdn.DeliveryRule) (*ma
 		return nil, err
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	for key, value := range *actions {
 		output[key] = value
 	}

@@ -38,12 +38,12 @@ func RuleActionUrlRedirectQueryString() schema.SchemaValidateFunc {
 			return nil, []error{fmt.Errorf("The Url Query String's max length is 100.")}
 		}
 
-		re, _ := regexp.Compile("^[?&]")
+		re := regexp.MustCompile("^[?&]")
 		if re.MatchString(querystring) {
 			return nil, []error{fmt.Errorf("The Url Query String must not start with a question mark or ampersand.")}
 		}
 
-		kvre, _ := regexp.Compile("^[^?&]+=[^?&]+$")
+		kvre := regexp.MustCompile("^[^?&]+=[^?&]+$")
 		kvs := strings.Split(querystring, "&")
 		for _, kv := range kvs {
 			if len(kv) > 0 && !kvre.MatchString(kv) {

@@ -238,12 +238,8 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
+	geoFilters := expandCdnEndpointGeoFilters(d)
 	t := d.Get("tags").(map[string]interface{})
-
-	geoFilters, err := expandCdnEndpointGeoFilters(d)
-	if err != nil {
-		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
-	}
 
 	endpoint := cdn.Endpoint{
 		Location: &location,
@@ -332,12 +328,8 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
+	geoFilters := expandCdnEndpointGeoFilters(d)
 	t := d.Get("tags").(map[string]interface{})
-
-	geoFilters, err := expandCdnEndpointGeoFilters(d)
-	if err != nil {
-		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
-	}
 
 	endpoint := cdn.EndpointUpdateParameters{
 		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
@@ -497,7 +489,7 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandCdnEndpointGeoFilters(d *schema.ResourceData) (*[]cdn.GeoFilter, error) {
+func expandCdnEndpointGeoFilters(d *schema.ResourceData) *[]cdn.GeoFilter {
 	filters := make([]cdn.GeoFilter, 0)
 
 	inputFilters := d.Get("geo_filter").([]interface{})
@@ -522,7 +514,7 @@ func expandCdnEndpointGeoFilters(d *schema.ResourceData) (*[]cdn.GeoFilter, erro
 		filters = append(filters, filter)
 	}
 
-	return &filters, nil
+	return &filters
 }
 
 func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {

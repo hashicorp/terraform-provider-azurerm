@@ -259,6 +259,10 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[stri
 	}
 
 	actions, err := flattenDeliveryRuleActions(deliveryRule.Actions)
+	if err != nil {
+		return nil, err
+	}
+
 	for key, value := range *actions {
 		output[key] = value
 	}
