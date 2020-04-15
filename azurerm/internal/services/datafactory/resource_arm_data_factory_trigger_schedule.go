@@ -240,10 +240,10 @@ func resourceArmDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta inte
 	if scheduleTriggerProps != nil {
 		if recurrence := scheduleTriggerProps.Recurrence; recurrence != nil {
 			if v := recurrence.StartTime; v != nil {
-				d.Set("start_time", (*v).Format(time.RFC3339))
+				d.Set("start_time", v.Format(time.RFC3339))
 			}
 			if v := recurrence.EndTime; v != nil {
-				d.Set("end_time", (*v).Format(time.RFC3339))
+				d.Set("end_time", v.Format(time.RFC3339))
 			}
 			d.Set("frequency", recurrence.Frequency)
 			d.Set("interval", recurrence.Interval)

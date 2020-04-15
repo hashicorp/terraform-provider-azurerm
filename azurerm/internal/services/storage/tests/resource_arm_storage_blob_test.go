@@ -1163,7 +1163,7 @@ func testAccAzureRMStorageBlob_populateTempFile(input *os.File) error {
 		return fmt.Errorf("Failed to truncate file to 25M")
 	}
 
-	for i := int64(0); i < 20; i = i + 2 {
+	for i := int64(0); i < 20; i += 2 {
 		randomBytes := make([]byte, 1*1024*1024)
 		if _, err := rand.Read(randomBytes); err != nil {
 			return fmt.Errorf("Failed to read random bytes")

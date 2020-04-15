@@ -14,7 +14,7 @@ Compute
 Container
 CosmosDB (DocumentDB)
 Cost Management
-Custom Provider
+Custom Providers
 DNS
 Data Explorer
 Data Factory
@@ -33,6 +33,7 @@ Load Balancer
 Log Analytics
 Logic App
 Machine Learning
+Managed Applications
 Management
 Maps
 Media
@@ -50,6 +51,7 @@ Redis
 Search
 Security Center
 Service Fabric
+Spring Cloud
 Storage
 Stream Analytics
 Template

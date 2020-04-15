@@ -360,7 +360,7 @@ func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interfac
 
 func expandCosmosSQLContainerUniqueKeys(s *schema.Set) *[]documentdb.UniqueKey {
 	i := s.List()
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 

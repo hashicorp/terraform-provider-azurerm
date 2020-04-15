@@ -1,5 +1,5 @@
 ---
-subcategory: "Custom Provider"
+subcategory: "Custom Providers"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_custom_provider"
 description: |-

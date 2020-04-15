@@ -17,6 +17,10 @@ Manages a Disk Encryption Set.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -91,7 +95,7 @@ The following arguments are supported:
 
 -> **NOTE** Access to the KeyVault must be granted for this Disk Encryption Set, if you want to further use this Disk Encryption Set in a Managed Disk or Virtual Machine, or Virtual Machine Scale Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
 
-* `identity` - (Optional) A `identity` block defined below.
+* `identity` - (Required) A `identity` block defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Disk Encryption Set.
 

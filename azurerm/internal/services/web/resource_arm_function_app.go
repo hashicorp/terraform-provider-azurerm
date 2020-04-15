@@ -251,6 +251,11 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.FtpsOnly),
 							}, false),
 						},
+						"pre_warmed_instance_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 10),
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -392,7 +397,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmFunctionAppUpdate(d, meta)
@@ -788,6 +793,8 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
+	siteConfig.PreWarmedInstanceCount = utils.Int32(int32(config["pre_warmed_instance_count"].(int)))
+
 	return siteConfig, nil
 }
 
@@ -818,6 +825,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
+	}
+
+	if input.PreWarmedInstanceCount != nil {
+		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
 	}
 
 	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)
@@ -852,11 +863,14 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 }
 
 func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	ipSecurityRestrictions := input.([]interface{})
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	for i, ipSecurityRestriction := range ipSecurityRestrictions {
-		restriction := ipSecurityRestriction.(map[string]interface{})
+	for i, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		restriction := r.(map[string]interface{})
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := restriction["subnet_id"].(string)
