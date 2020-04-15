@@ -77,8 +77,8 @@ func resourceArmApiManagementIdentityProviderFacebookCreateUpdate(d *schema.Reso
 		}
 	}
 
-	parameters := apimanagement.IdentityProviderContract{
-		IdentityProviderContractProperties: &apimanagement.IdentityProviderContractProperties{
+	parameters := apimanagement.IdentityProviderCreateContract{
+		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:     utils.String(clientID),
 			ClientSecret: utils.String(clientSecret),
 			Type:         apimanagement.Facebook,

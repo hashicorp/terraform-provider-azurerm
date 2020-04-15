@@ -243,7 +243,7 @@ func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface
 	serviceName := id.Path["service"]
 	name := id.Path["loggers"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", utils.Bool(false)); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error deleting Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 		}

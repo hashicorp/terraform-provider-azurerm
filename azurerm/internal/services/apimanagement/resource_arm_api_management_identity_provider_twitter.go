@@ -77,8 +77,8 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 		}
 	}
 
-	parameters := apimanagement.IdentityProviderContract{
-		IdentityProviderContractProperties: &apimanagement.IdentityProviderContractProperties{
+	parameters := apimanagement.IdentityProviderCreateContract{
+		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:     utils.String(clientID),
 			ClientSecret: utils.String(clientSecret),
 			Type:         apimanagement.Twitter,

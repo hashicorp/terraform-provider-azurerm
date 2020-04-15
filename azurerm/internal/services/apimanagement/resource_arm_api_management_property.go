@@ -70,7 +70,7 @@ func resourceArmApiManagementProperty() *schema.Resource {
 }
 
 func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.PropertyClient
+	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -91,8 +91,8 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	parameters := apimanagement.PropertyContract{
-		PropertyContractProperties: &apimanagement.PropertyContractProperties{
+	parameters := apimanagement.NamedValueCreateContract{
+		NamedValueCreateContractProperties: &apimanagement.NamedValueCreateContractProperties{
 			DisplayName: utils.String(d.Get("display_name").(string)),
 			Secret:      utils.Bool(d.Get("secret").(bool)),
 			Value:       utils.String(d.Get("value").(string)),
@@ -100,7 +100,7 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
-		parameters.PropertyContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
+		parameters.NamedValueCreateContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
@@ -120,7 +120,7 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.PropertyClient
+	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -147,7 +147,7 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
 
-	if properties := resp.PropertyContractProperties; properties != nil {
+	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
 		d.Set("secret", properties.Secret)
 		d.Set("value", properties.Value)
@@ -158,7 +158,7 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.PropertyClient
+	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

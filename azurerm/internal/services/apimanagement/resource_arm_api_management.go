@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -466,14 +467,14 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings); err != nil {
+	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
 		return fmt.Errorf("Error setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
 	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings); err != nil {
+	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
 		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -494,7 +495,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 		// then add the new one, if it exists
 		if policy != nil {
-			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy); err != nil {
+			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy, ""); err != nil {
 				return fmt.Errorf("Error setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
@@ -540,7 +541,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
-	policy, err := policyClient.Get(ctx, resourceGroup, name)
+	policy, err := policyClient.Get(ctx, resourceGroup, name, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		if !utils.ResponseWasNotFound(policy.Response) {
 			return fmt.Errorf("Error retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -620,10 +621,14 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 	name := id.Path["service"]
 
 	log.Printf("[DEBUG] Deleting API Management Service %q (Resource Grouo %q)", name, resourceGroup)
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deletion of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -640,21 +645,21 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 		managementVs := hostnameV["management"].([]interface{})
 		for _, managementV := range managementVs {
 			v := managementV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.Management)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeManagement)
 			results = append(results, output)
 		}
 
 		portalVs := hostnameV["portal"].([]interface{})
 		for _, portalV := range portalVs {
 			v := portalV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.Portal)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypePortal)
 			results = append(results, output)
 		}
 
 		proxyVs := hostnameV["proxy"].([]interface{})
 		for _, proxyV := range proxyVs {
 			v := proxyV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.Proxy)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
 			if value, ok := v["default_ssl_binding"]; ok {
 				output.DefaultSslBinding = utils.Bool(value.(bool))
 			}
@@ -664,7 +669,7 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 		scmVs := hostnameV["scm"].([]interface{})
 		for _, scmV := range scmVs {
 			v := scmV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.Scm)
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeScm)
 			results = append(results, output)
 		}
 	}
@@ -740,20 +745,20 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 		}
 
 		switch strings.ToLower(string(config.Type)) {
-		case strings.ToLower(string(apimanagement.Proxy)):
+		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
 			if config.DefaultSslBinding != nil {
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
 
-		case strings.ToLower(string(apimanagement.Management)):
+		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
 
-		case strings.ToLower(string(apimanagement.Portal)):
+		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
 
-		case strings.ToLower(string(apimanagement.Scm)):
+		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
 		}
 	}
@@ -848,7 +853,7 @@ func expandAzureRmApiManagementIdentity(d *schema.ResourceData) *apimanagement.S
 	v := vs[0].(map[string]interface{})
 	identityType := v["type"].(string)
 	return &apimanagement.ServiceIdentity{
-		Type: utils.String(identityType),
+		Type: apimanagement.ApimIdentityType(identityType),
 	}
 }
 
@@ -859,9 +864,7 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 
 	result := make(map[string]interface{})
 
-	if identity.Type != nil {
-		result["type"] = *identity.Type
-	}
+	result["type"] = string(identity.Type)
 
 	if identity.PrincipalID != nil {
 		result["principal_id"] = identity.PrincipalID.String()
@@ -1151,8 +1154,8 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlContent != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				ContentFormat: apimanagement.XML,
-				PolicyContent: utils.String(xmlContent),
+				Format: apimanagement.XML,
+				Value:  utils.String(xmlContent),
 			},
 		}, nil
 	}
@@ -1160,8 +1163,8 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlLink != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				ContentFormat: apimanagement.XMLLink,
-				PolicyContent: utils.String(xmlLink),
+				Format: apimanagement.XMLLink,
+				Value:  utils.String(xmlLink),
 			},
 		}, nil
 	}
@@ -1172,8 +1175,8 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.PolicyContract) []interface{} {
 	xmlContent := ""
 	if props := input.PolicyContractProperties; props != nil {
-		if props.PolicyContent != nil {
-			xmlContent = *props.PolicyContent
+		if props.Value != nil {
+			xmlContent = *props.Value
 		}
 	}
 

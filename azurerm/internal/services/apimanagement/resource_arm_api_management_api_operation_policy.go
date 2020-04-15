@@ -70,7 +70,7 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 	operationID := d.Get("operation_id").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID)
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID, apimanagement.PolicyExportFormatXML)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing API Operation Policy (API Management Service %q / API %q / Operation %q / Resource Group %q): %s", serviceName, apiName, operationID, resourceGroup, err)
@@ -89,15 +89,15 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 
 	if xmlContent != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.XML,
-			PolicyContent: utils.String(xmlContent),
+			Format: apimanagement.XML,
+			Value:  utils.String(xmlContent),
 		}
 	}
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.XMLLink,
-			PolicyContent: utils.String(xmlLink),
+			Format: apimanagement.XMLLink,
+			Value:  utils.String(xmlLink),
 		}
 	}
 
@@ -109,7 +109,7 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 		return fmt.Errorf("Error creating or updating API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		return fmt.Errorf("Error retrieving API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q): %+v", resourceGroup, serviceName, apiName, operationID, err)
 	}
@@ -135,7 +135,7 @@ func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta
 	apiName := id.Path["apis"]
 	operationID := id.Path["operations"]
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] API Operation Policy (Resource Group %q / API Management Service %q / API %q / Operation %q) was not found - removing from state!", resourceGroup, serviceName, apiName, operationID)
@@ -154,7 +154,7 @@ func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta
 	if properties := resp.PolicyContractProperties; properties != nil {
 		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", properties.PolicyContent)
+		d.Set("xml_content", properties.Value)
 	}
 
 	return nil

@@ -161,7 +161,7 @@ func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interf
 	apiName := id.Path["apis"]
 	schemaID := id.Path["schemas"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, ""); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, "", utils.Bool(false)); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error deleting API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 		}

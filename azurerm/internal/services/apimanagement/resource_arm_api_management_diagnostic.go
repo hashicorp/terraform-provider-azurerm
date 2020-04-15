@@ -48,8 +48,9 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 			"api_management_name": azure.SchemaApiManagementName(),
 
 			"enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 		},
 	}
@@ -63,7 +64,6 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	diagnosticId := d.Get("identifier").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
-	enabled := d.Get("enabled").(bool)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, diagnosticId)
@@ -79,9 +79,7 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	parameters := apimanagement.DiagnosticContract{
-		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{
-			Enabled: utils.Bool(enabled),
-		},
+		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, diagnosticId, parameters, ""); err != nil {
@@ -127,10 +125,6 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	d.Set("identifier", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
-
-	if props := resp.DiagnosticContractProperties; props != nil {
-		d.Set("enabled", props.Enabled)
-	}
 
 	return nil
 }

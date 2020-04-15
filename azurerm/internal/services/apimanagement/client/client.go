@@ -26,7 +26,7 @@ type Client struct {
 	ProductApisClient          *apimanagement.ProductAPIClient
 	ProductGroupsClient        *apimanagement.ProductGroupClient
 	ProductPoliciesClient      *apimanagement.ProductPolicyClient
-	PropertyClient             *apimanagement.PropertyClient
+	NamedValueClient           *apimanagement.NamedValueClient
 	ServiceClient              *apimanagement.ServiceClient
 	SignInClient               *apimanagement.SignInSettingsClient
 	SignUpClient               *apimanagement.SignUpSettingsClient
@@ -95,8 +95,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	productPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&productPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	propertyClient := apimanagement.NewPropertyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&propertyClient.Client, o.ResourceManagerAuthorizer)
+	namedValueClient := apimanagement.NewNamedValueClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&namedValueClient.Client, o.ResourceManagerAuthorizer)
 
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serviceClient.Client, o.ResourceManagerAuthorizer)
@@ -134,7 +134,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ProductApisClient:          &productApisClient,
 		ProductGroupsClient:        &productGroupsClient,
 		ProductPoliciesClient:      &productPoliciesClient,
-		PropertyClient:             &propertyClient,
+		NamedValueClient:           &namedValueClient,
 		ServiceClient:              &serviceClient,
 		SignInClient:               &signInClient,
 		SignUpClient:               &signUpClient,

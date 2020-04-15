@@ -246,12 +246,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, contentFormat)
 		apiParams := apimanagement.APICreateOrUpdateParameter{
 			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
-				APIType:       apiType,
-				SoapAPIType:   soapApiType,
-				ContentFormat: apimanagement.ContentFormat(contentFormat),
-				ContentValue:  utils.String(contentValue),
-				Path:          utils.String(path),
-				APIVersion:    utils.String(version),
+				APIType:     apiType,
+				SoapAPIType: soapApiType,
+				Format:      apimanagement.ContentFormat(contentFormat),
+				Value:       utils.String(contentValue),
+				Path:        utils.String(path),
+				APIVersion:  utils.String(version),
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})

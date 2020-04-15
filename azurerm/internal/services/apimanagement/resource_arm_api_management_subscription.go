@@ -43,8 +43,10 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 			},
 
+			// 3.0 this seems to have been renamed to owner id?
 			"user_id": azure.SchemaApiManagementChildID(),
 
+			// 3.0 this seems to have been renamed to scope?
 			"product_id": azure.SchemaApiManagementChildID(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -121,9 +123,9 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
 			DisplayName: utils.String(displayName),
-			ProductID:   utils.String(productId),
+			Scope:       utils.String(productId),
 			State:       apimanagement.SubscriptionState(state),
-			UserID:      utils.String(userId),
+			OwnerID:     utils.String(userId),
 		},
 	}
 
@@ -184,8 +186,8 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 		d.Set("primary_key", props.PrimaryKey)
 		d.Set("secondary_key", props.SecondaryKey)
 		d.Set("state", string(props.State))
-		d.Set("product_id", props.ProductID)
-		d.Set("user_id", props.UserID)
+		d.Set("product_id", props.Scope)
+		d.Set("user_id", props.OwnerID)
 	}
 
 	return nil

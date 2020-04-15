@@ -225,20 +225,20 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 		}
 
 		switch strings.ToLower(string(config.Type)) {
-		case strings.ToLower(string(apimanagement.Proxy)):
+		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
 			if config.DefaultSslBinding != nil {
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
 
-		case strings.ToLower(string(apimanagement.Management)):
+		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
 
-		case strings.ToLower(string(apimanagement.Portal)):
+		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
 
-		case strings.ToLower(string(apimanagement.Scm)):
+		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
 		}
 	}
