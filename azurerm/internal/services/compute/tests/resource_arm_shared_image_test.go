@@ -89,7 +89,6 @@ func TestAccAzureRMSharedImage_withHyperVGeneration(t *testing.T) {
 				Config: testAccAzureRMSharedImage_withHyperVGeneration(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V2"),
 				),
 			},
 			data.ImportStep(),
@@ -255,18 +254,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctestsig%d"
+  name                = "acctestsig%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_shared_image" "test" {
-  name                = "acctestimg%d"
+  name                = "acctestimg%[1]d"
   gallery_name        = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -274,10 +273,10 @@ resource "azurerm_shared_image" "test" {
   hyper_v_generation  = "V2"
 
   identifier {
-    publisher = "AccTesPublisher%d"
-    offer     = "AccTesOffer%d"
-    sku       = "AccTesSku%d"
+    publisher = "AccTesPublisher%[1]d"
+    offer     = "AccTesOffer%[1]d"
+    sku       = "AccTesSku%[1]d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
