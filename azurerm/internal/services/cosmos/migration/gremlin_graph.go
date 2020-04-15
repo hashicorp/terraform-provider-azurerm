@@ -1,8 +1,8 @@
 package migration
 
 import (
-	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -151,12 +151,8 @@ func ResourceGremlinGraphUpgradeV0Schema() *schema.Resource {
 }
 
 func ResourceGremlinGraphStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	graphName := rawState["name"].(string)
-	databaseName := rawState["database_name"].(string)
-	accountName := rawState["account_name"].(string)
-
 	oldId := rawState["id"].(string)
-	newId := fmt.Sprintf("%s/gremlinDatabases/%s/graphs/%s", accountName, databaseName, graphName)
+	newId := strings.Replace(rawState["id"].(string), "apis/gremlin/databases", "gremlinDatabases", 1)
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 

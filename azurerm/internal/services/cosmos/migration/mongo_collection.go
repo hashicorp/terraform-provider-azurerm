@@ -1,8 +1,8 @@
 package migration
 
 import (
-	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -60,12 +60,8 @@ func ResourceMongoDbCollectionUpgradeV0Schema() *schema.Resource {
 }
 
 func ResourceMongoDbCollectionStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	collectionName := rawState["name"].(string)
-	databaseName := rawState["database_name"].(string)
-	accountName := rawState["account_name"].(string)
-
 	oldId := rawState["id"].(string)
-	newId := fmt.Sprintf("%s/mongodbDatabases/%s/collections/%s", accountName, databaseName, collectionName)
+	newId := strings.Replace(rawState["id"].(string), "apis/mongodb/databases", "mongodbDatabases", 1)
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 

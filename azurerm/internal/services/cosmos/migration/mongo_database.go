@@ -1,8 +1,8 @@
 package migration
 
 import (
-	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -39,11 +39,8 @@ func ResourceMongoDbDatabaseUpgradeV0Schema() *schema.Resource {
 }
 
 func ResourceMongoDbDatabaseStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	databaseName := rawState["name"].(string)
-	accountName := rawState["account_name"].(string)
-
 	oldId := rawState["id"].(string)
-	newId := fmt.Sprintf("%s/mongodbDatabases/%s", accountName, databaseName)
+	newId := strings.Replace(rawState["id"].(string), "apis/mongodb/databases", "mongodbDatabases", 1)
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 
