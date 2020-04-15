@@ -105,6 +105,9 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslog() *schema.Resource {
 	}
 }
 
+// TODO: We define structure below because of SDK lackes of those definition for now.
+//       Once the [issue](https://github.com/Azure/azure-rest-api-specs/issues/9072) addressed,
+//       we can switch to using the type directly from SDK.
 type dataSourceLinuxSyslog struct {
 	Name       string                          `json:"syslogName"`
 	Severities []dataSourceLinuxSyslogSeverity `json:"syslogSeverities"`
@@ -127,7 +130,7 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCreateUpdate(d *schema.Resource
 		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("failed to check for existing Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+				return fmt.Errorf("checking for existing Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
 			}
 		}
 
@@ -145,15 +148,15 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCreateUpdate(d *schema.Resource
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspaceName, name, param); err != nil {
-		return fmt.Errorf("failed to create Log Analytics DataSource Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+		return fmt.Errorf("creating Log Analytics DataSource Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q) ID", name, resourceGroup, workspaceName)
+		return fmt.Errorf("empty or nil ID returned for Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q) ID", name, resourceGroup, workspaceName)
 	}
 	d.SetId(*resp.ID)
 
@@ -178,7 +181,7 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogRead(d *schema.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("failed to retrieve Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+		return fmt.Errorf("retrieving Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -187,12 +190,12 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogRead(d *schema.ResourceData, me
 	if props := resp.Properties; props != nil {
 		propStr, err := structure.FlattenJsonToString(props.(map[string]interface{}))
 		if err != nil {
-			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return fmt.Errorf("flattening properties map to json for Log Analytics DataSource Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
 
 		prop := dataSourceLinuxSyslog{}
 		if err := json.Unmarshal([]byte(propStr), &prop); err != nil {
-			return fmt.Errorf("failed to decode properties json for Log Analytics DataSource Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return fmt.Errorf("decoding properties json for Log Analytics DataSource Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
 
 		d.Set("syslog_name", prop.Name)
@@ -213,7 +216,7 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogDelete(d *schema.ResourceData, 
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
-		return fmt.Errorf("failed to delete Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+		return fmt.Errorf("deleting Log Analytics Data Source Linux Syslog %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 	}
 
 	return nil

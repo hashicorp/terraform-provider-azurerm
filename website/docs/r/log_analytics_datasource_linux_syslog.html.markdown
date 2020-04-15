@@ -23,10 +23,11 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "example-law"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "PerGB2018"
+  name                            = "example-law"
+  location                        = azurerm_resource_group.example.location
+  resource_group_name             = azurerm_resource_group.example.name
+  sku                             = "PerGB2018"
+  datasource_linux_syslog_enabled = true
 }
 
 resource "azurerm_log_analytics_datasource_linux_syslog" "example" {

@@ -85,6 +85,9 @@ func resourceArmLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 	}
 }
 
+// TODO: We define structure below because of SDK lackes of those definition for now.
+//       Once the [issue](https://github.com/Azure/azure-rest-api-specs/issues/9072) addressed,
+//       we can switch to using the type directly from SDK.
 type dataSourceWindowsEvent struct {
 	EventLogName string                            `json:"eventLogName"`
 	EventTypes   []dataSourceWindowsEventEventType `json:"eventTypes"`
