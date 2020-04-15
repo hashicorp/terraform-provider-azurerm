@@ -1,8 +1,8 @@
 package migration
 
 import (
-	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -80,12 +80,8 @@ func ResourceSqlContainerUpgradeV0Schema() *schema.Resource {
 }
 
 func ResourceSqlContainerStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	containerName := rawState["name"].(string)
-	databaseName := rawState["database_name"].(string)
-	accountName := rawState["account_name"].(string)
-
 	oldId := rawState["id"].(string)
-	newId := fmt.Sprintf("%s/sqlDatabases/%s/containers/%s", accountName, databaseName, containerName)
+	newId := strings.Replace(rawState["id"].(string), "apis/sql/databases", "sqlDatabases", 1)
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 

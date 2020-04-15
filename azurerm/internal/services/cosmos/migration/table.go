@@ -1,8 +1,8 @@
 package migration
 
 import (
-	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -39,11 +39,8 @@ func ResourceTableUpgradeV0Schema() *schema.Resource {
 }
 
 func ResourceTableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	tableName := rawState["name"].(string)
-	accountName := rawState["account_name"].(string)
-
 	oldId := rawState["id"].(string)
-	newId := fmt.Sprintf("%s/tables/%s", accountName, tableName)
+	newId := strings.Replace(rawState["id"].(string), "apis/table/tables", "tables", 1)
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 

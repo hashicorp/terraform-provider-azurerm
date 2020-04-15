@@ -118,14 +118,14 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"max_interval_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      5,                               // 2.0 change to computed?
+							Default:      5,
 							ValidateFunc: validation.IntBetween(5, 86400), // single region values
 						},
 
 						"max_staleness_prefix": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      100,                                // 2.0 change to computed
+							Default:      100,
 							ValidateFunc: validation.IntBetween(10, 1000000), // single region values
 						},
 					},
