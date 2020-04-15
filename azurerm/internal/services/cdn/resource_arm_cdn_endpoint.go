@@ -533,11 +533,9 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 
 	if filters := input; filters != nil {
 		for _, filter := range *filters {
-			output := make(map[string]interface{})
-
-			output["action"] = string(filter.Action)
-			if path := filter.RelativePath; path != nil {
-				output["relative_path"] = *path
+			relativePath := ""
+			if filter.RelativePath != nil {
+				relativePath = *filter.RelativePath
 			}
 
 			outputCodes := make([]interface{}, 0)
@@ -546,9 +544,12 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 					outputCodes = append(outputCodes, code)
 				}
 			}
-			output["country_codes"] = outputCodes
 
-			results = append(results, output)
+			results = append(results, map[string]interface{}{
+				"action":        string(filter.Action),
+				"country_codes": outputCodes,
+				"relative_path": relativePath,
+			})
 		}
 	}
 
@@ -617,25 +618,32 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 
 	if list := input; list != nil {
 		for _, i := range *list {
-			output := map[string]interface{}{}
-
-			if name := i.Name; name != nil {
-				output["name"] = *name
+			name := ""
+			if i.Name != nil {
+				name = *i.Name
 			}
 
+			hostName := ""
+			httpPort := 0
+			httpsPort := 0
 			if props := i.DeepCreatedOriginProperties; props != nil {
-				if hostName := props.HostName; hostName != nil {
-					output["host_name"] = *hostName
+				if props.HostName != nil {
+					hostName = *props.HostName
 				}
 				if port := props.HTTPPort; port != nil {
-					output["http_port"] = int(*port)
+					httpPort = int(*port)
 				}
 				if port := props.HTTPSPort; port != nil {
-					output["https_port"] = int(*port)
+					httpsPort = int(*port)
 				}
 			}
 
-			results = append(results, output)
+			results = append(results, map[string]interface{}{
+				"name":       name,
+				"host_name":  hostName,
+				"http_port":  httpPort,
+				"https_port": httpsPort,
+			})
 		}
 	}
 
@@ -689,14 +697,19 @@ func flattenArmCdnEndpointDeliveryPolicy(input *cdn.EndpointPropertiesUpdatePara
 			continue
 		}
 
-		flattenedRule, err := flattenArmCdnEndpointGlobalDeliveryRule(rule)
-		if err != nil {
-			return nil, err
-		}
-
 		if int(*rule.Order) == 0 {
+			flattenedRule, err := flattenArmCdnEndpointGlobalDeliveryRule(rule)
+			if err != nil {
+				return nil, err
+			}
+
 			output.globalDeliveryRules = append(output.globalDeliveryRules, flattenedRule)
 			continue
+		}
+
+		flattenedRule, err := flattenArmCdnEndpointDeliveryRule(rule)
+		if err != nil {
+			return nil, err
 		}
 
 		output.deliveryRules = append(output.deliveryRules, flattenedRule)
