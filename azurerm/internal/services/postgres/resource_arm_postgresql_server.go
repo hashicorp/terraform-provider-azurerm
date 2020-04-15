@@ -95,61 +95,51 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			},
 
 			"storage_profile": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "all storage_profile properties have been move to the top level. This block will be removed in version 3.0 of the provider.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-							//ExactlyOneOf: []string{"storage_profile.0.storage_mb", "storage_profile.0.auto_grow_enabled", "storage_profile.0.auto_grow"},
+							Type:          schema.TypeInt,
+							Optional:      true,
+							ConflictsWith: []string{"storage_mb"},
+							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.All(
 								validation.IntBetween(5120, 4194304),
 								validation.IntDivisibleBy(1024),
 							),
 						},
 
-						"auto_grow_enabled": {
-							Type:          schema.TypeBool,
+						"backup_retention_days": {
+							Type:          schema.TypeInt,
 							Optional:      true,
-							Computed:      true, // remove in 3.0 and default to true
-							ConflictsWith: []string{"storage_profile.0.auto_grow"},
+							Default:       7,
+							ConflictsWith: []string{"backup_retention_days"},
+							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
+							ValidateFunc:  validation.IntBetween(7, 35),
 						},
 
 						"auto_grow": {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
-							ConflictsWith: []string{"storage_profile.0.auto_grow_enabled"},
-							Deprecated:    "this has been renamed to the boolean `auto_grow_enabled` and will be removed in version 3.0 of the provider.",
+							ConflictsWith: []string{"auto_grow_enabled"},
+							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringInSlice([]string{
 								string(postgresql.StorageAutogrowEnabled),
 								string(postgresql.StorageAutogrowDisabled),
 							}, false),
 						},
 
-						"backup_retention_days": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      7,
-							ValidateFunc: validation.IntBetween(7, 35),
-						},
-
-						"geo_redundant_backup_enabled": {
-							Type:          schema.TypeBool,
-							Optional:      true,
-							Computed:      true, // remove in 2.0 and default to false
-							ConflictsWith: []string{"storage_profile.0.geo_redundant_backup"},
-						},
-
 						"geo_redundant_backup": {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
-							ConflictsWith: []string{"storage_profile.0.geo_redundant_backup_enabled"},
-							Deprecated:    "this has been renamed to the boolean `geo_redundant_backup` and will be removed in version 3.0 of the provider.",
+							ConflictsWith: []string{"backup_geo_redundant_enabled"},
+							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
@@ -174,6 +164,28 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"auto_grow_enabled": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true, // remove in 3.0 and default to true
+				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
+			},
+
+			"backup_retention_days": {
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
+				ValidateFunc:  validation.IntBetween(7, 35),
+			},
+
+			"backup_geo_redundant_enabled": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true, // remove in 2.0 and default to false
+				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
+			},
+
 			"create_mode": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -193,12 +205,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc: validate.PostgresServerServerID,
 			},
 
-			"restore_point_in_time": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsRFC3339Time,
-			},
-
 			"infrastructure_encryption_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -210,6 +216,23 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"restore_point_in_time": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsRFC3339Time,
+			},
+
+			"storage_mb": {
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
+				ValidateFunc: validation.All(
+					validation.IntBetween(5120, 4194304),
+					validation.IntDivisibleBy(1024),
+				),
 			},
 
 			"ssl_minimal_tls_version_enforced": {
@@ -307,7 +330,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	storage := expandAzureRmPostgreSQLStorageProfile(d)
-	storage.StorageAutogrow = "Disabled"
+
 	/*if *storage.StorageMB == 0 && storage.StorageAutogrow == postgresql.StorageAutogrowDisabled {
 		return fmt.Errorf("`storage.storage_mb needs to beset if auto_grow", name, resourceGroup, err)
 	}*/
@@ -323,6 +346,10 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		}
 		if pass == "" {
 			return fmt.Errorf("`administrator_login_password` must not be empty when `create_mode` is `default`")
+		}
+
+		if _, ok := d.GetOk("restore_point_in_time"); ok {
+			return fmt.Errorf("`restore_point_in_time` cannot be set when `create_mode` is `default`")
 		}
 
 		// check admin
@@ -536,6 +563,23 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `storage_profile`: %+v", err)
 		}
 
+		if storage := p.StorageProfile; storage != nil {
+
+			d.Set("storage_mb", storage.StorageMB)
+			d.Set("backup_retention_days", storage.BackupRetentionDays)
+
+			if storage.StorageAutogrow == postgresql.StorageAutogrowEnabled {
+				d.Set("auto_grow_enabled", true)
+			} else if storage.StorageAutogrow == postgresql.StorageAutogrowDisabled {
+				d.Set("auto_grow_enabled", false)
+			}
+			if storage.GeoRedundantBackup == postgresql.Enabled {
+				d.Set("backup_geo_redundant_enabled", true)
+			} else if storage.GeoRedundantBackup == postgresql.Disabled {
+				d.Set("backup_geo_redundant_enabled", false)
+			}
+		}
+
 		// Computed
 		d.Set("fqdn", p.FullyQualifiedDomainName)
 	}
@@ -604,38 +648,43 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 }
 
 func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
-	storageprofiles := d.Get("storage_profile").([]interface{})
-	storageprofile := storageprofiles[0].(map[string]interface{})
 
-	backupRetentionDays := storageprofile["backup_retention_days"].(int)
-	storageMB := storageprofile["storage_mb"].(int)
+	storage := postgresql.StorageProfile{}
+	if v, ok := d.GetOk("storage_profile"); ok {
+		storageprofile := v.([]interface{})[0].(map[string]interface{})
 
-	autoGrow := postgresql.StorageAutogrowEnabled
-	if v, ok := storageprofile["auto_grow"].(string); ok && strings.EqualFold(v, string(postgresql.StorageAutogrowEnabled)) {
-		autoGrow = postgresql.StorageAutogrowEnabled
-	}
-	if v, ok := storageprofile["auto_grow_enabled"].(bool); ok && v {
-		autoGrow = postgresql.StorageAutogrowEnabled
-	} else {
-		autoGrow = postgresql.StorageAutogrowDisabled
+		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
+		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
+		storage.StorageAutogrow = postgresql.StorageAutogrow(storageprofile["auto_grow"].(string))
+		storage.GeoRedundantBackup = postgresql.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
 	}
 
-	geoBackup := postgresql.Disabled
-	if v, ok := storageprofile["geo_redundant_backup"].(string); ok && strings.EqualFold(v, string(postgresql.Enabled)) {
-		geoBackup = postgresql.Enabled
-	}
-	if v, ok := storageprofile["geo_redundant_backup_enabled"].(bool); ok && v {
-		geoBackup = postgresql.Enabled
-	} else {
-		geoBackup = postgresql.Disabled
+	// now override whatever we may have from the block with the top level properties
+	if v, ok := d.GetOk("auto_grow_enabled"); ok {
+		if v.(bool) {
+			storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
+		} else {
+			storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
+		}
 	}
 
-	return &postgresql.StorageProfile{
-		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
-		GeoRedundantBackup:  geoBackup,
-		StorageMB:           utils.Int32(int32(storageMB)),
-		StorageAutogrow:     autoGrow,
+	if v, ok := d.GetOk("backup_retention_days"); ok {
+		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
 	}
+
+	if v, ok := d.GetOk("backup_geo_redundant_enabled"); ok {
+		if v.(bool) {
+			storage.GeoRedundantBackup = postgresql.Enabled
+		} else {
+			storage.GeoRedundantBackup = postgresql.Disabled
+		}
+	}
+
+	if v, ok := d.GetOk("storage_mb"); ok {
+		storage.StorageMB = utils.Int32(int32(v.(int)))
+	}
+
+	return &storage
 }
 
 func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {
@@ -650,18 +699,7 @@ func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interfac
 	}
 
 	values["auto_grow"] = string(resp.StorageAutogrow)
-	if resp.StorageAutogrow == postgresql.StorageAutogrowEnabled {
-		values["auto_grow_enabled"] = true
-	} else if resp.StorageAutogrow == postgresql.StorageAutogrowDisabled {
-		values["auto_grow_enabled"] = false
-	}
-
 	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
-	if resp.GeoRedundantBackup == postgresql.Enabled {
-		values["geo_redundant_backup_enabled"] = true
-	} else if resp.GeoRedundantBackup == postgresql.Disabled {
-		values["geo_redundant_backup_enabled"] = false
-	}
 
 	return []interface{}{values}
 }
