@@ -14,13 +14,13 @@ func FormatSuppressionTTL(ttl int) string {
 	//convert TTL to API TTL form, which is "dd.hh:mm:ss"
 	m, h, d := "0", "0", "0"
 	s := strconv.Itoa(ttl % 60)
-	ttl = ttl / 60
+	ttl /= 60
 	if ttl != 0 {
 		m = strconv.Itoa(ttl % 60)
-		ttl = ttl / 60
+		ttl /= 60
 		if ttl != 0 {
 			h = strconv.Itoa(ttl % 24)
-			ttl = ttl / 24
+			ttl /= 24
 			if ttl != 0 {
 				d = strconv.Itoa(ttl)
 			}
