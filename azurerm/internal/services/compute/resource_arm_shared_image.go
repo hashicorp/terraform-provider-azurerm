@@ -96,6 +96,17 @@ func resourceArmSharedImage() *schema.Resource {
 				Optional: true,
 			},
 
+			"hyper_v_generation": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.HyperVGenerationTypesV1),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.HyperVGenerationTypesV1),
+					string(compute.HyperVGenerationTypesV2),
+				}, false),
+			},
+
 			"privacy_statement_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -125,6 +136,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	description := d.Get("description").(string)
 
 	eula := d.Get("eula").(string)
+	hyperVGeneration := d.Get("hyper_v_generation").(string)
 	privacyStatementUri := d.Get("privacy_statement_uri").(string)
 	releaseNoteURI := d.Get("release_note_uri").(string)
 
@@ -151,6 +163,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 		GalleryImageProperties: &compute.GalleryImageProperties{
 			Description:         utils.String(description),
 			Eula:                utils.String(eula),
+			HyperVGeneration:    compute.HyperVGeneration(hyperVGeneration),
 			Identifier:          identifier,
 			PrivacyStatementURI: utils.String(privacyStatementUri),
 			ReleaseNoteURI:      utils.String(releaseNoteURI),
@@ -218,6 +231,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	if props := resp.GalleryImageProperties; props != nil {
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
+		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("os_type", string(props.OsType))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)

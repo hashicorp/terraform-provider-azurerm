@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image.
 
+* `hyper_v_generation` - (Optional) The HyperVGenerationType of the Virtual Machine created from the image as `V1`, `V2` and is only applicable to OS disks. Defaults to `V1`.
+
 * `privacy_statement_uri` - (Optional) The URI containing the Privacy Statement associated with this Shared Image.
 
 * `release_note_uri` - (Optional) The URI containing the Release Notes associated with this Shared Image.

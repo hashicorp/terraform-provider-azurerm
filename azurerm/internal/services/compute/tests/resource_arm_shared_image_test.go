@@ -78,6 +78,25 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSharedImage_withHyperVGeneration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSharedImage_withHyperVGeneration(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V2"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -219,6 +238,40 @@ resource "azurerm_shared_image" "test" {
   eula                  = "Do you agree there's infinite Rick's and Infinite Morty's?"
   privacy_statement_uri = "https://council.of.ricks/privacy-statement"
   release_note_uri      = "https://council.of.ricks/changelog.md"
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMSharedImage_withHyperVGeneration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  hyper_v_generation  = "V2"
 
   identifier {
     publisher = "AccTesPublisher%d"
