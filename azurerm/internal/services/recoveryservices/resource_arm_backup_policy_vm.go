@@ -257,8 +257,8 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 			_, hasWeekly := diff.GetOk("retention_weekly")
 
 			frequencyI, _ := diff.GetOk("backup.0.frequency")
-			frequency := strings.ToLower(frequencyI.(string))
-			if frequency == "daily" {
+			switch strings.ToLower(frequencyI.(string)) {
+			case "daily":
 				if !hasDaily {
 					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
 				}
@@ -266,17 +266,16 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
 					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
-			} else if frequency == "weekly" {
+			case "weekly":
 				if hasDaily {
 					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
 					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
 				}
-			} else {
+			default:
 				return fmt.Errorf("Unrecognized value for backup.0.frequency")
 			}
-
 			return nil
 		},
 	}

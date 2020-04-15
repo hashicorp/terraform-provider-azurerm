@@ -47,7 +47,7 @@ func resourceArmManagementGroup() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"name"},
-				Deprecated:    "Deprecated in favor of `name`",
+				Deprecated:    "Deprecated in favour of `name`",
 				ValidateFunc:  validate.ManagementGroupName,
 			},
 

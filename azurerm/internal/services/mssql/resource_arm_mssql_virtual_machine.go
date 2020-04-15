@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	parseCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -104,7 +104,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							//api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
+							// api will add updated credential name, and return "sqlvmName:name1,sqlvmName:name2"
 							DiffSuppressFunc: mssqlVMCredentialNameDiffSuppressFunc,
 						},
 
@@ -184,7 +184,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	defer cancel()
 
 	vmId := d.Get("virtual_machine_id").(string)
-	id, err := compute.ParseVirtualMachineID(vmId)
+	id, err := parseCompute.VirtualMachineID(vmId)
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failure in checking for present of existing Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for present of existing Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -204,7 +204,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	// get location from vm
 	respvm, err := vmclient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Failure in making Read request on Azure Virtual Machine %s: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on Azure Virtual Machine %s: %+v", id.Name, err)
 	}
 
 	if *respvm.Location == "" {
@@ -236,15 +236,15 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Failure in creating Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("creating Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Failure in waiting for creation of Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
 	if err != nil {
-		return fmt.Errorf("Failure in retrieving Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) ID", id.Name, id.ResourceGroup)
@@ -271,18 +271,18 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Failure in reading Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if props := resp.Properties; props != nil {
 		d.Set("virtual_machine_id", props.VirtualMachineResourceID)
 		d.Set("sql_license_type", string(props.SQLServerLicenseType))
 		if err := d.Set("auto_patching", flattenArmSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
-			return fmt.Errorf("Failure in setting `auto_patching`: %+v", err)
+			return fmt.Errorf("setting `auto_patching`: %+v", err)
 		}
 
 		if err := d.Set("key_vault_credential", flattenArmSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
-			return fmt.Errorf("Failure in setting `key_vault_credential`: %+v", err)
+			return fmt.Errorf("setting `key_vault_credential`: %+v", err)
 		}
 
 		if mgmtSettings := props.ServerConfigurationsManagementSettings; mgmtSettings != nil {
@@ -310,12 +310,12 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Failure in deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Failure in waiting for deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -410,7 +410,7 @@ func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.K
 	}
 }
 
-func mssqlVMCredentialNameDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	oldNamelist := strings.Split(old, ",")
 	for _, n := range oldNamelist {
 		cur := strings.Split(n, ":")

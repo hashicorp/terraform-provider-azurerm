@@ -1352,7 +1352,7 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 				result["probe_method"] = strings.ToUpper(string(healthProbeMethod))
 			}
 			if enabled := properties.EnabledState; enabled != "" {
-				result["enabled"] = (enabled == frontdoor.HealthProbeEnabledEnabled)
+				result["enabled"] = enabled == frontdoor.HealthProbeEnabledEnabled
 			}
 			result["protocol"] = string(properties.Protocol)
 		}
@@ -1456,7 +1456,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 						}
 
 						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
-							c["cache_use_dynamic_compression"] = bool(string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled))
+							c["cache_use_dynamic_compression"] = string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled)
 						}
 					} else {
 						// if the cache is disabled, set the default values or revert to what they were in the previous plan

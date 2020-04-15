@@ -2934,6 +2934,8 @@ func NewManagedRuleSetDefinitionListPage(getNextPage func(context.Context, Manag
 type ManagedRuleSetDefinitionProperties struct {
 	// ProvisioningState - READ-ONLY; Provisioning state of the managed rule set.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// RuleSetID - READ-ONLY; Id of the managed rule set.
+	RuleSetID *string `json:"ruleSetId,omitempty"`
 	// RuleSetType - READ-ONLY; Type of the managed rule set.
 	RuleSetType *string `json:"ruleSetType,omitempty"`
 	// RuleSetVersion - READ-ONLY; Version of the managed rule set type.

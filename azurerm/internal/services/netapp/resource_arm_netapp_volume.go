@@ -152,21 +152,21 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Type:       schema.TypeBool,
 							Optional:   true,
 							Computed:   true,
-							Deprecated: "Deprecated in favor of `protocols_enabled`",
+							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
 						"nfsv3_enabled": {
 							Type:       schema.TypeBool,
 							Optional:   true,
 							Computed:   true,
-							Deprecated: "Deprecated in favor of `protocols_enabled`",
+							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
 						"nfsv4_enabled": {
 							Type:       schema.TypeBool,
 							Optional:   true,
 							Computed:   true,
-							Deprecated: "Deprecated in favor of `protocols_enabled`",
+							Deprecated: "Deprecated in favour of `protocols_enabled`",
 						},
 
 						"unix_read_only": {
