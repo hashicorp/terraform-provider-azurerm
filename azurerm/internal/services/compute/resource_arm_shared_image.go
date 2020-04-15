@@ -263,7 +263,7 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 
 	_, err = client.Delete(ctx, resourceGroup, galleryName, name)
 	if err != nil {
-		fmt.Errorf("failed to delete Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("failed to delete Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
 	log.Printf("waiting for Shared Image %q (Gallery %q / Resource Group %q) to be deleted", name, galleryName, resourceGroup)
