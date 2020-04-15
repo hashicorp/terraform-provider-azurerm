@@ -1,12 +1,14 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -259,23 +261,46 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 	galleryName := id.Path["galleries"]
 	name := id.Path["images"]
 
-	future, err := client.Delete(ctx, resourceGroup, galleryName, name)
+	_, err = client.Delete(ctx, resourceGroup, galleryName, name)
 	if err != nil {
-		// deleted outside of Terraform
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-
-		return fmt.Errorf("Error deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		fmt.Errorf("failed to delete Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
-		}
+	log.Printf("waiting for Shared Image %q (Gallery %q / Resource Group %q) to be deleted", name, galleryName, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"200", "202"},
+		Target:  []string{"404"},
+		Refresh: sharedImageDeleteStateRefreshFunc(ctx, client, resourceGroup, name, galleryName),
+		Timeout: d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", name, galleryName, resourceGroup, err)
 	}
 
 	return nil
+}
+
+func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImagesClient, resourceGroupName string, imageName string, galleryName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, galleryName, imageName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("failed to retrieve Shared Image %q (Gallery %q / Resource Group %q): %s", imageName, galleryName, resourceGroupName, err)
+			}
+		}
+
+		// The resource Shared Image depends on the resource Shared Image Gallery.
+		// Although the delete API returns 404 which means the Shared Image resource has been deleted.
+		// Then it tries to immediately delete Shared Image Gallery but it still throws error `Can not delete resource before nested resources are deleted.`
+		// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
+		// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/8314
+		if _, err := client.Delete(ctx, resourceGroupName, galleryName, imageName); err != nil {
+			log.Printf("failed to reissue Shared Image %q delete request (Gallery %q / Resource Group %q): %+v", imageName, galleryName, resourceGroupName, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }
 
 func expandGalleryImageIdentifier(d *schema.ResourceData) *compute.GalleryImageIdentifier {
