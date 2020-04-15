@@ -406,7 +406,6 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 			StorageProfile:           nil,
 			Version:                  version,
 		}
-
 	}
 
 	server := postgresql.ServerForCreate{
@@ -564,7 +563,6 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if storage := p.StorageProfile; storage != nil {
-
 			d.Set("storage_mb", storage.StorageMB)
 			d.Set("backup_retention_days", storage.BackupRetentionDays)
 
@@ -648,7 +646,6 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 }
 
 func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
-
 	storage := postgresql.StorageProfile{}
 	if v, ok := d.GetOk("storage_profile"); ok {
 		storageprofile := v.([]interface{})[0].(map[string]interface{})
