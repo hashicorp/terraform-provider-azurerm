@@ -7,7 +7,7 @@ func TestServiceBusNamespaceNetworkRuleID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *ServiceBusNamespaceNetworkRuleId
+		Expected *ServiceBusNamespaceNetworkRuleSetId
 	}{
 		{
 			Name:  "Empty",
@@ -47,7 +47,7 @@ func TestServiceBusNamespaceNetworkRuleID(t *testing.T) {
 		{
 			Name:  "Service Bus Namespace Network Rule ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceBus/namespaces/namespace1/networkrulesets/default",
-			Expected: &ServiceBusNamespaceNetworkRuleId{
+			Expected: &ServiceBusNamespaceNetworkRuleSetId{
 				Name:          "default",
 				NamespaceName: "namespace1",
 				ResourceGroup: "resGroup1",
@@ -63,7 +63,7 @@ func TestServiceBusNamespaceNetworkRuleID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ServiceBusNamespaceNetworkRuleID(v.Input)
+		actual, err := ServiceBusNamespaceNetworkRuleSetID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

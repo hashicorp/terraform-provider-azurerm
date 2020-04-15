@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccAzureRMServiceBusNamespaceNetworkRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMServiceBusNamespaceNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespaceNetworkRule_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,7 +52,7 @@ func TestAccAzureRMServiceBusNamespaceNetworkRule_complete(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespaceNetworkRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -85,7 +85,7 @@ func TestAccAzureRMServiceBusNamespaceNetworkRule_update(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespaceNetworkRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -110,17 +110,17 @@ func testCheckAzureRMServiceBusNamespaceNetworkRuleExists(resourceName string) r
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Service Bus Namespace Network Rule not found: %s", resourceName)
+			return fmt.Errorf("Service Bus Namespace Network Rule Set not found: %s", resourceName)
 		}
 
-		id, err := parse.ServiceBusNamespaceNetworkRuleID(rs.Primary.ID)
+		id, err := parse.ServiceBusNamespaceNetworkRuleSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		if resp, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Service Bus Namespace Network Rule (Namespace %q / Resource Group %q) does not exist", id.NamespaceName, id.ResourceGroup)
+				return fmt.Errorf("Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q) does not exist", id.NamespaceName, id.ResourceGroup)
 			}
 			return fmt.Errorf("failed to GetNetworkRuleSet on ServiceBus.NamespacesClientPreview: %+v", err)
 		}
@@ -134,11 +134,11 @@ func testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy(s *terraform.State) e
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_servicebus_namespace_network_rule" {
+		if rs.Type != "azurerm_servicebus_namespace_network_rule_set" {
 			continue
 		}
 
-		id, err := parse.ServiceBusNamespaceNetworkRuleID(rs.Primary.ID)
+		id, err := parse.ServiceBusNamespaceNetworkRuleSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -153,7 +153,7 @@ func testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy(s *terraform.State) e
 		}
 
 		if !servicebus.CheckNetworkRuleNullified(resp) {
-			return fmt.Errorf("the Service Bus Namespace Network Rule (Namespace %q / Resource Group %q) still exists", id.NamespaceName, id.ResourceGroup)
+			return fmt.Errorf("the Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q) still exists", id.NamespaceName, id.ResourceGroup)
 		}
 	}
 
@@ -165,7 +165,7 @@ func testAccAzureRMServiceBusNamespaceNetworkRule_basic(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_servicebus_namespace_network_rule" "test" {
+resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   namespace_name      = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 
@@ -184,7 +184,7 @@ func testAccAzureRMServiceBusNamespaceNetworkRule_complete(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_servicebus_namespace_network_rule" "test" {
+resource "azurerm_servicebus_namespace_network_rule_set" "test" {
   namespace_name      = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 
@@ -195,7 +195,7 @@ resource "azurerm_servicebus_namespace_network_rule" "test" {
     ignore_missing_vnet_service_endpoint = false
   }
 
-  ip_masks = ["1.1.1.1"]
+  ip_rules = ["1.1.1.1"]
 }
 `, template)
 }
@@ -244,9 +244,9 @@ func testAccAzureRMServiceBusNamespaceNetworkRule_requiresImport(data acceptance
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_servicebus_namespace_network_rule" "import" {
-  namespace_name      = azurerm_servicebus_namespace_network_rule.test.namespace_name
-  resource_group_name = azurerm_servicebus_namespace_network_rule.test.resource_group_name
+resource "azurerm_servicebus_namespace_network_rule_set" "import" {
+  namespace_name      = azurerm_servicebus_namespace_network_rule_set.test.namespace_name
+  resource_group_name = azurerm_servicebus_namespace_network_rule_set.test.resource_group_name
 }
 `, template)
 }

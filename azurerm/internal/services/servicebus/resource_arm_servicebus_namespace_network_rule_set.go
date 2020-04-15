@@ -21,15 +21,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceServiceBusNamespaceNetworkRule() *schema.Resource {
+func resourceServiceBusNamespaceNetworkRuleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceServiceBusNamespaceNetworkRuleCreateUpdate,
-		Read:   resourceServiceBusNamespaceNetworkRuleRead,
-		Update: resourceServiceBusNamespaceNetworkRuleCreateUpdate,
-		Delete: resourceServiceBusNamespaceNetworkRuleDelete,
+		Create: resourceServiceBusNamespaceNetworkRuleSetCreateUpdate,
+		Read:   resourceServiceBusNamespaceNetworkRuleSetRead,
+		Update: resourceServiceBusNamespaceNetworkRuleSetCreateUpdate,
+		Delete: resourceServiceBusNamespaceNetworkRuleSetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceBusNamespaceNetworkRuleID(id)
+			_, err := parse.ServiceBusNamespaceNetworkRuleSetID(id)
 			return err
 		}),
 
@@ -60,7 +60,7 @@ func resourceServiceBusNamespaceNetworkRule() *schema.Resource {
 				}, false),
 			},
 
-			"ip_masks": {
+			"ip_rules": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -93,7 +93,7 @@ func resourceServiceBusNamespaceNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceServiceBusNamespaceNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,14 +105,14 @@ func resourceServiceBusNamespaceNetworkRuleCreateUpdate(d *schema.ResourceData, 
 		existing, err := client.GetNetworkRuleSet(ctx, resourceGroup, namespaceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for presence of existing Service Bus Namespace Network Rule (Namespace %q / Resource Group %q): %+v", namespaceName, resourceGroup, err)
+				return fmt.Errorf("failed to check for presence of existing Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q): %+v", namespaceName, resourceGroup, err)
 			}
 		}
 
 		// This resource is unique to the corresponding service bus namespace.
 		// It will be created automatically along with the namespace, therefore we check whether this resource is identical to a "deleted" one
 		if !CheckNetworkRuleNullified(existing) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", *existing.ID)
 		}
 	}
 
@@ -120,32 +120,32 @@ func resourceServiceBusNamespaceNetworkRuleCreateUpdate(d *schema.ResourceData, 
 		NetworkRuleSetProperties: &servicebus.NetworkRuleSetProperties{
 			DefaultAction:       servicebus.DefaultAction(d.Get("default_action").(string)),
 			VirtualNetworkRules: expandServiceBusNamespaceVirtualNetworkRules(d.Get("network_rules").(*schema.Set).List()),
-			IPRules:             expandServiceBusNamespaceIPRules(d.Get("ip_masks").(*schema.Set).List()),
+			IPRules:             expandServiceBusNamespaceIPRules(d.Get("ip_rules").(*schema.Set).List()),
 		},
 	}
 
 	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resourceGroup, namespaceName, parameters); err != nil {
-		return fmt.Errorf("failed to create Service Bus Namespace Network Rule (Namespace %q / Resource Group %q): %+v", namespaceName, resourceGroup, err)
+		return fmt.Errorf("failed to create Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q): %+v", namespaceName, resourceGroup, err)
 	}
 
 	resp, err := client.GetNetworkRuleSet(ctx, resourceGroup, namespaceName)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve Service Bus Namespace Network Rule (Namespace %q / Resource Group %q): %+v", namespaceName, resourceGroup, err)
+		return fmt.Errorf("failed to retrieve Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q): %+v", namespaceName, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Service Bus Namespace Network Rule (Namespace %q / Resource Group %q) ID", namespaceName, resourceGroup)
+		return fmt.Errorf("cannot read Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q) ID", namespaceName, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
-	return resourceServiceBusNamespaceNetworkRuleRead(d, meta)
+	return resourceServiceBusNamespaceNetworkRuleSetRead(d, meta)
 }
 
-func resourceServiceBusNamespaceNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceNetworkRuleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceBusNamespaceNetworkRuleID(d.Id())
+	id, err := parse.ServiceBusNamespaceNetworkRuleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -153,11 +153,11 @@ func resourceServiceBusNamespaceNetworkRuleRead(d *schema.ResourceData, meta int
 	resp, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Service Bus Namespace Network Rule %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Service Bus Namespace Network Rule Set %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to read Service Bus Namespace Network Rule %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("failed to read Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	d.Set("namespace_name", id.NamespaceName)
@@ -170,20 +170,20 @@ func resourceServiceBusNamespaceNetworkRuleRead(d *schema.ResourceData, meta int
 			return fmt.Errorf("failed to set `network_rules`: %+v", err)
 		}
 
-		if err := d.Set("ip_masks", flattenServiceBusNamespaceIPRules(props.IPRules)); err != nil {
-			return fmt.Errorf("failed to set `ip_masks`: %+v", err)
+		if err := d.Set("ip_rules", flattenServiceBusNamespaceIPRules(props.IPRules)); err != nil {
+			return fmt.Errorf("failed to set `ip_rules`: %+v", err)
 		}
 	}
 
 	return nil
 }
 
-func resourceServiceBusNamespaceNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceNetworkRuleSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceBusNamespaceNetworkRuleID(d.Id())
+	id, err := parse.ServiceBusNamespaceNetworkRuleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func resourceServiceBusNamespaceNetworkRuleDelete(d *schema.ResourceData, meta i
 	}
 
 	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName, parameters); err != nil {
-		return fmt.Errorf("failed to delete Service Bus Namespace Network Rule %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("failed to delete Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	return nil

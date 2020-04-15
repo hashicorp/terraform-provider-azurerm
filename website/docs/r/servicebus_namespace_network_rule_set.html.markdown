@@ -1,14 +1,14 @@
 ---
 subcategory: "Messaging"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_servicebus_namespace_network_rule"
+page_title: "Azure Resource Manager: azurerm_servicebus_namespace_network_rule_set"
 description: |-
-  Manages a ServiceBus Namespace Network Rule.
+  Manages a ServiceBus Namespace Network Rule Set Set.
 ---
 
-# azurerm_servicebus_namespace_network_rule
+# azurerm_servicebus_namespace_network_rule_set
 
-Manages a ServiceBus Namespace Network Rule.
+Manages a ServiceBus Namespace Network Rule Set Set.
 
 ## Example Usage
 
@@ -48,7 +48,7 @@ resource "azurerm_subnet" "example" {
   service_endpoints = ["Microsoft.ServiceBus"]
 }
 
-resource "azurerm_servicebus_namespace_network_rule" "example" {
+resource "azurerm_servicebus_namespace_network_rule_set" "example" {
   namespace_name      = azurerm_servicebus_namespace.example.name
   resource_group_name = azurerm_resource_group.example.name
 
@@ -59,7 +59,7 @@ resource "azurerm_servicebus_namespace_network_rule" "example" {
     ignore_missing_vnet_service_endpoint = false
   }
 
-  ip_masks = ["1.1.1.1"]
+  ip_rules = ["1.1.1.1"]
 }
 ```
 
@@ -67,15 +67,15 @@ resource "azurerm_servicebus_namespace_network_rule" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace Network Rule should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace Network Rule Set should exist. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) Specifies the ServiceBus Namespace name to which to attach the ServiceBus Namespace Network Rule. Changing this forces a new resource to be created.
+* `namespace_name` - (Required) Specifies the ServiceBus Namespace name to which to attach the ServiceBus Namespace Network Rule Set. Changing this forces a new resource to be created.
 
-~> **NOTE:** The ServiceBus Namespace must be `Premium` in order to attach a ServiceBus Namespace Network Rule.
+~> **NOTE:** The ServiceBus Namespace must be `Premium` in order to attach a ServiceBus Namespace Network Rule Set.
 
-* `default_action` - (Optional) Specifies the default action for the ServiceBus Namespace Network Rule. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+* `default_action` - (Optional) Specifies the default action for the ServiceBus Namespace Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
-* `ip_masks` - (Optional) A list of IP filter masks that are added to allow access to the ServiceBus Namespace.
+* `ip_rules` - (Optional) A list of IP filter masks that are added to allow access to the ServiceBus Namespace.
 
 * `network_rules` - (Optional) One or more `network_rules` blocks defined below.
 
@@ -85,27 +85,27 @@ A `network_rules` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet you want to allow to access the corresponding ServiceBus Namespace.
 
-* `ignore_missing_vnet_service_endpoint` - (Optional) Should the ServiceBus Namespace Network Rule ignore missing Virtual Network Service Endpoint option in the Subnet? Defaults to `false`.
+* `ignore_missing_vnet_service_endpoint` - (Optional) Should the ServiceBus Namespace Network Rule Set ignore missing Virtual Network Service Endpoint option in the Subnet? Defaults to `false`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the ServiceBus Namespace Network Rule.
+* `id` - The ID of the ServiceBus Namespace Network Rule Set.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace Network Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace Network Rule.
-* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace Network Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Namespace Network Rule.
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace Network Rule Set.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace Network Rule Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace Network Rule Set.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Namespace Network Rule Set.
 
 ## Import
 
 Service Bus Namespace can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_namespace_network_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Servicebus/namespaces/sbns1/networkrulesets/default
+terraform import azurerm_servicebus_namespace_network_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Servicebus/namespaces/sbns1/networkrulesets/default
 ```
