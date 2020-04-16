@@ -88,7 +88,7 @@ func dataSourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, me
 	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: EventHub Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
+			return fmt.Errorf("EventHub Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
 		}
 		return fmt.Errorf("retrieving EventHub Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
