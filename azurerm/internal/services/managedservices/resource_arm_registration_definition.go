@@ -39,14 +39,12 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed: 	  true,
-				//ForceNew:     true,
-				//ValidateFunc: validation.IsUUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
-				//ForceNew: 	  true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -58,13 +56,12 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				//ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
 			"managed_by_tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				//ValidateFunc: validation.IsUUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"authorization": {
@@ -252,8 +249,8 @@ func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	time.Sleep(10 * time.Second)
-	
+	time.Sleep(30 * time.Second)
+
 	_, err = client.Delete(ctx, id.registrationDefinitionId, id.scope)
 	if err != nil {
 		return fmt.Errorf("Error deleting Registration Definition %q at Scope %q: %+v", id.registrationDefinitionId, id.scope, err)

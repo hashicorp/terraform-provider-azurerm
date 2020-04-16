@@ -35,42 +35,31 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 
 			"name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Computed:     true,
 			},
 
 			"description": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				//ValidateFunc: validation.StringLenBetween(3, 128),
+				Computed:     true,
 			},
 
 			"managed_by_tenant_id": {
 				Type:         schema.TypeString,
-				Required:     true,
-				//ValidateFunc: validation.IsUUID,
-			},
-
-			"managed_by_tenant_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				//ValidateFunc: validation.StringLenBetween(3, 128),
+				Computed:     true,
 			},
 
 			"authorization": {
 				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"principal_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
+							Computed:     true,
 						},
 						"role_definition_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsUUID,
+							Computed:     true,
 						},
 					},
 				},
@@ -98,7 +87,7 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", registrationDefinitionId, scope, err)
 	}
 
-	d.SetId(*resp.Name)
+	d.SetId(*resp.ID)
 	d.Set("scope", scope)
 
 	if props := resp.Properties; props != nil {
@@ -108,7 +97,6 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 		d.Set("description", props.Description)
 		d.Set("name", props.RegistrationDefinitionName)
 		d.Set("managed_by_tenant_id", props.ManagedByTenantID)
-		d.Set("managed_by_tenant_name", props.ManagedByTenantName)
 	}
 
 	return nil
