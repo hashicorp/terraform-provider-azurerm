@@ -75,15 +75,15 @@ The following arguments are supported:
 
 * `default_action` - (Optional) Specifies the default action for the ServiceBus Namespace Network Rule Set. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
-* `ip_rules` - (Optional) A list of IP filter masks that are added to allow access to the ServiceBus Namespace.
+* `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the ServiceBus Namespace.
 
-* `network_rules` - (Optional) One or more `network_rules` blocks defined below.
+* `network_rules` - (Optional) One or more `network_rules` blocks as defined below.
 
 ---
 
 A `network_rules` block supports the following:
 
-* `subnet_id` - (Required) The ID of the subnet you want to allow to access the corresponding ServiceBus Namespace.
+* `subnet_id` - (Required) The Subnet ID which should be able to access this ServiceBus Namespace.
 
 * `ignore_missing_vnet_service_endpoint` - (Optional) Should the ServiceBus Namespace Network Rule Set ignore missing Virtual Network Service Endpoint option in the Subnet? Defaults to `false`.
 
