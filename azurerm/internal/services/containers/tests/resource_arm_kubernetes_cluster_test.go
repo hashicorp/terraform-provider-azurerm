@@ -51,6 +51,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"enableNodePublicIP":                          testAccAzureRMKubernetesCluster_enableNodePublicIP,
 			"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
 			"basicLoadBalancerProfile":                    testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
+			"changingLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
 			"prefixedLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
 			"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
 			"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
