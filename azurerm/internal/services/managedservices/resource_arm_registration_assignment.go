@@ -38,7 +38,6 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 			"registration_assignment_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				//ForceNew:     true,
 				Computed: 	  true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -46,7 +45,6 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
-				//ForceNew: 	  true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -84,7 +82,6 @@ func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta 
 	scope := d.Get("scope").(string)
 	expandRegistrationDefinition := true
 	
-
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, registrationAssignmentId, &expandRegistrationDefinition)
 		if err != nil {
@@ -165,7 +162,7 @@ func parseAzureRegistrationAssignmentId(id string) (*registrationAssignmentID, e
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationAssignments/{name} - got %d segments", len(segments))
 	}
 
-	azureRegistrationAssignmentId := registrationAssignmentID{
+	azureRegistrationAssignmentId := registrationAssignmentID {
 		scope: 						segments[0],
 		registrationAssignmentId:  	segments[1],
 	}

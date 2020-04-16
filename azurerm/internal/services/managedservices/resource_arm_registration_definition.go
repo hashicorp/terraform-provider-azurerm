@@ -155,6 +155,7 @@ func expandManagedServicesDefinitionAuthorization(input []interface{}) *[]manage
 		}
 		results = append(results, result)
 	}
+
 	return &results
 }
 
@@ -201,6 +202,7 @@ type registrationDefinitionID struct {
 
 func parseAzureRegistrationDefinitionId(id string) (*registrationDefinitionID, error) {
 	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationDefinitions/")
+
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationDefinitions/{name} - got %d segments", len(segments))
 	}
@@ -248,8 +250,9 @@ func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-
-	time.Sleep(30 * time.Second)
+	// The sleep is needed to ensure the registration assignment is successfully deleted 
+	// before deleting the registration definition. Bug # is logged with the Product team to track this issue. 
+	time.Sleep(20 * time.Second)
 
 	_, err = client.Delete(ctx, id.registrationDefinitionId, id.scope)
 	if err != nil {

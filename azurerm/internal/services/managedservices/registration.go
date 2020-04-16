@@ -22,7 +22,6 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_registration_definition": dataSourceArmRegistrationDefinition(),
-		//"azurerm_registration_assignment": dataSourceArmRegistrationAssignment(),
 	}
 }
 
