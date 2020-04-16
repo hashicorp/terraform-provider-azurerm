@@ -362,6 +362,8 @@ The following attributes are exported:
 
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
+* `kubelet_identity` - A `kubelet_identity` block as defined below.  
+
 ---
 
 A `http_application_routing` block exports the following:
@@ -381,6 +383,16 @@ The `identity` block exports the following:
 * `principal_id` - The principal id of the system assigned identity which is used by master components.
 
 * `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+
+---
+
+The `kubelet_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
 
 ---
 
