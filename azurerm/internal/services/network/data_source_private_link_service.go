@@ -121,14 +121,18 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("alias", props.Alias)
 		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
 
-		if props.AutoApproval.Subscriptions != nil {
-			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
+		if autoApproval := props.AutoApproval; autoApproval != nil {
+			if autoApproval.Subscriptions != nil {
+				if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
+					return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
+				}
 			}
 		}
-		if props.Visibility.Subscriptions != nil {
-			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+		if visibility := props.Visibility; visibility != nil {
+			if visibility.Subscriptions != nil {
+				if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(visibility.Subscriptions)); err != nil {
+					return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+				}
 			}
 		}
 
