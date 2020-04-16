@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_hdinsight_rserver_cluster` - support for the `tls_min_version` property [GH-6440]
 * `azurerm_hdinsight_spark_cluster` - support for the `tls_min_version` property [GH-6440]
 * `azurerm_hdinsight_storm_cluster` - support the `threat_detection_policy` property [GH-6437]
+* `azurerm_kubernetes_cluster` - exporting the `kubelet_identity` [GH-6393]
 * `azurerm_kubernetes_cluster` - support for updating the `managed_outbound_ip_count`, `outbound_ip_prefix_ids` and `outbound_ip_address_ids` fields within the `load_balancer_profile` block [GH-5847]
 * `azurerm_network_interface` - export the `internal_domain_name_suffix` property [GH-6455]
 * `azurerm_policy_definition` - the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
