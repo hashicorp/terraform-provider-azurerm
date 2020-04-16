@@ -144,29 +144,8 @@ func ValidatePrivateLinkSubResourceName(i interface{}, k string) (_ []string, er
 
 func ValidateRouteTableName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
-	if !regexp.MustCompile(`^[a-zA-Z_0-9.-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only word characters, numbers, underscores, periods, and hyphens allowed in %q: %q",
-			k, value))
-	}
-
-	if len(value) > 80 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 80 characters: %q", k, value))
-	}
-
-	if len(value) == 0 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be an empty string: %q", k, value))
-	}
-	if !regexp.MustCompile(`[a-zA-Z0-9_]$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q must end with a word character, number, or underscore: %q", k, value))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9]`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q must start with a word character or number: %q", k, value))
+	if !regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q should be between 1 and 80 characters, start with an alphanumeric, end with an alphanumeric or underscore and can contain alphanumerics, underscores, periods, and hyphens", k))
 	}
 
 	return warnings, errors
