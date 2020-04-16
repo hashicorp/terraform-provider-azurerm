@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccAzureRMDataFactoryDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

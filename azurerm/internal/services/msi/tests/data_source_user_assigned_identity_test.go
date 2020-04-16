@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_user_assigned_identity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
