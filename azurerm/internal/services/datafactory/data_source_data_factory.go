@@ -141,9 +141,11 @@ func dataSourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) erro
 
 		return fmt.Errorf("Error retrieving Data Factory %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Data Factory %q (resource group %q): %+v", name, resourceGroup, err)
+	}
+	d.SetId(*resp.ID)
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
