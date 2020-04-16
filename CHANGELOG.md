@@ -26,6 +26,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_data_factory`- fixing a bug where the ID wasn't set [GH-6492]
 * `azurerm_function_app` - prevent a panic from the API returning an empty IP Security Restriction [GH-6442]
 * `azurerm_machine_learning_workspace` - the `Enterprise` sku will now propertly work [GH-6397]
 
