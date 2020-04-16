@@ -64,6 +64,8 @@ The following arguments are supported:
 
 ---
 
+* `hyper_v_generation` - (Optional) The hypervisor generation of the virtual machine. Possible values are `V1` or `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
+
 * `description` - (Optional) A description of this Shared Image.
 
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image.

@@ -47,6 +47,8 @@ The following attributes are exported:
 
 * `os_type` - The type of Operating System present in this Shared Image.
 
+* `hyper_v_generation` - The hypervisor generation of the virtual machine.
+
 * `privacy_statement_uri` - The URI containing the Privacy Statement for this Shared Image.
 
 * `release_note_uri` - The URI containing the Release Notes for this Shared Image.

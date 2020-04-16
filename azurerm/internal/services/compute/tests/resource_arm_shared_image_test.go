@@ -20,7 +20,7 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_basic(data),
+				Config: testAccAzureRMSharedImage_basic(data, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
@@ -30,6 +30,27 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSharedImage_basic(data, "V2"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V2"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 
@@ -39,7 +60,7 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_basic(data),
+				Config: testAccAzureRMSharedImage_basic(data, ""),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
@@ -58,10 +79,11 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_complete(data),
+				Config: testAccAzureRMSharedImage_complete(data, "V1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Wubba lubba dub dub"),
 					resource.TestCheckResourceAttr(data.ResourceName, "eula", "Do you agree there's infinite Rick's and Infinite Morty's?"),
 					resource.TestCheckResourceAttr(data.ResourceName, "privacy_statement_uri", "https://council.of.ricks/privacy-statement"),
@@ -133,7 +155,12 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 	}
 }
 
-func testAccAzureRMSharedImage_basic(data acceptance.TestData) string {
+func testAccAzureRMSharedImage_basic(data acceptance.TestData, hyperVGen string) string {
+	hyperVGenAttr := ""
+	if hyperVGen != "" {
+		hyperVGenAttr = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -157,17 +184,19 @@ resource "azurerm_shared_image" "test" {
   location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
+  %s
+
   identifier {
     publisher = "AccTesPublisher%d"
     offer     = "AccTesOffer%d"
     sku       = "AccTesSku%d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, hyperVGenAttr, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSharedImage_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSharedImage_basic(data)
+	template := testAccAzureRMSharedImage_basic(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -187,7 +216,7 @@ resource "azurerm_shared_image" "import" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSharedImage_complete(data acceptance.TestData) string {
+func testAccAzureRMSharedImage_complete(data acceptance.TestData, hyperVGen string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -210,6 +239,7 @@ resource "azurerm_shared_image" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
   os_type               = "Linux"
+  hyper_v_generation    = "%s"
   description           = "Wubba lubba dub dub"
   eula                  = "Do you agree there's infinite Rick's and Infinite Morty's?"
   privacy_statement_uri = "https://council.of.ricks/privacy-statement"
@@ -221,5 +251,5 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, hyperVGen, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
