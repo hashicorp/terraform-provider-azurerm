@@ -512,7 +512,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlDBBlobAuditingPolicies(auditingPolicies),
 		}
 		if _, err = auditingClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, auditingProps); err != nil {
-			return fmt.Errorf("Error issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverName, resourceGroup, err)
+			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverName, resourceGroup, err)
 		}
 	}
 
@@ -602,12 +602,12 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
 	auditingResp, err := auditingClient.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Database %q: %v Blob Auditing Policies", name, err)
+		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", name, err)
 	}
 
 	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)
 	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
-		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
+		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
