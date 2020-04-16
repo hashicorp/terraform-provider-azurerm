@@ -3,11 +3,11 @@ package managedapplications
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -63,12 +62,7 @@ func resourceManagedApplication() *schema.Resource {
 				}, false),
 			},
 
-			"managed_resource_group_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: resource.ValidateResourceGroupID,
-			},
+			"target_resource_group_name": azure.SchemaResourceGroupName(),
 
 			"application_definition_id": {
 				Type:         schema.TypeString,
@@ -77,11 +71,11 @@ func resourceManagedApplication() *schema.Resource {
 			},
 
 			"parameters": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				StateFunc:        azure.NormalizeJson,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"plan": {
@@ -91,24 +85,29 @@ func resourceManagedApplication() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"product": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"publisher": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"version": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"promotion_code": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -142,25 +141,36 @@ func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interfa
 	parameters := managedapplications.Application{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 		Kind:     utils.String(d.Get("kind").(string)),
-		ApplicationProperties: &managedapplications.ApplicationProperties{
-			ManagedResourceGroupID: utils.String(d.Get("managed_resource_group_id").(string)),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v, ok := d.GetOk("target_resource_group_name"); ok {
+		targetResourceGroupId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", meta.(*clients.Client).Account.SubscriptionId, v)
+		parameters.ApplicationProperties = &managedapplications.ApplicationProperties{
+			ManagedResourceGroupID: utils.String(targetResourceGroupId),
+		}
+	}
 	if v, ok := d.GetOk("application_definition_id"); ok {
-		parameters.ApplicationDefinitionID = utils.String(v.(string))
+		a := v.(string)
+		b := utils.String(a)
+		parameters.ApplicationDefinitionID = b
 	}
 	if v, ok := d.GetOk("plan"); ok {
 		parameters.Plan = expandManagedApplicationPlan(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("parameters"); ok {
-		expandedParams, err := structure.ExpandJsonFromString(v.(string))
-		if err != nil {
-			return fmt.Errorf("unable to parse parameters: %s", err)
+		params := v.(map[string]interface{})
+
+		newParams := make(map[string]interface{}, len(params))
+		for key, val := range params {
+			newParams[key] = struct {
+				Value interface{} `json:"value"`
+			}{
+				Value: val,
+			}
 		}
 
-		parameters.Parameters = &expandedParams
+		parameters.Parameters = &newParams
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
@@ -211,22 +221,16 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 	if props := resp.ApplicationProperties; props != nil {
-		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
+		parsedManagedResourceGroupID := strings.Split(*props.ManagedResourceGroupID, "/")
+		d.Set("target_resource_group_name", parsedManagedResourceGroupID[len(parsedManagedResourceGroupID)-1])
 		d.Set("application_definition_id", props.ApplicationDefinitionID)
 
-		if params := props.Parameters; params != nil {
-			paramsVal := params.(map[string]interface{})
-			for _, v := range paramsVal {
-				if v != nil {
-					delete(v.(map[string]interface{}), "type")
-				}
+		if v := props.Parameters; v != nil {
+			params := make(map[string]interface{})
+			for key, value := range v.(map[string]interface{}) {
+				params[key] = value.(map[string]interface{})["value"]
 			}
-			json, err := structure.FlattenJsonToString(paramsVal)
-			if err != nil {
-				return fmt.Errorf("failed to serialize JSON from Parameters: %+v", err)
-			}
-
-			d.Set("parameters", json)
+			d.Set("parameters", params)
 		}
 	}
 

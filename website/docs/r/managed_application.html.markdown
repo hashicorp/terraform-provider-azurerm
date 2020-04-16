@@ -44,23 +44,18 @@ resource "azurerm_managed_application_definition" "example" {
 }
 
 resource "azurerm_managed_application" "example" {
-  name                      = "example-managedapplication"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  kind                      = "ServiceCatalog"
-  managed_resource_group_id = "/subscriptions/${data.azurerm_client_config.example.subscription_id}/resourceGroups/infrastructureGroup"
-  application_definition_id = azurerm_managed_application_definition.example.id
+  name                       = "example-managedapplication"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  kind                       = "ServiceCatalog"
+  target_resource_group_name = "infrastructureGroup"
+  application_definition_id  = azurerm_managed_application_definition.example.id
 
-  parameters = <<PARAMETERS
-    {
-      "storageAccountNamePrefix": {
-         "value": "demostorags"
-      },
-      "storageAccountType": {
-         "value": "Standard_LRS"
-      }
-    }
-  PARAMETERS
+  parameters = {
+    location                 = azurerm_resource_group.example.location
+    storageAccountNamePrefix = "storeNamePrefix"
+    storageAccountType       = "Standard_LRS"
+  }
 }
 ```
 
@@ -76,7 +71,7 @@ The following arguments are supported:
 
 * `kind` - (Required) The kind of the managed application. Possible values are `MarketPlace` and `ServiceCatalog`.
 
-* `managed_resource_group_id` - (Required) The ID of the managed resource group.
+* `target_resource_group_name` - (Required) The name of the target resource group which includes resources managed by Managed Application.
 
 * `application_definition_id` - (Optional) The fully qualified path of managed application definition ID.
 
