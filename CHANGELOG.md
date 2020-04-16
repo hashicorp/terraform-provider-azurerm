@@ -7,8 +7,8 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v41.2.0` [GH-6419]
-* Data Source: `azurerm_policy_definition`: can now lookup with `name` [GH-6275]
-* Data Source: `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
+* Data Source: `azurerm_policy_definition` - can now lookup with `name` [GH-6275]
+* Data Source: `azurerm_policy_definition` - the field `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
 * `azurerm_application_insights` - support for the `disable_ip_masking` property [GH-6354]
 * `azurerm_function_app` - support for the `pre_warmed_instance_count` property [GH-6333]
 * `azurerm_hdinsight_hadoop_cluster` - support for the `tls_min_version` property [GH-6440]
@@ -20,7 +20,7 @@ IMPROVEMENTS:
 * `azurerm_hdinsight_spark_cluster` - support for the `tls_min_version` property [GH-6440]
 * `azurerm_hdinsight_storm_cluster` - support the `threat_detection_policy` property [GH-6437]
 * `azurerm_network_interface` - export the `internal_domain_name_suffix` property [GH-6455]
-* `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
+* `azurerm_policy_definition` - the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
 * `azurerm_sql_server` - support for the `connection_policy` property [GH-6438]
 * `azurerm_virtual_network` - export the `guid` attribute [GH-6445]
 
@@ -28,7 +28,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_data_factory`- fixing a bug where the ID wasn't set [GH-6492]
 * `azurerm_function_app` - prevent a panic from the API returning an empty IP Security Restriction [GH-6442]
-* `azurerm_machine_learning_workspace` - the `Enterprise` sku will now propertly work [GH-6397]
+* `azurerm_machine_learning_workspace` - the `Enterprise` sku will now properly work [GH-6397]
 
 ## 2.5.0 (April 09, 2020)
 
