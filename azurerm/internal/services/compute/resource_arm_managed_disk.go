@@ -407,7 +407,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 
 				// could also be the provisioning state which we're not bothered with here
 				state := strings.ToLower(*status.Code)
-				if !strings.HasPrefix(state, "PowerState/") {
+				if !strings.HasPrefix(state, "powerstate/") {
 					continue
 				}
 
