@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,9 +31,11 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 		Read:   resourceArmPostgreSQLServerRead,
 		Update: resourceArmPostgreSQLServerUpdate,
 		Delete: resourceArmPostgreSQLServerDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.PostgresServerServerID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -91,7 +94,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					string(postgresql.OneZero),
 					string(postgresql.OneZeroFullStopZero),
 				}, true),
-				DiffSuppressFunc: suppress.CaseDifference, // make case sensitive in 3.0
+				DiffSuppressFunc: suppress.CaseDifference, // TODO: make case sensitive in 3.0
 			},
 
 			"storage_profile": {
@@ -167,7 +170,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"auto_grow_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				Computed:      true, // remove in 3.0 and default to true
+				Computed:      true, // TODO: remove in 3.0 and default to true
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
 
@@ -182,15 +185,14 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"backup_geo_redundant_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				Computed:      true, // remove in 2.0 and default to false
+				Computed:      true, // TODO: remove in 2.0 and default to false
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
 			"create_mode": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          string(postgresql.CreateModeDefault),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(postgresql.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.CreateModeDefault),
 					string(postgresql.CreateModeGeoRestore),
@@ -209,7 +211,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Default:  false,
 			},
 
 			"public_network_access_enabled": {
@@ -331,10 +332,6 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 
 	storage := expandAzureRmPostgreSQLStorageProfile(d)
 
-	/*if *storage.StorageMB == 0 && storage.StorageAutogrow == postgresql.StorageAutogrowDisabled {
-		return fmt.Errorf("`storage.storage_mb needs to beset if auto_grow", name, resourceGroup, err)
-	}*/
-
 	var props postgresql.BasicServerPropertiesForCreate
 	switch mode {
 	case postgresql.CreateModeDefault:
@@ -403,7 +400,6 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 			PublicNetworkAccess:      publicAccess,
 			MinimalTLSVersion:        tlsMin,
 			SslEnforcement:           ssl,
-			StorageProfile:           nil,
 			Version:                  version,
 		}
 	}
@@ -530,56 +526,33 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("sku_name", sku.Name)
 	}
 
-	if p := resp.ServerProperties; p != nil {
+	if props := resp.ServerProperties; props != nil {
 		if location := resp.Location; location != nil {
 			d.Set("location", azure.NormalizeLocation(*location))
 		}
 
-		d.Set("administrator_login", p.AdministratorLogin)
-		d.Set("ssl_enforcement", string(p.SslEnforcement))
-		d.Set("ssl_minimal_tls_version_enforced", p.MinimalTLSVersion)
-		d.Set("version", string(p.Version))
+		d.Set("administrator_login", props.AdministratorLogin)
+		d.Set("ssl_enforcement", string(props.SslEnforcement))
+		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
+		d.Set("version", string(props.Version))
 
-		if p.InfrastructureEncryption == postgresql.InfrastructureEncryptionEnabled {
-			d.Set("infrastructure_encryption_enabled", true)
-		} else if p.InfrastructureEncryption == postgresql.InfrastructureEncryptionDisabled {
-			d.Set("infrastructure_encryption_enabled", false)
-		}
+		d.Set("infrastructure_encryption_enabled", props.InfrastructureEncryption == postgresql.InfrastructureEncryptionEnabled)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == postgresql.PublicNetworkAccessEnumEnabled)
+		d.Set("ssl_enforcement_enabled", props.SslEnforcement == postgresql.SslEnforcementEnumEnabled)
 
-		if p.PublicNetworkAccess == postgresql.PublicNetworkAccessEnumEnabled {
-			d.Set("public_network_access_enabled", true)
-		} else if p.PublicNetworkAccess == postgresql.PublicNetworkAccessEnumDisabled {
-			d.Set("public_network_access_enabled", false)
-		}
-
-		if p.SslEnforcement == postgresql.SslEnforcementEnumEnabled {
-			d.Set("ssl_enforcement_enabled", true)
-		} else if p.SslEnforcement == postgresql.SslEnforcementEnumDisabled {
-			d.Set("ssl_enforcement_enabled", false)
-		}
-
-		if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(p.StorageProfile)); err != nil {
+		if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(props.StorageProfile)); err != nil {
 			return fmt.Errorf("setting `storage_profile`: %+v", err)
 		}
 
-		if storage := p.StorageProfile; storage != nil {
+		if storage := props.StorageProfile; storage != nil {
 			d.Set("storage_mb", storage.StorageMB)
 			d.Set("backup_retention_days", storage.BackupRetentionDays)
-
-			if storage.StorageAutogrow == postgresql.StorageAutogrowEnabled {
-				d.Set("auto_grow_enabled", true)
-			} else if storage.StorageAutogrow == postgresql.StorageAutogrowDisabled {
-				d.Set("auto_grow_enabled", false)
-			}
-			if storage.GeoRedundantBackup == postgresql.Enabled {
-				d.Set("backup_geo_redundant_enabled", true)
-			} else if storage.GeoRedundantBackup == postgresql.Disabled {
-				d.Set("backup_geo_redundant_enabled", false)
-			}
+			d.Set("auto_grow_enabled", storage.StorageAutogrow == postgresql.StorageAutogrowEnabled)
+			d.Set("backup_geo_redundant_enabled", storage.GeoRedundantBackup == postgresql.Enabled)
 		}
 
 		// Computed
-		d.Set("fqdn", p.FullyQualifiedDomainName)
+		d.Set("fqdn", props.FullyQualifiedDomainName)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -658,10 +631,9 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
+		storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
 		if v.(bool) {
 			storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
-		} else {
-			storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
 		}
 	}
 
@@ -670,10 +642,9 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 	}
 
 	if v, ok := d.GetOk("backup_geo_redundant_enabled"); ok {
+		storage.GeoRedundantBackup = postgresql.Disabled
 		if v.(bool) {
 			storage.GeoRedundantBackup = postgresql.Enabled
-		} else {
-			storage.GeoRedundantBackup = postgresql.Disabled
 		}
 	}
 
