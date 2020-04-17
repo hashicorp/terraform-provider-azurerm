@@ -52,15 +52,9 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 			"registration_definition_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew: 	  true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			//"expand_registration_definition": {
-			//	Type:     schema.TypeBool,
-			//	Optional: true,
-			//	ForceNew: true,
-			//	Default:  false,
-			//},
 		},
 	}
 }
@@ -185,6 +179,10 @@ func resourceArmRegistrationAssignmentDelete(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error deleting Registration Assignment %q at Scope %q: %+v", id.registrationAssignmentId, id.scope, err)
 	}
+	
+	// The sleep is needed to ensure the registration assignment is successfully deleted.
+	// Bug # is logged with the Product team to track this issue. 
+	time.Sleep(20 * time.Second)
 
 	return nil
 }

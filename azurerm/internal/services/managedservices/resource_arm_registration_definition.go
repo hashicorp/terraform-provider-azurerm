@@ -46,6 +46,7 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew: 	  true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -234,8 +235,8 @@ func flattenManagedServicesDefinitionAuthorization(input *[]managedservices.Auth
 		}
 
 		results = append(results, map[string]interface{}{
-			"role_definition_id":   roleDefinitionId,
-			"principal_id": principalId,
+			"role_definition_id":	roleDefinitionId,
+			"principal_id": 		principalId,
 		})
 	}
 
@@ -251,10 +252,7 @@ func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	// The sleep is needed to ensure the registration assignment is successfully deleted 
-	// before deleting the registration definition. Bug # is logged with the Product team to track this issue. 
-	time.Sleep(20 * time.Second)
-
+	
 	_, err = client.Delete(ctx, id.registrationDefinitionId, id.scope)
 	if err != nil {
 		return fmt.Errorf("Error deleting Registration Definition %q at Scope %q: %+v", id.registrationDefinitionId, id.scope, err)
