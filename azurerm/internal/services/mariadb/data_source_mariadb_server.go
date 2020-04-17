@@ -111,11 +111,17 @@ func dataSourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Azure MariaDB Server %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("MariaDB Server %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Azure MariaDB Server %s: %+v", name, err)
+		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): `id` was nil", name, resourceGroup)
+	}
+
+	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)

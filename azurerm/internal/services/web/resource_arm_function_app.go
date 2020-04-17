@@ -251,6 +251,11 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.FtpsOnly),
 							}, false),
 						},
+						"pre_warmed_instance_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 10),
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -788,6 +793,8 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
+	siteConfig.PreWarmedInstanceCount = utils.Int32(int32(config["pre_warmed_instance_count"].(int)))
+
 	return siteConfig, nil
 }
 
@@ -818,6 +825,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
+	}
+
+	if input.PreWarmedInstanceCount != nil {
+		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
 	}
 
 	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)

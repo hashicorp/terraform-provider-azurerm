@@ -32,7 +32,7 @@ func TestAccAzureRMHPCCache_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
+func TestAccAzureRMHPCCache_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return

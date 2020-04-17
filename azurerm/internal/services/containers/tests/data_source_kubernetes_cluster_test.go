@@ -42,12 +42,12 @@ func testAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
+func TestAccDataSourceAzureRMKubernetesCluster_privateCluster(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceAzureRMKubernetesCluster_privateLink(t)
+	testAccDataSourceAzureRMKubernetesCluster_privateCluster(t)
 }
 
-func testAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
+func testAccDataSourceAzureRMKubernetesCluster_privateCluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -56,11 +56,11 @@ func testAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, true),
+				Config: testAccAzureRMKubernetesCluster_privateClusterConfig(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "true"),
 				),
 			},
 			data.ImportStep("service_principal.0.client_secret"),

@@ -91,7 +91,7 @@ func (client ProfilesClient) CreatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client ProfilesClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -270,7 +270,7 @@ func (client ProfilesClient) GenerateSsoURIPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -354,7 +354,7 @@ func (client ProfilesClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -426,7 +426,7 @@ func (client ProfilesClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -546,7 +546,7 @@ func (client ProfilesClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -668,7 +668,7 @@ func (client ProfilesClient) ListResourceUsagePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -790,7 +790,7 @@ func (client ProfilesClient) ListSupportedOptimizationTypesPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -870,7 +870,7 @@ func (client ProfilesClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-10-12"
+	const APIVersion = "2019-04-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
