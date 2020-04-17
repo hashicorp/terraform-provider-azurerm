@@ -397,7 +397,7 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[s
 		index := map[string]interface{}{}
 		systemIndex := map[string]interface{}{}
 
-		if v.Key != nil && v.Key.Keys != nil {
+		if v.Key != nil && v.Key.Keys != nil && len(*v.Key.Keys) > 0 {
 			key := (*v.Key.Keys)[0]
 
 			switch key {
