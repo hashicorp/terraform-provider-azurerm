@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	loganalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -48,7 +49,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"display_name": {
@@ -139,9 +140,12 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 			SeveritiesFilter: expandSeverityFilter(d.Get("severity_filter").(*schema.Set).List()),
 		},
 	}
-	if whitelist := utils.ExpandStringSlice(d.Get("text_whitelist").(*schema.Set).List()); whitelist != nil && len(*whitelist) != 0 {
-		param.DisplayNamesFilter = whitelist
+
+	// If `text_whitelist` is set, it has to at least contain one item.
+	if whitelist := d.Get("text_whitelist").(*schema.Set).List(); len(whitelist) != 0 {
+		param.DisplayNamesFilter = utils.ExpandStringSlice(whitelist)
 	}
+
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
 		param.Etag = utils.String(d.Get("etag").(string))
