@@ -349,7 +349,6 @@ func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interfac
 	}
 
 	if properties := jsonTable.JSONDatasetTypeProperties; properties != nil {
-
 		if httpServerLocation, ok := properties.Location.AsHTTPServerLocation(); ok {
 			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(httpServerLocation)); err != nil {
 				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
@@ -367,7 +366,6 @@ func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interfac
 		} else {
 			d.Set("encoding", encodingName)
 		}
-
 	}
 
 	if folder := jsonTable.Folder; folder != nil {

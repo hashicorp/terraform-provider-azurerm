@@ -390,7 +390,6 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 	}
 
 	if properties := delimited_textTable.DelimitedTextDatasetTypeProperties; properties != nil {
-
 		if httpServerLocation, ok := properties.Location.AsHTTPServerLocation(); ok {
 			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(httpServerLocation)); err != nil {
 				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
