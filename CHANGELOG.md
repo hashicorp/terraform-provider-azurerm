@@ -4,6 +4,10 @@ IMPROVEMENTS:
 
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
 
+BUG FIXES:
+
+* Data Source: `azurerm_private_link_service` - fixing a crash when parsing the response [GH-6504]
+
 ## 2.6.0 (April 16, 2020)
 
 FEATURES:
