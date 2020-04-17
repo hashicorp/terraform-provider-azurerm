@@ -302,17 +302,15 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			d.Set("shard_key", k)
 		}
 
-		if props.Indexes != nil {
-			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(props.Indexes)
-			if err := d.Set("default_ttl_seconds", ttl); err != nil {
-				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
-			}
-			if err := d.Set("index", indexes); err != nil {
-				return fmt.Errorf("failed to set `index`: %+v", err)
-			}
-			if err := d.Set("system_indexes", systemIndexes); err != nil {
-				return fmt.Errorf("failed to set `system_indexes`: %+v", err)
-			}
+		indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(props.Indexes)
+		if err := d.Set("default_ttl_seconds", ttl); err != nil {
+			return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
+		}
+		if err := d.Set("index", indexes); err != nil {
+			return fmt.Errorf("failed to set `index`: %+v", err)
+		}
+		if err := d.Set("system_indexes", systemIndexes); err != nil {
+			return fmt.Errorf("failed to set `system_indexes`: %+v", err)
 		}
 	}
 
@@ -391,6 +389,9 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[s
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int32
+	if input == nil {
+		return &indexes, &systemIndexes, ttl
+	}
 
 	for _, v := range *input {
 		index := map[string]interface{}{}

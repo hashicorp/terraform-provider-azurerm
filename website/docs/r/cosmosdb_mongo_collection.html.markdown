@@ -70,7 +70,7 @@ The `system_indexes` block supports the following:
 
 * `keys` - The list of system keys which are not settable for each Cosmos DB Mongo Collection.
 
-* `unique` - The unique status of the index.
+* `unique` - Identifies whether the table contains no duplicate values.
 
 ## Timeouts
 
