@@ -240,9 +240,8 @@ The following arguments are supported:
 
 * `routing_weight` - (Optional) The routing weight. Defaults to `10`.
 
-* `shared_key` - (Optional) The shared IPSec key. A key must be provided if a
-    Site-to-Site or VNet-to-VNet connection is created whereas ExpressRoute
-    connections do not need a shared key.
+* `shared_key` - (Optional) The shared IPSec key. A key could be provided if a
+    Site-to-Site, VNet-to-VNet or ExpressRoute connection is created.
 
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible
     values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
