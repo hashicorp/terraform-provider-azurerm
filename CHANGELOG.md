@@ -1,4 +1,9 @@
 ## 2.7.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
+
 ## 2.6.0 (April 16, 2020)
 
 FEATURES:
