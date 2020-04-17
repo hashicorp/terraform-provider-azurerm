@@ -42,6 +42,11 @@ func TestSentinelAlertRuleID(t *testing.T) {
 			Error: true,
 		},
 		{
+			Name:  "Incorrect Caseing",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/AlertRules/rule1",
+			Error: true,
+		},
+		{
 			Name:  "Correct Case",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1",
 			Expect: &SentinelAlertRuleId{

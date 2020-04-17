@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of this Sentinel MS Security Incident Alert Rule.
 
-* `enabled` - (Optional) Should this Sentinel MS Security Incident Alert Rule be enabled. Defaults to `true`.
+* `enabled` - (Optional) Should this Sentinel MS Security Incident Alert Rule be enabled? Defaults to `true`.
 
 * `text_whitelist` - (Optional) Only create incidents from alerts when alert name contain text in this list. No filter will happen if this field is absent.
 
