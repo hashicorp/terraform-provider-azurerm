@@ -231,6 +231,29 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"kubernetes_version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -316,6 +339,27 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"kubelet_identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"object_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"user_assigned_identity_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"linux_profile": {
@@ -516,6 +560,11 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
 
+		kubeletIdentity := flattenKubernetesClusterIdentityProfile(props.IdentityProfile)
+		if err := d.Set("kubelet_identity", kubeletIdentity); err != nil {
+			return fmt.Errorf("setting `kubelet_identity`: %+v", err)
+		}
+
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
@@ -557,6 +606,10 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			d.Set("kube_admin_config_raw", "")
 			d.Set("kube_admin_config", []interface{}{})
 		}
+	}
+
+	if err := d.Set("identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(profile)
