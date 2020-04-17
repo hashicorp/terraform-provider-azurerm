@@ -166,7 +166,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlssql%d"
+  name                = "Acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo2;AccountKey=bar"
@@ -174,7 +174,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   description         = "test description"
 
   parameters = {
-    foo = "test1"
+    foO = "test1"
     bar = "test2"
   }
 
@@ -209,11 +209,11 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   
   connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo3;AccountKey=bar"
-  annotations         = ["test1", "test2"]
+  annotations         = ["Test1", "Test2"]
   description         = "test description 2"
 
   parameters = {
-    foo  = "test1"
+    foo  = "Test1"
     bar  = "test2"
     buzz = "test3"
   }

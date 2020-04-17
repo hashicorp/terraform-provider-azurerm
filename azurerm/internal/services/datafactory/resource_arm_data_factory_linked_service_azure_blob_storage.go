@@ -119,21 +119,14 @@ func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.Resour
 		}
 	}
 
-	connectionString := d.Get("connection_string").(string)
-	secureString := datafactory.SecureString{
-		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
-	}
-
-	blobProperties := &datafactory.AzureBlobStorageLinkedServiceTypeProperties{
-		ConnectionString: &secureString,
-	}
-
-	description := d.Get("description").(string)
-
 	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
-		Description: &description,
-		AzureBlobStorageLinkedServiceTypeProperties: blobProperties,
+		Description: utils.String(d.Get("description").(string)),
+		AzureBlobStorageLinkedServiceTypeProperties: &datafactory.AzureBlobStorageLinkedServiceTypeProperties{
+			ConnectionString: &datafactory.SecureString{
+				Value: utils.String(d.Get("connection_string").(string)),
+				Type:  datafactory.TypeSecureString,
+			},
+		},
 		Type: datafactory.TypeAzureBlobStorage,
 	}
 
@@ -213,7 +206,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 
 	annotations := flattenDataFactoryAnnotations(blobStorage.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations`: %+v", err)
+		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure Blob Storage %q (Data Factory %q) / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	parameters := flattenDataFactoryParameters(blobStorage.Parameters)
