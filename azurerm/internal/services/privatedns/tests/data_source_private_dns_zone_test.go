@@ -141,7 +141,7 @@ func testAccDataSourcePrivateDNSZone_onlyName(data acceptance.TestData, resource
 %s
 
 data "azurerm_private_dns_zone" "test" {
-  name       = azurerm_private_dns_zone.test.name
+  name = azurerm_private_dns_zone.test.name
 }
 `, template)
 }
