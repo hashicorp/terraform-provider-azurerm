@@ -330,12 +330,12 @@ func testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting(t *testing.T
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_privateClusterOn(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_privateLinkOn(t)
+	testAccAzureRMKubernetesCluster_privateClusterOn(t)
 }
 
-func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
+func testAccAzureRMKubernetesCluster_privateClusterOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -344,11 +344,11 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, true),
+				Config: testAccAzureRMKubernetesCluster_privateClusterConfig(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -356,12 +356,12 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_privateClusterOff(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_privateLinkOff(t)
+	testAccAzureRMKubernetesCluster_privateClusterOff(t)
 }
 
-func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
+func testAccAzureRMKubernetesCluster_privateClusterOff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -370,10 +370,10 @@ func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, false),
+				Config: testAccAzureRMKubernetesCluster_privateClusterConfig(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_cluster_enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -1072,7 +1072,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, enablePrivateLink bool) string {
+func testAccAzureRMKubernetesCluster_privateClusterConfig(data acceptance.TestData, enablePrivateCluster bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1084,11 +1084,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                 = "acctestaks%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  dns_prefix           = "acctestaks%d"
-  private_link_enabled = %t
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  private_cluster_enabled = %t
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1113,7 +1113,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateLink, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(data acceptance.TestData) string {
