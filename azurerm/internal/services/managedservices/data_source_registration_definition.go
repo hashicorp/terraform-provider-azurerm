@@ -2,8 +2,8 @@ package managedservices
 
 import (
 	"fmt"
-	"time"
 	"log"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -34,18 +34,18 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 			},
 
 			"name": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"description": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"managed_by_tenant_id": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"authorization": {
@@ -54,12 +54,16 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"principal_id": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"role_definition_id": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"role_definition_name": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -89,9 +93,10 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 
 	d.SetId(*resp.ID)
 	d.Set("scope", scope)
+	authorization := d.Get("authorization").(*schema.Set).List()
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(props.Authorizations)); err != nil {
+		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(authorization)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)

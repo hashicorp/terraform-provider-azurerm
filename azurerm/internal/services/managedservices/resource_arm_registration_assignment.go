@@ -2,9 +2,9 @@ package managedservices
 
 import (
 	"fmt"
-	"time"
-	"strings"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	"github.com/hashicorp/go-uuid"
@@ -38,8 +38,8 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 			"registration_assignment_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed: 	  true,
-				ForceNew: 	  true,
+				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
@@ -52,7 +52,7 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 			"registration_definition_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew: 	  true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -73,10 +73,10 @@ func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta 
 
 		registrationAssignmentId = uuid
 	}
-	
+
 	scope := d.Get("scope").(string)
 	expandRegistrationDefinition := true
-	
+
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, registrationAssignmentId, &expandRegistrationDefinition)
 		if err != nil {
@@ -90,9 +90,9 @@ func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
-	parameters := managedservices.RegistrationAssignment {
+	parameters := managedservices.RegistrationAssignment{
 		Properties: &managedservices.RegistrationAssignmentProperties{
-			RegistrationDefinitionID:	utils.String(d.Get("registration_definition_id").(string)),
+			RegistrationDefinitionID: utils.String(d.Get("registration_definition_id").(string)),
 		},
 	}
 
@@ -147,8 +147,8 @@ func resourceArmRegistrationAssignmentRead(d *schema.ResourceData, meta interfac
 }
 
 type registrationAssignmentID struct {
-	scope 						string
-	registrationAssignmentId 	string
+	scope                    string
+	registrationAssignmentId string
 }
 
 func parseAzureRegistrationAssignmentId(id string) (*registrationAssignmentID, error) {
@@ -157,9 +157,9 @@ func parseAzureRegistrationAssignmentId(id string) (*registrationAssignmentID, e
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationAssignments/{name} - got %d segments", len(segments))
 	}
 
-	azureRegistrationAssignmentId := registrationAssignmentID {
-		scope: 						segments[0],
-		registrationAssignmentId:  	segments[1],
+	azureRegistrationAssignmentId := registrationAssignmentID{
+		scope:                    segments[0],
+		registrationAssignmentId: segments[1],
 	}
 
 	return &azureRegistrationAssignmentId, nil
@@ -179,9 +179,9 @@ func resourceArmRegistrationAssignmentDelete(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error deleting Registration Assignment %q at Scope %q: %+v", id.registrationAssignmentId, id.scope, err)
 	}
-	
+
 	// The sleep is needed to ensure the registration assignment is successfully deleted.
-	// Bug # is logged with the Product team to track this issue. 
+	// Bug # is logged with the Product team to track this issue.
 	time.Sleep(20 * time.Second)
 
 	return nil
