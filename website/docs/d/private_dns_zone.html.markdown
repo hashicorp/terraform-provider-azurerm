@@ -39,7 +39,6 @@ DNS Zones in your subscription that matches `name` will be returned.
 * `max_number_of_virtual_network_links` - Maximum number of Virtual Networks that can be linked to this Private Zone.
 * `max_number_of_virtual_network_links_with_registration` - Maximum number of Virtual Networks that can be linked to this Private Zone with registration enabled.
 * `number_of_record_sets` - The number of recordsets currently in the zone.
-* `name_servers` - A list of values that make up the NS record for the zone.
 * `tags` - A mapping of tags for the zone.
 
 ## Timeouts
