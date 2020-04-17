@@ -91,15 +91,16 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"text_whitelist": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
-			"etag": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 		},
 	}
@@ -136,7 +137,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 			ProductFilter:    securityinsight.MicrosoftSecurityProductName(d.Get("product_filter").(string)),
 			DisplayName:      utils.String(d.Get("display_name").(string)),
 			Description:      utils.String(d.Get("description").(string)),
-			Enabled:          utils.Bool(true),
+			Enabled:          utils.Bool(d.Get("enabled").(bool)),
 			SeveritiesFilter: expandSeverityFilter(d.Get("severity_filter").(*schema.Set).List()),
 		},
 	}
@@ -148,7 +149,15 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		param.Etag = utils.String(d.Get("etag").(string))
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
+		}
+
+		if err := assertAlertRuleKind(resp.Value, securityinsight.MicrosoftSecurityIncidentCreation); err != nil {
+			return fmt.Errorf("asserting alert rule of %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
+		}
+		param.Etag = resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule).Etag
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.Name, name, param); err != nil {
@@ -201,26 +210,12 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 	if err != nil {
 		return fmt.Errorf("retrieving Log Analytics Workspace %q (Resource Group: %q) where this Alert Rule belongs to: %+v", id.Workspace, id.ResourceGroup, err)
 	}
-	workspaceID := ""
-	if workspaceResp.ID != nil {
-		workspaceID = *workspaceResp.ID
-	}
-	d.Set("log_analytics_workspace_id", workspaceID)
-
+	d.Set("log_analytics_workspace_id", workspaceResp.ID)
 	if prop := rule.MicrosoftSecurityIncidentCreationAlertRuleProperties; prop != nil {
 		d.Set("product_filter", string(prop.ProductFilter))
-
-		displayName := ""
-		if prop.DisplayName != nil {
-			displayName = *prop.DisplayName
-		}
-		d.Set("display_name", displayName)
-
-		description := ""
-		if prop.Description != nil {
-			description = *prop.Description
-		}
-		d.Set("description", description)
+		d.Set("display_name", prop.DisplayName)
+		d.Set("description", prop.Description)
+		d.Set("enabled", prop.Enabled)
 
 		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
@@ -229,12 +224,6 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 			return fmt.Errorf(`setting "severity_filter": %+v`, err)
 		}
 	}
-
-	etag := ""
-	if rule.Etag != nil {
-		etag = *rule.Etag
-	}
-	d.Set("etag", etag)
 
 	return nil
 }
