@@ -30,9 +30,9 @@ func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedFileShare_base(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -59,9 +59,9 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedFileShare_requiresImport),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedFileShare_base(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -78,22 +78,24 @@ func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
-			{ // Create resources and link first backup policy id
+			{
+				// Create resources and link first backup policy id
 				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
 				),
 			},
-			{ // Modify backup policy id to the second one
+			{
+				// Modify backup policy id to the second one
 				// Set Destroy false to prevent error from cleaning up dangling resource
 				Config: testAccAzureRMBackupProtectedFileShare_updatePolicy(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 				),
 			},
-			{ // Remove protected items first before the associated policies are deleted
+			{
+				// Remove protected items first before the associated policies are deleted
 				Config: testAccAzureRMBackupProtectedFileShare_base(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})

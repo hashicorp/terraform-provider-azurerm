@@ -37,6 +37,12 @@ fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 	@sh "$(CURDIR)/scripts/timeouts.sh"
 
+terrafmt:
+	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
+	@find azurerm | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@echo "==> Fixing website terraform blocks code with terrafmt..."
+	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
+
 generate:
 	go generate ./azurerm/internal/provider/
 
@@ -98,7 +104,7 @@ debugacc: fmtcheck
 
 website-lint:
 	@echo "==> Checking documentation spelling..."
-	@misspell -error -source=text -i hdinsight website/
+	@misspell -error -source=text -i hdinsight,exportfs website/
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories

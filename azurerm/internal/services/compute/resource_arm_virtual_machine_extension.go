@@ -11,7 +11,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +25,11 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 		Read:   resourceArmVirtualMachineExtensionsRead,
 		Update: resourceArmVirtualMachineExtensionsCreateUpdate,
 		Delete: resourceArmVirtualMachineExtensionsDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.VirtualMachineExtensionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -44,7 +49,7 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVirtualMachineID,
+				ValidateFunc: validate.VirtualMachineID,
 			},
 
 			"publisher": {
@@ -95,7 +100,7 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualMachineId, err := ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
+	virtualMachineId, err := parse.VirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
@@ -187,7 +192,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineExtensionID(d.Id())
+	id, err := parse.VirtualMachineExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -238,7 +243,7 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineExtensionID(d.Id())
+	id, err := parse.VirtualMachineExtensionID(d.Id())
 	if err != nil {
 		return err
 	}

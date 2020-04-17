@@ -24,7 +24,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
 					resource.TestCheckResourceAttr(data.ResourceName, "dns_servers.0", "10.0.0.4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_spaces.0", "10.0.0.0/16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "10.0.0.0/16"),
 					resource.TestCheckResourceAttr(data.ResourceName, "subnets.0", "subnet1"),
 				),
 			},
@@ -48,7 +48,7 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 				Config: testAccDataSourceArmVirtualNetwork_peeringWithDataSource(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", virtualNetworkName),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_spaces.0", "10.0.1.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "10.0.1.0/24"),
 					resource.TestCheckResourceAttr(data.ResourceName, "vnet_peerings.%", "1"),
 				),
 			},

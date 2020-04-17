@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMDatabaseMigrationService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_database_migration_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },

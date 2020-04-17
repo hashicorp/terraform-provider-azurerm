@@ -636,23 +636,23 @@ func NewAppTemplatesResultPage(getNextPage func(context.Context, AppTemplatesRes
 	return AppTemplatesResultPage{fn: getNextPage}
 }
 
-// ErrorDetails error details.
-type ErrorDetails struct {
-	// ErrorResponseBody - Error response body.
-	*ErrorResponseBody `json:"error,omitempty"`
+// CloudError error details.
+type CloudError struct {
+	// CloudErrorBody - Error response body.
+	*CloudErrorBody `json:"error,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for ErrorDetails.
-func (ed ErrorDetails) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for CloudError.
+func (ce CloudError) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ed.ErrorResponseBody != nil {
-		objectMap["error"] = ed.ErrorResponseBody
+	if ce.CloudErrorBody != nil {
+		objectMap["error"] = ce.CloudErrorBody
 	}
 	return json.Marshal(objectMap)
 }
 
-// UnmarshalJSON is the custom unmarshaler for ErrorDetails struct.
-func (ed *ErrorDetails) UnmarshalJSON(body []byte) error {
+// UnmarshalJSON is the custom unmarshaler for CloudError struct.
+func (ce *CloudError) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
 	err := json.Unmarshal(body, &m)
 	if err != nil {
@@ -662,12 +662,12 @@ func (ed *ErrorDetails) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "error":
 			if v != nil {
-				var errorResponseBody ErrorResponseBody
-				err = json.Unmarshal(*v, &errorResponseBody)
+				var cloudErrorBody CloudErrorBody
+				err = json.Unmarshal(*v, &cloudErrorBody)
 				if err != nil {
 					return err
 				}
-				ed.ErrorResponseBody = &errorResponseBody
+				ce.CloudErrorBody = &cloudErrorBody
 			}
 		}
 	}
@@ -675,8 +675,8 @@ func (ed *ErrorDetails) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ErrorResponseBody details of error response.
-type ErrorResponseBody struct {
+// CloudErrorBody details of error response.
+type CloudErrorBody struct {
 	// Code - READ-ONLY; The error code.
 	Code *string `json:"code,omitempty"`
 	// Message - READ-ONLY; The error message.
@@ -684,7 +684,7 @@ type ErrorResponseBody struct {
 	// Target - READ-ONLY; The target of the particular error.
 	Target *string `json:"target,omitempty"`
 	// Details - A list of additional details about the error.
-	Details *[]ErrorResponseBody `json:"details,omitempty"`
+	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
 // Operation ioT Central REST API operation

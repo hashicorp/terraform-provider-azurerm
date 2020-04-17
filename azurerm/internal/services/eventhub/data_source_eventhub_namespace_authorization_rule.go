@@ -88,10 +88,15 @@ func dataSourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, me
 	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Azure EventHub Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
+			return fmt.Errorf("EventHub Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
 		}
-		return fmt.Errorf("Error making Read request on Azure EventHub Authorization Rule %s: %+v", name, err)
+		return fmt.Errorf("retrieving EventHub Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("retrieving EventHub Authorization Rule %q (Resource Group %q): `id` was nil", name, resourceGroup)
+	}
+	d.SetId(*resp.ID)
 
 	d.Set("name", name)
 	d.Set("namespace_name", namespaceName)

@@ -196,8 +196,7 @@ func resourceArmLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta in
 func validateLogicAppTriggerHttpRequestRelativePath(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	r, _ := regexp.Compile("^[A-Za-z0-9_/}{]+$")
-	if !r.MatchString(value) {
+	if !regexp.MustCompile("^[A-Za-z0-9_/}{]+$").MatchString(value) {
 		errors = append(errors, fmt.Errorf("Relative Path can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
 	}
 

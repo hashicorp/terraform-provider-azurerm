@@ -55,7 +55,7 @@ func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]serviceb
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, servicebus.Send)
+		rights = append(rights, servicebus.SendEnumValue)
 	}
 
 	if d.Get("manage").(bool) {
@@ -73,7 +73,7 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 			switch right {
 			case servicebus.Listen:
 				listen = true
-			case servicebus.Send:
+			case servicebus.SendEnumValue:
 				send = true
 			case servicebus.Manage:
 				manage = true

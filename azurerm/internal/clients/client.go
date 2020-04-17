@@ -10,6 +10,7 @@ import (
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/client"
+	appPlatform "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/client"
 	authorization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/client"
 	automation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/client"
 	batch "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/client"
@@ -86,6 +87,7 @@ type Client struct {
 	ApiManagement      *apiManagement.Client
 	AppConfiguration   *appConfiguration.Client
 	AppInsights        *applicationInsights.Client
+	AppPlatform        *appPlatform.Client
 	Authorization      *authorization.Client
 	Automation         *automation.Client
 	Batch              *batch.Client
@@ -163,6 +165,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.ApiManagement = apiManagement.NewClient(o)
 	client.AppConfiguration = appConfiguration.NewClient(o)
 	client.AppInsights = applicationInsights.NewClient(o)
+	client.AppPlatform = appPlatform.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.Batch = batch.NewClient(o)

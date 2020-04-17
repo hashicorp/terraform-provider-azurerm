@@ -545,7 +545,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if props := resp.ContainerGroupProperties; props != nil {
-		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress, props.Volumes)
+		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("Error setting `container`: %+v", err)
 		}
@@ -1039,7 +1039,7 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 	return output
 }
 
-func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, ipAddress *containerinstance.IPAddress, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
 	for i, c := range d.Get("container").([]interface{}) {
