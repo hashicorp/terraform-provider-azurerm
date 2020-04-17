@@ -11,16 +11,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceBlobStorage() *schema.Resource {
+func resourceArmDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceBlobStorageRead,
-		Update: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceBlobStorageDelete,
+		Create: resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate,
+		Read:   resourceArmDataFactoryLinkedServiceCosmosDbRead,
+		Update: resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate,
+		Delete: resourceArmDataFactoryLinkedServiceCosmosDbDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -53,9 +54,10 @@ func resourceArmDataFactoryLinkedServiceBlobStorage() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
+				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"description": {
@@ -97,7 +99,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorage() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,16 +108,16 @@ func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.Resour
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service BlobStorage Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_blob_storage", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_cosmosdb", *existing.ID)
 		}
 	}
 
@@ -125,58 +127,58 @@ func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.Resour
 		Type:  datafactory.TypeSecureString,
 	}
 
-	blobProperties := &datafactory.AzureBlobStorageLinkedServiceTypeProperties{
+	cosmosdbProperties := &datafactory.CosmosDbLinkedServiceTypeProperties{
 		ConnectionString: &secureString,
 	}
 
 	description := d.Get("description").(string)
 
-	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
-		Description: &description,
-		AzureBlobStorageLinkedServiceTypeProperties: blobProperties,
-		Type: datafactory.TypeAzureBlobStorage,
+	cosmosdbLinkedService := &datafactory.CosmosDbLinkedService{
+		Description:                         &description,
+		CosmosDbLinkedServiceTypeProperties: cosmosdbProperties,
+		Type:                                datafactory.TypeCosmosDb,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		blobStorageLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		cosmosdbLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		blobStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+		cosmosdbLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		blobStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
+		cosmosdbLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		blobStorageLinkedService.Annotations = &annotations
+		cosmosdbLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
-		Properties: blobStorageLinkedService,
+		Properties: cosmosdbLinkedService,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceBlobStorageRead(d, meta)
+	return resourceArmDataFactoryLinkedServiceCosmosDbRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,32 +198,32 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service CosmosDB %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
+	cosmosdb, ok := resp.Properties.AsCosmosDbLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeCosmosDb, *resp.Type)
 	}
 
-	d.Set("additional_properties", blobStorage.AdditionalProperties)
-	d.Set("description", blobStorage.Description)
+	d.Set("additional_properties", cosmosdb.AdditionalProperties)
+	d.Set("description", cosmosdb.Description)
 
-	annotations := flattenDataFactoryAnnotations(blobStorage.Annotations)
+	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(blobStorage.Parameters)
+	parameters := flattenDataFactoryParameters(cosmosdb.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	if connectVia := blobStorage.ConnectVia; connectVia != nil {
+	if connectVia := cosmosdb.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
@@ -230,7 +232,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceCosmosDbDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +248,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 
