@@ -328,8 +328,8 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	createMode, ok := d.GetOk("create_mode")
 	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
 		return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode.(string))
-		params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 	}
+	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
 	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
 	if (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) && len(auditingPolicies) > 0 {
