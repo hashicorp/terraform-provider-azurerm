@@ -42,7 +42,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 
 		"azurerm_data_factory_integration_runtime_managed": resourceArmDataFactoryIntegrationRuntimeManaged(),
 
-		"azurerm_data_factory_linked_service_blob_storage":           resourceArmDataFactoryLinkedServiceBlobStorage(),
+		"azurerm_data_factory_linked_service_azure_blob_storage":     resourceArmDataFactoryLinkedServiceBlobStorage(),
 		"azurerm_data_factory_linked_service_cosmosdb":               resourceArmDataFactoryLinkedServiceCosmosDb(),
 		"azurerm_data_factory_linked_service_data_lake_storage_gen2": resourceArmDataFactoryLinkedServiceDataLakeStorageGen2(),
 		"azurerm_data_factory_linked_service_mysql":                  resourceArmDataFactoryLinkedServiceMySQL(),

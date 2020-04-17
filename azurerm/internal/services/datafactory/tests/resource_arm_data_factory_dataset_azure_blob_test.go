@@ -141,7 +141,7 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_blob_storage" "test" {
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
@@ -152,7 +152,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_blob_storage.test.name
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   path 					= "foo"
   filename 				= "bar.png"
@@ -178,7 +178,7 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_blob_storage" "test" {
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
@@ -189,7 +189,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_blob_storage.test.name
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   path 					= "foo"
   filename 				= "bar.png"
@@ -234,7 +234,7 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_blob_storage" "test" {
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
@@ -245,7 +245,7 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_blob_storage.test.name
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
   path 					= "foo"
   filename 				= "bar.png"
