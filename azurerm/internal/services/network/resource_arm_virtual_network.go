@@ -93,6 +93,11 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				},
 			},
 
+			"guid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"subnet": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -232,11 +237,14 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
+		d.Set("guid", props.ResourceGUID)
+
 		if space := props.AddressSpace; space != nil {
 			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
 		}

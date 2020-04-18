@@ -86,6 +86,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 				"lab_subnet_name",
 				"lab_virtual_network_id",
 				"password",
+				"ssh_key",
 			),
 		},
 	})

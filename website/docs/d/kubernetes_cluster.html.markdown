@@ -62,9 +62,7 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_link_enabled` - Does this Kubernetes Cluster have the Kubernetes API exposed via Private Link?                           
-
--> **NOTE:** At this time Private Link is in Public Preview
+* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.                           
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
@@ -114,15 +112,18 @@ A `agent_pool_profile` block exports the following:
 
 * `name` - The name assigned to this pool of agents.
 
+* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
+
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 
 * `os_type` - The Operating System used for the Agents.
+
+* `tags` - A mapping of tags to assign to the resource.
 
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
 
 ---
 
@@ -162,6 +163,7 @@ The `kube_admin_config` and `kube_config` blocks exports the following:
 
 ```
 provider "kubernetes" {
+  load_config_file       = "false"
   host                   = "${data.azurerm_kubernetes_cluster.main.kube_config.0.host}"
   username               = "${data.azurerm_kubernetes_cluster.main.kube_config.0.username}"
   password               = "${data.azurerm_kubernetes_cluster.main.kube_config.0.password}"

@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,8 +32,8 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testi
 }
 
 func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
-	data1 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_1")
-	data2 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_2")
+	data1 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_1")
+	data2 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_2")
 
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
@@ -58,7 +58,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testi
 }
 
 func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	resource.ParallelTest(t, resource.TestCase{

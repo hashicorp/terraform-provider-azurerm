@@ -174,6 +174,11 @@ func resourceArmFunctionApp() *schema.Resource {
 				Default:  false,
 			},
 
+			"daily_memory_time_quota": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -245,6 +250,11 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.Disabled),
 								string(web.FtpsOnly),
 							}, false),
+						},
+						"pre_warmed_instance_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 10),
 						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
@@ -323,6 +333,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
+	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
 	if err != nil {
@@ -347,6 +358,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
 	}
@@ -385,7 +397,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmFunctionAppUpdate(d, meta)
@@ -413,6 +425,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
+	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
 
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
@@ -437,6 +450,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
+			DailyMemoryTimeQuota:  utils.Int32(int32(dailyMemoryTimeQuota)),
 			SiteConfig:            &siteConfig,
 		},
 	}
@@ -576,6 +590,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("https_only", props.HTTPSOnly)
+		d.Set("daily_memory_time_quota", props.DailyMemoryTimeQuota)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
@@ -684,11 +699,12 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	// If the application plan is NOT dynamic (consumption plan), we do NOT want to include WEBSITE_CONTENT components
-	if !strings.EqualFold(appServiceTier, "dynamic") {
-		return basicSettings
+	// On consumption and premium plans include WEBSITE_CONTENT components
+	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
+		return append(basicSettings, consumptionSettings...)
 	}
-	return append(basicSettings, consumptionSettings...)
+
+	return basicSettings
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
@@ -777,6 +793,8 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
+	siteConfig.PreWarmedInstanceCount = utils.Int32(int32(config["pre_warmed_instance_count"].(int)))
+
 	return siteConfig, nil
 }
 
@@ -807,6 +825,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
+	}
+
+	if input.PreWarmedInstanceCount != nil {
+		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
 	}
 
 	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)
@@ -841,11 +863,14 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 }
 
 func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	ipSecurityRestrictions := input.([]interface{})
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	for i, ipSecurityRestriction := range ipSecurityRestrictions {
-		restriction := ipSecurityRestriction.(map[string]interface{})
+	for i, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		restriction := r.(map[string]interface{})
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := restriction["subnet_id"].(string)

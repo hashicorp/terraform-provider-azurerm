@@ -418,7 +418,7 @@ func resourceArmCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interfac
 
 func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *documentdb.IndexingPolicy {
 	i := d.Get("index_policy").([]interface{})
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 
@@ -439,7 +439,7 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *doc
 
 func expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d *schema.ResourceData) *documentdb.ConflictResolutionPolicy {
 	i := d.Get("conflict_resolution_policy").([]interface{})
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 
@@ -492,7 +492,7 @@ func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{})
 
 func expandAzureRmCosmosDbGremlinGraphUniqueKeys(s *schema.Set) *[]documentdb.UniqueKey {
 	i := s.List()
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 

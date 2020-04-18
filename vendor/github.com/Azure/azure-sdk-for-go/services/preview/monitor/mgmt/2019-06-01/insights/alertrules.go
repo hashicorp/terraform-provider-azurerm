@@ -36,12 +36,13 @@ func NewAlertRulesClient(subscriptionID string) AlertRulesClient {
 	return NewAlertRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAlertRulesClientWithBaseURI creates an instance of the AlertRulesClient client.
+// NewAlertRulesClientWithBaseURI creates an instance of the AlertRulesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAlertRulesClientWithBaseURI(baseURI string, subscriptionID string) AlertRulesClient {
 	return AlertRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates an alert rule.
+// CreateOrUpdate creates or updates a classic metric alert rule.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.
@@ -114,8 +115,7 @@ func (client AlertRulesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -131,7 +131,7 @@ func (client AlertRulesClient) CreateOrUpdateResponder(resp *http.Response) (res
 	return
 }
 
-// Delete deletes an alert rule
+// Delete deletes a classic metric alert rule
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.
@@ -191,8 +191,7 @@ func (client AlertRulesClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -207,7 +206,7 @@ func (client AlertRulesClient) DeleteResponder(resp *http.Response) (result auto
 	return
 }
 
-// Get gets an alert rule
+// Get gets a classic metric alert rule
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.
@@ -267,8 +266,7 @@ func (client AlertRulesClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -284,7 +282,7 @@ func (client AlertRulesClient) GetResponder(resp *http.Response) (result AlertRu
 	return
 }
 
-// ListByResourceGroup list the alert rules within a resource group.
+// ListByResourceGroup list the classic metric alert rules within a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 func (client AlertRulesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AlertRuleResourceCollection, err error) {
@@ -342,8 +340,7 @@ func (client AlertRulesClient) ListByResourceGroupPreparer(ctx context.Context, 
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -359,7 +356,7 @@ func (client AlertRulesClient) ListByResourceGroupResponder(resp *http.Response)
 	return
 }
 
-// ListBySubscription list the alert rules within a subscription.
+// ListBySubscription list the classic metric alert rules within a subscription.
 func (client AlertRulesClient) ListBySubscription(ctx context.Context) (result AlertRuleResourceCollection, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.ListBySubscription")
@@ -414,8 +411,7 @@ func (client AlertRulesClient) ListBySubscriptionPreparer(ctx context.Context) (
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -431,7 +427,7 @@ func (client AlertRulesClient) ListBySubscriptionResponder(resp *http.Response) 
 	return
 }
 
-// Update updates an existing AlertRuleResource. To update other fields use the CreateOrUpdate method.
+// Update updates an existing classic metric AlertRuleResource. To update other fields use the CreateOrUpdate method.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.
@@ -494,8 +490,7 @@ func (client AlertRulesClient) UpdatePreparer(ctx context.Context, resourceGroup
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

@@ -5,6 +5,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
@@ -15,6 +16,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
@@ -33,6 +36,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
@@ -48,6 +53,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
@@ -73,6 +79,7 @@ func SupportedServices() []common.ServiceRegistration {
 		analysisservices.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
+		appplatform.Registration{},
 		applicationinsights.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
@@ -83,6 +90,8 @@ func SupportedServices() []common.ServiceRegistration {
 		compute.Registration{},
 		containers.Registration{},
 		cosmos.Registration{},
+		costmanagement.Registration{},
+		customproviders.Registration{},
 		databricks.Registration{},
 		datafactory.Registration{},
 		datalake.Registration{},
@@ -101,6 +110,8 @@ func SupportedServices() []common.ServiceRegistration {
 		kusto.Registration{},
 		loganalytics.Registration{},
 		logic.Registration{},
+		machinelearning.Registration{},
+		managedapplications.Registration{},
 		managementgroup.Registration{},
 		maps.Registration{},
 		mariadb.Registration{},
@@ -116,6 +127,7 @@ func SupportedServices() []common.ServiceRegistration {
 		policy.Registration{},
 		portal.Registration{},
 		postgres.Registration{},
+		powerbi.Registration{},
 		privatedns.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},

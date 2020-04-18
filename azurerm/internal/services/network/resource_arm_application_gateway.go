@@ -989,15 +989,21 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"data": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 							StateFunc: base64EncodedStateFunc,
 						},
 
 						"password": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
+						},
+
+						"key_vault_secret_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateKeyVaultChildId,
 						},
 
 						"id": {
@@ -1342,10 +1348,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
 	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.Account.SubscriptionId, resGroup, name)
 
-	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("Error expanding `trusted_root_certificate`: %+v", err)
-	}
+	trustedRootCertificates := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	if err != nil {
@@ -1360,6 +1363,11 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, gatewayID)
 	if err != nil {
 		return fmt.Errorf("Error expanding `redirect_configuration`: %+v", err)
+	}
+
+	sslCertificates, err := expandApplicationGatewaySslCertificates(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `ssl_certificate`: %+v", err)
 	}
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
@@ -1385,7 +1393,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			RequestRoutingRules:           requestRoutingRules,
 			RedirectConfigurations:        redirectConfigurations,
 			Sku:                           expandApplicationGatewaySku(d),
-			SslCertificates:               expandApplicationGatewaySslCertificates(d),
+			SslCertificates:               sslCertificates,
 			SslPolicy:                     expandApplicationGatewaySslPolicy(d),
 
 			RewriteRuleSets: expandApplicationGatewayRewriteRuleSets(d),
@@ -1706,7 +1714,7 @@ func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]
 	return &results
 }
 
-func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]network.ApplicationGatewayTrustedRootCertificate, error) {
+func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) *[]network.ApplicationGatewayTrustedRootCertificate {
 	results := make([]network.ApplicationGatewayTrustedRootCertificate, 0)
 
 	for _, raw := range certs {
@@ -1714,29 +1722,20 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ne
 
 		name := v["name"].(string)
 		data := v["data"].(string)
-		// kvsid := v["key_vault_secret_id"].(string)
 
 		output := network.ApplicationGatewayTrustedRootCertificate{
 			Name: utils.String(name),
 			ApplicationGatewayTrustedRootCertificatePropertiesFormat: &network.ApplicationGatewayTrustedRootCertificatePropertiesFormat{},
 		}
 
-		/*		if data == "" && kvsid == "" {
-					return nil, fmt.Errorf("Error: either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
-				}
-				if data != "" && kvsid != "" {
-					return nil, fmt.Errorf("Error: only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
-				}*/
-
 		if data != "" {
 			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
 		}
-		//	output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = &kvsid
 
 		results = append(results, output)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate, d *schema.ResourceData) []interface{} {
@@ -2091,7 +2090,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 func expandApplicationGatewayConnectionDraining(d map[string]interface{}) *network.ApplicationGatewayConnectionDraining {
 	connectionsRaw := d["connection_draining"].([]interface{})
 
-	if len(connectionsRaw) <= 0 {
+	if len(connectionsRaw) == 0 {
 		return nil
 	}
 
@@ -3033,6 +3032,7 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			ApplicationGatewayRedirectConfigurationPropertiesFormat: &network.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 				RedirectType:       network.ApplicationGatewayRedirectType(redirectType),
 				IncludeQueryString: utils.Bool(includeQueryString),
+				IncludePath:        utils.Bool(includePath),
 			},
 		}
 
@@ -3044,16 +3044,11 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			return nil, fmt.Errorf("Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
 		}
 
-		if targetUrl != "" && includePath {
-			return nil, fmt.Errorf("`include_path` is not a valid option when `target_url` is set")
-		}
-
 		if targetListenerName != "" {
 			targetListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, targetListenerName)
 			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetListener = &network.SubResource{
 				ID: utils.String(targetListenerID),
 			}
-			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludePath = utils.Bool(includePath)
 		}
 
 		if targetUrl != "" {
@@ -3185,7 +3180,7 @@ func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interf
 	return []interface{}{result}
 }
 
-func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.ApplicationGatewaySslCertificate {
+func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network.ApplicationGatewaySslCertificate, error) {
 	vs := d.Get("ssl_certificate").([]interface{})
 	results := make([]network.ApplicationGatewaySslCertificate, 0)
 
@@ -3195,22 +3190,39 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 		name := v["name"].(string)
 		data := v["data"].(string)
 		password := v["password"].(string)
-
-		// data must be base64 encoded
-		data = utils.Base64EncodeIfNot(data)
+		kvsid := v["key_vault_secret_id"].(string)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
-			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
-				Data:     utils.String(data),
-				Password: utils.String(password),
-			},
+			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{},
+		}
+
+		// nolint gocritic
+		if data != "" && kvsid != "" {
+			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
+		} else if data != "" {
+			// data must be base64 encoded
+			output.ApplicationGatewaySslCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
+
+			if password == "" {
+				return nil, fmt.Errorf("'password' is required if `data` is specified for the `ssl_certificate` block %q", name)
+			}
+
+			output.ApplicationGatewaySslCertificatePropertiesFormat.Password = utils.String(password)
+		} else if kvsid != "" {
+			if password != "" {
+				return nil, fmt.Errorf("only one of `key_vault_secret_id` or `password` must be specified for the `ssl_certificate` block %q", name)
+			}
+
+			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else {
+			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}
 
 		results = append(results, output)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate, d *schema.ResourceData) []interface{} {
@@ -3236,6 +3248,10 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
 			if data := props.PublicCertData; data != nil {
 				output["public_cert_data"] = *data
+			}
+
+			if kvsid := props.KeyVaultSecretID; kvsid != nil {
+				output["key_vault_secret_id"] = *kvsid
 			}
 		}
 

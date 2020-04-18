@@ -33,6 +33,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_private_dns_mx_record":                 resourceArmPrivateDnsMxRecord(),
 		"azurerm_private_dns_ptr_record":                resourceArmPrivateDnsPtrRecord(),
 		"azurerm_private_dns_srv_record":                resourceArmPrivateDnsSrvRecord(),
+		"azurerm_private_dns_txt_record":                resourceArmPrivateDnsTxtRecord(),
 		"azurerm_private_dns_zone_virtual_network_link": resourceArmPrivateDnsZoneVirtualNetworkLink(),
 	}
 }

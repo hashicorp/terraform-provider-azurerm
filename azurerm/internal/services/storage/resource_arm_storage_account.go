@@ -28,8 +28,6 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
 
-const blobStorageAccountDefaultAccessTier = "Hot"
-
 var storageAccountResourceName = "azurerm_storage_account"
 
 func resourceArmStorageAccount() *schema.Resource {
@@ -638,14 +636,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
-			accessTier = blobStorageAccountDefaultAccessTier
+			accessTier = string(storage.Hot)
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else {
-		if isHnsEnabled {
-			return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
-		}
+	} else if isHnsEnabled {
+		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
 	}
 
 	// AccountTier must be Premium for FileStorage
@@ -722,11 +718,24 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		if accountKind != string(storage.StorageV2) {
 			return fmt.Errorf("`static_website` is only supported for Storage V2.")
 		}
-		blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
 
 		staticWebsiteProps := expandStaticWebsiteProperties(val.([]interface{}))
 
-		if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+		if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
 		}
 	}
@@ -734,9 +743,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	return resourceArmStorageAccountRead(d, meta)
 }
 
-// resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
-// and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
-// available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -911,11 +917,24 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if accountKind != string(storage.StorageV2) {
 			return fmt.Errorf("`static_website` is only supported for Storage V2.")
 		}
-		blobAccountClient := meta.(*clients.Client).Storage.BlobAccountsClient
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
 
 		staticWebsiteProps := expandStaticWebsiteProperties(d.Get("static_website").([]interface{}))
 
-		if _, err = blobAccountClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+		if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
 		}
 
@@ -1109,9 +1128,19 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	// static website only supported on Storage V2
 	if resp.Kind == storage.StorageV2 {
-		blobAccountClient := storageClient.BlobAccountsClient
+		storageClient := meta.(*clients.Client).Storage
 
-		staticWebsiteProps, err := blobAccountClient.GetServiceProperties(ctx, name)
+		account, err := storageClient.FindAccount(ctx, name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", name, err)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
+
+		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, name)
 		if err != nil {
 			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
 				return fmt.Errorf("Error reading static website for AzureRM Storage Account %q: %+v", name, err)
@@ -1490,16 +1519,22 @@ func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceP
 		return properties
 	}
 
-	attr := input[0].(map[string]interface{})
-
 	properties.StaticWebsite.Enabled = true
 
-	if v, ok := attr["index_document"]; ok {
-		properties.StaticWebsite.IndexDocument = v.(string)
-	}
+	// @tombuildsstuff: this looks weird, doesn't it?
+	// Since the presence of this block signifies the website's enabled however all fields within it are optional
+	// TF Core returns a nil object when there's no keys defined within the block, rather than an empty map. As
+	// such this hack allows us to have a Static Website block with only Enabled configured, without the optional
+	// inner properties.
+	if val := input[0]; val != nil {
+		attr := val.(map[string]interface{})
+		if v, ok := attr["index_document"]; ok {
+			properties.StaticWebsite.IndexDocument = v.(string)
+		}
 
-	if v, ok := attr["error_404_document"]; ok {
-		properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		if v, ok := attr["error_404_document"]; ok {
+			properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		}
 	}
 
 	return properties

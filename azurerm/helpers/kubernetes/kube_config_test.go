@@ -152,7 +152,7 @@ func TestParseKubeConfig(t *testing.T) {
 
 	for i, test := range testCases {
 		encodedConfig := LoadConfig(test.sourceFile)
-		if len(encodedConfig) <= 0 {
+		if len(encodedConfig) == 0 {
 			t.Fatalf("Test case [%d]: Failed to read config from file '%+v' \n",
 				i, test.sourceFile)
 		}

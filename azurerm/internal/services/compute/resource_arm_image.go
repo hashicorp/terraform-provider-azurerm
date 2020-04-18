@@ -219,19 +219,9 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		HyperVGeneration: compute.HyperVGenerationTypes(hyperVGeneration),
 	}
 
-	osDisk, err := expandAzureRmImageOsDisk(d)
-	if err != nil {
-		return err
-	}
-
-	dataDisks, err := expandAzureRmImageDataDisks(d)
-	if err != nil {
-		return err
-	}
-
 	storageProfile := compute.ImageStorageProfile{
-		OsDisk:        osDisk,
-		DataDisks:     &dataDisks,
+		OsDisk:        expandAzureRmImageOsDisk(d),
+		DataDisks:     expandAzureRmImageDataDisks(d),
 		ZoneResilient: utils.Bool(zoneResilient),
 	}
 
@@ -402,7 +392,7 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 	return result
 }
 
-func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, error) {
+func expandAzureRmImageOsDisk(d *schema.ResourceData) *compute.ImageOSDisk {
 	osDisk := &compute.ImageOSDisk{}
 	disks := d.Get("os_disk").([]interface{})
 
@@ -440,10 +430,10 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 		}
 	}
 
-	return osDisk, nil
+	return osDisk
 }
 
-func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDisk, error) {
+func expandAzureRmImageDataDisks(d *schema.ResourceData) *[]compute.ImageDataDisk {
 	disks := d.Get("data_disk").([]interface{})
 
 	dataDisks := make([]compute.ImageDataDisk, 0, len(disks))
@@ -480,5 +470,5 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 		dataDisks = append(dataDisks, dataDisk)
 	}
 
-	return dataDisks, nil
+	return &dataDisks
 }

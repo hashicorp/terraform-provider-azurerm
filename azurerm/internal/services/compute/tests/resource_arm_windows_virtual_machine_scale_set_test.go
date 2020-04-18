@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,10 +20,12 @@ func testCheckAzureRMWindowsVirtualMachineScaleSetDestroy(s *terraform.State) er
 			continue
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.VirtualMachineScaleSetID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -46,13 +49,15 @@ func testCheckAzureRMWindowsVirtualMachineScaleSetExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.VirtualMachineScaleSetID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Windows Virtual Machine Scale Set %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Windows Virtual Machine Scale Set %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on VMScaleSetClient: %+v", err)

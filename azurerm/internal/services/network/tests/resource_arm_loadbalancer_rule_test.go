@@ -434,6 +434,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
+// nolint: unparam
 func testAccAzureRMLoadBalancerRule_basic(data acceptance.TestData, lbRuleName, sku string) string {
 	return fmt.Sprintf(`
 %s

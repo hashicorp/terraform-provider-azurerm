@@ -13,6 +13,8 @@ Cognitive Services
 Compute
 Container
 CosmosDB (DocumentDB)
+Cost Management
+Custom Providers
 DNS
 Data Explorer
 Data Factory
@@ -30,6 +32,8 @@ Key Vault
 Load Balancer
 Log Analytics
 Logic App
+Machine Learning
+Managed Applications
 Management
 Maps
 Media
@@ -40,12 +44,14 @@ NetApp
 Network
 Policy
 Portal
+PowerBI
 Private DNS
 Recovery Services
 Redis
 Search
 Security Center
 Service Fabric
+Spring Cloud
 Storage
 Stream Analytics
 Template

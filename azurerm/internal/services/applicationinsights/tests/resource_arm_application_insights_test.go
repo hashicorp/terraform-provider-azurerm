@@ -315,6 +315,7 @@ resource "azurerm_application_insights" "test" {
   sampling_percentage                   = 50
   daily_data_cap_in_gb                  = 50
   daily_data_cap_notifications_disabled = true
+  disable_ip_masking                    = true
 
   tags = {
     Hello = "World"

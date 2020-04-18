@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMMariaDbServer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_user_assigned_identity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -23,7 +23,7 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				Config: testAccDataSourceAzureRMUserAssignedIdentity_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s-uai", data.RandomString)),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest%d-rg", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
 					resource.TestMatchResourceAttr(data.ResourceName, "principal_id", validate.UUIDRegExp),
 					resource.TestMatchResourceAttr(data.ResourceName, "client_id", validate.UUIDRegExp),
@@ -67,7 +67,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d-rg"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

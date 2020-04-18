@@ -107,10 +107,6 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
 	if sku := resp.Sku; sku != nil {
 		d.Set("storage_account_type", string(sku.Name))
 	}

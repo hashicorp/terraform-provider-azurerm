@@ -67,3 +67,9 @@ output "query_rule_id" {
 * `metricTrigger` - A `metricTrigger` block as defined above.
 * `operator` - Evaluation operation for rule.
 * `threshold` - Result or count threshold based on which rule should be triggered.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.

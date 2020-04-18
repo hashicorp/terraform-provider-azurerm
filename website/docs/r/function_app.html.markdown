@@ -121,6 +121,8 @@ The following arguments are supported:
 
 * `version` - (Optional) The runtime version associated with the Function App. Defaults to `~1`.
 
+* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
+
 * `site_config` - (Optional) A `site_config` object as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -154,6 +156,8 @@ The following arguments are supported:
 * `min_tls_version` - (Optional) The minimum supported TLS version for the function app. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new function apps.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+
+* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
 
 * `cors` - (Optional) A `cors` block as defined below.
 

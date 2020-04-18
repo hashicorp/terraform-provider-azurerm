@@ -241,6 +241,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
 }
 
+// nolint unused - mistakenly marked as unused
 func testAccAzureRMAdvancedThreatProtection_cosmosAccount(data acceptance.TestData, hasResource, enabled bool) string {
 	atp := ""
 	if hasResource {

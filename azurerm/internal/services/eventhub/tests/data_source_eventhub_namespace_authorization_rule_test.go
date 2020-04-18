@@ -17,7 +17,11 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceEventHubNamespaceAuthorizationRule_basic(data, true, true, true),
-				Check:  resource.ComposeTestCheckFunc(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "listen"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "manage"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "send"),
+				),
 			},
 		},
 	})

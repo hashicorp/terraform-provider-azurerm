@@ -101,10 +101,8 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		if _, err = client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Workspace: %+v", err)
 		}
-	} else {
-		if _, err = client.Update(ctx, name, contact); err != nil {
-			return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
-		}
+	} else if _, err = client.Update(ctx, name, contact); err != nil {
+		return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
 	}
 
 	// api returns "" for workspace id after an create/update and eventually the new value

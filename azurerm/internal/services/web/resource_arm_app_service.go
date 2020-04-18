@@ -292,7 +292,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	logsConfig := azure.ExpandAppServiceLogs(d.Get("logs"))
@@ -302,14 +302,14 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		SiteLogsConfigProperties: &logsConfig}
 
 	if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logs); err != nil {
-		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	backupRaw := d.Get("backup").([]interface{})
 	if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
 		_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, *backup)
 		if err != nil {
-			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 	}
 

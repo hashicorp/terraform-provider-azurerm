@@ -52,7 +52,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
   topic_name          = azurerm_servicebus_topic.example.name
   subscription_name   = azurerm_servicebus_subscription.example.name
   filter_type         = "SqlFilter"
-  sql_filter          = "color = 'red'"
+  sql_filter          = "colour = 'red'"
 }
 ```
 

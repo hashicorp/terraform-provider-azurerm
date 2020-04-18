@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -132,14 +133,21 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 						"workspace_region": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azure.NormalizeLocation,
-							DiffSuppressFunc: azure.SuppressLocationDiff,
+							StateFunc:        location.StateFunc,
+							DiffSuppressFunc: location.DiffSuppressFunc,
 						},
 
 						"workspace_resource_id": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						},
+
+						"interval_in_minutes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntInSlice([]int{10, 60}),
+							Default:      60,
 						},
 					},
 				},
@@ -155,13 +163,13 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 	}
 }
 
-func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(_, old, _ string, d *schema.ResourceData) bool {
 	// Ignore if flow log is disabled as the returned flow log configuration
 	// returns default value `false` which may differ from config
 	return old != "" && !d.Get("enabled").(bool)
 }
 
-func azureRMSuppressFlowLogRetentionPolicyDaysDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *schema.ResourceData) bool {
 	// Ignore if flow log is disabled as the returned flow log configuration
 	// returns default value `0` which may differ from config
 	return old != "" && !d.Get("enabled").(bool)
@@ -386,6 +394,9 @@ func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficA
 		if cfg.WorkspaceResourceID != nil {
 			result["workspace_resource_id"] = *cfg.WorkspaceResourceID
 		}
+		if cfg.TrafficAnalyticsInterval != nil {
+			result["interval_in_minutes"] = int(*cfg.TrafficAnalyticsInterval)
+		}
 	}
 
 	return []interface{}{result}
@@ -399,13 +410,15 @@ func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *schema.ResourceData) 
 	workspaceID := v["workspace_id"].(string)
 	workspaceRegion := v["workspace_region"].(string)
 	workspaceResourceID := v["workspace_resource_id"].(string)
+	interval := v["interval_in_minutes"].(int)
 
 	return &network.TrafficAnalyticsProperties{
 		NetworkWatcherFlowAnalyticsConfiguration: &network.TrafficAnalyticsConfigurationProperties{
-			Enabled:             utils.Bool(enabled),
-			WorkspaceID:         utils.String(workspaceID),
-			WorkspaceRegion:     utils.String(workspaceRegion),
-			WorkspaceResourceID: utils.String(workspaceResourceID),
+			Enabled:                  utils.Bool(enabled),
+			WorkspaceID:              utils.String(workspaceID),
+			WorkspaceRegion:          utils.String(workspaceRegion),
+			WorkspaceResourceID:      utils.String(workspaceResourceID),
+			TrafficAnalyticsInterval: utils.Int32(int32(interval)),
 		},
 	}
 }
