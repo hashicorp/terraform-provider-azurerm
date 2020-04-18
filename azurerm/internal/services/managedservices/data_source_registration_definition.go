@@ -61,10 +61,6 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"role_definition_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 					},
 				},
 			},
@@ -77,26 +73,25 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	registrationDefinitionId := d.Get("registration_definition_id").(string)
+	registrationDefinitionID := d.Get("registration_definition_id").(string)
 	scope := d.Get("scope").(string)
 
-	resp, err := client.Get(ctx, scope, registrationDefinitionId)
+	resp, err := client.Get(ctx, scope, registrationDefinitionID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", registrationDefinitionId, scope)
+			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", registrationDefinitionID, scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", registrationDefinitionId, scope, err)
+		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
 	}
 
 	d.SetId(*resp.ID)
 	d.Set("scope", scope)
-	authorization := d.Get("authorization").(*schema.Set).List()
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(authorization)); err != nil {
+		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(props.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)

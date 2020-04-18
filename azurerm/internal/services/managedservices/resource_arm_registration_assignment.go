@@ -38,14 +38,15 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 			"registration_assignment_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
+				Computed:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -54,6 +55,12 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"expand_registration_definition": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -64,24 +71,24 @@ func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	registrationAssignmentId := d.Get("registration_assignment_id").(string)
-	if registrationAssignmentId == "" {
+	registrationAssignmentID := d.Get("registration_assignment_id").(string)
+	if registrationAssignmentID == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
 			return fmt.Errorf("Error generating UUID for Registration Assignment: %+v", err)
 		}
 
-		registrationAssignmentId = uuid
+		registrationAssignmentID = uuid
 	}
 
 	scope := d.Get("scope").(string)
-	expandRegistrationDefinition := true
+	expandRegistrationDefinition := d.Get("expand_registration_definition").(bool)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, registrationAssignmentId, &expandRegistrationDefinition)
+		existing, err := client.Get(ctx, scope, registrationAssignmentID, &expandRegistrationDefinition)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Registration Assignment %q (Scope %q): %+v", registrationAssignmentId, scope, err)
+				return fmt.Errorf("Error checking for presence of existing Registration Assignment %q (Scope %q): %+v", registrationAssignmentID, scope, err)
 			}
 		}
 
@@ -96,17 +103,17 @@ func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, scope, registrationAssignmentId, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Registration Assignment %q (Scope %q): %+v", registrationAssignmentId, scope, err)
+	if _, err := client.CreateOrUpdate(ctx, scope, registrationAssignmentID, parameters); err != nil {
+		return fmt.Errorf("Error Creating/Updating Registration Assignment %q (Scope %q): %+v", registrationAssignmentID, scope, err)
 	}
 
-	read, err := client.Get(ctx, scope, registrationAssignmentId, &expandRegistrationDefinition)
+	read, err := client.Get(ctx, scope, registrationAssignmentID, &expandRegistrationDefinition)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Registration Assignment %q ID (scope %q) ID", registrationAssignmentId, scope)
+		return fmt.Errorf("Cannot read Registration Assignment %q ID (scope %q) ID", registrationAssignmentID, scope)
 	}
 
 	d.SetId(*read.ID)
@@ -119,21 +126,21 @@ func resourceArmRegistrationAssignmentRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationAssignmentId(d.Id())
+	id, err := parseAzureRegistrationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
-	expandRegistrationDefinition := true
+	expandRegistrationDefinition := d.Get("expand_registration_definition").(bool)
 
-	resp, err := client.Get(ctx, id.scope, id.registrationAssignmentId, &expandRegistrationDefinition)
+	resp, err := client.Get(ctx, id.scope, id.registrationAssignmentID, &expandRegistrationDefinition)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Registration Assignment '%s' was not found (Scope '%s')", id.registrationAssignmentId, id.scope)
+			log.Printf("[WARN] Registration Assignment '%s' was not found (Scope '%s')", id.registrationAssignmentID, id.scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Registration Assignment %q (Scope %q): %+v", id.registrationAssignmentId, id.scope, err)
+		return fmt.Errorf("Error making Read request on Registration Assignment %q (Scope %q): %+v", id.registrationAssignmentID, id.scope, err)
 	}
 
 	d.Set("registration_assignment_id", resp.Name)
@@ -148,21 +155,21 @@ func resourceArmRegistrationAssignmentRead(d *schema.ResourceData, meta interfac
 
 type registrationAssignmentID struct {
 	scope                    string
-	registrationAssignmentId string
+	registrationAssignmentID string
 }
 
-func parseAzureRegistrationAssignmentId(id string) (*registrationAssignmentID, error) {
+func parseAzureRegistrationAssignmentID(id string) (*registrationAssignmentID, error) {
 	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationAssignments/")
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationAssignments/{name} - got %d segments", len(segments))
 	}
 
-	azureRegistrationAssignmentId := registrationAssignmentID{
+	azureRegistrationAssignmentID := registrationAssignmentID{
 		scope:                    segments[0],
-		registrationAssignmentId: segments[1],
+		registrationAssignmentID: segments[1],
 	}
 
-	return &azureRegistrationAssignmentId, nil
+	return &azureRegistrationAssignmentID, nil
 }
 
 func resourceArmRegistrationAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
@@ -170,19 +177,19 @@ func resourceArmRegistrationAssignmentDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationAssignmentId(d.Id())
+	id, err := parseAzureRegistrationAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.scope, id.registrationAssignmentId)
+	_, err = client.Delete(ctx, id.scope, id.registrationAssignmentID)
 	if err != nil {
-		return fmt.Errorf("Error deleting Registration Assignment %q at Scope %q: %+v", id.registrationAssignmentId, id.scope, err)
+		return fmt.Errorf("Error deleting Registration Assignment %q at Scope %q: %+v", id.registrationAssignmentID, id.scope, err)
 	}
 
 	// The sleep is needed to ensure the registration assignment is successfully deleted.
 	// Bug # is logged with the Product team to track this issue.
-	time.Sleep(20 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	return nil
 }

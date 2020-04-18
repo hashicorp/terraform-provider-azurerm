@@ -46,7 +46,6 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -63,6 +62,7 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 			"managed_by_tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
@@ -79,13 +79,8 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 						},
 						"role_definition_id": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.IsUUID,
-						},
-						"role_definition_name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -96,27 +91,26 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 
 func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
-	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	registrationDefinitionId := d.Get("registration_definition_id").(string)
-	if registrationDefinitionId == "" {
+	registrationDefinitionID := d.Get("registration_definition_id").(string)
+	if registrationDefinitionID == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
 			return fmt.Errorf("Error generating UUID for Registration Definition: %+v", err)
 		}
 
-		registrationDefinitionId = uuid
+		registrationDefinitionID = uuid
 	}
 
 	scope := d.Get("scope").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, registrationDefinitionId)
+		existing, err := client.Get(ctx, scope, registrationDefinitionID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Registration Definition %q (Scope %q): %+v", registrationDefinitionId, scope, err)
+				return fmt.Errorf("Error checking for presence of existing Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
 			}
 		}
 
@@ -124,60 +118,27 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 			return tf.ImportAsExistsError("azurerm_registration_definition", *existing.ID)
 		}
 	}
-	authorizations := d.Get("authorization").(*schema.Set).List()
-	results := make([]managedservices.Authorization, 0)
-	for _, item := range authorizations {
-		value := item.(map[string]interface{})
-		roleDefName := value["role_definition_name"].(string)
-		roleDefID := value["role_definition_id"].(string)
-
-		var roleDefinitionId string
-
-		if len(roleDefName) > 0 && len(roleDefID) > 0 {
-			return fmt.Errorf("Error: either role_definition_id or role_definition_name needs to be set")
-		} else if len(roleDefID) > 0 {
-			roleDefinitionId = roleDefID
-		} else if len(roleDefName) > 0 {
-			roleDefinitions, err := roleDefinitionsClient.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", roleDefName))
-			if err != nil {
-				return fmt.Errorf("Error loading Role Definition List: %+v", err)
-			}
-			if len(roleDefinitions.Values()) != 1 {
-				return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", roleDefName)
-			}
-
-			roleDefinitionId = *roleDefinitions.Values()[0].Name
-		} else {
-			return fmt.Errorf("Error: either role_definition_id or role_definition_name needs to be set")
-		}
-
-		result := managedservices.Authorization{
-			RoleDefinitionID: utils.String(roleDefinitionId),
-			PrincipalID:      utils.String(value["principal_id"].(string)),
-		}
-		results = append(results, result)
-	}
 
 	parameters := managedservices.RegistrationDefinition{
 		Properties: &managedservices.RegistrationDefinitionProperties{
 			Description:                utils.String(d.Get("description").(string)),
-			Authorizations:             &results,
+			Authorizations:             expandManagedServicesDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
 			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
 			ManagedByTenantID:          utils.String(d.Get("managed_by_tenant_id").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, registrationDefinitionId, scope, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Registration Definition %q (Scope %q): %+v", registrationDefinitionId, scope, err)
+	if _, err := client.CreateOrUpdate(ctx, registrationDefinitionID, scope, parameters); err != nil {
+		return fmt.Errorf("Error Creating/Updating Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
 	}
 
-	read, err := client.Get(ctx, scope, registrationDefinitionId)
+	read, err := client.Get(ctx, scope, registrationDefinitionID)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Registration Definition %q ID (scope %q) ID", registrationDefinitionId, scope)
+		return fmt.Errorf("Cannot read Registration Definition %q ID (scope %q) ID", registrationDefinitionID, scope)
 	}
 
 	d.SetId(*read.ID)
@@ -185,49 +146,32 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 	return resourceArmRegistrationDefinitionRead(d, meta)
 }
 
-func expandManagedServicesDefinitionAuthorization(input []interface{}) *[]managedservices.Authorization {
-	results := make([]managedservices.Authorization, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-
-		result := managedservices.Authorization{
-			RoleDefinitionID: utils.String(v["role_definition_id"].(string)),
-			PrincipalID:      utils.String(v["principal_id"].(string)),
-		}
-		results = append(results, result)
-	}
-
-	return &results
-}
-
 func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationDefinitionId(d.Id())
+	id, err := parseAzureregistrationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.scope, id.registrationDefinitionId)
+	resp, err := client.Get(ctx, id.scope, id.registrationDefinitionID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", id.registrationDefinitionId, id.scope)
+			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", id.registrationDefinitionID, id.scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", id.registrationDefinitionId, id.scope, err)
+		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", id.registrationDefinitionID, id.scope, err)
 	}
 
 	d.Set("registration_definition_id", resp.Name)
 	d.Set("scope", id.scope)
 
-	authorization := d.Get("authorization").(*schema.Set).List()
-
 	if props := resp.Properties; props != nil {
-		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(authorization)); err != nil {
+		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(props.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
@@ -238,68 +182,79 @@ func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-type registrationDefinitionID struct {
-	scope                    string
-	registrationDefinitionId string
+func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parseAzureregistrationDefinitionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Delete(ctx, id.registrationDefinitionID, id.scope)
+	if err != nil {
+		return fmt.Errorf("Error deleting Registration Definition %q at Scope %q: %+v", id.registrationDefinitionID, id.scope, err)
+	}
+
+	return nil
 }
 
-func parseAzureRegistrationDefinitionId(id string) (*registrationDefinitionID, error) {
+type registrationDefinitionID struct {
+	scope                    string
+	registrationDefinitionID string
+}
+
+func parseAzureregistrationDefinitionID(id string) (*registrationDefinitionID, error) {
 	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationDefinitions/")
 
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationDefinitions/{name} - got %d segments", len(segments))
 	}
 
-	azureRegistrationDefinitionId := registrationDefinitionID{
+	azureregistrationDefinitionID := registrationDefinitionID{
 		scope:                    segments[0],
-		registrationDefinitionId: segments[1],
+		registrationDefinitionID: segments[1],
 	}
 
-	return &azureRegistrationDefinitionId, nil
+	return &azureregistrationDefinitionID, nil
 }
 
-func flattenManagedServicesDefinitionAuthorization(input []interface{}) []interface{} {
+func flattenManagedServicesDefinitionAuthorization(input *[]managedservices.Authorization) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		//principalId := ""
-		//if item.PrincipalID != nil {
-		//principalId = *item.PrincipalID
-		//}
+	for _, item := range *input {
+		principalID := ""
+		if item.PrincipalID != nil {
+			principalID = *item.PrincipalID
+		}
 
-		//roleDefinitionId := ""
-		//if item.RoleDefinitionID != nil {
-		//roleDefinitionId = *item.RoleDefinitionID
-		//}
+		roleDefinitionID := ""
+		if item.RoleDefinitionID != nil {
+			roleDefinitionID = *item.RoleDefinitionID
+		}
 
 		results = append(results, map[string]interface{}{
-			"role_definition_id":   utils.String(v["role_definition_id"].(string)),
-			"principal_id":         utils.String(v["principal_id"].(string)),
-			"role_definition_name": utils.String(v["role_definition_name"].(string)),
+			"role_definition_id": roleDefinitionID,
+			"principal_id":       principalID,
 		})
 	}
 
 	return results
 }
 
-func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parseAzureRegistrationDefinitionId(d.Id())
-	if err != nil {
-		return err
+func expandManagedServicesDefinitionAuthorization(input []interface{}) *[]managedservices.Authorization {
+	results := make([]managedservices.Authorization, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		result := managedservices.Authorization{
+			RoleDefinitionID: utils.String(v["role_definition_id"].(string)),
+			PrincipalID:      utils.String(v["principal_id"].(string)),
+		}
+		results = append(results, result)
 	}
-
-	_, err = client.Delete(ctx, id.registrationDefinitionId, id.scope)
-	if err != nil {
-		return fmt.Errorf("Error deleting Registration Definition %q at Scope %q: %+v", id.registrationDefinitionId, id.scope, err)
-	}
-
-	return nil
+	return &results
 }
