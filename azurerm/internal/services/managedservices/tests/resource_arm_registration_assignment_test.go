@@ -209,7 +209,7 @@ resource "azurerm_registration_definition" "test" {
 
   authorization {
 	principal_id        = azuread_service_principal.test.id
-	role_definition_id  = data.azurerm_role_definition.builtin.id
+	role_definition_id  = data.azurerm_role_definition.builtin.name
   }
 }
 
@@ -263,7 +263,7 @@ resource "azurerm_registration_definition" "test" {
 
   authorization {
 	principal_id        = azuread_service_principal.test.id
-	role_definition_id  = data.azurerm_role_definition.builtin.id
+	role_definition_id  = data.azurerm_role_definition.builtin.name
   }
 }
 
@@ -305,7 +305,7 @@ resource "azurerm_registration_definition" "test" {
 
   authorization {
 	principal_id        = azuread_service_principal.test.id
-	role_definition_id  = data.azurerm_role_definition.builtin.id
+	role_definition_id  = data.azurerm_role_definition.builtin.name
   }
 }
 
@@ -346,7 +346,7 @@ resource "azurerm_registration_definition" "test" {
 		
 	authorization {
 		principal_id        = azuread_service_principal.test.id
-		role_definition_id  = data.azurerm_role_definition.builtin.id
+		role_definition_id  = data.azurerm_role_definition.builtin.name
 	}
 }
 
