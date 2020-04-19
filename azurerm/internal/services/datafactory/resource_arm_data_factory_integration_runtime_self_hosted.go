@@ -256,21 +256,6 @@ func flattenAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesRbacAuth
 	return []interface{}{result}
 }
 
-func resourceArmDataFactoryIntegrationRuntimeSelfHostedLinkHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		if v, ok := m["data_factory_name"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-		if v, ok := m["data_factory_location"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-	}
-
-	return hashcode.String(buf.String())
-}
-
 func resourceArmDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v interface{}) int {
 	var buf bytes.Buffer
 
