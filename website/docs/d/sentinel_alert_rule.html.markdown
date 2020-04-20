@@ -17,9 +17,14 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_log_analytics_workspace" "example" {
+  name                = "example"
+  resource_group_name = "example-resources"
+}
+
 data "azurerm_sentinel_alert_rule" "example" {
   name                       = "existing"
-  log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1"
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.example.id
 }
 
 output "id" {
