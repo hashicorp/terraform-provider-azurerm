@@ -140,11 +140,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlssql%d"
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url				  = "http://www.bing.com"
+  url                 = "http://www.bing.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -167,11 +167,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlssql%d"
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url				  = "http://www.google.com"
+  url                 = "http://www.google.com"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
@@ -206,11 +206,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlssql%d"
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url				  = "http://www.bing.com"
+  url                 = "http://www.bing.com"
   annotations         = ["test1", "test2"]
   description         = "test description 2"
 

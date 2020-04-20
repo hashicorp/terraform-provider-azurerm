@@ -142,11 +142,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlssql%d"
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url   = "https://www.bing.com"
+  url                 = "https://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
@@ -156,18 +156,18 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-	url = "http://www.bing.com"
-	path = "foo/bar/"
-	filename = "foo.txt"
+    url      = "http://www.bing.com"
+    path     = "foo/bar/"
+    filename = "foo.txt"
   }
 
-  column_delimiter 		= ","
-  row_delimiter 		= "NEW"
-  encoding 				= "UTF-8"
-  quote_character 		= "x"
-  escape_character 		= "f"
-  first_row_as_header 	= true
-  null_value 			= "NULL"
+  column_delimiter    = ","
+  row_delimiter       = "NEW"
+  encoding            = "UTF-8"
+  quote_character     = "x"
+  escape_character    = "f"
+  first_row_as_header = true
+  null_value          = "NULL"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -191,11 +191,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlssql%d"
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url   = "http://www.bing.com"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
@@ -205,23 +205,23 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-	url = "http://www.bing.com"
-	path = "foo/bar/"
-	filename = "foo.txt"
+    url      = "http://www.bing.com"
+    path     = "foo/bar/"
+    filename = "foo.txt"
   }
 
-  column_delimiter 		= ","
-  row_delimiter 		= "NEW"
-  encoding 				= "UTF-8"
-  quote_character 		= "x"
-  escape_character 		= "f"
-  first_row_as_header 	= true
-  null_value 			= "NULL"
+  column_delimiter    = ","
+  row_delimiter       = "NEW"
+  encoding            = "UTF-8"
+  quote_character     = "x"
+  escape_character    = "f"
+  first_row_as_header = true
+  null_value          = "NULL"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
-  
-  folder      = "testFolder"
+
+  folder = "testFolder"
 
   parameters = {
     foo = "test1"
@@ -260,11 +260,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlssql%d"
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url   = "http://www.bing.com"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_delimited_text" "test" {
@@ -274,23 +274,23 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-	url = "http://www.bing.com"
-	path = "foo/bar/"
-	filename = "foo.txt"
+    url      = "http://www.bing.com"
+    path     = "foo/bar/"
+    filename = "foo.txt"
   }
 
-  column_delimiter 		= ","
-  row_delimiter 		= "NEW"
-  encoding 				= "UTF-8"
-  quote_character 		= "x"
-  escape_character 		= "f"
-  first_row_as_header 	= true
-  null_value 			= "NULL"
+  column_delimiter    = ","
+  row_delimiter       = "NEW"
+  encoding            = "UTF-8"
+  quote_character     = "x"
+  escape_character    = "f"
+  first_row_as_header = true
+  null_value          = "NULL"
 
   description = "test description 2"
   annotations = ["test1", "test2"]
-  
-  folder      = "testFolder"
+
+  folder = "testFolder"
 
   parameters = {
     foo  = "test1"

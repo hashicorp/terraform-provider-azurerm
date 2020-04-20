@@ -145,7 +145,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
@@ -154,8 +154,8 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
-  path 					= "foo"
-  filename 				= "bar.png"
+  path     = "foo"
+  filename = "bar.png"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -182,7 +182,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
@@ -191,8 +191,8 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
-  path 					= "foo"
-  filename 				= "bar.png"
+  path     = "foo"
+  filename = "bar.png"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
@@ -238,7 +238,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string	  = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
 }
 
 resource "azurerm_data_factory_dataset_azure_blob" "test" {
@@ -247,9 +247,9 @@ resource "azurerm_data_factory_dataset_azure_blob" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
 
-  path 					= "foo"
-  filename 				= "bar.png"
-  
+  path     = "foo"
+  filename = "bar.png"
+
   description = "test description 2"
   annotations = ["test1", "test2"]
   folder      = "testFolder"

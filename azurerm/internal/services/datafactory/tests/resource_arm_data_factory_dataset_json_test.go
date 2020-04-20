@@ -146,7 +146,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url   = "http://www.bing.com"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_json" "test" {
@@ -156,12 +156,12 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-	url = "http://www.bing.com"
-	path = "foo/bar/"
-	filename = "foo.json"
+    url      = "http://www.bing.com"
+    path     = "foo/bar/"
+    filename = "foo.json"
   }
 
-  encoding 				= "UTF-8"
+  encoding = "UTF-8"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -188,7 +188,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url   = "http://www.bing.com"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_json" "test" {
@@ -198,12 +198,12 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-	url = "http://www.bing.com"
-	path = "foo/bar/"
-	filename = "foo.json"
+    url      = "http://www.bing.com"
+    path     = "foo/bar/"
+    filename = "foo.json"
   }
 
-  encoding 				= "UTF-8"
+  encoding = "UTF-8"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
@@ -250,7 +250,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url   = "http://www.bing.com"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_json" "test" {
@@ -258,14 +258,14 @@ resource "azurerm_data_factory_dataset_json" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
-  
+
   http_server_location {
-	url = "http://www.bing.com"
-	path = "foo/bar/"
-	filename = "foo.json"
+    url      = "http://www.bing.com"
+    path     = "foo/bar/"
+    filename = "foo.json"
   }
 
-  encoding 				= "UTF-8"
+  encoding = "UTF-8"
 
   description = "test description 2"
   annotations = ["test1", "test2"]

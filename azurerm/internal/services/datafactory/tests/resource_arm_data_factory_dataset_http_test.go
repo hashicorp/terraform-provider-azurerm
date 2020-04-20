@@ -142,12 +142,12 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                	= "acctestlssql%d"
-  resource_group_name 	= azurerm_resource_group.test.name
-  data_factory_name   	= azurerm_data_factory.test.name
+  name                = "acctestlsweb%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
 
-  authentication_type 	= "Anonymous"
-  url   				= "http://www.bing.com"
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_http" "test" {
@@ -156,9 +156,9 @@ resource "azurerm_data_factory_dataset_http" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  url 					= "http://www.bing.com"
-  request_body 			= "OK"
-  request_method 		= "POST"
+  url            = "http://www.bing.com"
+  request_body   = "OK"
+  request_method = "POST"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -182,12 +182,12 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                	= "acctestlssql%d"
-  resource_group_name 	= azurerm_resource_group.test.name
-  data_factory_name   	= azurerm_data_factory.test.name
+  name                = "acctestlsweb%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
 
-  authentication_type 	= "Anonymous"
-  url   				= "http://www.bing.com"
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_http" "test" {
@@ -196,9 +196,9 @@ resource "azurerm_data_factory_dataset_http" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  url 					= "http://www.bing.com"
-  request_body 			= "OK"
-  request_method 		= "POST"
+  url            = "http://www.bing.com"
+  request_body   = "OK"
+  request_method = "POST"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
@@ -241,11 +241,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_web" "test" {
-  name                	= "acctestlssql%d"
-  resource_group_name 	= azurerm_resource_group.test.name
-  data_factory_name   	= azurerm_data_factory.test.name
-  authentication_type 	= "Anonymous"
-  url   				= "http://www.bing.com"
+  name                = "acctestlsweb%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
 resource "azurerm_data_factory_dataset_http" "test" {
@@ -254,10 +254,10 @@ resource "azurerm_data_factory_dataset_http" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  url 					= "http://www.bing.com"
-  request_body 			= "OK"
-  request_method 		= "POST"
-  
+  url            = "http://www.bing.com"
+  request_body   = "OK"
+  request_method = "POST"
+
   description = "test description 2"
   annotations = ["test1", "test2"]
   folder      = "testFolder"
