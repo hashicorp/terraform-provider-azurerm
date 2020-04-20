@@ -1829,9 +1829,11 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 		backendAddresses := make([]network.ApplicationGatewayBackendAddress, 0)
 
 		for _, ip := range v["fqdns"].([]interface{}) {
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-				Fqdn: utils.String(ip.(string)),
-			})
+			if ip != nil {
+				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+					Fqdn: utils.String(ip.(string)),
+				})
+			}
 		}
 		for _, ip := range v["ip_addresses"].([]interface{}) {
 			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
