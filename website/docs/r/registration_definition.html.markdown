@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_registration_definition
 
-Manages a Registration Definition, used to assign Registration Definitions to Registration Assignments.
+Manages a Registration Definition.
 
 ## Example Usage
 
@@ -74,10 +74,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Role Definition.
+* `create` - (Defaults to 30 minutes) Used when creating the Registration Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Registration Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Registration Definition.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Registration Definition.
 
 ## Import
 

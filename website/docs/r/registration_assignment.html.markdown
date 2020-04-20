@@ -68,10 +68,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Role Definition.
+* `create` - (Defaults to 30 minutes) Used when creating the Registration Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Registration Assignment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Registration Assignment.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Registration Assignment.
 
 ## Import
 
