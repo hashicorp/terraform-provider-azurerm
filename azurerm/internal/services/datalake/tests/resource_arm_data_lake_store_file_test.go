@@ -98,10 +98,7 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 }
 
 func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
