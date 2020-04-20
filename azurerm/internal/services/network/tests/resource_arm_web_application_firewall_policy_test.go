@@ -244,6 +244,11 @@ resource "azurerm_web_application_firewall_policy" "test" {
       version = "3.1"
     }
   }
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
