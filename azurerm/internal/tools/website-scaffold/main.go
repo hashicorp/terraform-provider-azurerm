@@ -538,7 +538,7 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 
 	if field.Elem != nil {
 		if _, ok := field.Elem.(*schema.Resource); ok {
-			fmtBlock := func(name string, minItem, maxItem int, blockIsBefore bool) string {
+			fmtBlock := func(name string, maxItem int, blockIsBefore bool) string {
 				var head string
 				if maxItem == 1 {
 					head = fmt.Sprintf("A `%s` block", name)
@@ -554,7 +554,7 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 				}
 				return head + " " + tail
 			}
-			return fmtBlock(name, field.MinItems, field.MaxItems, gen.blockIsBefore(name, blockName))
+			return fmtBlock(name, field.MaxItems, gen.blockIsBefore(name, blockName))
 		}
 	}
 

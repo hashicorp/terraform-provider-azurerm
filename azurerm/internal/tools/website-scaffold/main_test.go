@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * 'map' - (Required) Specifies a list of TODO.
 
-* 'name' - (Required) The Name which should be used for this Foobar. Changing this forces a new Foobar to be created.
+* 'name' - (Required) The name which should be used for this Foobar. Changing this forces a new Foobar to be created.
 
 * 'resource_group_name' - (Required) The name of the Resource Group where the Foobar should exist. Changing this forces a new Foobar to be created.
 
