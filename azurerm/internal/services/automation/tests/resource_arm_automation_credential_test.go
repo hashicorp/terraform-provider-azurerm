@@ -33,10 +33,7 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -33,10 +33,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

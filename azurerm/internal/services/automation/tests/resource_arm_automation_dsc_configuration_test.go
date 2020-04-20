@@ -38,10 +38,7 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
