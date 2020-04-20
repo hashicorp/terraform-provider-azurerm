@@ -385,10 +385,7 @@ func TestAccWindowsVirtualMachine_otherProvisionVMAgentDisabled(t *testing.T) {
 }
 
 func TestAccWindowsVirtualMachine_otherRequiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 

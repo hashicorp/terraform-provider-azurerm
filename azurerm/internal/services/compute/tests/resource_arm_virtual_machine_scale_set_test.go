@@ -40,10 +40,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSet_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
 	resource.ParallelTest(t, resource.TestCase{

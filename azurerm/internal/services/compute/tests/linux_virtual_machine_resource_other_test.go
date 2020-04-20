@@ -232,10 +232,7 @@ func TestAccLinuxVirtualMachine_otherProvisionVMAgentDisabled(t *testing.T) {
 }
 
 func TestAccLinuxVirtualMachine_otherRequiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 

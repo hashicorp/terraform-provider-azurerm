@@ -36,10 +36,7 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
