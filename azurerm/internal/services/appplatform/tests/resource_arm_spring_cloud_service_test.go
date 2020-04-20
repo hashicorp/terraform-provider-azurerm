@@ -101,10 +101,7 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 }
 
 func TestAccAzureRMSpringCloudService_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
 
