@@ -33,11 +33,7 @@ func TestAccAzureRMHealthCareService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
+	
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
