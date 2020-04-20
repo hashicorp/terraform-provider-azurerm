@@ -117,6 +117,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
 							},
 						},
 
