@@ -39,10 +39,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
