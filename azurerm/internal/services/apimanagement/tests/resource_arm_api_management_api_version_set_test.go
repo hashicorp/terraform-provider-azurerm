@@ -32,10 +32,7 @@ func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementApiVersionSet_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_version_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

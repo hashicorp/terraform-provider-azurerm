@@ -32,10 +32,7 @@ func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 
 	resource.Test(t, resource.TestCase{
