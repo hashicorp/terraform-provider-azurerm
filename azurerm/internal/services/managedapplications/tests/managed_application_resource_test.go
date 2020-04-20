@@ -169,12 +169,12 @@ func testAccAzureRMManagedApplication_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_managed_application" "test" {
-  name                       = "acctestManagedApp%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  kind                       = "ServiceCatalog"
-  target_resource_group_name = "infraGroup%d"
-  application_definition_id  = azurerm_managed_application_definition.test.id
+  name                        = "acctestManagedApp%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infraGroup%d"
+  application_definition_id   = azurerm_managed_application_definition.test.id
 
   parameters = {
     location                 = azurerm_resource_group.test.location
@@ -203,11 +203,11 @@ func testAccAzureRMManagedApplication_complete(data acceptance.TestData) string 
 %s
 
 resource "azurerm_managed_application" "test" {
-  name                       = "acctestCompleteManagedApp%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  kind                       = "MarketPlace"
-  target_resource_group_name = "completeInfraGroup%d"
+  name                        = "acctestCompleteManagedApp%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "MarketPlace"
+  managed_resource_group_name = "completeInfraGroup%d"
 
   plan {
     name      = "meraki-vmx100"

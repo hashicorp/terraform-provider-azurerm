@@ -62,7 +62,7 @@ func resourceManagedApplication() *schema.Resource {
 				}, false),
 			},
 
-			"target_resource_group_name": azure.SchemaResourceGroupName(),
+			"managed_resource_group_name": azure.SchemaResourceGroupName(),
 
 			"application_definition_id": {
 				Type:         schema.TypeString,
@@ -144,7 +144,7 @@ func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interfa
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("target_resource_group_name"); ok {
+	if v, ok := d.GetOk("managed_resource_group_name"); ok {
 		targetResourceGroupId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", meta.(*clients.Client).Account.SubscriptionId, v)
 		parameters.ApplicationProperties = &managedapplications.ApplicationProperties{
 			ManagedResourceGroupID: utils.String(targetResourceGroupId),
@@ -222,7 +222,7 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 	}
 	if props := resp.ApplicationProperties; props != nil {
 		parsedManagedResourceGroupID := strings.Split(*props.ManagedResourceGroupID, "/")
-		d.Set("target_resource_group_name", parsedManagedResourceGroupID[len(parsedManagedResourceGroupID)-1])
+		d.Set("managed_resource_group_name", parsedManagedResourceGroupID[len(parsedManagedResourceGroupID)-1])
 		d.Set("application_definition_id", props.ApplicationDefinitionID)
 
 		if v := props.Parameters; v != nil {

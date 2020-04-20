@@ -44,12 +44,12 @@ resource "azurerm_managed_application_definition" "example" {
 }
 
 resource "azurerm_managed_application" "example" {
-  name                       = "example-managedapplication"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  kind                       = "ServiceCatalog"
-  target_resource_group_name = "infrastructureGroup"
-  application_definition_id  = azurerm_managed_application_definition.example.id
+  name                        = "example-managedapplication"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infrastructureGroup"
+  application_definition_id   = azurerm_managed_application_definition.example.id
 
   parameters = {
     location                 = azurerm_resource_group.example.location
@@ -69,9 +69,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Required) The kind of the managed application. Possible values are `MarketPlace` and `ServiceCatalog`.
+* `kind` - (Required) The kind of the managed application. Possible values are `MarketPlace` and `ServiceCatalog`. Changing this forces a new resource to be created.
 
-* `target_resource_group_name` - (Required) The name of the target resource group which includes resources managed by Managed Application.
+* `managed_resource_group_name` - (Required) The name of the target resource group which holds all the resources that are required by the managed application. Changing this forces a new resource to be created.
 
 * `application_definition_id` - (Optional) The fully qualified path of managed application definition ID.
 
