@@ -33,7 +33,7 @@ func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

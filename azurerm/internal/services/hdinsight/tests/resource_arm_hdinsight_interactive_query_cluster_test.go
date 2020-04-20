@@ -62,7 +62,7 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

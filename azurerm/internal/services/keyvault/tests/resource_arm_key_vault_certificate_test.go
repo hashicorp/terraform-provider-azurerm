@@ -36,7 +36,7 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

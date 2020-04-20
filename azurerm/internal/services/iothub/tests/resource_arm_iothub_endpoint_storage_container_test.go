@@ -38,7 +38,7 @@ func TestAccAzureRMIotHubEndpointStorageContainer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
-		data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

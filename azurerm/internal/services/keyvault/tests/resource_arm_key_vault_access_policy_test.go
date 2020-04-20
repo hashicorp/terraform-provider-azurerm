@@ -38,7 +38,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

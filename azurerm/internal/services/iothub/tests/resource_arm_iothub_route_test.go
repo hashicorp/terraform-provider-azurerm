@@ -34,7 +34,7 @@ func TestAccAzureRMIotHubRoute_basic(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -62,7 +62,7 @@ func TestAccAzureRMHDInsightKafkaCluster_gen2storage(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightKafkaCluster_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

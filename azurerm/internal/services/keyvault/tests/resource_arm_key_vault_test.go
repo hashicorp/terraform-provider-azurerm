@@ -35,7 +35,7 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVault_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

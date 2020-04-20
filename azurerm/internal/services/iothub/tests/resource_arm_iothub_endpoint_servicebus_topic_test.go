@@ -34,7 +34,7 @@ func TestAccAzureRMIotHubEndpointServiceBusTopic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

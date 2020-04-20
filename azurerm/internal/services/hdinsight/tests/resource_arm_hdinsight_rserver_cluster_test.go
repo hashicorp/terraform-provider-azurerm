@@ -39,7 +39,7 @@ func TestAccAzureRMHDInsightRServerCluster_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightRServerCluster_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_rserver_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

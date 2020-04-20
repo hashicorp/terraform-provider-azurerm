@@ -51,7 +51,7 @@ func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
 }
 
 func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

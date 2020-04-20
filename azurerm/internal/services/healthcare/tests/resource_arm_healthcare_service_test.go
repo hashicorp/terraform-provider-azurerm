@@ -33,7 +33,7 @@ func TestAccAzureRMHealthCareService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
