@@ -6,8 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/sergi/go-diff/diffmatchpatch"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 const (
@@ -16,20 +14,6 @@ const (
 	RESOURCE_ID      = "12345"
 	WEBSITE_CATEGORY = "Foobar Category"
 )
-
-func setupDocGen(isDataSource bool, resource *schema.Resource) documentationGenerator {
-	var toStrPtr = func(input string) *string {
-		return &input
-	}
-	return documentationGenerator{
-		resourceName:      RESOURCE_NAME,
-		brandName:         BRAND_NAME,
-		resourceId:        toStrPtr(RESOURCE_ID),
-		isDataSource:      isDataSource,
-		websiteCategories: []string{WEBSITE_CATEGORY},
-		resource:          resource,
-	}
-}
 
 func TestResourceArgumentBlock(t *testing.T) {
 	expectedOut := strings.ReplaceAll(`## Arguments Reference
@@ -87,8 +71,16 @@ A 'block3' block supports the following:
 				Required: true,
 				ForceNew: true,
 			},
-			"resource_group_name": azure.SchemaResourceGroupName(),
-			"location":            azure.SchemaLocation(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"location": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 			"foo_enabled": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -150,15 +142,18 @@ A 'block3' block supports the following:
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tags.Schema(),
+			"tags": tagsSchema(),
 		},
 	}
 	gen := setupDocGen(false, resource)
-
 	actualOut := gen.argumentsBlock()
 
+	runTest(t, expectedOut, actualOut)
+}
+
+func runTest(t *testing.T, expected, actual string) {
 	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(actualOut, expectedOut, true)
+	diffs := dmp.DiffMain(actual, expected, true)
 	hasDiff := false
 	for _, diff := range diffs {
 		if diff.Type != diffmatchpatch.DiffEqual {
@@ -168,5 +163,33 @@ A 'block3' block supports the following:
 	}
 	if hasDiff {
 		t.Fatal(dmp.DiffPrettyText(diffs))
+	}
+}
+
+func setupDocGen(isDataSource bool, resource *schema.Resource) documentationGenerator {
+	var toStrPtr = func(input string) *string {
+		return &input
+	}
+	return documentationGenerator{
+		resourceName:      RESOURCE_NAME,
+		brandName:         BRAND_NAME,
+		resourceId:        toStrPtr(RESOURCE_ID),
+		isDataSource:      isDataSource,
+		websiteCategories: []string{WEBSITE_CATEGORY},
+		resource:          resource,
+	}
+}
+
+func tagsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeMap,
+		Optional: true,
+		ValidateFunc: func(i interface{}, s string) (warnings []string, errors []error) {
+			// doesn't matter, purely for consistency
+			return
+		},
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
