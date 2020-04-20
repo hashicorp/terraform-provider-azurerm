@@ -411,6 +411,13 @@ func flattenDeliveryRuleConditions(conditions *[]cdn.BasicDeliveryRuleCondition)
 				return ok
 			},
 		},
+		"request_header_condition": {
+			flattenFunc: deliveryruleconditions.FlattenArmCdnEndpointConditionRequestHeader,
+			validateFunc: func(condition cdn.BasicDeliveryRuleCondition) bool {
+				_, ok := condition.AsDeliveryRuleRequestHeaderCondition()
+				return ok
+			},
+		},
 		"request_method_condition": {
 			flattenFunc: deliveryruleconditions.FlattenArmCdnEndpointConditionRequestMethod,
 			validateFunc: func(condition cdn.BasicDeliveryRuleCondition) bool {
