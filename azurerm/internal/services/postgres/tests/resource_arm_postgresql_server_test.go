@@ -574,7 +574,7 @@ resource "azurerm_postgresql_server" "test" {
   storage_mb = 640000
 
   backup_retention_days        = 7
-  backup_geo_redundant_enabled = true
+  geo_redundant_backup_enabled = true
   auto_grow_enabled            = true
 
   infrastructure_encryption_enabled = true

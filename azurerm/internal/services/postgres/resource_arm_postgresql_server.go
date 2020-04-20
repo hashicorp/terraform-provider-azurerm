@@ -141,7 +141,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
-							ConflictsWith: []string{"backup_geo_redundant_enabled"},
+							ConflictsWith: []string{"geo_redundant_backup_enabled"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
@@ -182,7 +182,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc:  validation.IntBetween(7, 35),
 			},
 
-			"backup_geo_redundant_enabled": {
+			"geo_redundant_backup_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Computed:      true, // TODO: remove in 2.0 and default to false
@@ -548,7 +548,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("storage_mb", storage.StorageMB)
 			d.Set("backup_retention_days", storage.BackupRetentionDays)
 			d.Set("auto_grow_enabled", storage.StorageAutogrow == postgresql.StorageAutogrowEnabled)
-			d.Set("backup_geo_redundant_enabled", storage.GeoRedundantBackup == postgresql.Enabled)
+			d.Set("geo_redundant_backup_enabled", storage.GeoRedundantBackup == postgresql.Enabled)
 		}
 
 		// Computed
@@ -641,7 +641,7 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := d.GetOk("backup_geo_redundant_enabled"); ok {
+	if v, ok := d.GetOk("geo_redundant_backup_enabled"); ok {
 		storage.GeoRedundantBackup = postgresql.Disabled
 		if v.(bool) {
 			storage.GeoRedundantBackup = postgresql.Enabled
