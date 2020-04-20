@@ -31,10 +31,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+	
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
