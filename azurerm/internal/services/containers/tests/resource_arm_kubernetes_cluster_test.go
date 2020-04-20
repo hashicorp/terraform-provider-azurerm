@@ -51,6 +51,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"enableNodePublicIP":                          testAccAzureRMKubernetesCluster_enableNodePublicIP,
 			"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
 			"basicLoadBalancerProfile":                    testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
+			"changingLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
 			"prefixedLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
 			"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
 			"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
@@ -91,8 +92,8 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
 			"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
 			"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
-			"privateLinkOn":                  testAccAzureRMKubernetesCluster_privateLinkOn,
-			"privateLinkOff":                 testAccAzureRMKubernetesCluster_privateLinkOff,
+			"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
+			"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
 		},
 		"scaling": {
 			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
@@ -127,7 +128,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
 			"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
 			"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
-			"privateLink":                                 testAccDataSourceAzureRMKubernetesCluster_privateLink,
+			"privateCluster":                              testAccDataSourceAzureRMKubernetesCluster_privateCluster,
 		},
 	}
 

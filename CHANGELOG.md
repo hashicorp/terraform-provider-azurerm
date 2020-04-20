@@ -1,33 +1,53 @@
-## 2.6.0 (Unreleased)
-
-FEATURES:
-
-* **New Data Source:** `azurerm_policy_set_definition` [GH-6305]
+## 2.7.0 (Unreleased)
 
 IMPROVEMENTS:
 
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v41.2.0` [GH-6419]
-* Data Source: `azurerm_policy_definition`: can now lookup with `name` [GH-6275]
-* Data Source: `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
-* `azurerm_application_insights` - support for the `disable_ip_masking` property [GH-6354]
-* `azurerm_function_app` - support for the `pre_warmed_instance_count` property [GH-6333]
-* `azurerm_hdinsight_hadoop_cluster` - support for the `tls_min_version` property [GH-6440]
-* `azurerm_hdinsight_hbase_cluster` - support for the `tls_min_version` property [GH-6440]
-* `azurerm_hdinsight_interactive_query_cluster` - support for the `tls_min_version` property [GH-6440]
-* `azurerm_hdinsight_kafka_cluster` - support for the `tls_min_version` property [GH-6440]
-* `azurerm_hdinsight_ml_services_cluster` - support for the `tls_min_version` property [GH-6440]
-* `azurerm_hdinsight_rserver_cluster` - support for the `tls_min_version` property [GH-6440]
-* `azurerm_hdinsight_spark_cluster` - support for the `tls_min_version` property [GH-6440]
-* `azurerm_hdinsight_storm_cluster` - support the `threat_detection_policy` property [GH-6437]
-* `azurerm_network_interface` - export the `internal_domain_name_suffix` property [GH-6455]
-* `azurerm_policy_definition`: the `management_group_id` has been deprecated and renamed to `management_group_name` [GH-6275]
-* `azurerm_sql_server` - support for the `connection_policy` property [GH-6438]
-* `azurerm_virtual_network` - export the `guid` attribute [GH-6445]
+* dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
+* `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
 
 BUG FIXES:
 
-* `azurerm_function_app` - prevent a panic from the API returning an empty IP Security Restriction [GH-6442]
-* `azurerm_machine_learning_workspace` - the `Enterprise` sku will now propertly work [GH-6397]
+* Data Source: `azurerm_private_link_service` - fixing a crash when parsing the response [GH-6504]
+
+## 2.6.0 (April 16, 2020)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_policy_set_definition` ([#6305](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6305))
+
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v41.2.0` ([#6419](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6419))
+* Data Source: `azurerm_policy_definition` - can now lookup with `name` ([#6275](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6275))
+* Data Source: `azurerm_policy_definition` - the field `management_group_id` has been deprecated and renamed to `management_group_name` ([#6275](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6275))
+* `azurerm_application_insights` - support for the `disable_ip_masking` property ([#6354](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6354))
+* `azurerm_cdn_endpoint` - support for configuring `delivery_rule` ([#6163](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6163))
+* `azurerm_cdn_endpoint` - support for configuring `global_delivery_rule` ([#6163](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6163))
+* `azurerm_function_app` - support for the `pre_warmed_instance_count` property ([#6333](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6333))
+* `azurerm_hdinsight_hadoop_cluster` - support for the `tls_min_version` property ([#6440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6440))
+* `azurerm_hdinsight_hbase_cluster` - support for the `tls_min_version` property ([#6440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6440))
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `tls_min_version` property ([#6440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6440))
+* `azurerm_hdinsight_kafka_cluster` - support for the `tls_min_version` property ([#6440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6440))
+* `azurerm_hdinsight_ml_services_cluster` - support for the `tls_min_version` property ([#6440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6440))
+* `azurerm_hdinsight_rserver_cluster` - support for the `tls_min_version` property ([#6440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6440))
+* `azurerm_hdinsight_spark_cluster` - support for the `tls_min_version` property ([#6440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6440))
+* `azurerm_hdinsight_storm_cluster` - support the `threat_detection_policy` property ([#6437](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6437))
+* `azurerm_kubernetes_cluster` - exporting the `kubelet_identity` ([#6393](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6393))
+* `azurerm_kubernetes_cluster` - support for updating the `managed_outbound_ip_count`, `outbound_ip_prefix_ids` and `outbound_ip_address_ids` fields within the `load_balancer_profile` block ([#5847](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5847))
+* `azurerm_network_interface` - export the `internal_domain_name_suffix` property ([#6455](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6455))
+* `azurerm_policy_definition` - the `management_group_id` has been deprecated and renamed to `management_group_name` ([#6275](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6275))
+* `azurerm_sql_server` - support for the `connection_policy` property ([#6438](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6438))
+* `azurerm_virtual_network` - export the `guid` attribute ([#6445](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6445))
+
+BUG FIXES:
+
+* Data Source: `azurerm_data_factory`- fixing a bug where the ID wasn't set ([#6492](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6492))
+* Data Source: `azurerm_eventhub_namespace_authorization_rule` - ensuring the `id` field is set ([#6496](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6496))
+* Data Source: `azurerm_mariadb_server` - ensuring the `id` field is set ([#6496](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6496))
+* Data Source: `azurerm_network_ddos_protection_plan` - ensuring the `id` field is set ([#6496](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6496))
+* `azurerm_function_app` - prevent a panic from the API returning an empty IP Security Restriction ([#6442](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6442))
+* `azurerm_machine_learning_workspace` - the `Enterprise` sku will now properly work ([#6397](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6397))
+* `azurerm_managed_disk`-  fixing a bug where the machine would be stopped regardless of whether it was currently shut down or not ([#4690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4690))
 
 ## 2.5.0 (April 09, 2020)
 

@@ -18,7 +18,6 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_prefix(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_prefixDataSource(data),
@@ -44,7 +43,6 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_attached(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_attachedDataSource(data),
@@ -72,7 +70,6 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_allocationType(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(data),
