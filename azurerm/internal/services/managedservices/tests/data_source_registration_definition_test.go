@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -12,6 +13,7 @@ import (
 
 func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_registration_definition", "test")
+	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -19,7 +21,7 @@ func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceRegistrationDefinition_basic(id, data),
+				Config: testAccDataSourceRegistrationDefinition_basic(id, secondTenantID, data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
@@ -35,7 +37,7 @@ func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceRegistrationDefinition_basic(id string, data acceptance.TestData) string {
+func testAccDataSourceRegistrationDefinition_basic(id string, secondTenantID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -60,7 +62,7 @@ resource "azurerm_registration_definition" "test" {
   registration_definition_id = "%s"
   name                       = "acctestrd-%d"
   scope                      = data.azurerm_subscription.primary.id
-  managed_by_tenant_id       = "70b0b1ee-ab4d-4c83-816a-2957afa9ea0b"
+  managed_by_tenant_id       = "%s"
 
   authorization {
 	principal_id        = azuread_service_principal.test.id
@@ -72,5 +74,5 @@ data "azurerm_registration_definition" "test" {
   registration_definition_id = azurerm_registration_definition.test.registration_definition_id
   scope              		 = data.azurerm_subscription.primary.id
 }
-`, data.RandomInteger, id, data.RandomInteger)
+`, data.RandomInteger, id, data.RandomInteger, secondTenantID)
 }
