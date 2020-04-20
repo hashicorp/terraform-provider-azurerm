@@ -58,11 +58,7 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 }
 
 func TestAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
+	
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
