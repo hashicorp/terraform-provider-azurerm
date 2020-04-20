@@ -161,7 +161,7 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	var natPoolId string
-	for _, InboundNatPool := range *(*read.LoadBalancerPropertiesFormat).InboundNatPools {
+	for _, InboundNatPool := range *read.LoadBalancerPropertiesFormat.InboundNatPools {
 		if *InboundNatPool.Name == name {
 			natPoolId = *InboundNatPool.ID
 		}

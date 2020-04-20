@@ -1,7 +1,6 @@
 API Management
 Analysis Services
 App Configuration
-App Platform
 App Service (Web Apps)
 Application Insights
 Authorization
@@ -52,6 +51,7 @@ Redis
 Search
 Security Center
 Service Fabric
+Spring Cloud
 Storage
 Stream Analytics
 Template

@@ -112,9 +112,8 @@ func (client TenantConfigurationClient) DeployPreparer(ctx context.Context, reso
 // DeploySender sends the Deploy request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantConfigurationClient) DeploySender(req *http.Request) (future TenantConfigurationDeployFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -205,8 +204,7 @@ func (client TenantConfigurationClient) GetSyncStatePreparer(ctx context.Context
 // GetSyncStateSender sends the GetSyncState request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantConfigurationClient) GetSyncStateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSyncStateResponder handles the response to the GetSyncState request. The method always
@@ -291,9 +289,8 @@ func (client TenantConfigurationClient) SavePreparer(ctx context.Context, resour
 // SaveSender sends the Save request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantConfigurationClient) SaveSender(req *http.Request) (future TenantConfigurationSaveFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -383,9 +380,8 @@ func (client TenantConfigurationClient) ValidatePreparer(ctx context.Context, re
 // ValidateSender sends the Validate request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantConfigurationClient) ValidateSender(req *http.Request) (future TenantConfigurationValidateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

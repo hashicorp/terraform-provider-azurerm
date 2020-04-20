@@ -18,7 +18,9 @@ func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNatGateway_basic(data),
-				Check:  resource.ComposeTestCheckFunc(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+				),
 			},
 		},
 	})

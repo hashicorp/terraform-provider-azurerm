@@ -409,6 +409,7 @@ func TestAccAzureRMManagedDisk_attachedStorageTypeUpdate(t *testing.T) {
 	})
 }
 
+// nolint unparam
 func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient

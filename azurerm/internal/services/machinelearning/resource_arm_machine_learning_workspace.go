@@ -173,7 +173,10 @@ func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta inte
 		Name:     &name,
 		Location: &location,
 		Tags:     tags.Expand(t),
-		Sku:      &machinelearningservices.Sku{Name: utils.String(skuName)},
+		Sku: &machinelearningservices.Sku{
+			Name: utils.String(skuName),
+			Tier: utils.String(skuName),
+		},
 		Identity: expandArmMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{})),
 		WorkspaceProperties: &machinelearningservices.WorkspaceProperties{
 			StorageAccount:      &storageAccountId,
@@ -291,6 +294,7 @@ func resourceArmMachineLearningWorkspaceUpdate(d *schema.ResourceData, meta inte
 		skuName := d.Get("sku_name").(string)
 		update.Sku = &machinelearningservices.Sku{
 			Name: &skuName,
+			Tier: &skuName,
 		}
 	}
 

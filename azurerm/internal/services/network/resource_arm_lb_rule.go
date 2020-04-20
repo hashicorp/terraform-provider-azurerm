@@ -197,7 +197,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	var ruleId string
-	for _, LoadBalancingRule := range *(*read.LoadBalancerPropertiesFormat).LoadBalancingRules {
+	for _, LoadBalancingRule := range *read.LoadBalancerPropertiesFormat.LoadBalancingRules {
 		if *LoadBalancingRule.Name == name {
 			ruleId = *LoadBalancingRule.ID
 		}

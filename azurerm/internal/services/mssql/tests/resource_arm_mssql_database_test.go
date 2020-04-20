@@ -300,6 +300,39 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data, "Enabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.retention_days", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.disabled_alerts.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
+				),
+			},
+			data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+			{
+				Config: testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data, "Disabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Disabled"),
+				),
+			},
+			data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		},
+	})
+}
+
 func testCheckAzureRMMsSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.DatabasesClient
@@ -631,4 +664,43 @@ resource "azurerm_mssql_database" "secondary" {
 
 }
 `, template, data.RandomInteger, data.Locations.Secondary)
+}
+
+func testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data acceptance.TestData, state string) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "test%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name         = "acctest-db-%[2]d"
+  server_id    = azurerm_sql_server.test.id
+  collation    = "SQL_AltDiction_CP850_CI_AI"
+  license_type = "BasePrice"
+  max_size_gb  = 1
+  sample_name  = "AdventureWorksLT"
+  sku_name     = "GP_Gen4_2"
+
+  threat_detection_policy {
+    retention_days             = 15
+    state                      = "%[3]s"
+    disabled_alerts            = ["Sql_Injection"]
+    email_account_admins       = "Enabled"
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    use_server_default         = "Disabled"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger, state)
 }
